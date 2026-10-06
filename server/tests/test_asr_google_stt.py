@@ -1,6 +1,9 @@
+import json
 import os
+import queue
 import wave
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from google.api_core import exceptions as gexc
@@ -9,7 +12,9 @@ from google.cloud.speech_v2.types import cloud_speech
 from core.providers.asr import google_stt
 from core.providers.asr.base import ASRProviderBase
 from core.providers.asr.dto.dto import InterfaceType
-from tests.conftest import ASSETS_DIR, OVERLAY_DIR
+from core.providers.tts.base import TTSProviderBase
+from core.providers.tts.dto.dto import ContentType, SentenceType
+from tests.conftest import ASSETS_DIR, CREDENTIALS, LIVE, OVERLAY_DIR
 
 PCM_ONE_SECOND = b"\x00\x01" * 16000
 
@@ -181,11 +186,99 @@ async def test_invalid_argument_with_auto_does_not_loop(tmp_path, monkeypatch):
     assert len(client.calls) == 1
 
 
-async def test_audio_over_sync_limit_is_trimmed(tmp_path, monkeypatch):
+OVERLONG_PCM = b"\x00" * (google_stt.MAX_SYNC_AUDIO_BYTES + 2)
+
+
+class FakeWebSocket:
+    def __init__(self):
+        self.sent = []
+
+    async def send(self, message):
+        self.sent.append(json.loads(message))
+
+
+class FakeTTS:
+    tts_one_sentence = TTSProviderBase.tts_one_sentence
+
+    def __init__(self):
+        self.tts_text_queue = queue.Queue()
+
+
+def make_conn():
+    return SimpleNamespace(
+        session_id="sid",
+        sentence_id="previous",
+        client_abort=True,
+        client_is_speaking=False,
+        websocket=FakeWebSocket(),
+        tts=FakeTTS(),
+        config={},
+    )
+
+
+def _drain(q):
+    items = []
+    while not q.empty():
+        items.append(q.get_nowait())
+    return items
+
+
+async def test_audio_over_sync_limit_is_rejected_not_trimmed(tmp_path, monkeypatch, log_records):
     provider, client = make_provider(tmp_path, monkeypatch, responses=[_response(("long", "en-US"))])
-    pcm = b"\x00" * (google_stt.MAX_SYNC_AUDIO_BYTES + 32000)
-    await provider.speech_to_text([], "sid", artifacts_for(pcm))
-    assert len(client.calls[0]["request"].content) == google_stt.MAX_SYNC_AUDIO_BYTES
+    assert await provider.speech_to_text([], "sid", artifacts_for(OVERLONG_PCM)) == ("", None)
+    assert client.calls == []
+    assert any(level == "warning" and "59s" in msg for level, msg in log_records)
+
+
+async def test_audio_at_sync_limit_is_recognized(tmp_path, monkeypatch):
+    provider, client = make_provider(tmp_path, monkeypatch, responses=[_response(("ok", "en-US"))])
+    pcm = b"\x00" * google_stt.MAX_SYNC_AUDIO_BYTES
+    assert await provider.speech_to_text([], "sid", artifacts_for(pcm)) == ("ok", None)
+    assert client.calls[0]["request"].content == pcm
+
+
+async def test_voice_stop_over_limit_speaks_too_long_reply(tmp_path, monkeypatch, log_records):
+    provider, client = make_provider(tmp_path, monkeypatch, responses=[])
+    delegated = []
+    monkeypatch.setattr(
+        ASRProviderBase, "handle_voice_stop", lambda self, conn, task: delegated.append(task)
+    )
+    conn = make_conn()
+    await provider.handle_voice_stop(conn, [OVERLONG_PCM[:1000], OVERLONG_PCM[1000:]])
+
+    assert delegated == [] and client.calls == []
+    assert conn.websocket.sent == [{"type": "tts", "state": "start", "session_id": "sid"}]
+    assert conn.client_is_speaking is True and conn.client_abort is False
+    items = _drain(conn.tts.tts_text_queue)
+    assert {item.sentence_id for item in items} == {conn.sentence_id} != {"previous"}
+    assert items[0].sentence_type == SentenceType.FIRST
+    assert items[-1].sentence_type == SentenceType.LAST
+    spoken = "".join(i.content_detail for i in items if i.content_type == ContentType.TEXT)
+    assert spoken == google_stt.DEFAULT_TOO_LONG_REPLY
+    assert any(level == "warning" and "59s" in msg for level, msg in log_records)
+
+
+async def test_voice_stop_too_long_reply_is_configurable(tmp_path, monkeypatch):
+    provider, _ = make_provider(tmp_path, too_long_reply="太长了，请简短地再说一遍。")
+    conn = make_conn()
+    await provider.handle_voice_stop(conn, [OVERLONG_PCM])
+    items = _drain(conn.tts.tts_text_queue)
+    spoken = "".join(i.content_detail for i in items if i.content_type == ContentType.TEXT)
+    assert spoken == "太长了，请简短地再说一遍。"
+
+
+async def test_voice_stop_within_limit_delegates_to_base(tmp_path, monkeypatch):
+    provider, _ = make_provider(tmp_path)
+    delegated = []
+
+    async def base_handle_voice_stop(self, conn, task):
+        delegated.append(task)
+
+    monkeypatch.setattr(ASRProviderBase, "handle_voice_stop", base_handle_voice_stop)
+    conn = make_conn()
+    await provider.handle_voice_stop(conn, [PCM_ONE_SECOND])
+    assert delegated == [[PCM_ONE_SECOND]]
+    assert conn.websocket.sent == [] and conn.tts.tts_text_queue.empty()
 
 
 async def test_missing_credentials_file_fails_soft(tmp_path, log_records):
@@ -252,16 +345,12 @@ def _pcm_from_wav(path):
         return wav.readframes(wav.getnframes())
 
 
-@pytest.mark.skipif(os.environ.get("RUN_LIVE_TESTS") != "1", reason="RUN_LIVE_TESTS=1 not set")
+@pytest.mark.skipif(not LIVE, reason="RUN_LIVE_TESTS=1 not set")
+@pytest.mark.skipif(not CREDENTIALS, reason="GOOGLE_SA_FILE not set")
 async def test_live_recognize_english_and_mandarin(tmp_path, log_records):
-    credentials_file = os.environ.get("GOOGLE_STT_CREDENTIALS_FILE") or os.environ.get(
-        "GOOGLE_APPLICATION_CREDENTIALS"
-    )
-    if not credentials_file:
-        pytest.skip("GOOGLE_STT_CREDENTIALS_FILE not set")
     provider, _ = make_provider(
         tmp_path,
-        credentials_file=credentials_file,
+        credentials_file=CREDENTIALS,
         project_id=os.environ.get("GOOGLE_STT_PROJECT_ID", ""),
         location=os.environ.get("GOOGLE_STT_LOCATION", "us"),
     )

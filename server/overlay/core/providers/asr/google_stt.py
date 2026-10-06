@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import uuid
 import asyncio
 from typing import List, Optional, Sequence, Tuple
 
@@ -15,6 +16,8 @@ from google.oauth2 import service_account
 from config.logger import setup_logging
 from core.providers.asr.base import ASRProviderBase
 from core.providers.asr.dto.dto import InterfaceType
+from core.handle.sendAudioHandle import send_tts_message
+from core.providers.tts.dto.dto import ContentType, SentenceType, TTSMessageDTO
 
 TAG = __name__
 logger = setup_logging()
@@ -24,6 +27,7 @@ BYTES_PER_SECOND = SAMPLE_RATE_HZ * 2
 MAX_SYNC_AUDIO_BYTES = 59 * BYTES_PER_SECOND  # Recognize accepts at most 60 s
 DEFAULT_LANGUAGE_CODES = ("en-US", "cmn-Hans-CN")
 AUTO_LANGUAGE_CODES = ("auto",)
+DEFAULT_TOO_LONG_REPLY = "Sorry, that was too long for me. Please say it again, a bit shorter."
 _CJK = r"[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]"
 _CJK_INNER_SPACE = re.compile(rf"(?<={_CJK})\s+(?={_CJK})")
 
@@ -47,6 +51,7 @@ class ASRProvider(ASRProviderBase):
         ).lower() in ("true", "1", "yes")
         self.timeout = float(config.get("timeout", 15))
         self.output_dir = config.get("output_dir") or "tmp/"
+        self.too_long_reply = config.get("too_long_reply") or DEFAULT_TOO_LONG_REPLY
         self.delete_audio_file = delete_audio_file
         self._client: Optional[SpeechClient] = None
         os.makedirs(self.output_dir, exist_ok=True)
@@ -122,10 +127,8 @@ class ASRProvider(ASRProviderBase):
             return "", None
         pcm_bytes = artifacts.pcm_bytes
         if len(pcm_bytes) > MAX_SYNC_AUDIO_BYTES:
-            logger.bind(tag=TAG).warning(
-                f"音频超过同步识别上限，截断为 {MAX_SYNC_AUDIO_BYTES // BYTES_PER_SECOND}s"
-            )
-            pcm_bytes = pcm_bytes[:MAX_SYNC_AUDIO_BYTES]
+            self._log_too_long(len(pcm_bytes))
+            return "", None
         start_time = time.monotonic()
         try:
             try:
@@ -149,6 +152,49 @@ class ASRProvider(ASRProviderBase):
             f"语音识别耗时: {time.monotonic() - start_time:.3f}s | 语言: {language_code} | 结果: {text}"
         )
         return text, None
+
+    @staticmethod
+    def _log_too_long(num_bytes: int):
+        logger.bind(tag=TAG).warning(
+            f"音频 {num_bytes / BYTES_PER_SECOND:.1f}s 超过同步识别上限 "
+            f"{MAX_SYNC_AUDIO_BYTES // BYTES_PER_SECOND}s，已拒绝"
+        )
+
+    async def handle_voice_stop(self, conn, asr_audio_task: List[bytes]):
+        """Utterances over the Recognize limit are not transcribed; the device speaks too_long_reply."""
+        num_bytes = sum(len(chunk) for chunk in asr_audio_task)
+        if num_bytes <= MAX_SYNC_AUDIO_BYTES:
+            await super().handle_voice_stop(conn, asr_audio_task)
+            return
+        self._log_too_long(num_bytes)
+        try:
+            await self._speak(conn, self.too_long_reply)
+        except Exception as e:
+            logger.bind(tag=TAG).error(f"超长提示播报失败: {e}")
+
+    @staticmethod
+    async def _speak(conn, text: str):
+        conn.client_abort = False
+        sentence_id = conn.sentence_id = uuid.uuid4().hex
+        await send_tts_message(conn, "start")
+        conn.client_is_speaking = True
+        conn.tts.tts_text_queue.put(
+            TTSMessageDTO(
+                sentence_id=sentence_id,
+                sentence_type=SentenceType.FIRST,
+                content_type=ContentType.ACTION,
+            )
+        )
+        conn.tts.tts_one_sentence(
+            conn, ContentType.TEXT, content_detail=text, sentence_id=sentence_id
+        )
+        conn.tts.tts_text_queue.put(
+            TTSMessageDTO(
+                sentence_id=sentence_id,
+                sentence_type=SentenceType.LAST,
+                content_type=ContentType.ACTION,
+            )
+        )
 
     async def close(self):
         client, self._client = self._client, None

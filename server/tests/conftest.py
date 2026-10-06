@@ -27,10 +27,7 @@ VENDOR_DIR = (
 ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 
 LIVE = os.environ.get("RUN_LIVE_TESTS") == "1"
-CREDENTIALS = os.environ.get(
-    "GOOGLE_APPLICATION_CREDENTIALS",
-    str(Path.home() / "Projects" / "ha-agent" / ".secrets" / "google-cloud-ha.json"),
-)
+CREDENTIALS = os.environ.get("GOOGLE_SA_FILE", "")
 TEST_CONFIG = {
     "selected_module": {"TTS": "GoogleTTS"},
     "TTS": {
