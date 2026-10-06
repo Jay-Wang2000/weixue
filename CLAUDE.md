@@ -19,4 +19,4 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 - Never commit or push directly to `main`. Every task is a `feat/*` branch.
 - After the review and test gates pass and the user approves the spec, push the branch to the personal remote and open a pull request (follow the `creating-pull-requests` skill). The PR is merged on GitHub; `main` is only advanced by merged PRs.
 - Each task = one commit (squash before opening the PR) + one PR titled `<task-id>: <short description>`, body linking `DESIGN.md` and the spec doc. No footers.
-- Remote `origin` is the personal repo `Jay-Wang2000/weixue` over the `github.com-personal` SSH alias (to be created). Upstream forks (`xiaozhi-esp32`, `xiaozhi-esp32-server`) get their own PR-per-change workflow on the forks.
+- Remote: deferred (2026-10-06). Until `Jay-Wang2000/weixue` exists, approved branches are merged locally with `git merge --no-ff` so dependent tasks can build on them; once the remote exists, push `main` and switch to PRs for every later task. Upstream code (`xiaozhi-esp32`, `xiaozhi-esp32-server`) is vendored locally for now; forks come with the remote.
