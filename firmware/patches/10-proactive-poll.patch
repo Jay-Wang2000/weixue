@@ -1,0 +1,135 @@
+--- a/main/application.h
++++ b/main/application.h
+@@ -153,6 +153,8 @@
+     bool pending_listening_start_ = false;  // Waiting for playback to drain before starting listening (auto mode)
+     int clock_ticks_ = 0;
+     TaskHandle_t activation_task_handle_ = nullptr;
++    std::string proactive_poll_url_;
++    TaskHandle_t proactive_task_handle_ = nullptr;
+ 
+ 
+     // Event handlers
+@@ -172,6 +174,9 @@
+     void StartNotification(std::string audio_url, std::vector<NotifySubtitle> subtitles);
+     void StopNotification();
+     void HandleNotificationFinished(uint32_t playback_id, bool success);
++    void StartProactivePoller(const std::string& ota_url);
++    void ProactivePollTask();
++    void ProactiveInvoke();
+ 
+     // Activation task (runs in background)
+     void ActivationTask();
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -16,10 +16,18 @@
+ #include <esp_log.h>
+ #include <arpa/inet.h>
+ #include <cJSON.h>
++#include <algorithm>
+ #include <cstring>
+ #include <limits>
+ 
+ #define TAG "Application"
++
++// Long-poll endpoint on the OTA host: 200 = proactive message pending, 204 = none.
++static constexpr const char* kProactivePollPath = "/weixue/proactive/poll";
++static constexpr const char* kProactiveWakeText = "weixue:proactive";
++static constexpr int kProactivePollTimeoutMs = 40000;  // exceeds the server's hold time
++static constexpr int kProactiveRetryMinMs = 5000;
++static constexpr int kProactiveRetryMaxMs = 60000;
+ 
+ Application::Application() : notify_player_(audio_service_) {
+     event_group_ = xEventGroupCreate();
+@@ -348,6 +356,8 @@
+         display->ShowNotification(message.c_str());
+         display->SetChatMessage("system", "");
+     }
++
++    StartProactivePoller(ota_->GetCheckVersionUrl());
+ 
+     // Release OTA object after activation is complete
+     ota_.reset();
+@@ -1162,8 +1172,83 @@
+     ESP_LOGI(TAG, "Notification playback %lu %s", static_cast<unsigned long>(playback_id),
+              success ? "completed" : "failed");
+     StopNotification();
++}
++
++// Polls only while idle; on 200 opens a session whose wake text asks the server to deliver.
++void Application::StartProactivePoller(const std::string& ota_url) {
++    if (proactive_task_handle_ != nullptr) {
++        return;
++    }
++    auto scheme = ota_url.find("://");
++    if (scheme == std::string::npos) {
++        ESP_LOGW(TAG, "Proactive poller disabled: invalid OTA URL");
++        return;
++    }
++    proactive_poll_url_ = ota_url.substr(0, ota_url.find('/', scheme + 3)) + kProactivePollPath;
++    ESP_LOGI(TAG, "Proactive poller: %s", proactive_poll_url_.c_str());
++    xTaskCreate(
++        [](void* arg) {
++            static_cast<Application*>(arg)->ProactivePollTask();
++            vTaskDelete(NULL);
++        },
++        "proactive", 4096 * 2, this, 2, &proactive_task_handle_);
+ }
+ 
++void Application::ProactivePollTask() {
++    int retry_ms = kProactiveRetryMinMs;
++    while (true) {
++        if (GetDeviceState() != kDeviceStateIdle) {
++            vTaskDelay(pdMS_TO_TICKS(1000));
++            continue;
++        }
++        int status = 0;
++        auto http = Board::GetInstance().GetNetwork()->CreateHttp(0);
++        http->SetTimeout(kProactivePollTimeoutMs);
++        http->SetHeader("Device-Id", SystemInfo::GetMacAddress());
++        if (http->Open("GET", proactive_poll_url_)) {
++            auto code = http->GetStatusCode();
++            if (code) {
++                status = *code;
++                http->ReadAll();
++            }
++            http->Close();
++        }
++        if (status == 200) {
++            retry_ms = kProactiveRetryMinMs;
++            ESP_LOGI(TAG, "Proactive message pending");
++            Schedule([this]() { ProactiveInvoke(); });
++            vTaskDelay(pdMS_TO_TICKS(2000));
++        } else if (status == 204) {
++            retry_ms = kProactiveRetryMinMs;
++            vTaskDelay(pdMS_TO_TICKS(1000));
++        } else {
++            ESP_LOGW(TAG, "Proactive poll failed (status %d), retry in %d ms", status, retry_ms);
++            vTaskDelay(pdMS_TO_TICKS(retry_ms));
++            retry_ms = std::min(retry_ms * 2, kProactiveRetryMaxMs);
++        }
++    }
++}
++
++void Application::ProactiveInvoke() {
++    if (!protocol_ || GetDeviceState() != kDeviceStateIdle ||
++        !SetDeviceState(kDeviceStateConnecting)) {
++        return;
++    }
++    Schedule([this]() {
++        if (GetDeviceState() != kDeviceStateConnecting) {
++            return;
++        }
++        Board::GetInstance().SetPowerSaveLevel(PowerSaveLevel::PERFORMANCE);
++        if (!protocol_->IsAudioChannelOpened() && !protocol_->OpenAudioChannel()) {
++            SetDeviceState(kDeviceStateIdle);
++            return;
++        }
++        ESP_LOGI(TAG, "Proactive session opened");
++        protocol_->SendWakeWordDetected(kProactiveWakeText);
++        SetListeningMode(GetDefaultListeningMode());
++    });
++}
++
+ void Application::Schedule(std::function<void()>&& callback) {
+     {
+         std::lock_guard<std::mutex> lock(mutex_);

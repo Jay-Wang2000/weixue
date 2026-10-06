@@ -62,14 +62,34 @@ def test_garbage_still_removed(chunk, expected):
     assert PATCHED(chunk) == expected
 
 
-def test_apply_patches_connection_handler_once(monkeypatch):
+def test_apply_patches_each_hook_once(monkeypatch):
     connection = types.ModuleType("core.connection")
+    listen = types.ModuleType("core.handle.textHandler.listenMessageHandler")
+    http_server = types.ModuleType("core.http_server")
+
+    async def handle_connection(self, ws):
+        return None
+
+    async def handle(self, conn, msg_json):
+        return None
 
     class ConnectionHandler:
         _clean_response_garbage = staticmethod(UPSTREAM)
 
+    ConnectionHandler.handle_connection = handle_connection
+
+    class ListenTextMessageHandler:
+        pass
+
+    ListenTextMessageHandler.handle = handle
+    web = types.SimpleNamespace(Application=lambda: types.SimpleNamespace(routes=[]))
+
     connection.ConnectionHandler = ConnectionHandler
+    listen.ListenTextMessageHandler = ListenTextMessageHandler
+    http_server.web = web
     monkeypatch.setitem(sys.modules, "core.connection", connection)
+    monkeypatch.setitem(sys.modules, "core.handle.textHandler.listenMessageHandler", listen)
+    monkeypatch.setitem(sys.modules, "core.http_server", http_server)
 
     weixue_patches.apply()
     weixue_patches.apply()
@@ -78,3 +98,7 @@ def test_apply_patches_connection_handler_once(monkeypatch):
     assert patched.weixue_wrapped is UPSTREAM
     assert patched("two is ") == "two is "
     assert ConnectionHandler()._clean_response_garbage("two is ") == "two is "
+    assert ConnectionHandler.handle_connection.weixue_wrapped is handle_connection
+    assert ListenTextMessageHandler.handle.weixue_wrapped is handle
+    assert isinstance(http_server.web, weixue_patches.WebWithRoutes)
+    assert http_server.web._web is web

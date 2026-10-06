@@ -1,0 +1,178 @@
+# feat-proactive on the 1.75C (7c:0c:5f:42:4b:fc), 2026-10-06, times UTC+1 (server log UTC-7).
+# Firmware: branch build with CONFIG_OTA_URL on :18003 (isolated branch server container on 18000/18003; live server untouched), then the committed :8003 build. Filtered to proactive, state, transcript, OTA and boot lines.
+
+## serial, test-OTA build
+22:15:13 I (106) app_init: App version:      2.5.1
+22:15:14 I (1958) StateMachine: State: unknown -> starting
+22:15:16 I (3688) WifiStation: Got IP: 192.168.8.148
+22:15:16 I (3688) StateMachine: State: starting -> activating
+22:15:16 I (3898) Ota: Current version: 2.5.1
+22:15:17 I (4468) Ota: No mqtt section found !
+22:15:17 I (4468) Ota: Current is the latest version
+22:15:17 I (4468) Ota: Running partition: ota_0
+22:15:17 I (4488) Application: Activation done
+22:15:17 I (4488) StateMachine: State: activating -> idle
+22:15:17 I (4488) Application: Proactive poller: http://192.168.8.220:18003/weixue/proactive/poll
+22:15:17 I (4528) AfeAudioEngine: Model 0: wn9_jarvis_tts
+22:15:40 I (27308) Application: Proactive message pending
+22:15:40 I (27308) StateMachine: State: idle -> connecting
+22:15:40 I (27318) WS: Connecting to websocket server: ws://192.168.8.220:18000/xiaozhi/v1/ with version: 1
+22:15:40 I (27458) WS: Session ID: 3cbf633d-0fee-4174-b938-2cc34a7cbe38
+22:15:40 I (27478) Application: Proactive session opened
+22:15:40 I (27478) StateMachine: State: connecting -> listening
+22:15:40 I (27518) StateMachine: State: listening -> speaking
+22:15:40 I (27518) Application: << Water detected under the kitchen sink
+22:15:43 I (30088) StateMachine: State: speaking -> listening
+22:15:43 I (30088) WS: Websocket disconnected
+22:15:43 I (30098) StateMachine: State: listening -> idle
+22:16:12 I (60018) Application: Proactive message pending
+22:16:12 I (60018) StateMachine: State: idle -> connecting
+22:16:12 I (60038) WS: Connecting to websocket server: ws://192.168.8.220:18000/xiaozhi/v1/ with version: 1
+22:16:12 I (60128) WS: Session ID: 9f0ee265-9d6f-46a6-9d86-004d1ec895d2
+22:16:12 I (60148) Application: Proactive session opened
+22:16:12 I (60148) StateMachine: State: connecting -> listening
+22:16:12 I (60178) StateMachine: State: listening -> speaking
+22:16:12 I (60178) Application: << Water detected under the kitchen sink. Do you want me to turn off the main water valve?
+22:16:18 I (65208) StateMachine: State: speaking -> listening
+22:16:23 I (70788) Application: >> Yes
+22:16:23 I (70788) StateMachine: State: listening -> speaking
+22:16:26 I (73538) Application: << I can't shut the valve from here
+22:16:28 I (75768) Application: << because I don't have a control for it. Please turn off the main water valve by hand right now. Do you want me to look up how to find it?
+22:16:37 I (84528) StateMachine: State: speaking -> listening
+22:16:45 I (92098) WS: Websocket disconnected
+22:16:45 I (92098) StateMachine: State: listening -> idle
+22:16:50 I (97368) Application: Proactive message pending
+22:16:50 I (97368) StateMachine: State: idle -> connecting
+22:16:50 I (97388) WS: Connecting to websocket server: ws://192.168.8.220:18000/xiaozhi/v1/ with version: 1
+22:16:50 I (97458) WS: Session ID: 7c7f2da3-ff3a-43ba-af7d-e6cb983e8c49
+22:16:50 I (97478) Application: Proactive session opened
+22:16:50 I (97478) StateMachine: State: connecting -> listening
+22:16:50 I (97498) Application: << 厨房水槽下面检测到漏水
+22:16:50 I (97498) StateMachine: State: listening -> speaking
+22:16:53 I (100498) Application: << 要我关掉总水阀吗？
+22:16:56 I (103408) StateMachine: State: speaking -> listening
+22:17:00 I (107318) Application: >> 嗯
+22:17:00 I (107318) StateMachine: State: listening -> speaking
+22:17:02 I (109848) Application: << 抱歉
+22:17:03 I (110748) Application: << 我现在没法控制总水阀，没能帮你关上
+22:17:07 I (114948) Application: << 请你尽快手动关掉水槽下面的角阀或者总水阀，再把水擦干
+22:17:14 I (121678) StateMachine: State: speaking -> listening
+22:17:22 I (129248) WS: Websocket disconnected
+22:17:22 I (129248) StateMachine: State: listening -> idle
+22:17:27 I (134418) Application: Proactive message pending
+22:17:27 I (134418) StateMachine: State: idle -> connecting
+22:17:27 I (134438) WS: Connecting to websocket server: ws://192.168.8.220:18000/xiaozhi/v1/ with version: 1
+22:17:27 I (134498) WS: Session ID: 8f7ee6fd-0487-4034-98c6-f48cd7acab52
+22:17:27 I (134518) Application: Proactive session opened
+22:17:27 I (134518) StateMachine: State: connecting -> listening
+22:17:27 I (134538) Application: << The front door has been open for ten minutes. Should I remind you again later?
+22:17:27 I (134538) StateMachine: State: listening -> speaking
+22:17:32 I (139588) StateMachine: State: speaking -> listening
+22:17:39 I (147178) WS: Websocket disconnected
+22:17:39 I (147178) StateMachine: State: listening -> idle
+22:18:04 I (172148) Application: Wake word detected: Jarvis (state: 3)
+22:18:04 I (172148) StateMachine: State: idle -> connecting
+22:18:04 I (172158) WS: Connecting to websocket server: ws://192.168.8.220:18000/xiaozhi/v1/ with version: 1
+22:18:05 I (172268) WS: Session ID: 7b7f4ab4-20b3-46eb-99fc-223f8ba2b33a
+22:18:05 I (172288) Application: Wake word detected: Jarvis
+22:18:05 I (172428) StateMachine: State: connecting -> listening
+22:18:05 I (172438) Application: >> Jarvis
+22:18:05 I (172448) StateMachine: State: listening -> speaking
+22:18:05 I (172448) StateMachine: State: speaking -> listening
+22:18:08 I (175278) StateMachine: State: listening -> speaking
+22:18:08 I (175278) Application: << The washing machine has finished
+22:18:10 I (177858) StateMachine: State: speaking -> listening
+22:18:11 I (178618) Application: >> Ben
+22:18:11 I (178618) StateMachine: State: listening -> speaking
+22:18:12 I (180158) Application: << Hi Ben
+22:18:13 I (181008) Application: << What can I do for you?
+22:18:15 I (182748) StateMachine: State: speaking -> listening
+22:18:23 I (190458) WS: Websocket disconnected
+22:18:23 I (190468) StateMachine: State: listening -> idle
+22:18:41 I (209088) Application: Proactive message pending
+22:18:41 I (209088) StateMachine: State: idle -> connecting
+22:18:42 I (209108) WS: Connecting to websocket server: ws://192.168.8.220:18000/xiaozhi/v1/ with version: 1
+22:18:42 I (209208) WS: Session ID: 604eb586-7deb-4ffb-9a3c-a1c7412a952e
+22:18:42 I (209228) Application: Proactive session opened
+22:18:42 I (209228) StateMachine: State: connecting -> listening
+22:18:42 I (209318) StateMachine: State: listening -> speaking
+22:18:42 I (209328) Application: << Urgent message during mute
+22:18:44 I (212048) WS: Websocket disconnected
+22:18:44 I (212048) StateMachine: State: speaking -> listening
+22:18:44 I (212068) StateMachine: State: listening -> idle
+22:18:51 I (218598) Application: Proactive message pending
+22:18:51 I (218598) StateMachine: State: idle -> connecting
+22:18:51 I (218618) WS: Connecting to websocket server: ws://192.168.8.220:18000/xiaozhi/v1/ with version: 1
+22:18:51 I (218808) WS: Session ID: 148e93c7-d710-456c-9bdd-8de4476dee34
+22:18:51 I (218828) Application: Proactive session opened
+22:18:51 I (218828) StateMachine: State: connecting -> listening
+22:18:51 I (218858) StateMachine: State: listening -> speaking
+22:18:51 I (218858) Application: << Normal message held by mute
+22:18:54 I (221408) StateMachine: State: speaking -> listening
+22:18:54 I (221408) WS: Websocket disconnected
+22:18:54 I (221428) StateMachine: State: listening -> idle
+
+## webhook responses / final status
+announce: {"id": "2b91c8a8a3e0446b823757c2dd19b308", "mode": "announce", "status": "delivered", "device": null, "attempts": 1, "created_at": "2026-10-06T21:15:39+00:00", "finished_at": "2026-10-06T21:15:42+00:00"}
+yes: {"id": "ea1771dc0e3943efab4343984f0a1c1f", "mode": "conversation", "status": "answered", "device": null, "attempts": 1, "created_at": "2026-10-06T21:16:12+00:00", "finished_at": "2026-10-06T21:16:23+00:00", "reply": "Yes."}
+mm: {"id": "7d7a82d145734e7a8a18c8db492c6784", "mode": "conversation", "status": "answered", "device": null, "attempts": 1, "created_at": "2026-10-06T21:16:49+00:00", "finished_at": "2026-10-06T21:17:00+00:00", "reply": "嗯。"}
+noreply: {"id": "758ba2b8a445431c806767eee2cfd664", "mode": "conversation", "status": "no_reply", "device": null, "attempts": 1, "created_at": "2026-10-06T21:17:27+00:00", "finished_at": "2026-10-06T21:17:39+00:00"}
+busy: {"id": "2f8c4318d6984a8da8c9de051d1f533e", "mode": "announce", "status": "delivered", "device": null, "attempts": 1, "created_at": "2026-10-06T21:18:06+00:00", "finished_at": "2026-10-06T21:18:10+00:00"}
+
+## mute / urgent
+mute:
+{"muted": true, "muted_until": "2026-10-06T21:23:34+00:00"}
+normal:
+{"id": "474057cf6ca34da285727c5a6e14a215", "mode": "announce", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-06T21:18:34+00:00", "finished_at": null, "reason": "muted"}
+after 6 s:
+{"devices": {"7c:0c:5f:42:4b:fc": {"session_open": false, "last_poll_seconds_ago": 0.1, "reachable": true}}, "muted": true, "muted_until": "2026-10-06T21:23:34+00:00", "queued": [{"id": "474057cf6ca34da285727c5a6e14a215", "mode": "announce", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-06T21:18:34+00:00", "finished_at": null, "reason": "muted"}]}
+urgent:
+{"id": "734422e6558c4ac1976c9a388bc1b444", "mode": "announce", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-06T21:18:40+00:00", "finished_at": null}
+unmute:
+{"muted": false, "muted_until": null}
+final:
+{"id": "474057cf6ca34da285727c5a6e14a215", "mode": "announce", "status": "delivered", "device": null, "attempts": 1, "created_at": "2026-10-06T21:18:34+00:00", "finished_at": "2026-10-06T21:18:54+00:00"}
+
+## server (branch container): proactive, STT, LLM input
+261006 14:15:39[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2b91c8a8a3e0446b823757c2dd19b308 queued: mode=announce device=any urgent=False ttl=600
+261006 14:15:40[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2b91c8a8a3e0446b823757c2dd19b308 delivering: attempt=1 session=3cbf633d-0fee-4174-b938-2cc34a7cbe38 invoked=True
+261006 14:15:42[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2b91c8a8a3e0446b823757c2dd19b308 delivered
+261006 14:15:43[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.552s | 语言: en-US | 结果: What?
+261006 14:16:12[0.9.7_00000000000000][weixue_proactive]-INFO-proactive ea1771dc0e3943efab4343984f0a1c1f queued: mode=conversation device=any urgent=False ttl=600
+261006 14:16:12[0.9.7_00000000000000][weixue_proactive]-INFO-proactive ea1771dc0e3943efab4343984f0a1c1f delivering: attempt=1 session=9f0ee265-9d6f-46a6-9d86-004d1ec895d2 invoked=True
+261006 14:16:23[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.445s | 语言: en-US | 结果: Yes.
+261006 14:16:23[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Yes.
+261006 14:16:23[0.9.7_00000000000000][weixue_proactive]-INFO-proactive ea1771dc0e3943efab4343984f0a1c1f answered
+261006 14:16:49[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 7d7a82d145734e7a8a18c8db492c6784 queued: mode=conversation device=any urgent=False ttl=600
+261006 14:16:50[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 7d7a82d145734e7a8a18c8db492c6784 delivering: attempt=1 session=7c7f2da3-ff3a-43ba-af7d-e6cb983e8c49 invoked=True
+261006 14:16:53[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.267s | 语言: None | 结果: 
+261006 14:17:00[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.205s | 语言: cmn-Hans-CN | 结果: 嗯。
+261006 14:17:00[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: 嗯。
+261006 14:17:00[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 7d7a82d145734e7a8a18c8db492c6784 answered
+261006 14:17:27[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 758ba2b8a445431c806767eee2cfd664 queued: mode=conversation device=any urgent=False ttl=600
+261006 14:17:27[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 758ba2b8a445431c806767eee2cfd664 delivering: attempt=1 session=8f7ee6fd-0487-4034-98c6-f48cd7acab52 invoked=True
+261006 14:17:39[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 758ba2b8a445431c806767eee2cfd664 no_reply
+261006 14:18:06[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2f8c4318d6984a8da8c9de051d1f533e queued: mode=announce device=any urgent=False ttl=600
+261006 14:18:07[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2f8c4318d6984a8da8c9de051d1f533e delivering: attempt=1 session=7b7f4ab4-20b3-46eb-99fc-223f8ba2b33a invoked=False
+261006 14:18:10[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2f8c4318d6984a8da8c9de051d1f533e delivered
+261006 14:18:11[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.374s | 语言: en-US | 结果: Ben
+261006 14:18:11[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Ben
+261006 14:18:34[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 474057cf6ca34da285727c5a6e14a215 queued: mode=announce device=any urgent=False ttl=600
+261006 14:18:40[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 734422e6558c4ac1976c9a388bc1b444 queued: mode=announce device=any urgent=True ttl=600
+261006 14:18:42[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 734422e6558c4ac1976c9a388bc1b444 delivering: attempt=1 session=604eb586-7deb-4ffb-9a3c-a1c7412a952e invoked=True
+261006 14:18:44[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 734422e6558c4ac1976c9a388bc1b444 delivered
+261006 14:18:51[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 474057cf6ca34da285727c5a6e14a215 delivering: attempt=1 session=148e93c7-d710-456c-9bdd-8de4476dee34 invoked=True
+261006 14:18:54[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 474057cf6ca34da285727c5a6e14a215 delivered
+
+## serial, committed :8003 build against the live server (endpoint not deployed there)
+22:20:19 I (3908) Ota: Current version: 2.5.1
+22:20:20 I (4408) Ota: No mqtt section found !
+22:20:20 I (4418) Ota: Current is the latest version
+22:20:20 I (4418) Ota: Running partition: ota_0
+22:20:20 I (4418) Application: Activation done
+22:20:20 I (4418) StateMachine: State: activating -> idle
+22:20:20 I (4428) Application: Proactive poller: http://192.168.8.220:8003/weixue/proactive/poll
+22:20:20 I (4448) AfeAudioEngine: Model 0: wn9_jarvis_tts
+22:20:20 W (4558) Application: Proactive poll failed (status 404), retry in 5000 ms
+22:20:25 W (9728) Application: Proactive poll failed (status 404), retry in 10000 ms
+22:20:35 W (19798) Application: Proactive poll failed (status 404), retry in 20000 ms
