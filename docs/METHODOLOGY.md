@@ -14,7 +14,7 @@ How this project is run, as practised in the 2026-10-06 session. Keep this curre
 3. **Briefs**: before a wave, one verified implementation brief per task (`docs/briefs/<task>.md`): facts with `file:line` or URL citations, skeptic-checked, with an explicit UNVERIFIED list.
 4. **Wave execution** (one Workflow per wave):
    - Developer (Opus) in a sibling worktree `../weixue-wt-<slug>` on `feat/*` or `fix/*`, one squashed commit, writes `.claude/status/dev-complete.json` + `spec.md`, or `question.json` when blocked on a user-only decision.
-   - Gate: 3–4 review lenses (Sonnet) → every finding judged by 2 skeptics (Sonnet) trying to refute it → confirmed issues only → independent tester (Sonnet). Errors or test failure trigger up to 2 fix passes.
+   - Gate: 3–4 review lenses (Sonnet) → findings deduplicated by file+title and capped at the 5 highest-severity per lens; `info` is not verified, `warning` gets 1 skeptic, `error` gets 2 skeptics (Sonnet) trying to refute → confirmed issues only → independent tester (Sonnet). Errors or test failure trigger up to 2 fix passes.
    - End-to-end rule: every gate's tester runs the full live path (wake → STT → LLM → [HA] → TTS → device audio) using the live stack and `say`; mocked tests alone never pass a gate.
    - Hardware rule: firmware/UI/behaviour changes are flashed and exercised on the real device by the tester; speech is driven with macOS `say`; evidence (redacted logs, photos) goes under `docs/logs/`.
    - One board, many agents: the device lock `~/Projects/weixue-vendor/.device-lock` (mkdir to acquire) serialises serial/flash/stack-restart access.
