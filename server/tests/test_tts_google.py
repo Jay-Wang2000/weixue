@@ -1,7 +1,7 @@
 """Google Cloud TTS provider (server/overlay/core/providers/tts/google_tts.py).
 
 Mocked by default; RUN_LIVE_TESTS=1 adds one real smoke test using the service
-account at GOOGLE_APPLICATION_CREDENTIALS (default: ha-agent google-cloud-ha.json).
+account at GOOGLE_SA_FILE.
 """
 import asyncio
 import io
@@ -397,6 +397,7 @@ def test_close_releases_transport():
 
 
 @pytest.mark.skipif(not LIVE, reason="RUN_LIVE_TESTS=1 required")
+@pytest.mark.skipif(not CREDENTIALS, reason="GOOGLE_SA_FILE not set")
 @pytest.mark.skipif(not HAVE_OPUS, reason="libopus not available")
 def test_live_smoke_first_audio_latency(tmp_path, monkeypatch):
     monkeypatch.setattr(texttospeech, "TextToSpeechClient", REAL_CLIENT)

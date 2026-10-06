@@ -1,4 +1,4 @@
-# Backend server (feat-server)
+# Backend server
 
 xiaozhi-esp32-server 0.9.7 in Docker Compose on the Mac (Rancher Desktop). The server image is built from the upstream clone at `${WEIXUE_VENDOR:-~/Projects/weixue-vendor}/xiaozhi-esp32-server`, pinned in `vendor.lock`; `setup.sh` refuses to build if the clone is not at that commit or has local changes. The resulting image carries the commit in its `org.opencontainers.image.revision` label. Other images are pinned by digest in `vendor.lock`, `docker-compose.yml` and `.env.example`.
 
@@ -12,7 +12,7 @@ Replace `<LAN_IP>` with `LAN_IP` from `server/.env`.
 | WebSocket (returned by OTA) | `ws://<LAN_IP>:8000/xiaozhi/v1/` |
 | Vision explain | `http://<LAN_IP>:8003/mcp/vision/explain` |
 
-`GET` on the OTA URL returns a plain-text banner; the device `POST`s JSON with `Device-Id` and `Client-Id` headers and receives `{"server_time":…,"firmware":…,"websocket":{"url":"ws://<LAN_IP>:8000/xiaozhi/v1/","token":""}}`.
+`GET` on the OTA URL returns a plain-text banner. The device `POST`s JSON with `Device-Id` and `Client-Id` headers and receives the *OTA response*: `{"server_time":…,"firmware":…,"websocket":{"url":"ws://<LAN_IP>:8000/xiaozhi/v1/","token":""}}`.
 
 Auth is disabled (`server.auth.enabled: false`). feat-firmware-base enables `server.auth.enabled` and `allowed_devices` once the device MAC is known.
 
@@ -31,7 +31,9 @@ ws://<host>:8004/mcp_endpoint/mcp/?token=<AES-encrypted token>
 
 ## Adding provider code
 
-`server/overlay/` is the only way to add or change server code. Its contents mirror `main/xiaozhi-server/` of the upstream clone (for example `server/overlay/core/providers/llm/<name>/<name>.py`) and are copied over the upstream tree at image build (`server/Dockerfile`, `__pycache__` excluded from both). Python packages the overlay needs beyond the upstream base image are pinned in `server/requirements-overlay.txt`, installed by the same Dockerfile. With the overlay empty the image equals upstream. Apply with `./scripts/setup.sh`. The vendored clone is never edited.
+`server/overlay/` is the only way to add or change server code. Its contents mirror `main/xiaozhi-server/` of the upstream clone (for example `server/overlay/core/providers/llm/<name>/<name>.py`) and are copied over the upstream tree at image build (`server/Dockerfile`, `__pycache__` excluded from both). Python packages the overlay needs beyond the upstream base image are pinned in `server/requirements-overlay.txt`, installed by the same Dockerfile. Apply with `./scripts/setup.sh`. The vendored clone is never edited.
+
+Changes to upstream functions that are too small to justify overriding a whole module go in `server/overlay/weixue_patches.py`. The image's entrypoint, `weixue_main.py`, applies them and then runs upstream `app.py`. Current patch: `ConnectionHandler._clean_response_garbage` keeps a streamed chunk's trailing whitespace when the chunk ends in non-CJK text and no JSON closing characters were removed from its end. Upstream strips it from every chunk, so English words at chunk edges run together ("isfour").
 
 ### Tests
 
@@ -40,9 +42,11 @@ ws://<host>:8004/mcp_endpoint/mcp/?token=<AES-encrypted token>
 ```bash
 uv venv --python 3.10 .venv && uv pip install --python .venv/bin/python -r server/requirements-test.txt
 . .venv/bin/activate && cd server
-python -m pytest                                   # mocked, no network
-RUN_LIVE_TESTS=1 GOOGLE_APPLICATION_CREDENTIALS=<sa.json> ANTHROPIC_API_KEY=... python -m pytest -s -k live
+python -m pytest                                        # mocked, no network
+(set -a; . ./.env; set +a; RUN_LIVE_TESTS=1 python -m pytest -s -k live)
 ```
+
+The live tests take `ANTHROPIC_API_KEY` and `GOOGLE_SA_FILE` from `server/.env`, sourced in a subshell; never put keys on the command line.
 
 `opuslib_next` needs `libopus` and `pydub` needs `ffmpeg`. Without a system copy, place `libopus.dylib` in `.venv/lib/` (the conftest adds it to `DYLD_FALLBACK_LIBRARY_PATH`) and `ffmpeg` in `.venv/bin/`.
 
@@ -52,7 +56,7 @@ RUN_LIVE_TESTS=1 GOOGLE_APPLICATION_CREDENTIALS=<sa.json> ANTHROPIC_API_KEY=... 
 
 ## Google Cloud STT (`ASR.GoogleSTT`, `type: google_stt`)
 
-`server/overlay/core/providers/asr/google_stt.py`: Speech-to-Text v2, model `chirp_3`, location `us`, synchronous `Recognize` on the 16 kHz mono PCM the server already produces, `language_codes: ["en-US", "cmn-Hans-CN"]` (one retry with `["auto"]` if the list is rejected). The live test sends the two 16 kHz clips in `tests/assets/` and expects "turn on the living room lights" in English and Mandarin.
+`server/overlay/core/providers/asr/google_stt.py`: Speech-to-Text v2, model `chirp_3`, location `us`, synchronous `Recognize` on the 16 kHz mono PCM the server already produces, `language_codes: ["en-US", "cmn-Hans-CN"]` (one retry with `["auto"]` if the list is rejected). An utterance over 59 s (`Recognize` accepts at most 60 s) is not sent or trimmed: the provider logs a warning, skips the LLM turn and the device speaks `too_long_reply` (default: "Sorry, that was too long for me. Please say it again, a bit shorter."). The live test sends the two 16 kHz clips in `tests/assets/` and expects "turn on the living room lights" in English and Mandarin.
 
 ## Google Cloud TTS (`TTS.GoogleTTS`, `type: google_tts`)
 
@@ -97,7 +101,7 @@ Optional web console (MySQL + Redis + manager-web, port 8002): set `MYSQL_ROOT_P
 
 ## Verification
 
-- `curl http://<LAN_IP>:8003/xiaozhi/ota/` returns the OTA banner; `POST` returns the JSON above.
+- `curl http://<LAN_IP>:8003/xiaozhi/ota/` returns the OTA banner; `POST` returns the OTA response (Firmware endpoints).
 - Port 8000 accepts WebSocket; a `hello` returns `session_id`; a `listen/detect` text turn returns `stt`, `tts start/sentence_start/stop` and Opus frames.
 - Not verified without hardware: ASR on live microphone audio.
 
