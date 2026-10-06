@@ -1,0 +1,125 @@
+# feat-proactive after rebase onto main (f5843ae), 2026-10-06, 1.75C (7c:0c:5f:42:4b:fc) on USB, live stack on :8000/:8003 recreated from the branch image. Serial times UTC+1 (capture opened with an RTS reset), server times UTC-7.
+# Serial filtered to boot, state, proactive, transcript and WebSocket lines; SSID and BSSID redacted.
+
+## serial
+[    0.5] 23:55:22 I (106) app_init: App version:      2.5.1
+[    2.0] 23:55:24 I (1967) StateMachine: State: unknown -> starting
+[    2.5] 23:55:24 I (2407) WifiStation: Found AP: <ssid>, BSSID: <redacted> RSSI: -71, Channel: 11, Authmode: 3
+[    3.5] 23:55:25 I (3747) WifiStation: Got IP: 192.168.8.148
+[    4.0] 23:55:26 I (3747) StateMachine: State: starting -> activating
+[    4.6] 23:55:26 I (4367) Application: Activation done
+[    4.6] 23:55:26 I (4367) StateMachine: State: activating -> idle
+[    4.6] 23:55:26 I (4377) Application: Proactive poller: http://192.168.8.220:8003/weixue/proactive/poll
+[    4.6] 23:55:26 I (4407) AfeAudioEngine: Model 0: wn9_jarvis_tts
+[   25.9] 23:55:48 I (25677) Application: Wake word detected: Jarvis (state: 3)
+[   25.9] 23:55:48 I (25687) StateMachine: State: idle -> connecting
+[   25.9] 23:55:48 I (25697) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[   25.9] 23:55:48 I (25837) WS: Session ID: 5477901a-9c27-488e-af27-35eff29ae7de
+[   25.9] 23:55:48 I (25847) Application: Wake word detected: Jarvis
+[   25.9] 23:55:48 I (25937) StateMachine: State: connecting -> listening
+[   25.9] 23:55:48 I (25997) StateMachine: State: listening -> speaking
+[   25.9] 23:55:48 I (26017) Application: << 我在这里哦！
+[   27.9] 23:55:50 I (27717) StateMachine: State: speaking -> listening
+[   34.0] 23:55:56 I (33857) Application: >> What time is it?
+[   34.0] 23:55:56 I (33857) StateMachine: State: listening -> speaking
+[   35.5] 23:55:57 I (35677) Application: << It's five to four in the afternoon
+[   38.0] 23:56:00 I (37967) StateMachine: State: speaking -> listening
+[   53.8] 23:56:15 I (53487) Application: >> Goodbye
+[   53.8] 23:56:15 I (53517) StateMachine: State: listening -> speaking
+[   54.8] 23:56:16 I (54877) Application: >> % handle_exit_intent
+[   54.8] 23:56:16 I (54877) Application: << Goodbye
+[   55.8] 23:56:17 I (55847) Application: << talk soon
+[   57.8] 23:56:19 I (57647) StateMachine: State: speaking -> listening
+[   57.8] 23:56:19 I (57657) WS: Websocket disconnected
+[   57.8] 23:56:19 I (57667) StateMachine: State: listening -> idle
+[   72.6] 23:56:34 I (72347) Application: Proactive message pending
+[   72.6] 23:56:34 I (72347) StateMachine: State: idle -> connecting
+[   72.6] 23:56:34 I (72357) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[   72.6] 23:56:34 I (72477) WS: Session ID: bd951e86-1d07-45f0-87dd-14655d77ed78
+[   72.6] 23:56:34 I (72497) Application: Proactive session opened
+[   72.6] 23:56:34 I (72497) StateMachine: State: connecting -> listening
+[   72.6] 23:56:34 I (72547) StateMachine: State: listening -> speaking
+[   72.6] 23:56:34 I (72547) Application: << The washing machine has finished
+[   75.1] 23:56:37 I (74917) StateMachine: State: speaking -> listening
+[   75.1] 23:56:37 I (74917) WS: Websocket disconnected
+[   75.1] 23:56:37 I (74947) StateMachine: State: listening -> idle
+[   91.3] 23:56:53 I (91347) Application: Proactive message pending
+[   91.3] 23:56:53 I (91347) StateMachine: State: idle -> connecting
+[   91.3] 23:56:53 I (91367) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[   91.3] 23:56:53 I (91487) WS: Session ID: 0d387014-145c-4221-af52-2156712321ba
+[   91.3] 23:56:53 I (91497) Application: Proactive session opened
+[   91.3] 23:56:53 I (91507) StateMachine: State: connecting -> listening
+[   91.8] 23:56:53 I (91557) StateMachine: State: listening -> speaking
+[   91.8] 23:56:53 I (91557) Application: << The back door is still unlocked. Do you want me to remind you again in ten minutes?
+[   96.4] 23:56:58 I (96427) StateMachine: State: speaking -> listening
+[  100.4] 23:57:02 I (100377) Application: >> Yes
+[  100.4] 23:57:02 I (100387) StateMachine: State: listening -> speaking
+[  102.0] 23:57:04 I (101747) Application: << Okay
+[  102.5] 23:57:04 I (102517) Application: << I'll remind you in ten minutes
+[  105.0] 23:57:07 I (104787) StateMachine: State: speaking -> listening
+[  120.2] 23:57:22 I (120027) Application: >> Goodbye
+[  120.2] 23:57:22 I (120027) StateMachine: State: listening -> speaking
+[  121.8] 23:57:23 I (121607) Application: >> % handle_exit_intent
+[  121.8] 23:57:23 I (121607) Application: << Goodbye
+[  122.8] 23:57:24 I (122897) Application: << Talk soon
+[  124.3] 23:57:26 I (124267) WS: Websocket disconnected
+[  124.3] 23:57:26 I (124267) StateMachine: State: speaking -> listening
+[  124.3] 23:57:26 I (124287) StateMachine: State: listening -> idle
+
+## webhook responses
+POST announce:
+{"id": "86b4e723161c46da82416d640a021f29", "mode": "announce", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-06T22:56:33+00:00", "finished_at": null}
+HTTP 202
+POST conversation:
+{"id": "44b240f01229493b81242d6cbd7f83e9", "mode": "conversation", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-06T22:56:53+00:00", "finished_at": null}
+HTTP 202
+GET announce after playback: status delivered, attempts 1, finished 22:56:36Z
+GET conversation after the answer: status answered, attempts 1, reply "Yes.", finished 22:57:02Z
+
+## server
+261006 15:55:47[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 15:55:47[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 15:55:47[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"5477901a-9c27-488e-af27-35eff29ae7de","type":"listen","state":"detect","text":"Jarvis"}
+261006 15:55:47[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: 我在这里哦！
+261006 15:55:49[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"5477901a-9c27-488e-af27-35eff29ae7de","type":"listen","state":"start","mode":"realtime"}
+261006 15:55:55[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.592s | 语言: en-US | 结果: What time is it?
+261006 15:55:55[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: What time is it?
+261006 15:55:55[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: What time is it?
+261006 15:55:57[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: It's five to four in the afternoon
+261006 15:55:57[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.152s: It's five to four in the afternoon
+261006 15:56:15[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.269s | 语言: en-US | 结果: Goodbye.
+261006 15:56:15[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Goodbye.
+261006 15:56:15[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Goodbye.
+261006 15:56:16[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Goodbye
+261006 15:56:16[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.156s: Goodbye
+261006 15:56:17[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.249s: talk soon
+261006 15:56:33[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 86b4e723161c46da82416d640a021f29 queued: mode=announce device=any urgent=False ttl=600
+261006 15:56:34[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 15:56:34[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 15:56:34[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"bd951e86-1d07-45f0-87dd-14655d77ed78","type":"listen","state":"detect","text":"weixue:proactive"}
+261006 15:56:34[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 86b4e723161c46da82416d640a021f29 delivering: attempt=1 session=bd951e86-1d07-45f0-87dd-14655d77ed78 invoked=True
+261006 15:56:34[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: The washing machine has finished
+261006 15:56:34[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"bd951e86-1d07-45f0-87dd-14655d77ed78","type":"listen","state":"start","mode":"realtime"}
+261006 15:56:34[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.354s: The washing machine has finished
+261006 15:56:36[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 86b4e723161c46da82416d640a021f29 delivered
+261006 15:56:53[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 44b240f01229493b81242d6cbd7f83e9 queued: mode=conversation device=any urgent=False ttl=600
+261006 15:56:53[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 15:56:53[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 15:56:53[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"0d387014-145c-4221-af52-2156712321ba","type":"listen","state":"detect","text":"weixue:proactive"}
+261006 15:56:53[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 44b240f01229493b81242d6cbd7f83e9 delivering: attempt=1 session=0d387014-145c-4221-af52-2156712321ba invoked=True
+261006 15:56:53[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: The back door is still unlocked. Do you want me to remind you again in ten minutes?
+261006 15:56:53[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"0d387014-145c-4221-af52-2156712321ba","type":"listen","state":"start","mode":"realtime"}
+261006 15:56:53[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.430s: The back door is still unlocked. Do you want me to remind you again in ten minutes?
+261006 15:57:02[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.320s | 语言: en-US | 结果: Yes.
+261006 15:57:02[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261006 15:57:02[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Yes.
+261006 15:57:02[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 44b240f01229493b81242d6cbd7f83e9 answered
+261006 15:57:03[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Okay
+261006 15:57:03[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.157s: Okay
+261006 15:57:04[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.243s: I'll remind you in ten minutes
+261006 15:57:21[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.252s | 语言: en-US | 结果: Goodbye.
+261006 15:57:21[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Goodbye.
+261006 15:57:21[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Goodbye.
+261006 15:57:23[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Goodbye
+261006 15:57:23[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.238s: Goodbye
+261006 15:57:24[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.196s: Talk soon

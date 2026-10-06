@@ -11,6 +11,7 @@ Replace `<LAN_IP>` with `LAN_IP` from `server/.env`.
 | OTA (firmware `OTA_URL`) | `http://<LAN_IP>:8003/xiaozhi/ota/` |
 | WebSocket (returned by OTA) | `ws://<LAN_IP>:8000/xiaozhi/v1/` |
 | Vision explain | `http://<LAN_IP>:8003/mcp/vision/explain` |
+| Proactive webhook and device long-poll | `http://<LAN_IP>:8003/weixue/proactive/...` (`docs/proactive.md`) |
 
 `GET` on the OTA URL returns a plain-text banner. The device `POST`s JSON with `Device-Id` and `Client-Id` headers and receives the *OTA response*: `{"server_time":…,"firmware":…,"websocket":{"url":"ws://<LAN_IP>:8000/xiaozhi/v1/","token":""}}`.
 
@@ -34,7 +35,7 @@ ws://<host>:8004/mcp_endpoint/mcp/?token=<AES-encrypted token>
 
 `server/overlay/` is the only way to add or change server code. Its contents mirror `main/xiaozhi-server/` of the upstream clone (for example `server/overlay/core/providers/llm/<name>/<name>.py`) and are copied over the upstream tree at image build (`server/Dockerfile`, `__pycache__` excluded from both). Python packages the overlay needs beyond the upstream base image are pinned in `server/requirements-overlay.txt`, installed by the same Dockerfile. Apply with `./scripts/setup.sh`. The vendored clone is never edited.
 
-Changes to upstream functions that are too small to justify overriding a whole module go in `server/overlay/weixue_patches.py`. The image's entrypoint, `weixue_main.py`, applies them and then runs upstream `app.py`. Current patch: `ConnectionHandler._clean_response_garbage` keeps a streamed chunk's trailing whitespace when the chunk ends in non-CJK text and no JSON closing characters were removed from its end. Upstream strips it from every chunk, so English words at chunk edges run together ("isfour").
+Changes to upstream functions that are too small to justify overriding a whole module go in `server/overlay/weixue_patches.py`. The image's entrypoint, `weixue_main.py`, applies them and then runs upstream `app.py`. Patches: `ConnectionHandler._clean_response_garbage` keeps a streamed chunk's trailing whitespace when the chunk ends in non-CJK text and no JSON closing characters were removed from its end. Upstream strips it from every chunk, so English words at chunk edges run together ("isfour"). `ConnectionHandler.handle_connection`, `ListenTextMessageHandler.handle` and the aiohttp app of `core.http_server` are wrapped for proactive messages (`docs/proactive.md`).
 
 ### Tests
 
