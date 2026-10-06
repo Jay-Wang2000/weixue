@@ -158,3 +158,11 @@ tasks:
     status: pending
     retries: 0
     model: opus
+  - id: fix-power-usb
+    name: "No auto power-off on USB (ADR-12)"
+    branch: fix/power-usb
+    description: 热修复：上游 PowerSaveTimer 空闲 300 s 经 PMIC 关机，USB 供电时也关。按 ADR-12 在 USB 供电（AXP2101 VBUS present）时禁用自动关机、保留息屏/休眠；电池供电保留空闲关机且时长可配。以 firmware/patches 形式实现，构建、烧录，实机验证 USB 空闲 ≥7 min 不关机、电池路径逻辑有单元/日志证据。
+    depends_on: [feat-firmware-base]
+    status: in_progress
+    retries: 0
+    model: opus
