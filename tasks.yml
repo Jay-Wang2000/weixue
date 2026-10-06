@@ -166,3 +166,11 @@ tasks:
     status: done
     retries: 0
     model: opus
+  - id: fix-screen-off
+    name: "AMOLED panel off after 300 s idle"
+    branch: fix/screen-off
+    description: USB 供电下空闲 300 s 关闭 AMOLED 面板（ADR-12），MCU 与唤醒词检测保持；唤醒词、触摸点亮。
+    depends_on: [fix-power-usb]
+    status: done
+    retries: 0
+    model: opus
