@@ -24,5 +24,8 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 ## Process
 - Working methodology: `docs/METHODOLOGY.md`. After every wave merge, run the Codex external review of `main` (spec + code) and file its findings before starting the next wave.
 
+## End-to-end testing rule
+- Every task gate includes an end-to-end run on the live stack, not only unit/mocked tests: wake word (macOS `say`) → device → STT → LLM (→ HA action via ha-mcp when the task touches it) → TTS → audio on the device, with serial and server logs saved under `docs/logs/`. A task whose change cannot be exercised end-to-end must say so in its spec and name the gate that will.
+
 ## Hardware verification rule
 - Any change to firmware UI or device behaviour (face, ring, panel, gestures, wake word, audio) must be flashed to the connected 1.75C and verified end-to-end on the device during review/test, not only by build success or emulator. The tester flashes the branch build, exercises the feature, and records what was observed (photo/log excerpt) in the test result. The device is always connected to this Mac.
