@@ -16,7 +16,7 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 - Hardware stays connected to the Mac; verify the serial port before flashing.
 
 ## Git workflow (overrides the workspace pipeline's local-merge step)
-- Never commit or push directly to `main`. Every task is a `feat/*` branch.
+- Never commit or push directly to `main`. Every task is a `feat/*` branch. Exception: orchestrator bookkeeping (`tasks.yml`, `docs/briefs/`) is committed on `main` by the orchestrator only.
 - After the review and test gates pass and the user approves the spec, push the branch to the personal remote and open a pull request (follow the `creating-pull-requests` skill). The PR is merged on GitHub; `main` is only advanced by merged PRs.
 - Each task = one commit (squash before opening the PR) + one PR titled `<task-id>: <short description>`, body linking `DESIGN.md` and the spec doc. No footers.
 - Remote: deferred (2026-10-06). Until `Jay-Wang2000/weixue` exists, approved branches are merged locally with `git merge --no-ff` so dependent tasks can build on them; once the remote exists, push `main` and switch to PRs for every later task. Upstream code (`xiaozhi-esp32`, `xiaozhi-esp32-server`) is vendored locally for now; forks come with the remote.
