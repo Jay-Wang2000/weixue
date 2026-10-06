@@ -1,0 +1,24 @@
+# firmware/build.sh, feat-imu (summary lines)
+face_diag: 0
+patch: 05-board-power-usb.patch
+patch: 10-proactive-poll.patch
+patch: 11-face-display.patch
+patch: 12-application-mic-mute.patch
+patch: 20-board-imu-gestures.patch
+CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=300
+CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300
+build_seconds: 193
+size: build/bootloader/bootloader.bin 16736
+size: build/partition_table/partition-table.bin 3072
+size: build/xiaozhi.bin 2901872
+size: build/generated_assets.bin 2985927
+size: build/merged-binary.bin 13471687
+98d95f4bea0d363032d525a96c6a65db568e87a6ff73917c90a798ddc1ecc25b  sdkconfig
+99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b  main/boards/waveshare/esp32-s3-touch-amoled-1.75/config.weixue.json
+2e8eded1c3cbc720bd0e62263de06542027ec16e9d6e0160223764b9df60e6ac  build/flash_args
+bf68fa90724507152d6702c8a7fb6859188cae335141b3881a4596b7e402769b  build/bootloader/bootloader.bin
+d2c535fc5f29da4d32f122befe65b97925777549b000f93ced719e71a942a3a9  build/partition_table/partition-table.bin
+7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f  build/ota_data_initial.bin
+710bdac786aec1c08bd65241ec1e54bc83e0b6dce9a35b999925b4b37e30196a  build/generated_assets.bin
+1f81bd6e3a15a047fd4e73fd8e9633a9324aff22e83f77704ba1772b81c0e4b4  build/xiaozhi.bin
+work_dir: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-feat-imu

@@ -10,6 +10,8 @@ xiaozhi-esp32 2.5.1 (vendored clone pinned in `vendor.lock`) built for the Waves
 | `firmware/overrides/` | New files copied into the scratch copy at the same path on every build; `build.sh` stops when one would replace an upstream file |
 | `firmware/patches/*.patch` | Source changes to upstream files, applied to the scratch copy on every build (see Source patches) |
 | `firmware/overrides/main/boards/waveshare/esp32-s3-touch-amoled-1.75/face_display.{h,cc}`, `firmware/patches/11-face-display.patch` | Procedural eyes face (see Face) |
+| `firmware/tests/run.sh` | Host build and run of the tests for `firmware/overrides` sources (`imu_gestures_test.cc`) |
+| `firmware/tools/imu_gesture_test.py` | On-device IMU gesture check over the serial console (see IMU gestures) |
 | `firmware/flash.sh` | Checks port, the scratch copy against `weixue-build.sha256`, that it matches `config.weixue.json` (file and `CONFIG_OTA_URL`), `esptool flash-id` (32 MB), and a sha256-verified full 32 MB backup of this device's MAC, then `esptool write-flash @build/flash_args` |
 | `scripts/venv.sh` | Creates or repairs the project `.venv` with the `vendor.lock` esptool pin (5.4.0); `flash.sh` and `scripts/backup_flash.sh` use only this esptool |
 | `firmware/custom-msg-probe.sh`, `firmware/tools/custom_msg_probe.py` | Test proxy for the on-device `custom` message check (see below) |
@@ -28,7 +30,7 @@ Each checkout (main or a task worktree) builds in its own scratch copy, `~/Proje
 
 ## Source patches
 
-`build.sh` mirrors the vendored clone into the scratch copy with `rsync --delete`, so edits made in the scratch copy are lost on the next build. Changes to upstream sources (board `.cc`, display classes, new drivers) are `-p1` unified diffs in `firmware/patches/`, applied in name order with `git apply` after the mirror; the build fails when a patch no longer applies to the `vendor.lock` commit. To create one, edit a file in the scratch copy after a build, then diff it against the clone:
+`build.sh` mirrors the vendored clone into the scratch copy with `rsync --delete`, so edits made in the scratch copy are lost on the next build. New files live in `firmware/overrides/` under their path in the clone; `build.sh` stops if an override path exists upstream. Changes to upstream sources (board `.cc`, display classes, `application.cc`) are `-p1` unified diffs in `firmware/patches/`, applied in name order with `git apply` after the mirror; the build fails when a patch no longer applies to the `vendor.lock` commit. To create one, edit a file in the scratch copy after a build, then diff it against the clone:
 
 ```bash
 cd ~/Projects/weixue-vendor
@@ -75,7 +77,7 @@ Mood comes from `SetEmotion` (server `llm` emotion, alerts, power save `sleepy`)
 - OTA: POST `CONFIG_OTA_URL` (NVS `wifi/ota_url` overrides it when non-empty; the Wi-Fi portal's Advanced tab sets it, an empty submit writes `""` and restores the default). The response's `websocket.url` is where the device streams audio. While the server is unreachable the device retries 10 times with doubling delays (about 85 min).
 - Wake word: the ESP-SR model `wn9_jarvis_tts` detects "Jarvis" and sends `{"type":"listen","state":"detect","text":"Jarvis"}`. Exactly one `AfeAudioEngine: Model 0: wn9_jarvis_tts` line appears at boot.
 - Wi-Fi provisioning (no stored SSID): join the `Xiaozhi-XXXX` hotspot and follow the on-screen portal URL.
-- Power (ADR-12, `firmware/patches/05-board-power-usb.patch`): after 60 s idle the screen dims to 20 %. After `CONFIG_WEIXUE_SCREEN_OFF_SECONDS` idle (default 300, `0` = never), on USB and battery, the panel turns off (CO5300 DISPOFF, brightness 0) and logs `Panel off after 300 s idle (VBUS present|absent)`; MCU, Wi-Fi and wake word detection keep running. Wake word, touch (LVGL `LV_EVENT_PRESSED`), any `SetPowerSaveLevel` above low power (session start, notification, upgrade) or the device leaving idle (checked every second) turns it back on (`Panel on`) and restores the dim. Idle PMIC power-off happens only while the AXP2101 reports no VBUS, after `CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS` (default 300, `0` = never); set either in `config.weixue.json` `sdkconfig_append`. On USB the board logs `Idle power-off skipped: VBUS present` once per idle period; unplugging USB during that period wakes the screen and restarts the battery countdown. Boot logs `VBUS present|absent, battery present|absent, idle power-off on battery after N s, panel off after N s`. USB idle check: `docs/logs/fix-power-usb-idle-usb-2026-10-06.log` (300 s) and `docs/logs/fix-power-usb-idle-usb-test90-2026-10-06.log` (test build with 90 s). Panel-off check: `docs/logs/fix-screen-off-device-2026-10-06.log` (see Panel off below).
+- Power (ADR-12, `firmware/patches/05-board-power-usb.patch`): after 60 s idle the screen dims to 20 %. After `CONFIG_WEIXUE_SCREEN_OFF_SECONDS` idle (default 300, `0` = never), on USB and battery, the panel turns off (CO5300 DISPOFF, brightness 0) and logs `Panel off after 300 s idle (VBUS present|absent)`; MCU, Wi-Fi and wake word detection keep running. Wake word, touch (LVGL `LV_EVENT_PRESSED`), IMU pick-up or face-up (see IMU gestures), any `SetPowerSaveLevel` above low power (session start, notification, upgrade) or the device leaving idle (checked every second) turns it back on (`Panel on`) and restores the dim. Idle PMIC power-off happens only while the AXP2101 reports no VBUS, after `CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS` (default 300, `0` = never); set either in `config.weixue.json` `sdkconfig_append`. On USB the board logs `Idle power-off skipped: VBUS present` once per idle period; unplugging USB during that period wakes the screen and restarts the battery countdown. Boot logs `VBUS present|absent, battery present|absent, idle power-off on battery after N s, panel off after N s`. USB idle check: `docs/logs/fix-power-usb-idle-usb-2026-10-06.log` (300 s) and `docs/logs/fix-power-usb-idle-usb-test90-2026-10-06.log` (test build with 90 s). Panel-off check: `docs/logs/fix-screen-off-device-2026-10-06.log` (see Panel off below).
 - Device AEC is on; listening mode is realtime (barge-in). BOOT double-click toggles AEC until reboot.
 - Proactive poll (`firmware/patches/10-proactive-poll.patch`): while idle the device long-polls `/weixue/proactive/poll` on the OTA host and, on `200`, opens a session with `listen detect` text `weixue:proactive` (`docs/proactive.md`).
 - Custom messages: `CONFIG_RECEIVE_CUSTOM_MESSAGE=y`. A server message `{"type":"custom","payload":{...}}` logs `Received custom message:` and shows the payload as a system chat line; a non-object payload logs `Invalid custom message format`; an unknown `type` logs `Unknown message type`.
@@ -91,6 +93,26 @@ Mood comes from `SetEmotion` (server `llm` emotion, alerts, power save `sleepy`)
 2. Point the device at it: press BOOT within the first seconds after reset (device state `starting`) to open the Wi-Fi portal, join the `Xiaozhi-XXXX` hotspot, Advanced tab, OTA URL `http://192.168.8.220:8013/xiaozhi/ota/`, save, reboot.
 3. Start a session ("Jarvis") and finish one round. Expected serial lines: `Received custom message:` with the valid payload (shown as a system chat line on screen), `Invalid custom message format: missing payload`, `Unknown message type: weixue_probe_unknown`; the round's STT, reply and TTS proceed normally.
 4. Restore: portal Advanced tab, empty OTA URL, save, reboot; boot log shows OTA to `:8003` again.
+
+## IMU gestures
+
+Sources: `firmware/overrides/main/boards/waveshare/esp32-s3-touch-amoled-1.75/qmi8658.{h,cc}` (driver), `imu_gestures.h` (pick-up and face-down detection), `firmware/patches/20-board-imu-gestures.patch` (board wiring, MCP tool, mute glyph), `firmware/patches/12-application-mic-mute.patch` (`Application::SetMicMuted`).
+
+- Driver: QMI8658A on the board's `I2C_NUM_0` bus (SDA 15 / SCL 14), probed at 0x6B then 0x6A (`WHO_AM_I` 0x05). Soft reset, accelerometer only, ±4 g at 500 Hz, little-endian, INT1/INT2 high-Z, CTRL9 handshake on `STATUSINT.bit7`. A board without the sensor boots without IMU features (`QMI8658 not found`).
+- Polling: one task (`imu`, priority 2) reads the acceleration and `STATUS1` every 20 ms; when `STATUS1.TAP` is set it reads `TAP_STATUS`.
+- Double-tap: the QMI8658 Tap engine (datasheet Table 35 example parameters at 500 Hz: PeakWindow 20, TapWindow 50, DTapWindow 250 samples, alpha 0.0625, gamma 0.25, PeakMagThr 0.8 g², UDMThr 0.4 g²). `TAP_NUM` 2 is a double-tap; every engine report is logged as `IMU tap: status1=… tap_status=…`. Action: `speaking` → `AbortSpeaking` (the BOOT-click path), `notifying` → `StopListening` (stops the notification).
+- Pick-up: after the median-filtered acceleration (5 samples per axis) has stayed within 0.04 g for 1 s, a deviation above 0.12 g from that rest vector for 3 consecutive samples. Action: the board's display wake (as touch): leaves the 60 s dim state, turns the panel back on after the 300 s panel off and restarts both idle counts. The Any-Motion and Wake-on-Motion engines are not used: Any-Motion thresholds are per-sample slopes in 1/32 g at the 500 Hz Tap ODR, and WoM mode produces no sensor data.
+- Face-down: screen-normal component below -0.8 g with |a| within 0.2 g of 1 g for 800 ms; face-up: above -0.5 g for 300 ms. The screen normal is the sensor +z axis times `kScreenNormalSign` in the board patch. Face-down calls `SetMicMuted(true)`: wake word detection and voice processing off (audio input stops after the codec power timeout), an open audio channel is closed, a playing notification stops, BOOT/`StartListening`/wake word/`WakeWordInvoke` do not start a conversation (`Muted` notification), `notify` messages are ignored, the proactive poller stops polling (the server then reports the device `offline` and holds its messages). The status bar mute slot shows the Material Symbols `mic_off` glyph and the screen shows `Muted`; face-up reverses it (`Unmuted`) and wakes the display like pick-up. The mute is software only; the microphone stays powered.
+- Server visibility: every gesture logs `IMU gesture: <name> (count N)` and, while an audio channel is open, sends the MCP notification `{"jsonrpc":"2.0","method":"notifications/weixue/imu","params":{"gesture":"<name>","face_down":<bool>}}` (the server logs `收到MCP客户端请求: notifications/weixue/imu`). Device MCP tool `self.imu.get_state` returns `face_down`, `mic_muted`, `last_gesture`, `last_gesture_age_ms`, per-gesture `counts` since boot and `accel_g`.
+- Host tests: `firmware/tests/run.sh` (detector scenarios: 5 min idle, tilt and straight-lift pick-ups, table double-tap, 10 pick-ups, face-down timing, 10 face-down/up cycles, 135° tilt).
+- On-device check (`.venv` from `scripts/venv.sh`; opening the port resets the board, and the tool waits for the first `-> idle` state before it starts):
+
+```bash
+.venv/bin/python firmware/tools/imu_gesture_test.py --port <port> --log docs/logs/imu-<date>.log idle --seconds 300
+.venv/bin/python firmware/tools/imu_gesture_test.py --port <port> --log docs/logs/imu-<date>.log trials pick_up
+.venv/bin/python firmware/tools/imu_gesture_test.py --port <port> --log docs/logs/imu-<date>.log trials face_down
+.venv/bin/python firmware/tools/imu_gesture_test.py --port <port> --log docs/logs/imu-<date>.log trials double_tap
+```
 
 ## On-device results (2026-10-06)
 
@@ -167,3 +189,15 @@ USB power, live backend, Mac `say` at volume 55. Diag build (`WEIXUE_FACE_DIAG=1
 
 Findings: printing dumps synchronously from the LVGL timer (first diag run, `ui-face-diag-sync-dump-2026-10-07.log`) stalled the display lock for seconds, overflowed the AFE feed ring buffer and lost the spoken question; dumps now print from the `face_diag` task. The server splits a `say` question into two STT turns in some runs (`What is the` / `of France`) and once produced a spurious `What's up, guys?` STT turn just before the question (release log).
 
+
+## IMU on-device results (feat-imu, 2026-10-07)
+
+USB power, live backend, Mac `say` at volume 55. Logs: `docs/logs/imu-build-2026-10-07.log`, `imu-flash-2026-10-07.log`, `imu-idle-device-2026-10-07.log` (420 s from an RTS reset, untouched), `imu-voice-device-2026-10-07.log` and `imu-voice-server-2026-10-07.log` (UTC-7).
+
+| Check | Result |
+|---|---|
+| Build | `build.sh` 193 s; patches 05, 10, 11, 12, 20 apply; xiaozhi.bin 2,901,872 B |
+| Driver init | `QMI8658 found at 0x6B`, `Reset result 0x80` at 1.96-1.99 s; `self.imu.get_state` registered; first sample `x=0.199 y=-0.536 z=0.821 g` (board resting tilted on the desk); 0 `IMU read failed` |
+| Idle false positives | 0 `IMU gesture` and 0 `IMU tap` lines in 415 s idle after boot (dim at 65.4 s, `Panel off after 300 s idle (VBUS present)` at 305.0 s, `Idle power-off skipped: VBUS present`) |
+| Voice round | Wake `Jarvis`, "Are you lying face down right now?" -> Anthropic called `self_imu_get_state` (`face_down:false`, `mic_muted:false`, no gestures) -> spoken answer; "What time is it?" -> time reply; `Goodbye` -> `handle_exit_intent` -> idle. 0 `IMU` gesture or tap lines during TTS playback |
+| Gestures (pick-up, face-down, double-tap x10) | Not run: need a person to move the board |
