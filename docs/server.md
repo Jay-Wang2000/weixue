@@ -35,7 +35,39 @@ ws://<host>:8004/mcp_endpoint/mcp/?token=<AES-encrypted token>
 
 `server/overlay/` is the only way to add or change server code. Its contents mirror `main/xiaozhi-server/` of the upstream clone (for example `server/overlay/core/providers/llm/<name>/<name>.py`) and are copied over the upstream tree at image build (`server/Dockerfile`, `__pycache__` excluded from both). Python packages the overlay needs beyond the upstream base image are pinned in `server/requirements-overlay.txt`, installed by the same Dockerfile. Apply with `./scripts/setup.sh`. The vendored clone is never edited.
 
-Changes to upstream functions that are too small to justify overriding a whole module go in `server/overlay/weixue_patches.py`. The image's entrypoint, `weixue_main.py`, applies them and then runs upstream `app.py`. Patches: `ConnectionHandler._clean_response_garbage` keeps a streamed chunk's trailing whitespace when the chunk ends in non-CJK text and no JSON closing characters were removed from its end. Upstream strips it from every chunk, so English words at chunk edges run together ("isfour"). `ConnectionHandler.handle_connection`, `ListenTextMessageHandler.handle` and the aiohttp app of `core.http_server` are wrapped for proactive messages (`docs/proactive.md`).
+Changes to upstream functions that are too small to justify overriding a whole module go in `server/overlay/weixue_patches.py`. The image's entrypoint, `weixue_main.py`, applies them and then runs upstream `app.py`. Current patches:
+
+- `ConnectionHandler._clean_response_garbage` keeps a streamed chunk's trailing whitespace when the chunk ends in non-CJK text and no JSON closing characters were removed from its end. Upstream strips it from every chunk, so English words at chunk edges run together ("isfour").
+- `ConnectionHandler.handle_connection`, `ListenTextMessageHandler.handle` and the aiohttp app of `core.http_server` are wrapped for proactive messages (`docs/proactive.md`).
+- `ListenTextMessageHandler.handle` is also wrapped for the wake cue, and `core.providers.vad.silero.VADProvider.is_vad` for the wake utterance hold (see Wake cue).
+- `ConnectionHandler.just_woken_up` is a property that always reads `False`: upstream sets it on every `listen detect` and then drops the next 2 s of microphone audio.
+- `receiveAudioHandle.no_voice_close_connect`: an audio frame received while the server holds the turn (`client_is_speaking`, from the STT result or wake cue to `tts stop`) refreshes `last_activity_time`, so the idle close counts from the end of the reply (see Conversation timing).
+- `intentHandler.checkWakeupWords` is replaced: a transcript that is only a `wakeup_words` entry (case-insensitive, punctuation ignored), or only a cue word (`CUE_ECHO_WORDS` plus the `wake_cues` texts) within 5 s of a cue starting, is dropped with no reply. `enable_wakeup_words_response_cache` and the cached `wakeup_words` clips are therefore unused.
+
+## Conversation timing (ADR-7)
+
+| Key | Value | Effect |
+|---|---|---|
+| `close_connection_no_voice_time` | 8 | Seconds without user voice after the reply or wake cue ends (or after the wake event) before the server closes the WebSocket; the device returns to idle on close. The connection-level timeout is this value + 60 s |
+| `end_prompt.enable` | false | The idle close sends no farewell turn |
+| `wake_cues` | 3 clips | See Wake cue; with an empty list a wake is handled by upstream |
+| `enable_greeting` | false | Without `wake_cues`, a wake gets `stt` + `tts start/stop` and no audio |
+| VAD `SileroVAD.min_silence_duration_ms` | 200 (upstream) | End-of-utterance silence; not overridden |
+
+The device listens in realtime mode and streams microphone audio for the whole session, so the server's VAD sees the follow-up window; a follow-up inside it needs no wake word. Wake-word detection is off while the device listens (`CONFIG_WAKE_WORD_DETECTION_IN_LISTENING` unset).
+
+### Wake cue
+
+`wake_cues` lists `{file, text}` clips: `server/overlay/config/assets/wake_cues/{hmm,mm-hm,yes}.wav` ("Hmm?", "Mm-hm?", "Yes?"), rendered once with the live Google TTS voice (en-US Chirp 3 HD, `speaker` of `TTS.GoogleTTS`), trimmed to 0.46-0.60 s, 24 kHz mono. On a `listen detect` whose text is a wake word:
+
+- One clip is picked at random. 0.6 s after the detect it plays as `tts start`, then (0.2 s later, after the device's decoder reset on entering Speaking) `sentence_start` with the clip text plus its audio, then `tts stop`. The caption shows the clip text.
+- The cue is skipped when the VAD heard voice in live audio from 0.25 s after the wake's `listen start` (the user went on speaking: "Jarvis, what is the weather like in London today?").
+- Neither the detect nor the following `listen start` resets the audio state, so the wake-word audio the device sends before the detect (`CONFIG_SEND_WAKE_WORD_DATA`, 1.98 s ending at detection) reaches VAD and ASR together with the live audio after it. For 0.8 s after that `listen start` the VAD cannot end the utterance. A transcript that is only the wake word is dropped.
+- The microphone is never muted; speech during the cue reaches ASR.
+
+The device captures no audio between wake detection and listening start (286-330 ms measured), and live audio in the first ~0.6 s after it transcribes poorly, so a short request said in one breath with the wake word ("Jarvis, what time is it?") usually reaches the LLM clipped or not at all; longer ones lose their first words (`docs/logs/conversation-timing-onebreath-2026-10-07.log`).
+
+Re-render the clips with `server/scripts/render_wake_cues.py` (usage in its docstring; runs in the server container).
 
 ### Tests
 

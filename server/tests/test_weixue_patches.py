@@ -9,6 +9,7 @@ import pytest
 
 import weixue_patches
 from tests.conftest import VENDOR_DIR
+from tests.test_conversation_timing import stub_handler_modules
 
 
 def _upstream_clean():
@@ -90,6 +91,7 @@ def test_apply_patches_each_hook_once(monkeypatch):
     monkeypatch.setitem(sys.modules, "core.connection", connection)
     monkeypatch.setitem(sys.modules, "core.handle.textHandler.listenMessageHandler", listen)
     monkeypatch.setitem(sys.modules, "core.http_server", http_server)
+    stub_handler_modules(monkeypatch)
 
     weixue_patches.apply()
     weixue_patches.apply()
@@ -99,6 +101,6 @@ def test_apply_patches_each_hook_once(monkeypatch):
     assert patched("two is ") == "two is "
     assert ConnectionHandler()._clean_response_garbage("two is ") == "two is "
     assert ConnectionHandler.handle_connection.weixue_wrapped is handle_connection
-    assert ListenTextMessageHandler.handle.weixue_wrapped is handle
+    assert ListenTextMessageHandler.handle.weixue_wrapped.weixue_wrapped is handle
     assert isinstance(http_server.web, weixue_patches.WebWithRoutes)
     assert http_server.web._web is web
