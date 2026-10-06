@@ -6,7 +6,8 @@ export PATH="$HOME/.rd/bin:$PATH"
 
 [ -f .env ] || { echo "missing server/.env (copy .env.example)"; exit 1; }
 set -a; . ./.env; set +a
-: "${LAN_IP:?}" "${LLM_API_KEY:?}" "${LLM_URL:?}" "${LLM_MODEL:?}" "${TZ_OFFSET:?}"
+: "${LAN_IP:?}" "${TZ_OFFSET:?}" "${ANTHROPIC_API_KEY:?}" "${GOOGLE_SA_FILE:?}"
+[ -f "$GOOGLE_SA_FILE" ] || { echo "GOOGLE_SA_FILE does not exist"; exit 1; }
 
 MODEL=data/models/SenseVoiceSmall/model.pt
 MODEL_URL=https://modelscope.cn/models/iic/SenseVoiceSmall/resolve/master/model.pt

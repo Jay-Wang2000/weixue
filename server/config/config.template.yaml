@@ -5,18 +5,68 @@ server:
   auth:
     enabled: false
 
+prompt: |
+  You are Jarvis, the voice assistant of this household. You run on a small round-screen device on a table at home and control the house through Home Assistant. You know the home's rooms, lights, climate and sensors only through the tools you are given. You are helpful, calm and a little playful, and you keep every spoken reply short.
+prompt_template: weixue-agent-prompt.txt
+
+wakeup_words:
+  - "你好小智"
+  - "嘿你好呀"
+  - "你好小志"
+  - "小爱同学"
+  - "你好小鑫"
+  - "你好小新"
+  - "小美同学"
+  - "小龙小龙"
+  - "喵喵同学"
+  - "小滨小滨"
+  - "小冰小冰"
+  - "Jarvis"
+
 selected_module:
   VAD: SileroVAD
-  ASR: FunASR
-  LLM: StopgapLLM
-  TTS: EdgeTTS
+  ASR: GoogleSTT
+  LLM: AnthropicLLM
+  TTS: GoogleTTS
   Intent: function_call
 
 LLM:
   StopgapLLM:
     type: openai
-    url: "@@LLM_URL@@"
-    api_key: "@@LLM_API_KEY@@"
-    model_name: "@@LLM_MODEL@@"
+    url: "@@LLM_URL?@@"
+    api_key: "@@LLM_API_KEY?@@"
+    model_name: "@@LLM_MODEL?@@"
+  AnthropicLLM:
+    type: anthropic
+    api_key: "@@ANTHROPIC_API_KEY@@"
+    model_name: claude-sonnet-5-5
+    fallback_model_name: claude-haiku-4-5-20251001
+    max_tokens: 1024
+    effort: low
+    thinking: adaptive
+    timeout: 60
+    max_retries: 1
+
+ASR:
+  GoogleSTT:
+    type: google_stt
+    credentials_file: /run/secrets/google-sa.json
+    use_adc: false
+    project_id: ""
+    location: us
+    model: chirp_3
+    language_codes: ["en-US", "cmn-Hans-CN"]
+    enable_automatic_punctuation: true
+    timeout: 15
+    output_dir: tmp/
+
+TTS:
+  GoogleTTS:
+    type: google_tts
+    credentials_file: /run/secrets/google-sa.json
+    speaker: Charon
+    default_language: en
+    speaking_rate: 1.0
+    output_dir: tmp/
 
 mcp_endpoint: "@@MCP_ENDPOINT@@"

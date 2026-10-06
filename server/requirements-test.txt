@@ -1,0 +1,11 @@
+-r requirements-overlay.txt
+pytest==9.1.1
+pytest-asyncio==1.4.0
+loguru==0.7.3
+PyYAML==6.0.3
+Jinja2==3.1.6
+numpy==1.26.4
+pydub==0.25.1
+opuslib_next==1.1.5
+requests==2.32.5
+httpx==0.28.1

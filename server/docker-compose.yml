@@ -20,6 +20,7 @@ services:
     volumes:
       - ./data:/opt/xiaozhi-esp32-server/data
       - ./data/models/SenseVoiceSmall/model.pt:/opt/xiaozhi-esp32-server/models/SenseVoiceSmall/model.pt
+      - ${GOOGLE_SA_FILE:?set GOOGLE_SA_FILE in server/.env}:/run/secrets/google-sa.json:ro
     depends_on:
       - mcp-endpoint-server
 
