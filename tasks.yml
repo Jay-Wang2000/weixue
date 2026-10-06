@@ -126,3 +126,11 @@ tasks:
     status: done
     retries: 0
     model: sonnet
+  - id: fix-conversation-timing
+    name: "Conversation timing: short follow-up window, silent end"
+    branch: fix/conversation-timing
+    description: 用户实测反馈：回复后监听时间过长、结束时啰嗦。调 xiaozhi-server 配置与 overlay：回复后免唤醒追问窗口约 8 s（ADR-7），超时静默回到 idle；关闭 end_prompt 告别语；缩短句尾静音判定（VAD）；确认设备端 realtime 监听模式与服务器超时的配合。实机验证：说完一轮后 ≤10 s 回到待机且无告别语，追问在窗口内可被识别。
+    depends_on: [feat-firmware-base]
+    status: pending
+    retries: 0
+    model: opus
