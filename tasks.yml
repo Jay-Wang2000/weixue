@@ -35,7 +35,7 @@ tasks:
     branch: feat/stt-google
     description: 新增 Google Cloud STT v2 provider（chirp_3；language_codes [en-US, cmn-Hans-CN]）；仅在确认错误由语言组合引起时允许一次 [auto] 回退并记录；禁止静默截断超长语音。pytest 用假客户端；实机验收等待 feat-firmware-base。
     depends_on: [feat-server]
-    status: review
+    status: done
     retries: 0
     model: sonnet
   - id: feat-tts-google
@@ -43,7 +43,7 @@ tasks:
     branch: feat/tts-google
     description: 新增 Google Cloud TTS provider，cmn-CN / en-US，流式输出。pytest + 冒烟。
     depends_on: [feat-server]
-    status: review
+    status: done
     retries: 0
     model: sonnet
   - id: feat-llm
@@ -51,7 +51,7 @@ tasks:
     branch: feat/llm
     description: 新增 Anthropic Claude provider（tool use 对接 MCP 工具；默认 claude-sonnet-5-5，haiku-4-5 备选），英主中辅系统提示词；ChatGPT 式对话逻辑见 DESIGN.md ADR-7。先读 claude-api skill。
     depends_on: [feat-server]
-    status: review
+    status: done
     retries: 0
     model: sonnet
   - id: feat-ha-mcp
@@ -118,3 +118,11 @@ tasks:
     status: pending
     retries: 0
     model: opus
+  - id: fix-server-polish
+    name: "Server polish after Wave 2 integration"
+    branch: fix/server-polish
+    description: 整合评审遗留：(1) server/Dockerfile 首行加 `# syntax=docker/dockerfile:1`（COPY --exclude 需 frontend ≥1.19）；(2) 修复英文 TTS 丢空格（上游 `_clean_response_garbage` 去掉流式块尾空格，实机听感 "isfour"）——在 overlay 覆盖或补丁，附回归测试；(3) STT 超长输入改为明确拒绝并提示重说，而非 59 s 静默截断（DESIGN F2）；(4) docs 不把 ANTHROPIC_API_KEY 写在命令行上；(5) tests/conftest.py 的凭据路径改为环境变量；(6) 整理 docs/server.md。重建并重启 live 栈，一轮 WebSocket 文本回合验证。
+    depends_on: []
+    status: pending
+    retries: 0
+    model: sonnet
