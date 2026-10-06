@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the weixue firmware in a scratch copy of the vendored xiaozhi-esp32 clone, writes the sha256 of sdkconfig, config.weixue.json and every flashed file to $work/weixue-build.sha256, and prints build time and binary sizes.
+# Builds the weixue firmware in a scratch copy of the vendored xiaozhi-esp32 clone (plus firmware/overrides and firmware/patches), writes the sha256 of sdkconfig, config.weixue.json and every flashed file to $work/weixue-build.sha256, and prints build time and binary sizes.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 vendor="${WEIXUE_VENDOR:-$HOME/Projects/weixue-vendor}"
@@ -10,6 +10,7 @@ board_dir=waveshare/esp32-s3-touch-amoled-1.75
 build_name=esp32-s3-touch-amoled-1.75c-weixue
 language=en-US
 wake_word=wn9_jarvis_tts
+face_diag="${WEIXUE_FACE_DIAG:-0}"
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -24,8 +25,19 @@ rm -f "$work/$manifest"
 rsync -a --delete \
   --exclude /.git --exclude /managed_components --exclude /build \
   --exclude /sdkconfig --exclude /sdkconfig.old --exclude /dependencies.lock \
-  --exclude /main/assets/lang_config.h \
+  --exclude /main/assets/lang_config.h --exclude "/main/boards/$board_dir/face_diag.h" \
   "$src/" "$work/"
+if [ -d "$root/firmware/overrides" ]; then
+  while IFS= read -r f; do
+    [ ! -e "$src/$f" ] || die "firmware/overrides/$f replaces an upstream file; use a patch"
+  done < <(cd "$root/firmware/overrides" && find . -type f | sed 's|^\./||')
+  rsync -a "$root/firmware/overrides/" "$work/"
+fi
+case "$face_diag" in 0|1) ;; *) die "WEIXUE_FACE_DIAG must be 0 or 1" ;; esac
+diag_h="$work/main/boards/$board_dir/face_diag.h"
+diag_want="#define WEIXUE_FACE_DIAG $face_diag"
+[ "$(cat "$diag_h" 2>/dev/null)" = "$diag_want" ] || echo "$diag_want" > "$diag_h"
+echo "face_diag: $face_diag"
 cp "$root/firmware/board/config.weixue.json" "$work/main/boards/$board_dir/config.weixue.json"
 [ -f "$root/firmware/dependencies.lock" ] && cp "$root/firmware/dependencies.lock" "$work/dependencies.lock"
 shopt -s nullglob

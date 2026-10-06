@@ -1,0 +1,286 @@
+# feat-ui-face release build (WEIXUE_FACE_DIAG=0) smoke round. Events (UTC):
+#   00:17:10.243 serial capture start (port open resets board)
+#   00:17:40.296 say "Jarvis"
+#   00:17:47.477 say "What is the capital of Italy?"
+#   00:18:12.420 say "Goodbye."
+#   00:18:34.371 idle until capture end
+#   00:19:00.417 serial capture end
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40382d5a
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x544
+load:0x403c8700,len:0xd14
+load:0x403cb700,len:0x2eb4
+entry 0x403c88f4
+I (33) octal_psram: vendor id    : 0x0d (AP)
+I (34) octal_psram: dev id       : 0x02 (generation 3)
+I (34) octal_psram: density      : 0x03 (64 Mbit)
+I (36) octal_psram: good-die     : 0x01 (Pass)
+I (40) octal_psram: Latency      : 0x01 (Fixed)
+I (44) octal_psram: VCC          : 0x01 (3V)
+I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (67) octal_psram: DriveStrength: 0x00 (1/1)
+I (71) MSPI Timing: Enter psram timing tuning
+I (76) esp_psram: Found 8MB PSRAM device
+I (79) esp_psram: Speed: 80MHz
+I (82) cpu_start: Multicore app
+I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (96) cpu_start: Pro cpu start user code
+I (96) cpu_start: cpu freq: 240000000 Hz
+I (98) app_init: Application information:
+I (102) app_init: Project name:     xiaozhi
+I (106) app_init: App version:      2.5.1
+I (109) app_init: Compile time:     Oct  7 2026 00:07:49
+I (114) app_init: ELF file SHA256:  cf48d9133...
+I (119) app_init: ESP-IDF:          v6.1
+I (122) efuse_init: Min chip rev:     v0.0
+I (126) efuse_init: Max chip rev:     v0.99 
+I (130) efuse_init: Chip rev:         v0.2
+I (134) heap_init: Initializing. RAM available for dynamic allocation:
+I (140) heap_init: At 3FCAB240 len 0003E4D0 (249 KiB): RAM
+I (145) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+I (161) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (168) spi_flash: detected chip: gd
+I (171) spi_flash: flash io: qio
+I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (180) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (187) main_task: Started on CPU0
+I (187) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+I (197) main_task: Calling app_main()
+I (367) Board: UUID=<redacted> SKU=esp32-s3-touch-amoled-1.75c-weixue
+I (367) button: IoT Button Version: 4.2.1
+I (367) PowerSaveTimer: Power save timer enabled
+I (377) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+I (377) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+W (387) spi_common: GPIO 0 is conflict with others and be overwritten
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+W (407) spi_common: GPIO 0 is conflict with others and be overwritten
+I (407) co5300: version: 2.2.0
+I (407) co5300_spi: LCD panel create success, version: 2.2.0
+W (577) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+I (1777) Display: Power management not supported
+I (1857) LcdDisplay: Turning display on
+I (1857) LcdDisplay: Initialize LVGL library
+I (1857) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+I (1857) LcdDisplay: Use 2MB of PSRAM for image cache
+I (1867) LcdDisplay: Initialize LVGL port
+I (1867) LcdDisplay: Adding LCD display
+I (1867) LVGL: Starting LVGL task
+I (1877) Backlight: Set brightness to 75
+I (1877) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+I (1957) CST9217: Checkcode: 0x204ECACA
+I (1957) CST9217: Resolution X: 466, Y: 466
+I (1957) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+I (1957) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+I (1957) MCP: Add tool: self.system.reconfigure_wifi
+I (1967) StateMachine: State: unknown -> starting
+W (2037) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+I (2047) BoxAudioCodec: Duplex channels created
+I (2047) ES8311: Work in Slave mode
+I (2057) ES7210: Work in Slave mode
+I (2067) ES7210: Enable ES7210_INPUT_MIC1
+I (2067) ES7210: Enable ES7210_INPUT_MIC2
+I (2067) ES7210: Enable ES7210_INPUT_MIC3
+I (2077) ES7210: Enable ES7210_INPUT_MIC4
+I (2077) ES7210: Enable TDM mode
+I (2077) BoxAudioCodec: BoxAudioDevice initialized
+I (2077) AudioCodec: Audio codec started
+I (2087) Application: After board/audio init
+I (2087) SystemInfo: free sram: 196663 minimal sram: 95136
+I (2087) MCP: Add tool: self.get_device_status
+I (2087) MCP: Add tool: self.audio_speaker.set_volume
+I (2097) MCP: Add tool: self.screen.set_brightness
+I (2097) MCP: Add tool: self.screen.set_theme
+I (2107) MCP: Add tool: self.get_system_info [user]
+I (2107) MCP: Add tool: self.reboot [user]
+I (2117) MCP: Add tool: self.upgrade_firmware [user]
+I (2117) MCP: Add tool: self.screen.get_info [user]
+I (2127) MCP: Add tool: self.screen.snapshot [user]
+I (2127) MCP: Add tool: self.screen.preview_image [user]
+I (2137) MCP: Add tool: self.assets.set_download_url [user]
+I (2137) WifiManager: Initializing...
+I (2137) pp: pp rom version: e7ae62f
+I (2147) net80211: net80211 rom version: e7ae62f
+I (2157) wifi:wifi driver task: 3fce18b8, prio:23, stack:6656, core=0
+I (2157) wifi:wifi firmware version: e12a754
+I (2157) wifi:wifi certification version: v7.0
+I (2167) wifi:config NVS flash: disabled
+I (2167) wifi:config nano formatting: disabled
+I (2167) wifi:Init data frame dynamic rx buffer num: 6
+I (2177) wifi:Init dynamic rx mgmt buffer num: 5
+I (2177) wifi:Init management short buffer num: 32
+I (2187) wifi:Init dynamic tx buffer num: 32
+I (2187) wifi:Init static tx FG buffer num: 2
+I (2197) wifi:Init static rx buffer size: 1600
+I (2197) wifi:Init static rx buffer num: 3
+I (2197) wifi:Init dynamic rx buffer num: 6
+I (2207) wifi_init: rx ba win: 3
+I (2207) wifi_init: accept mbox: 6
+I (2207) wifi_init: tcpip mbox: 16
+I (2217) wifi_init: udp mbox: 6
+I (2217) wifi_init: tcp mbox: 6
+I (2217) wifi_init: tcp tx win: 5760
+I (2227) wifi_init: tcp rx win: 5760
+I (2227) wifi_init: tcp mss: 1440
+I (2227) WifiManager: Initialized
+I (2237) WifiBoard: Starting WiFi connection attempt
+I (2237) WifiManager: Starting station
+I (2237) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+I (2247) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (2287) wifi:mode : sta (7c:0c:5f:42:4b:fc)
+I (2287) wifi:enable tsf
+I (2287) WifiStation: Scanning saved channel 11
+I (2287) WifiBoard: WiFi scanning
+I (2407) WifiStation: Found AP: <ssid>, BSSID: <redacted>, RSSI: -71, Channel: 11, Authmode: 3
+I (2407) WifiBoard: WiFi connecting to <ssid>
+W (2407) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+I (2487) wifi:new:<11,2>, old:<1,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+I (2487) wifi:state: init -> auth (0xb0)
+I (2577) wifi:state: auth -> init (0x8a0)
+I (2577) wifi:new:<11,0>, old:<11,2>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+I (2577) wifi:new:<11,2>, old:<11,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+I (2577) wifi:state: init -> auth (0xb0)
+I (2597) wifi:state: auth -> assoc (0x0)
+I (2597) wifi:state: assoc -> run (0x10)
+I (2657) wifi:connected with <ssid>, aid = 4, channel 11, 40D, bssid = <redacted>
+I (2657) wifi:security: WPA2-PSK, phy: bgn, rssi: -71, cipher(pairwise:0x3, group:0x3), pmf:0
+I (2657) wifi:pm start, type: 1
+
+I (2657) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+I (2667) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (2697) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (2707) wifi:<ba-add>idx:0 (ifx:0, <bssid>), tid:7, ssn:0, winSize:64
+I (2917) wifi:<ba-add>idx:1 (ifx:0, <bssid>), tid:0, ssn:0, winSize:64
+I (3837) esp_netif_handlers: sta ip: 192.168.8.148, mask: 255.255.255.0, gw: 192.168.8.1
+I (3837) WifiStation: Got IP: 192.168.8.148
+I (3837) WifiBoard: Connected to WiFi: <ssid>
+I (3837) Application: Network connected
+I (3837) StateMachine: State: starting -> activating
+I (3847) Assets: The storage free size is 21760 KB
+I (3847) Assets: The assets map size is 2944 KB (partition 16384 KB)
+I (4027) Assets: The checksum calculation time is 172 ms
+I (4027) MODEL_LOADER: Successfully load srmodels
+I (4037) Assets: Refreshing display theme...
+I (4047) Ota: Current version: 2.5.1
+I (4047) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (4187) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=140
+I (4277) HttpClient: HTTP connection closed
+I (4277) Ota: No mqtt section found !
+I (4277) Ota: Current is the latest version
+I (4277) Ota: Running partition: ota_0
+I (4287) Application: Activation done
+I (4287) SystemInfo: free sram: 156935 minimal sram: 39812
+I (4287) StateMachine: State: activating -> idle
+I (4287) Application: Proactive poller: http://192.168.8.220:8003/weixue/proactive/poll
+I (4297) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (4297) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (4307) wifi:Set ps type: 2, coexist: 0
+
+I (4317) AfeAudioEngine: Model 0: wn9_jarvis_tts
+I (4317) WakeWordCache: Allocated 64000 bytes in PSRAM
+I (4327) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+I (4327) AfeAudioEngine: Before AFE create: free=146487 min=39812 largest=98304
+MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+I (4417) AFE: AFE Version: (1MIC_V251128)
+I (4417) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4427) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+I (4437) AFE: AFE Version: (1MIC_V251128)
+I (4447) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4457) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+I (4457) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+I (4467) AfeAudioEngine: After AFE create: free=125179 min=33468 largest=81920
+I (4477) I2S_IF: Paired data: 0x3fcd2a98, current mode: playback, paired in_enable: 0, paired out_enable: 0
+I (4487) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+I (4487) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4517) Adev_Codec: Open codec device OK
+I (4517) AudioCodec: Set output enable to true
+I (4517) I2S_IF: Peer mode playback need extend bits 32 to 64
+I (4517) AudioService: Resampling audio from 16000 to 24000
+I (4517) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+I (4527) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4537) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+I (4547) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4557) ES7210: Bits 16
+I (4567) ES7210: Enable ES7210_INPUT_MIC1
+I (4567) ES7210: Enable ES7210_INPUT_MIC2
+I (4567) ES7210: Enable ES7210_INPUT_MIC3
+I (4567) ES7210: Enable ES7210_INPUT_MIC4
+I (4577) ES7210: Enable TDM mode
+I (4577) ES7210: Unmuted
+I (4577) Adev_Codec: Open codec device OK
+I (4577) AudioCodec: Set input enable to true
+I (5137) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=840
+I (14087) SystemInfo: free sram: 127015 minimal sram: 33468
+I (24087) SystemInfo: free sram: 127015 minimal sram: 33468
+I (32077) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (32097) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=20
+I (32127) Application: Wake word detected: Jarvis (state: 3)
+I (32127) StateMachine: State: idle -> connecting
+I (32127) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (32127) wifi:Set ps type: 0, coexist: 0
+
+I (32137) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+I (32147) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (32217) FaceDisplay: mode=listening mood=neutral
+I (32227) WebSocket: WebSocket handshake done, cost=80 tcp=60 handshake=20
+I (32257) WS: Session ID: 4ef3f1c4-2919-4d8f-9b4a-2a9c7da7bc2e
+I (32257) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (32257) wifi:Set ps type: 0, coexist: 0
+
+W (32267) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (32277) Application: Wake word detected: Jarvis
+I (32397) AfeAudioEngine: Encoded wake word into 33 packets in 271 ms
+I (32397) StateMachine: State: connecting -> listening
+I (32437) StateMachine: State: listening -> speaking
+I (32477) FaceDisplay: mode=speaking mood=neutral
+I (32507) Application: << 我在这里，等候您的指令。
+I (35297) StateMachine: State: speaking -> listening
+I (35307) FaceDisplay: mode=listening mood=neutral
+I (37287) Application: >> What's up, guys?
+I (37287) StateMachine: State: listening -> speaking
+I (37297) FaceDisplay: mode=thinking mood=neutral
+I (39027) Application: << Hey there
+I (39027) FaceDisplay: mode=speaking mood=neutral
+I (40087) Application: << Not much, just keeping the house company. What can I do for you?
+I (41757) Application: >> What is the capital of Italy?
+I (41757) StateMachine: State: speaking -> listening
+I (41757) FaceDisplay: mode=listening mood=neutral
+I (41787) StateMachine: State: listening -> speaking
+I (41797) FaceDisplay: mode=thinking mood=neutral
+I (43327) Application: << The capital of Italy is Rome
+I (43367) FaceDisplay: mode=speaking mood=neutral
+I (45887) StateMachine: State: speaking -> listening
+I (45897) FaceDisplay: mode=listening mood=neutral
+I (55087) SystemInfo: free sram: 119411 minimal sram: 33468
+I (65087) SystemInfo: free sram: 125339 minimal sram: 33468
+I (65527) Application: >> Goodbye
+I (65527) StateMachine: State: listening -> speaking
+I (65577) FaceDisplay: mode=thinking mood=neutral
+I (67067) Application: >> % handle_exit_intent
+I (67067) Application: << Goodbye
+I (67067) FaceDisplay: mode=speaking mood=neutral
+I (67977) Application: << talk soon
+I (69587) StateMachine: State: speaking -> listening
+I (69597) FaceDisplay: mode=listening mood=neutral
+I (69597) WS: Websocket disconnected
+I (69597) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (69597) wifi:Set ps type: 2, coexist: 0
+
+I (69617) StateMachine: State: listening -> idle
+I (69627) FaceDisplay: mode=idle mood=neutral
+I (70217) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (70267) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=50
+I (79087) SystemInfo: free sram: 119299 minimal sram: 33468
+I (89087) SystemInfo: free sram: 125111 minimal sram: 33468
+I (97307) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (97307) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+I (99087) SystemInfo: free sram: 124147 minimal sram: 33468
+I (109087) SystemInfo: free sram: 125111 minimal sram: 33468
