@@ -30,16 +30,16 @@
 [HA 自动化] → webhook → 后端 → 设备播报 / 发起对话（主动编排）
 ```
 
-**数据流**：唤醒 → 设备推流 → 后端 VAD/ASR → LLM（函数调用 → MCP 工具 → ha-mcp）→ TTS → 设备播放；每轮结束后端查 ha-mcp `/api/policy/pending`，有待批则推送到设备表情中央。
+**数据流**：唤醒 → 设备推流 → 后端 VAD/STT → LLM → MCP → ha-mcp → TTS。held 调用须在 MCP 30 s 超时前返回可关联的 token。后端以 approval-requested 事件实时更新审批状态，并在每轮结束及重连后查询 pending 作对账。只有绑定到本设备原始调用的审批可在设备上裁决；审批通过不等于执行完成：后端按原调用结果决定是否重放原工具与原参数，并显示成功、失败或结果未知。
 
 ## Features（对应 tasks.yml）
 
 | ID | 功能 | 验收 |
 |---|---|---|
 | feat-toolchain | 项目内 venv 装 ESP-IDF（小智要求版本）+ esptool；备份现有 Flash | `idf.py --version` 可用；`backup/flash-<timestamp>.bin` 存在 |
-| feat-firmware-base | 编译并烧录小智 `esp32-s3-touch-amoled-1.75c` build，OTA_URL 指向自建后端 | 「你好小智」唤醒，设备连上自建后端 |
+| feat-firmware-base | 编译并烧录自定义 1.75C build：设备端 AEC、唯一 WakeNet 模型 wn9_jarvis_tts、CONFIG_RECEIVE_CUSTOM_MESSAGE=y；OTA_URL 指向自建后端 | “Jarvis” 10 次唤醒成功 ≥9；启动日志仅该一个 WakeNet 模型；连接自建后端并完成一轮对话；实机确认合法 custom 消息可达、未知消息不影响语音；保存实机日志 |
 | feat-server | Docker Compose 跑 xiaozhi-esp32-server（含 OTA、WebSocket、MCP 接入点） | 设备注册成功，能完成一轮对话（先用默认 provider） |
-| feat-stt-google | 新增 Google Cloud STT provider：en-US 主 + zh-CN 备选的多语言识别 | 中英各 10 句，转写正确率人工验收 |
+| feat-stt-google | Google Cloud STT v2：chirp_3，language_codes [en-US, cmn-Hans-CN]；超长输入明确拒绝而非静默截断 | 固定中英各 10 句，每种语言语义转写正确 ≥9/10；控制句的目标、数值、否定词必须正确；另测短应答（嗯/yes/no）、空音频、超长输入 |
 | feat-tts-google | 新增 Google Cloud TTS provider（Chirp 3 HD cmn-CN / en-US，流式） | 中英回复可播放，首字延迟 <1.5 s |
 | feat-llm | 新增 Anthropic provider（tool use → MCP）+ 系统提示词（家庭语境，英主中辅） | 控灯、查温度、闲聊各通过；中文提问得中文回答 |
 | feat-ha-mcp | 后端 MCP 接入点连 ha-mcp；为语音路径调策略；轮换 secret path | 「开客厅灯」免审批执行；不可逆动作被拒 |
@@ -58,8 +58,8 @@
 - **ADR-4 后端宿主**：开发期 Mac（Docker Compose）；后期迁到家里 Ubuntu 主机，配置与数据卷保持可迁移。
 - **ADR-6 唤醒词**：单一英文唤醒词 `Hi Jarvis`，用 ESP-SR 现成 WakeNet 模型（`wn9_jarvis_tts`，sdkconfig `CONFIG_SR_WN_WN9_JARVIS_TTS=y`；若乐鑫模型实际短语为 "Jarvis" 则以模型为准）。不用 MultiNet 自定义短语、不走付费定制、不加第二个唤醒词。调研：`research/reports/weixue-q3-wakeword.md`。
 - **ADR-7 对话逻辑**：仿 ChatGPT 语音：英语为主、中文为辅；STT 多语言识别，LLM 用用户所用语言回答，TTS 随之切换声音；回答结束后保持数秒免唤醒追问；支持打断（设备端 AEC）。
-- **ADR-8 代码托管**：fork `78/xiaozhi-esp32` 与 `xinnan-tech/xiaozhi-esp32-server` 到个人 GitHub（Jay-Wang2000，`github.com-personal` SSH 别名），改动在 fork 上并推送。Flash 先备份再覆盖。
-- **ADR-9 设备上批准**：ha-mcp 已有批准机制，优先走 HA 事件总线：监听 `ha_mcp_approval_requested {token, tool_name, args, expires_at}`，用 admin 令牌发 `ha_mcp_approval_response {token, decision, pin}`（面板开启 event decisions 并设 PIN），结果由 `ha_mcp_approval_result` 回报。备选 HTTP：`GET /api/policy/pending`、`POST /api/policy/approve|deny {token}`（挂在 secret path 下，无额外鉴权，故只能由后端持有）。ESP32 只负责显示和点击，批准动作在后端。注意：调用默认阻塞 60 s 后返回 `USER_APPROVAL_REQUIRED`，token 5 分钟内有效，重调一次即消费；队列在内存，重启即丢；不记录批准人。调研：`research/reports/weixue-q7-hamcp-approval.md`。
+- **ADR-8 代码托管**：按 CLAUDE.md 的 remote-deferred 例外工作：共享 `weixue-vendor` 只作只读基线，改动在每任务的本地 `feat/*` 分支完成并记录基线提交；review/test 通过后本地 `--no-ff` 合并。个人 remote 建立后创建两个上游 fork，切换到一任务一提交一 PR；不直接推送 main。Flash 覆盖前保存带时间戳和校验值的备份。
+- **ADR-9 设备审批（M1 生效）**：后端持有 HA 凭据；设备只发送与当前审批卡关联的决定。ha-mcp 的同步挂起在 xiaozhi-server 内走不通（接入点执行器写死 30 s，超时即判失败且不再回 LLM；进度通知两跳均丢弃；拉长服务器等待又会撞固件 120 s 信道静默），因此策略 `wait_seconds` 设为 5–10 s 走 token 路径，策略变更须用户确认。记录 token、原始工具及参数、来源设备/会话、到期时间、状态。事件总线（`ha_mcp_approval_requested` / `ha_mcp_approval_response`+PIN / `ha_mcp_approval_result`）为主路径，HTTP `/api/policy/*` 为后端备选，两条路径共享去重与状态校验。拒绝、过期或未知 token 不得执行；重复决定不得重复执行；若返回 `USER_APPROVAL_REQUIRED` 则批准后重放原调用以消费 token；执行结果未知时不得盲目重试。验收覆盖早到批准、延迟批准、拒绝、过期、重复点击、断连和 HA/后端重启。调研：`research/reports/weixue-q7-hamcp-approval.md`。
 - **ADR-5 UI**：程序化眼睛而非精灵图/Lottie（无 466 px 素材、性能、烧屏）。
 
 ## Milestone M2 — agent 化（待 Wave 5 后排程；调研：`research/reports/weixue-agent-backend-v1.md`）
@@ -75,16 +75,19 @@ xiaozhi-server 的对话循环是深度 ≤5、每工具 30 s、同步阻塞、1
 
 依赖：feat-llm、feat-ui-face、feat-ui-panel、feat-approvals。结果交付三档借 Gemini Live 的 `INTERRUPT | WHEN_IDLE | SILENT`。
 
+- **ADR-11 前台对话轮绝对时限**：每个前台语音轮 90 s 绝对期限，SDK 重试、provider 回退、工具轮次共用，不被单请求超时重置；到期停止调度新工作、阻止迟到结果进入新轮，并在固件 120 s 信道超时前向设备发送终态。已派发的动作结果未知时不得报为已取消或自动重试。
 - **ADR-10 agent 层**：Claude Agent SDK 自托管（API key 计费）；Managed Agents 留作不碰 HA 的 side project 后备；不采用 LangGraph/Pydantic AI/Pipecat。
-- **ADR-9 修订**：ha-mcp 的同步挂起在 xiaozhi-server 里走不通：MCP 接入点执行器写死 30 s 等待（不透传 `tool_call_timeout`），超时即判工具失败且不再回 LLM，之后到达的批准无人消费；两跳都丢弃进度通知；把服务器等待调到 180 s 又会撞上固件 120 s 信道静默超时。因此审批只能走 token 路径：把 `wait_seconds` 设为 5–10 s，让 `USER_APPROVAL_REQUIRED`+token 在 30 s 内返回，后端显示批准卡、经事件总线裁决、再重发调用。`wait_seconds` 本身只是上限，不是安全边界。
-- feat-firmware-base 的构建应开启 `CONFIG_RECEIVE_CUSTOM_MESSAGE`，为 M2 预留通道；feat-ui-panel 预留任务芯片位。
+- feat-firmware-base 必须在最终 sdkconfig 验证 `CONFIG_RECEIVE_CUSTOM_MESSAGE=y`，并在实机确认合法 custom 消息可达、未知消息不影响语音。feat-ui-panel 用 fixture 数据预留任务芯片和审批卡并输出 UI 决定；真实审批执行由 feat-approvals 验收。
 
 ## Testing Strategy
 
 - 后端 provider：pytest，mock Google API + 一次真实冒烟（短音频）。
 - 固件：构建通过 + 手动验收清单（唤醒/打断/四态/手势），每项录 10 次。
-- 端到端：固定 20 句中英命令脚本，记录识别、延迟、HA 动作结果。
+- 端到端：`feat-voice-integration` 验收门——同一固件、同一 Docker 镜像，Google STT + Anthropic + Google TTS + ha-mcp 一起完成固定中英各 10 句；记录版本、配置模式、转写、回复语言、HA 结果、语音结束到设备首个可听音频的延迟，以及 TTS 分段提交到首帧的独立延迟；加入短应答、打断、服务超时、网络恢复、审批异常场景；实机证据按 CLAUDE.md 保存。
 
 ## Open Questions
 
-- 无（2026-10-06）。
+来自 2026-10-06 的外部评审（`docs/reviews/codex-gpt6-astra-high-spec-review-2026-10-06.md`）：
+
+- M1 冻结前待定：免唤醒追问的时长、起点、麦克风状态与归属（服务器/固件）；工具等待期间的打断策略（现有 `abort` 打不断工具且会并发第二个 `chat()`）；静音/床头/电池 5 分钟关机的语义；OTA/WS 明文传输与设备鉴权的开发期例外；音频/转写保留、云区域、费用上限与 webhook 鉴权限流；语音输入无说话人识别——以“物理可听”为 M1 信任边界，策略按实体级而非域级收紧。
+- M2 排程前待定：语音会话与任务会话的关系；任务 API/event schema、持久化、幂等、重启恢复；SDK 审批与 ha-mcp 审批是双门还是一次决定；开发子进程的仓库、工具、凭据、hooks 与部署权限边界。

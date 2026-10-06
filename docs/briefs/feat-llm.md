@@ -298,3 +298,10 @@ Live smoke (DESIGN "一次真实冒烟"): `RUN_LIVE_API_TESTS=1 pytest tests/tes
 - First-token latency difference between `thinking: between_tools` and adaptive at `effort: low` for voice turns — measure (acceptance #20).
 - The parallel-tool-use.md statement is that splitting results 'reduces parallel tool use'; the stronger skill wording 'silently trains Claude to stop making parallel calls' is the skill's, not the doc's.
 - PyPI JSON listed the latest version as 1.11.0 but its 'recent releases' ordering looked odd (0.125.0 first); the 1.11.0 release exists on PyPI and on the Aliyun mirror, upload date not checked.
+
+
+## Review amendment (2026-10-06, external spec review F5/F6)
+
+**Streaming tool-index contract:** track API block identity separately from the index exposed to `_merge_tool_calls`. Allocate an output index only when a tool is first emitted; emitted tools use contiguous indices from zero. A real tool is emitted only after its complete arguments parse. A dropped tool consumes no output index. `direct_answer` reserves an index on first emission and reuses it for every delta. Text/thinking blocks consume no tool index. Acceptance (owned by feat-voice-integration): invalid first tool then valid tool; valid/invalid/valid; dropped real tool then streamed `direct_answer` — no `IndexError`, dropped call never executed.
+
+**Turn deadline:** see DESIGN ADR-11 (90 s absolute per foreground turn, shared by retries/fallback/tool rounds).
