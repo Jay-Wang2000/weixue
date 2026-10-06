@@ -1,27 +1,33 @@
 diff --git a/main/Kconfig.projbuild b/main/Kconfig.projbuild
-index afdaf94..8bf5ada 100644
 --- a/main/Kconfig.projbuild
 +++ b/main/Kconfig.projbuild
-@@ -1031,6 +1031,14 @@ config RECEIVE_CUSTOM_MESSAGE
+@@ -1030,6 +1030,22 @@
+     default n
      help
          Enable custom message reception, allow the device to receive custom messages from the server (preferably through the MQTT protocol)
- 
++
 +config WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS
 +    int "Idle seconds before PMIC power-off on battery (0 = never)"
 +    default 300
 +    range 0 86400
 +    depends on BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_75 || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_75C
 +    help
-+        Idle power-off applies only while the AXP2101 reports no VBUS; on USB power the board only dims the screen.
++        Idle power-off applies only while the AXP2101 reports no VBUS.
 +
++config WEIXUE_SCREEN_OFF_SECONDS
++    int "Idle seconds before the AMOLED panel turns off (0 = never)"
++    default 300
++    range 0 86400
++    depends on BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_75 || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_75C
++    help
++        Applies on USB and battery power. MCU, Wi-Fi and wake word detection keep running; wake word, touch or leaving idle turns the panel back on.
+ 
  menu "Camera Configuration"
      depends on !IDF_TARGET_ESP32
- 
 diff --git a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
-index ab96681..b4c4339 100644
 --- a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
 +++ b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
-@@ -52,6 +52,10 @@ public:
+@@ -52,6 +52,10 @@
          WriteReg(0x62, 0x08); // set Main battery charger current to 400mA ( 0x08-200mA, 0x09-300mA, 0x0A-400mA )
          WriteReg(0x63, 0x01); // set Main battery term charge current to 25mA
      }
@@ -32,12 +38,91 @@ index ab96681..b4c4339 100644
  };
  
  #define LCD_OPCODE_WRITE_CMD (0x02ULL)
-@@ -150,16 +154,34 @@ private:
+@@ -149,17 +153,113 @@
+     CustomLcdDisplay* display_;
      CustomBacklight* backlight_;
      esp_io_expander_handle_t io_expander = NULL;
++    esp_lcd_panel_handle_t panel_ = nullptr;
      PowerSaveTimer* power_save_timer_;
 +    bool power_off_skipped_ = false;
++    // Panel state is changed only from esp_timer task callbacks (screen_off_timer_, wake_timer_).
++    esp_timer_handle_t screen_off_timer_ = nullptr;
++    esp_timer_handle_t wake_timer_ = nullptr;
++    int idle_seconds_ = 0;
++    bool panel_off_ = false;
  
++    // DISPOFF with brightness 0; GRAM keeps the last frame and LVGL keeps drawing.
++    void SetPanelOn(bool on) {
++        if (on) {
++            {
++                DisplayLockGuard lock(display_);
++                esp_lcd_panel_disp_on_off(panel_, true);
++            }
++            backlight_->RestoreBrightness();
++            ESP_LOGI(TAG, "Panel on");
++        } else {
++            backlight_->SetBrightness(0);
++            {
++                DisplayLockGuard lock(display_);
++                esp_lcd_panel_disp_on_off(panel_, false);
++            }
++            ESP_LOGI(TAG, "Panel off after %d s idle (VBUS %s)", idle_seconds_,
++                     pmic_->IsVbusGood() ? "present" : "absent");
++        }
++        panel_off_ = !on;
++    }
++
++    void OnScreenOffTick() {
++        if (!Application::GetInstance().CanEnterSleepMode()) {
++            OnWake();
++            return;
++        }
++        if (!panel_off_ && ++idle_seconds_ >= CONFIG_WEIXUE_SCREEN_OFF_SECONDS) {
++            SetPanelOn(false);
++        }
++    }
++
++    void OnWake() {
++        idle_seconds_ = 0;
++        power_save_timer_->WakeUp();
++        if (panel_off_) {
++            SetPanelOn(true);
++        }
++    }
++
++    // Callable from any task; the wake runs on the esp_timer task.
++    void WakeDisplay() {
++        esp_timer_start_once(wake_timer_, 0);
++    }
++
++    void InitializeScreenOffTimer() {
++        const esp_timer_create_args_t wake_args = {
++            .callback = [](void* arg) { static_cast<WaveshareEsp32s3TouchAMOLED1inch75*>(arg)->OnWake(); },
++            .arg = this,
++            .dispatch_method = ESP_TIMER_TASK,
++            .name = "display_wake",
++            .skip_unhandled_events = true,
++        };
++        ESP_ERROR_CHECK(esp_timer_create(&wake_args, &wake_timer_));
++        if (CONFIG_WEIXUE_SCREEN_OFF_SECONDS <= 0) {
++            return;
++        }
++        Settings settings("wifi", false);
++        if (!settings.GetBool("sleep_mode", true)) {
++            ESP_LOGI(TAG, "Panel off disabled by settings");
++            return;
++        }
++        const esp_timer_create_args_t tick_args = {
++            .callback = [](void* arg) { static_cast<WaveshareEsp32s3TouchAMOLED1inch75*>(arg)->OnScreenOffTick(); },
++            .arg = this,
++            .dispatch_method = ESP_TIMER_TASK,
++            .name = "screen_off",
++            .skip_unhandled_events = true,
++        };
++        ESP_ERROR_CHECK(esp_timer_create(&tick_args, &screen_off_timer_));
++        ESP_ERROR_CHECK(esp_timer_start_periodic(screen_off_timer_, 1000000));
++    }
++
      void InitializePowerSaveTimer() {
 -        power_save_timer_ = new PowerSaveTimer(-1, 60, 300);
 +        const int power_off_seconds = CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS > 0
@@ -62,25 +147,54 @@ index ab96681..b4c4339 100644
 +            if (power_off_skipped_) {
 +                ESP_LOGI(TAG, "VBUS removed while idle; battery idle countdown restarts");
 +                power_off_skipped_ = false;
-+                power_save_timer_->WakeUp();
++                WakeDisplay();
 +                return;
 +            }
 +            ESP_LOGI(TAG, "Idle power-off: no VBUS");
              pmic_->PowerOff(); });
          power_save_timer_->SetEnabled(true);
      }
-@@ -189,6 +211,10 @@ private:
+@@ -189,6 +289,11 @@
      void InitializeAxp2101() {
          ESP_LOGI(TAG, "Init AXP2101");
          pmic_ = new Pmic(i2c_bus_, 0x34);
-+        ESP_LOGI(TAG, "VBUS %s, battery %s, idle power-off on battery after %d s",
++        ESP_LOGI(TAG, "VBUS %s, battery %s, idle power-off on battery after %d s, panel off after %d s",
 +                 pmic_->IsVbusGood() ? "present" : "absent",
 +                 pmic_->IsBatteryPresent() ? "present" : "absent",
-+                 CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS);
++                 CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS,
++                 CONFIG_WEIXUE_SCREEN_OFF_SECONDS);
      }
  
      void InitializeSpi() {
-@@ -351,15 +377,8 @@ public:
+@@ -261,6 +366,7 @@
+         esp_lcd_panel_invert_color(panel, false);
+         esp_lcd_panel_mirror(panel, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y);
+         esp_lcd_panel_disp_on_off(panel, true);
++        panel_ = panel;
+         display_ = new CustomLcdDisplay(panel_io, panel,
+                                         DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_OFFSET_X, DISPLAY_OFFSET_Y, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y, DISPLAY_SWAP_XY);
+         backlight_ = new CustomBacklight(panel_io);
+@@ -294,7 +400,10 @@
+             .disp = lv_display_get_default(),
+             .handle = tp,
+         };
+-        lvgl_port_add_touch(&touch_cfg);
++        lv_indev_t* indev = lvgl_port_add_touch(&touch_cfg);
++        lv_indev_add_event_cb(indev, [](lv_event_t* e) {
++            static_cast<WaveshareEsp32s3TouchAMOLED1inch75*>(lv_event_get_user_data(e))->WakeDisplay();
++        }, LV_EVENT_PRESSED, this);
+         ESP_LOGI(TAG, "Touch panel initialized successfully");
+     }
+ 
+@@ -321,6 +430,7 @@
+         InitializeSpi();
+         InitializeDisplay();
+         InitializeTouch();
++        InitializeScreenOffTimer();
+         InitializeButtons();
+         InitializeTools();
+     }
+@@ -351,22 +461,15 @@
      }
  
      virtual bool GetBatteryLevel(int &level, bool &charging, bool &discharging) override {
@@ -95,4 +209,12 @@ index ab96681..b4c4339 100644
 -
          level = pmic_->GetBatteryLevel();
          return true;
+     }
+ 
+     virtual void SetPowerSaveLevel(PowerSaveLevel level) override {
+         if (level != PowerSaveLevel::LOW_POWER) {
+-            power_save_timer_->WakeUp();
++            WakeDisplay();
+         }
+         WifiBoard::SetPowerSaveLevel(level);
      }

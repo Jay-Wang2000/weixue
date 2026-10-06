@@ -50,7 +50,7 @@ idf.py -C ~/Projects/weixue-vendor/fw-work/<checkout dir name> -p <port> monitor
 - OTA: POST `CONFIG_OTA_URL` (NVS `wifi/ota_url` overrides it when non-empty; the Wi-Fi portal's Advanced tab sets it, an empty submit writes `""` and restores the default). The response's `websocket.url` is where the device streams audio. While the server is unreachable the device retries 10 times with doubling delays (about 85 min).
 - Wake word: the ESP-SR model `wn9_jarvis_tts` detects "Jarvis" and sends `{"type":"listen","state":"detect","text":"Jarvis"}`. Exactly one `AfeAudioEngine: Model 0: wn9_jarvis_tts` line appears at boot.
 - Wi-Fi provisioning (no stored SSID): join the `Xiaozhi-XXXX` hotspot and follow the on-screen portal URL.
-- Power (ADR-12, `firmware/patches/05-board-power-usb.patch`): after 60 s idle the screen dims to 20 %. Idle PMIC power-off happens only while the AXP2101 reports no VBUS, after `CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS` (default 300, `0` = never; set it in `config.weixue.json` `sdkconfig_append`). On USB the board logs `Idle power-off skipped: VBUS present` once per idle period; unplugging USB during that period wakes the screen and restarts the battery countdown. Boot logs `VBUS present|absent, battery present|absent`. USB idle check: `docs/logs/fix-power-usb-idle-usb-2026-10-06.log` (300 s) and `docs/logs/fix-power-usb-idle-usb-test90-2026-10-06.log` (test build with 90 s).
+- Power (ADR-12, `firmware/patches/05-board-power-usb.patch`): after 60 s idle the screen dims to 20 %. After `CONFIG_WEIXUE_SCREEN_OFF_SECONDS` idle (default 300, `0` = never), on USB and battery, the panel turns off (CO5300 DISPOFF, brightness 0) and logs `Panel off after 300 s idle (VBUS present|absent)`; MCU, Wi-Fi and wake word detection keep running. Wake word, touch (LVGL `LV_EVENT_PRESSED`), any `SetPowerSaveLevel` above low power (session start, notification, upgrade) or the device leaving idle (checked every second) turns it back on (`Panel on`) and restores the dim. Idle PMIC power-off happens only while the AXP2101 reports no VBUS, after `CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS` (default 300, `0` = never); set either in `config.weixue.json` `sdkconfig_append`. On USB the board logs `Idle power-off skipped: VBUS present` once per idle period; unplugging USB during that period wakes the screen and restarts the battery countdown. Boot logs `VBUS present|absent, battery present|absent, idle power-off on battery after N s, panel off after N s`. USB idle check: `docs/logs/fix-power-usb-idle-usb-2026-10-06.log` (300 s) and `docs/logs/fix-power-usb-idle-usb-test90-2026-10-06.log` (test build with 90 s). Panel-off check: `docs/logs/fix-screen-off-device-2026-10-06.log` (see Panel off below).
 - Device AEC is on; listening mode is realtime (barge-in). BOOT double-click toggles AEC until reboot.
 - Custom messages: `CONFIG_RECEIVE_CUSTOM_MESSAGE=y`. A server message `{"type":"custom","payload":{...}}` logs `Received custom message:` and shows the payload as a system chat line; a non-object payload logs `Invalid custom message format`; an unknown `type` logs `Unknown message type`.
 - Audio: the device decodes 16 kHz server audio and resamples to its 24 kHz output; each session logs `Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion`.
@@ -106,3 +106,18 @@ Human voice test, 2026-10-06, device on LAN (VPN off), live backend. Serial capt
 | Static | One commit ahead of `main` (4 behind: rebase before the PR); no secrets, SSIDs, `private_` URLs or `token=` values in `docs/` or `firmware/`; BSSID redacted in two flashsh logs |
 
 Findings: wake replies are Chinese regardless of the English persona; Google STT recognised a short utterance as `cmn-Hans-CN` and triggered the exit intent; the first session needed 4.4 s from WebSocket handshake to server hello while the server was initialising a concurrent client session (the server log also holds that client's `listen detect` traffic for session `21edf001`, excluded from the counts above).
+
+## Panel off (fix-screen-off, 2026-10-06)
+
+USB power, live backend, Mac `say` at volume 55. Logs: `docs/logs/fix-screen-off-flash-2026-10-06.log`, `fix-screen-off-device-2026-10-06.log` (serial, port opened 9 s after the post-flash reset; times in brackets are capture seconds, `I (ms)` is device uptime), `fix-screen-off-server-2026-10-06.log` (UTC-7), `fix-screen-off-boot-2026-10-06.log` (30 s from an RTS reset).
+
+| Check | Result |
+|---|---|
+| Build | `build.sh` 128 s incremental; sdkconfig has `CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300`; xiaozhi.bin 2,887,248 B |
+| Boot | `VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s`; one `Model 0: wn9_jarvis_tts`; `activating -> idle` at 4.2 s |
+| Dim | `Enabling power save mode`, brightness 20 at 65.4 s uptime |
+| Panel off | `Backlight: Set brightness to 0` and `Panel off after 300 s idle (VBUS present)` at 306.0 s uptime |
+| Wake word with panel off | `say "Jarvis"` 20 s later: `Wake word detected: Jarvis` at 330.29 s, `Exiting power save mode`, `Panel on` at 330.31 s |
+| Round after relight | STT `What time is it?` (en-US, 1.8 s) -> Anthropic -> TTS "It's three thirty-two in the afternoon" played; `Goodbye` -> `handle_exit_intent` -> `listening -> idle` at 353.9 s |
+| Re-arm | Dim again at 413.4 s, `Panel off after 300 s idle` at 653.0 s (299 s after idle) |
+| Touch relight | Not run on device (needs a finger on the panel) |
