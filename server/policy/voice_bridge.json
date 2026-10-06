@@ -1,0 +1,12 @@
+{
+  "tools": [
+    "ha_search",
+    "ha_get_state",
+    "ha_get_history",
+    "ha_list_floors_areas",
+    "ha_call_service",
+    "ha_get_todo",
+    "ha_config_get_calendar_events"
+  ],
+  "call_service_domains": ["light"]
+}

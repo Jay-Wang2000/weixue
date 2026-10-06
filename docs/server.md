@@ -28,6 +28,7 @@ ws://<host>:8004/mcp_endpoint/mcp/?token=<AES-encrypted token>
 - The server container uses `ws://mcp-endpoint-server:8004/...` (written into `server/data/.config.yaml` by `setup.sh`).
 - MCP clients on the Mac use `ws://localhost:8004/...` with the same token.
 - Deleting `server/data/mcp-endpoint/` regenerates the key and invalidates every issued URL.
+- `setup.sh` also writes the tool-side URL to `server/data/mcp-bridge/endpoint-url` (0600) for the `mcp-bridge` service, which connects ha-mcp to the endpoint: [ha-mcp.md](ha-mcp.md).
 
 ## Adding provider code
 
@@ -46,7 +47,7 @@ python -m pytest                                        # mocked, no network
 (set -a; . ./.env; set +a; RUN_LIVE_TESTS=1 python -m pytest -s -k live)
 ```
 
-The live tests take `ANTHROPIC_API_KEY` and `GOOGLE_SA_FILE` from `server/.env`, sourced in a subshell; never put keys on the command line.
+The live tests take `ANTHROPIC_API_KEY` and `GOOGLE_SA_FILE` from `server/.env`, sourced in a subshell; never put keys on the command line. The ha-mcp smoke test (`-k mcp_bridge_live`) needs the running stack and `data/mcp-bridge/endpoint-url`.
 
 `opuslib_next` needs `libopus` and `pydub` needs `ffmpeg`. Without a system copy, place `libopus.dylib` in `.venv/lib/` (the conftest adds it to `DYLD_FALLBACK_LIBRARY_PATH`) and `ffmpeg` in `.venv/bin/`.
 
@@ -89,11 +90,11 @@ Prerequisites: Rancher Desktop running (`~/.rd/bin` on PATH), python3, the two c
 
 ```bash
 cd server
-cp .env.example .env     # set LAN_IP, TZ/TZ_OFFSET, ANTHROPIC_API_KEY, GOOGLE_SA_FILE (chmod 600)
+cp .env.example .env     # set LAN_IP, TZ/TZ_OFFSET, ANTHROPIC_API_KEY, GOOGLE_SA_FILE, HA_MCP_URL (chmod 600)
 ./scripts/setup.sh
 ```
 
-`setup.sh` is idempotent. In order: downloads SenseVoiceSmall (~936 MB) if missing, checks the vendor clone, starts `mcp-endpoint-server`, renders `config/config.template.yaml` to `data/.config.yaml` with `scripts/render_config.py` (values are escaped; `@@NAME?@@` is optional and renders empty when unset), then builds and force-recreates the server container. Logs: `docker logs -f xiaozhi-esp32-server`.
+`setup.sh` is idempotent. In order: downloads SenseVoiceSmall (~936 MB) if missing, checks the vendor clone, starts `mcp-endpoint-server`, writes `data/mcp-bridge/endpoint-url`, renders `config/config.template.yaml` to `data/.config.yaml` with `scripts/render_config.py` (values are escaped; `@@NAME?@@` is optional and renders empty when unset), then builds and force-recreates the `mcp-bridge` and server containers. Logs: `docker logs -f xiaozhi-esp32-server`.
 
 Providers: VAD SileroVAD, ASR `GoogleSTT`, LLM `AnthropicLLM`, TTS `GoogleTTS`. Upstream `FunASR` (SenseVoiceSmall, local), `EdgeTTS` and the OpenAI-compatible `StopgapLLM` (Groq, `LLM_*` in `.env`) stay configured and are selected by editing `selected_module`. `wakeup_words` adds `Jarvis` to the upstream list.
 
