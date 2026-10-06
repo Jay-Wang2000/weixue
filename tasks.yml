@@ -52,7 +52,7 @@ tasks:
   - id: feat-ha-mcp
     name: "Connect MCP endpoint to ha-mcp; voice policy"
     branch: feat/ha-mcp
-    description: 后端 MCP 接入点连 ha-mcp；为语音路径调策略（日常域免审批、不可逆禁用）；轮换 secret path。策略改动需用户确认。
+    description: 后端 MCP 接入点连 ha-mcp；为语音路径调策略（日常域免审批、不可逆禁用）；轮换 secret path；把策略 wait_seconds 从 180 降到 <30 或设计异步审批（DESIGN ADR-9 修订）。策略改动需用户确认。
     depends_on: [feat-server, feat-llm]
     status: pending
     retries: 0

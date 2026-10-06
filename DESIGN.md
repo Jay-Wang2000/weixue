@@ -62,6 +62,23 @@
 - **ADR-9 设备上批准**：ha-mcp 已有批准机制，优先走 HA 事件总线：监听 `ha_mcp_approval_requested {token, tool_name, args, expires_at}`，用 admin 令牌发 `ha_mcp_approval_response {token, decision, pin}`（面板开启 event decisions 并设 PIN），结果由 `ha_mcp_approval_result` 回报。备选 HTTP：`GET /api/policy/pending`、`POST /api/policy/approve|deny {token}`（挂在 secret path 下，无额外鉴权，故只能由后端持有）。ESP32 只负责显示和点击，批准动作在后端。注意：调用默认阻塞 60 s 后返回 `USER_APPROVAL_REQUIRED`，token 5 分钟内有效，重调一次即消费；队列在内存，重启即丢；不记录批准人。调研：`research/reports/weixue-q7-hamcp-approval.md`。
 - **ADR-5 UI**：程序化眼睛而非精灵图/Lottie（无 466 px 素材、性能、烧屏）。
 
+## Milestone M2 — agent 化（待 Wave 5 后排程；调研：`research/reports/weixue-agent-backend-v1.md`）
+
+xiaozhi-server 的对话循环是深度 ≤5、每工具 30 s、同步阻塞、180 s 无声断连的受限 loop，做不了分钟级多步任务。M2 把它退化为语音网关，新增独立 agent 服务并补齐设备协议与 UI。
+
+| ID | 功能 | 验收 |
+|---|---|---|
+| feat-agent-service | Claude Agent SDK 服务（每设备会话一个 client；ha-mcp 作 http MCP；`permission_mode=default` + `can_use_tool` → 审批队列）；任务 API `POST /tasks`、SSE 事件 `progress|needs_input|needs_approval|done|failed|cancelled`、`answer|approve|cancel`；`dispatch_dev_job` 用 `claude -p --output-format stream-json` 在目标仓库跑 HA 开发任务 | 「把客厅灯做成日落自动化」跨 ≥3 工具、>30 s，期间设备可被唤醒问天气且不并发 `chat()`，完成后设备收到 done |
+| feat-llm-claude-agent | xiaozhi provider `type: claude_agent`：短问直答，长任务建 task 后立即应答并发 LAST；文本流 + 侧信道事件；长任务保活；MCP 接入点执行器透传超时 | 5 min 无语音任务期间连接不断 |
+| feat-protocol-agent-msg | 服务器→设备 `agent` 消息 `{task_id,state,summary,progress,options,scheduling}`（先借 `custom`，固件开 `CONFIG_RECEIVE_CUSTOM_MESSAGE`）；后端通知重投队列 | 设备忙时的通知回 Idle 后 10 s 内送达 |
+| feat-ui-agent-states | 新状态：后台工作中 / 需澄清 / 需批准 / 有未读结果；澄清与批准为中央整屏卡；语音非选项答案经 `response` 回传；任务芯片 + 左滑任务列表（参考 Muse 头像状态行 / Goals 页 / 批准卡） | 四态可辨，卡片按钮与语音都能应答 |
+
+依赖：feat-llm、feat-ui-face、feat-ui-panel、feat-approvals。结果交付三档借 Gemini Live 的 `INTERRUPT | WHEN_IDLE | SILENT`。
+
+- **ADR-10 agent 层**：Claude Agent SDK 自托管（API key 计费）；Managed Agents 留作不碰 HA 的 side project 后备；不采用 LangGraph/Pydantic AI/Pipecat。
+- **ADR-9 修订**：当前部署的 ha-mcp `wait_seconds=180` 与服务器 30 s 工具超时、固件 120 s 静默超时冲突；feat-ha-mcp 需把 `wait_seconds` 降到 <30 或改为异步审批（立即返回 token，后端轮询/事件裁决）。
+- feat-firmware-base 的构建应开启 `CONFIG_RECEIVE_CUSTOM_MESSAGE`，为 M2 预留通道；feat-ui-panel 预留任务芯片位。
+
 ## Testing Strategy
 
 - 后端 provider：pytest，mock Google API + 一次真实冒烟（短音频）。
