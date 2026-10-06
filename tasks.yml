@@ -20,7 +20,7 @@ tasks:
   - id: feat-firmware-base
     name: "Build & flash xiaozhi 1.75c, point at own server"
     branch: feat/firmware-base
-    description: 编译 esp32-s3-touch-amoled-1.75c build，sdkconfig 启用双唤醒词 wn9_jarvis_tts + wn9_nihaoxiaozhi_tts（ADR-6），OTA_URL 指向自建后端，烧录并验证两个唤醒词与连接。
+    description: 编译 esp32-s3-touch-amoled-1.75c build，sdkconfig 只启用 wn9_jarvis_tts（ADR-6），OTA_URL 指向自建后端，烧录并验证唤醒与连接。
     depends_on: [feat-toolchain, feat-server]
     status: pending
     retries: 0
