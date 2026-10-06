@@ -3,7 +3,7 @@
 How this project is run, as practised in the 2026-10-06 session. Keep this current when the process changes.
 
 ## Roles
-- **Jay**: sets goals and constraints, answers user-only questions (hardware, network, credentials, money, security posture, scope), performs voice/acceptance tests on the device, reviews milestones.
+- **Jay**: sets goals and constraints, answers user-only questions (hardware, network, credentials, money, security posture, scope), approves every design decision about external services (Home Assistant, Google Cloud, Anthropic, GitHub, networking) after seeing options and a recommendation, performs voice/acceptance tests on the device, reviews milestones.
 - **Orchestrator (main Claude session)**: owns `tasks.yml`, `DESIGN.md` ADRs and `docs/briefs/`; decides implementation details; merges; reports once per milestone. Does not do feature work itself.
 - **Agents**: research scouts, developers, reviewers, skeptics, testers, run through the Workflow tool in this session (in-process, each action under the session's permission rules). No `claude -p` with blanket permission grants.
 - **External reviewer**: OpenAI Codex (`gpt-6-astra`, reasoning high) reviews the spec and the merged code after every wave.

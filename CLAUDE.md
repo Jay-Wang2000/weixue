@@ -24,6 +24,9 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 ## Process
 - Working methodology: `docs/METHODOLOGY.md`. After every wave merge, run the Codex external review of `main` (spec + code) and file its findings before starting the next wave.
 
+## External-service decisions need Jay's approval
+- Any design decision about how we integrate with or configure an external service (Home Assistant / ha-mcp policy, Google Cloud STT/TTS models, locations, retention, Anthropic models, GitHub, networking) is proposed to Jay with options and a recommendation and waits for his approval before it is implemented. Agents write `question.json`; the orchestrator does not decide these alone.
+
 ## End-to-end testing rule
 - Every task gate includes an end-to-end run on the live stack, not only unit/mocked tests: wake word (macOS `say`) → device → STT → LLM (→ HA action via ha-mcp when the task touches it) → TTS → audio on the device, with serial and server logs saved under `docs/logs/`. A task whose change cannot be exercised end-to-end must say so in its spec and name the gate that will.
 
