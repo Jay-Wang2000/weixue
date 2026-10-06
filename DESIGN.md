@@ -76,7 +76,7 @@ xiaozhi-server 的对话循环是深度 ≤5、每工具 30 s、同步阻塞、1
 依赖：feat-llm、feat-ui-face、feat-ui-panel、feat-approvals。结果交付三档借 Gemini Live 的 `INTERRUPT | WHEN_IDLE | SILENT`。
 
 - **ADR-11 前台对话轮绝对时限**：每个前台语音轮 90 s 绝对期限，SDK 重试、provider 回退、工具轮次共用，不被单请求超时重置；到期停止调度新工作、阻止迟到结果进入新轮，并在固件 120 s 信道超时前向设备发送终态。已派发的动作结果未知时不得报为已取消或自动重试。
-- **ADR-12 电源策略**：上游固件 PowerSaveTimer 在空闲 300 s 后经 PMIC 关机，即使 USB 供电也会关——这是设备反复“从 USB 消失”的原因。决定：USB 供电时禁用自动关机（只允许息屏/休眠），电池供电时保留空闲关机，时长可配；由 feat-imu 实现。
+- **ADR-12 电源策略**：上游固件 PowerSaveTimer 在空闲 300 s 后经 PMIC 关机，即使 USB 供电也会关——这是设备反复“从 USB 消失”的原因。决定：USB 供电时禁用自动关机；空闲 60 s 调暗、300 s **关闭屏幕**（AMOLED 全黑，MCU 与唤醒词检测保持运行），唤醒词、拿起（IMU）或触摸点亮；电池供电时保留空闲关机，时长可配。热修复 fix-power-usb 负责去掉关机；300 s 关屏若未随热修复实现，由 feat-ui-ring-bedside 补。
 - **ADR-10 agent 层**：Claude Agent SDK 自托管（API key 计费）；Managed Agents 留作不碰 HA 的 side project 后备；不采用 LangGraph/Pydantic AI/Pipecat。
 - feat-firmware-base 必须在最终 sdkconfig 验证 `CONFIG_RECEIVE_CUSTOM_MESSAGE=y`，并在实机确认合法 custom 消息可达、未知消息不影响语音。feat-ui-panel 用 fixture 数据预留任务芯片和审批卡并输出 UI 决定；真实审批执行由 feat-approvals 验收。
 
