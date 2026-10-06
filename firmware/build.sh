@@ -62,6 +62,9 @@ echo "$ota_want"
 power_off="$(grep -E '^CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=[0-9]+$' sdkconfig || true)"
 [ -n "$power_off" ] || die "sdkconfig lacks CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS (power patch not applied)"
 echo "$power_off"
+screen_off="$(grep -E '^CONFIG_WEIXUE_SCREEN_OFF_SECONDS=[0-9]+$' sdkconfig || true)"
+[ -n "$screen_off" ] || die "sdkconfig lacks CONFIG_WEIXUE_SCREEN_OFF_SECONDS (power patch not applied)"
+echo "$screen_off"
 
 if [ -f "$root/firmware/dependencies.lock" ] && ! cmp -s dependencies.lock "$root/firmware/dependencies.lock"; then
   echo "warning: $work/dependencies.lock differs from firmware/dependencies.lock" >&2

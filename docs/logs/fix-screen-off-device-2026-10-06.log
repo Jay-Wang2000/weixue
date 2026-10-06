@@ -1,0 +1,120 @@
+[    0.0] # port open
+[    6.3] I (15119) SystemInfo: free sram: 142819 minimal sram: 33468
+[   16.3] I (25119) SystemInfo: free sram: 141855 minimal sram: 33468
+[   26.2] I (35119) SystemInfo: free sram: 142783 minimal sram: 33468
+[   36.2] I (45119) SystemInfo: free sram: 141855 minimal sram: 33468
+[   46.2] I (55119) SystemInfo: free sram: 142819 minimal sram: 33468
+[   56.2] I (65119) SystemInfo: free sram: 141855 minimal sram: 33468
+[   56.6] I (65399) PowerSaveTimer: Enabling power save mode
+[   56.6] I (65399) Backlight: Set brightness to 20
+[   66.2] I (75119) SystemInfo: free sram: 142819 minimal sram: 33468
+[   76.3] I (85119) SystemInfo: free sram: 141855 minimal sram: 33468
+[   86.3] I (95119) SystemInfo: free sram: 142819 minimal sram: 33468
+[   96.3] I (105119) SystemInfo: free sram: 141855 minimal sram: 33468
+[  106.3] I (115119) SystemInfo: free sram: 142819 minimal sram: 33468
+[  116.3] I (125119) SystemInfo: free sram: 141839 minimal sram: 33468
+[  126.3] I (135119) SystemInfo: free sram: 143075 minimal sram: 33468
+[  136.3] I (145119) SystemInfo: free sram: 142111 minimal sram: 33468
+[  146.3] I (155119) SystemInfo: free sram: 143075 minimal sram: 33468
+[  156.2] I (165119) SystemInfo: free sram: 142075 minimal sram: 33468
+[  166.2] I (175119) SystemInfo: free sram: 143075 minimal sram: 33468
+[  176.2] I (185119) SystemInfo: free sram: 142107 minimal sram: 33468
+[  186.2] I (195119) SystemInfo: free sram: 143071 minimal sram: 33468
+[  196.2] I (205119) SystemInfo: free sram: 142107 minimal sram: 33468
+[  206.3] I (215119) SystemInfo: free sram: 143071 minimal sram: 33468
+[  216.3] I (225119) SystemInfo: free sram: 142107 minimal sram: 33468
+[  226.3] I (235119) SystemInfo: free sram: 143071 minimal sram: 33468
+[  236.3] I (245119) SystemInfo: free sram: 142107 minimal sram: 33468
+[  246.3] I (255119) SystemInfo: free sram: 143071 minimal sram: 33468
+[  256.2] I (265119) SystemInfo: free sram: 142107 minimal sram: 33468
+[  266.2] I (275119) SystemInfo: free sram: 143071 minimal sram: 33468
+[  276.2] I (285119) SystemInfo: free sram: 142107 minimal sram: 33468
+[  286.2] I (295119) SystemInfo: free sram: 143071 minimal sram: 33468
+[  296.2] I (305119) SystemInfo: free sram: 142107 minimal sram: 33468
+[  296.6] I (305399) WaveshareEsp32s3TouchAMOLED1inch75: Idle power-off skipped: VBUS present
+[  297.2] I (305989) Backlight: Set brightness to 0
+[  297.2] I (305989) WaveshareEsp32s3TouchAMOLED1inch75: Panel off after 300 s idle (VBUS present)
+[  297.2] # step1 panel off: found
+[  306.1] I (315119) SystemInfo: free sram: 143071 minimal sram: 33468
+[  316.3] I (325119) SystemInfo: free sram: 142107 minimal sram: 33468
+[  317.3] # say: Jarvis
+[  321.4] I (330289) Application: Wake word detected: Jarvis (state: 3)
+[  321.4] I (330299) StateMachine: State: idle -> connecting
+[  321.4] I (330299) PowerSaveTimer: Exiting power save mode
+[  321.4] I (330299) Backlight: Set brightness to 75
+[  321.4] I (330299) Backlight: Set brightness to 75
+[  321.4] I (330309) WaveshareEsp32s3TouchAMOLED1inch75: Panel on
+[  321.4] I (330309) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[  321.4] I (330319) wifi:Set ps type: 0, coexist: 0
+[  321.4] 
+[  321.5] # step2 wake: found
+[  321.5] # step2 panel on after wake: found
+[  321.5] I (330319) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[  321.5] I (330329) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[  321.5] I (330459) WebSocket: WebSocket handshake done, cost=130 tcp=80 handshake=50
+[  321.5] I (330469) WS: Session ID: 941c7083-201f-4114-810a-adf2ff01e9b8
+[  321.5] I (330469) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[  321.5] I (330479) wifi:Set ps type: 0, coexist: 0
+[  321.5] 
+[  321.5] W (330479) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  321.7] I (330489) Application: Wake word detected: Jarvis
+[  321.7] I (330559) AfeAudioEngine: Encoded wake word into 33 packets in 264 ms
+[  321.7] I (330559) StateMachine: State: connecting -> listening
+[  321.7] I (330569) Application: >> Jarvis
+[  321.7] I (330579) StateMachine: State: listening -> speaking
+[  321.7] I (330579) StateMachine: State: speaking -> listening
+[  325.9] # say: What time is it?
+[  330.4] I (339239) Application: >> What time is it?
+[  330.4] I (339239) StateMachine: State: listening -> speaking
+[  331.9] I (340839) Application: << It's three thirty-two in the afternoon
+[  334.2] I (343109) StateMachine: State: speaking -> listening
+[  337.4] # say: Goodbye
+[  340.8] I (349619) Application: >> Goodbye
+[  340.8] I (349639) StateMachine: State: listening -> speaking
+[  342.3] I (351209) Application: >> % handle_exit_intent
+[  342.3] I (351209) Application: << Goodbye
+[  343.3] I (352139) Application: << talk soon
+[  344.9] I (353869) StateMachine: State: speaking -> listening
+[  344.9] I (353869) WS: Websocket disconnected
+[  344.9] I (353869) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[  344.9] I (353869) wifi:Set ps type: 2, coexist: 0
+[  344.9] 
+[  344.9] I (353879) StateMachine: State: listening -> idle
+[  345.1] # step3 back to idle: found
+[  354.3] I (363119) SystemInfo: free sram: 134379 minimal sram: 33468
+[  364.3] I (373119) SystemInfo: free sram: 140219 minimal sram: 33468
+[  374.3] I (383119) SystemInfo: free sram: 139255 minimal sram: 33468
+[  384.2] I (393119) SystemInfo: free sram: 140219 minimal sram: 33468
+[  394.2] I (403119) SystemInfo: free sram: 139255 minimal sram: 33468
+[  404.3] I (413119) SystemInfo: free sram: 140219 minimal sram: 33468
+[  404.6] I (413399) PowerSaveTimer: Enabling power save mode
+[  404.6] I (413399) Backlight: Set brightness to 20
+[  414.3] I (423119) SystemInfo: free sram: 139259 minimal sram: 33468
+[  424.3] I (433119) SystemInfo: free sram: 140223 minimal sram: 33468
+[  434.3] I (443119) SystemInfo: free sram: 139259 minimal sram: 33468
+[  444.3] I (453119) SystemInfo: free sram: 140223 minimal sram: 33468
+[  454.3] I (463119) SystemInfo: free sram: 139259 minimal sram: 33468
+[  464.2] I (473119) SystemInfo: free sram: 140223 minimal sram: 33468
+[  474.2] I (483119) SystemInfo: free sram: 139223 minimal sram: 33468
+[  484.2] I (493119) SystemInfo: free sram: 140223 minimal sram: 33468
+[  494.2] I (503119) SystemInfo: free sram: 139259 minimal sram: 33468
+[  504.1] I (513119) SystemInfo: free sram: 140223 minimal sram: 33468
+[  514.3] I (523119) SystemInfo: free sram: 139259 minimal sram: 33468
+[  524.3] I (533119) SystemInfo: free sram: 140187 minimal sram: 33468
+[  534.3] I (543119) SystemInfo: free sram: 139255 minimal sram: 33468
+[  544.3] I (553119) SystemInfo: free sram: 140219 minimal sram: 33468
+[  554.3] I (563119) SystemInfo: free sram: 139255 minimal sram: 33468
+[  564.2] I (573119) SystemInfo: free sram: 140219 minimal sram: 33468
+[  574.2] I (583119) SystemInfo: free sram: 139255 minimal sram: 33468
+[  584.2] I (593119) SystemInfo: free sram: 140219 minimal sram: 33468
+[  594.2] I (603119) SystemInfo: free sram: 139259 minimal sram: 33468
+[  604.3] I (613119) SystemInfo: free sram: 140223 minimal sram: 33468
+[  614.3] I (623119) SystemInfo: free sram: 139259 minimal sram: 33468
+[  624.3] I (633119) SystemInfo: free sram: 140223 minimal sram: 33468
+[  634.3] I (643119) SystemInfo: free sram: 139259 minimal sram: 33468
+[  644.2] I (652989) Backlight: Set brightness to 0
+[  644.2] I (652989) WaveshareEsp32s3TouchAMOLED1inch75: Panel off after 300 s idle (VBUS present)
+[  644.2] I (653119) SystemInfo: free sram: 140223 minimal sram: 33468
+[  644.3] # step4 second panel off: found
+[  644.4] I (653399) WaveshareEsp32s3TouchAMOLED1inch75: Idle power-off skipped: VBUS present
+[  647.8] # port closed
