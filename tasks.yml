@@ -14,7 +14,7 @@ tasks:
     branch: feat/server
     description: Docker Compose 部署 xiaozhi-esp32-server（OTA、WebSocket、MCP 接入点），默认 provider 先跑通。
     depends_on: []
-    status: review
+    status: done
     retries: 1
     model: sonnet
   - id: feat-firmware-base
