@@ -1,3 +1,4 @@
 .codex-run.log
 .codex-stderr.log
 .spec-review-prompt.txt
+.wave2-code-review-prompt.txt
