@@ -1,0 +1,9 @@
+backup/
+.venv/
+esp-idf/
+.espressif/
+build/
+*.bin
+.env
+.secrets/
+__pycache__/

@@ -1,0 +1,107 @@
+project: weixue
+repo: /Users/jwang14/Projects/weixue
+tasks:
+  - id: feat-toolchain
+    name: "ESP-IDF toolchain + flash backup"
+    branch: feat/toolchain
+    description: 项目内 venv 安装小智要求的 ESP-IDF 版本与 esptool；读取并备份当前 Flash 到 backup/（用户已允许随后覆盖）。fork 两个上游仓库到个人 GitHub 并作为 submodule/vendor 引入。见 DESIGN.md ADR-8。
+    depends_on: []
+    status: pending
+    retries: 0
+    model: sonnet
+  - id: feat-server
+    name: "xiaozhi-esp32-server on Docker"
+    branch: feat/server
+    description: Docker Compose 部署 xiaozhi-esp32-server（OTA、WebSocket、MCP 接入点），默认 provider 先跑通。
+    depends_on: []
+    status: pending
+    retries: 0
+    model: sonnet
+  - id: feat-firmware-base
+    name: "Build & flash xiaozhi 1.75c, point at own server"
+    branch: feat/firmware-base
+    description: 编译 esp32-s3-touch-amoled-1.75c build，OTA_URL 指向自建后端，烧录并验证唤醒与连接。
+    depends_on: [feat-toolchain, feat-server]
+    status: pending
+    retries: 0
+    model: opus
+  - id: feat-stt-google
+    name: "Google Cloud STT provider"
+    branch: feat/stt-google
+    description: 新增 Google Cloud STT provider（服务账号 JSON；en-US 主 + zh-CN 备选多语言识别）。pytest + 冒烟。
+    depends_on: [feat-server]
+    status: pending
+    retries: 0
+    model: sonnet
+  - id: feat-tts-google
+    name: "Google Cloud TTS provider (Chirp 3 HD, streaming)"
+    branch: feat/tts-google
+    description: 新增 Google Cloud TTS provider，cmn-CN / en-US，流式输出。pytest + 冒烟。
+    depends_on: [feat-server]
+    status: pending
+    retries: 0
+    model: sonnet
+  - id: feat-llm
+    name: "LLM provider + system prompt"
+    branch: feat/llm
+    description: 新增 Anthropic Claude provider（tool use 对接 MCP 工具；默认 claude-sonnet-5-5，haiku-4-5 备选），英主中辅系统提示词；ChatGPT 式对话逻辑见 DESIGN.md ADR-7。先读 claude-api skill。
+    depends_on: [feat-server]
+    status: pending
+    retries: 0
+    model: sonnet
+  - id: feat-ha-mcp
+    name: "Connect MCP endpoint to ha-mcp; voice policy"
+    branch: feat/ha-mcp
+    description: 后端 MCP 接入点连 ha-mcp；为语音路径调策略（日常域免审批、不可逆禁用）；轮换 secret path。策略改动需用户确认。
+    depends_on: [feat-server, feat-llm]
+    status: pending
+    retries: 0
+    model: opus
+  - id: feat-approvals
+    name: "Pending approvals on device"
+    branch: feat/approvals
+    description: 先调研 ha-mcp 是否有批准 API（读源码）；有则后端每轮查 /api/policy/pending 并在设备上批准，无则退回 iPhone/面板并记录。
+    depends_on: [feat-ha-mcp, feat-ui-panel]
+    status: pending
+    retries: 0
+    model: opus
+  - id: feat-ui-face
+    name: "Procedural eyes face (LVGL)"
+    branch: feat/ui-face
+    description: Cozmo 式程序化眼睛，四态 + 情绪，眨眼与视线漂移，替换默认 emoji 显示。
+    depends_on: [feat-firmware-base]
+    status: pending
+    retries: 0
+    model: opus
+  - id: feat-ui-ring-bedside
+    name: "Voice-state ring + bedside mode"
+    branch: feat/ui-ring-bedside
+    description: 贴边状态环；夜间暗红时钟页，≤15% 亮像素，像素平移。
+    depends_on: [feat-ui-face]
+    status: pending
+    retries: 0
+    model: sonnet
+  - id: feat-ui-panel
+    name: "Swipe-left monitor panel"
+    branch: feat/ui-panel
+    description: 左滑面板：待批、后端连接、电量、最近转写；触摸手势切页。
+    depends_on: [feat-ui-face]
+    status: pending
+    retries: 0
+    model: sonnet
+  - id: feat-imu
+    name: "QMI8658 gestures"
+    branch: feat/imu
+    description: QMI8658 驱动；拿起亮屏、翻面静音、双击止闹。
+    depends_on: [feat-firmware-base]
+    status: pending
+    retries: 0
+    model: sonnet
+  - id: feat-proactive
+    name: "Proactive announce via webhook"
+    branch: feat/proactive
+    description: 后端 webhook 让 HA 自动化触发设备播报/发起对话。
+    depends_on: [feat-tts-google, feat-firmware-base]
+    status: pending
+    retries: 0
+    model: sonnet
