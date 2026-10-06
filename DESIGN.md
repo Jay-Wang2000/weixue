@@ -36,7 +36,7 @@
 
 | ID | 功能 | 验收 |
 |---|---|---|
-| feat-toolchain | 项目内 venv 装 ESP-IDF（小智要求版本）+ esptool；备份现有 Flash | `idf.py --version` 可用；`flash_backup.bin` 存在 |
+| feat-toolchain | 项目内 venv 装 ESP-IDF（小智要求版本）+ esptool；备份现有 Flash | `idf.py --version` 可用；`backup/flash-<timestamp>.bin` 存在 |
 | feat-firmware-base | 编译并烧录小智 `esp32-s3-touch-amoled-1.75c` build，OTA_URL 指向自建后端 | 「你好小智」唤醒，设备连上自建后端 |
 | feat-server | Docker Compose 跑 xiaozhi-esp32-server（含 OTA、WebSocket、MCP 接入点） | 设备注册成功，能完成一轮对话（先用默认 provider） |
 | feat-stt-google | 新增 Google Cloud STT provider：en-US 主 + zh-CN 备选的多语言识别 | 中英各 10 句，转写正确率人工验收 |
