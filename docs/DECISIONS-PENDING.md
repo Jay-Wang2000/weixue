@@ -9,7 +9,10 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 4. Anthropic: `claude-sonnet-5-5` default, `claude-haiku-4-5` fallback, adaptive thinking.
 
 ## Open proposals (will be filled by agents / orchestrator)
-5. ha-mcp voice policy diff (`server/policy/voice_policy.proposed.json` once feat-ha-mcp lands) and secret-path rotation (also updates `~/Projects/ha-agent/.mcp.json` and `server/.env`).
+5. **ha-mcp voice policy diff** — ready for review: `server/policy/voice_policy.proposed.json` (overlay on ha-agent `policy/tool_policy.json`; rationale per rule in `docs/ha-mcp.md`). Frees the two Meross outlets, the curtain, media_player, climate 16–26 °C; `wait_seconds` 180 → 8. Note: the policy is shared with Claude Code, so this also loosens its gates. Apply only after your OK (`server/scripts/render_voice_policy.py` → ha-agent `apply-policy.sh`). Then rotate the secret path (update `~/Projects/ha-agent/.mcp.json` and `server/.env`, recreate `mcp-bridge`).
+5a. **Voice tool filter (live now, narrows access only)** — the bridge exposes 7 of ha-mcp's 77 tools to the voice path and refuses `ha_call_service` outside light/switch/cover/media_player/climate (`server/policy/voice_bridge.json`). Confirm or adjust the domain list.
+5b. **Policy drift found**: live ha-mcp policy v13 gates `ha_manage_blueprints`, but ha-agent's `policy/tool_policy.json` still names the old `ha_import_blueprint`; running `apply-policy.sh` from that file unchanged would drop the gate. Decide: update the ha-agent file first (recommended).
+5c. During the live light test (~21:18 house time) the living-room light was switched off by someone outside the voice path; the agent stopped toggling lights. Future live tests will use a dedicated test entity if you name one.
 6. Audio/transcript retention and Google data-logging choice.
 7. HA-MCP panel: enable event decisions and set a PIN (needed by feat-approvals).
 
