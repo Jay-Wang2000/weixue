@@ -22,7 +22,7 @@ tasks:
     branch: feat/firmware-base
     description: 编译 esp32-s3-touch-amoled-1.75c build，sdkconfig 只启用 wn9_jarvis_tts（ADR-6），OTA_URL 指向自建后端，烧录并验证唤醒与连接。
     depends_on: [feat-toolchain, feat-server]
-    status: pending
+    status: in_progress
     retries: 0
     model: opus
   - id: feat-stt-google
@@ -30,7 +30,7 @@ tasks:
     branch: feat/stt-google
     description: 新增 Google Cloud STT provider（服务账号 JSON；en-US 主 + zh-CN 备选多语言识别）。pytest + 冒烟。
     depends_on: [feat-server]
-    status: pending
+    status: in_progress
     retries: 0
     model: sonnet
   - id: feat-tts-google
@@ -38,7 +38,7 @@ tasks:
     branch: feat/tts-google
     description: 新增 Google Cloud TTS provider，cmn-CN / en-US，流式输出。pytest + 冒烟。
     depends_on: [feat-server]
-    status: pending
+    status: in_progress
     retries: 0
     model: sonnet
   - id: feat-llm
@@ -46,7 +46,7 @@ tasks:
     branch: feat/llm
     description: 新增 Anthropic Claude provider（tool use 对接 MCP 工具；默认 claude-sonnet-5-5，haiku-4-5 备选），英主中辅系统提示词；ChatGPT 式对话逻辑见 DESIGN.md ADR-7。先读 claude-api skill。
     depends_on: [feat-server]
-    status: pending
+    status: in_progress
     retries: 0
     model: sonnet
   - id: feat-ha-mcp
