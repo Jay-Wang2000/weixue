@@ -1,0 +1,242 @@
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIPESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40382d5a
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x544
+load:0x403c8700,len:0xd14
+load:0x403cb700,len:0x2eb4
+entry 0x403c88f4
+I (34) octal_psram: vendor id    : 0x0d (AP)
+I (34) octal_psram: dev id       : 0x02 (generation 3)
+I (34) octal_psram: density      : 0x03 (64 Mbit)
+I (36) octal_psram: good-die     : 0x01 (Pass)
+I (40) octal_psram: Latency      : 0x01 (Fixed)
+I (44) octal_psram: VCC          : 0x01 (3V)
+I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (68) octal_psram: DriveStrength: 0x00 (1/1)
+I (72) MSPI Timing: Enter psram timing tuning
+I (76) esp_psram: Found 8MB PSRAM device
+I (79) esp_psram: Speed: 80MHz
+I (82) cpu_start: Multicore app
+I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (97) cpu_start: Pro cpu start user code
+I (97) cpu_start: cpu freq: 240000000 Hz
+I (98) app_init: Application information:
+I (102) app_init: Project name:     xiaozhi
+I (106) app_init: App version:      2.5.1
+I (110) app_init: Compile time:     Oct  6 2026 20:42:11
+I (115) app_init: ELF file SHA256:  0d4cecb99...
+I (119) app_init: ESP-IDF:          v6.1
+I (123) efuse_init: Min chip rev:     v0.0
+I (127) efuse_init: Max chip rev:     v0.99 
+I (131) efuse_init: Chip rev:         v0.2
+I (135) heap_init: Initializing. RAM available for dynamic allocation:
+I (141) heap_init: At 3FCAB220 len 0003E4F0 (249 KiB): RAM
+I (146) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+I (162) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (169) spi_flash: detected chip: gd
+I (171) spi_flash: flash io: qio
+I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (181) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (188) main_task: Started on CPU0
+I (188) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+I (198) main_task: Calling app_main()
+I (368) Board: UUID=ad786b10-efaf-422a-ab57-40edacba9d51 SKU=esp32-s3-touch-amoled-1.75c-weixue
+I (368) button: IoT Button Version: 4.2.1
+I (368) PowerSaveTimer: Power save timer enabled
+I (378) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+W (378) spi_common: GPIO 0 is conflict with others and be overwritten
+W (388) spi_common: GPIO 0 is conflict with others and be overwritten
+W (388) spi_common: GPIO 0 is conflict with others and be overwritten
+I (398) co5300: version: 2.2.0
+I (398) co5300_spi: LCD panel create success, version: 2.2.0
+W (568) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+I (1768) Display: Power management not supported
+I (1848) LcdDisplay: Turning display on
+I (1848) LcdDisplay: Initialize LVGL library
+I (1848) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+I (1848) LcdDisplay: Use 2MB of PSRAM for image cache
+I (1858) LcdDisplay: Initialize LVGL port
+I (1858) LcdDisplay: Adding LCD display
+I (1858) LVGL: Starting LVGL task
+I (1868) Backlight: Set brightness to 75
+I (1868) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+I (1948) CST9217: Checkcode: 0x204ECACA
+I (1948) CST9217: Resolution X: 466, Y: 466
+I (1948) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+I (1948) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+I (1948) MCP: Add tool: self.system.reconfigure_wifi
+I (1958) StateMachine: State: unknown -> starting
+W (2028) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+I (2028) BoxAudioCodec: Duplex channels created
+I (2038) ES8311: Work in Slave mode
+I (2048) ES7210: Work in Slave mode
+I (2048) ES7210: Enable ES7210_INPUT_MIC1
+I (2058) ES7210: Enable ES7210_INPUT_MIC2
+I (2058) ES7210: Enable ES7210_INPUT_MIC3
+I (2058) ES7210: Enable ES7210_INPUT_MIC4
+I (2068) ES7210: Enable TDM mode
+I (2068) BoxAudioCodec: BoxAudioDevice initialized
+I (2068) AudioCodec: Audio codec started
+I (2068) Application: After board/audio init
+I (2068) SystemInfo: free sram: 197207 minimal sram: 95680
+I (2078) MCP: Add tool: self.get_device_status
+I (2078) MCP: Add tool: self.audio_speaker.set_volume
+I (2088) MCP: Add tool: self.screen.set_brightness
+I (2088) MCP: Add tool: self.screen.set_theme
+I (2098) MCP: Add tool: self.get_system_info [user]
+I (2098) MCP: Add tool: self.reboot [user]
+I (2098) MCP: Add tool: self.upgrade_firmware [user]
+I (2108) MCP: Add tool: self.screen.get_info [user]
+I (2108) MCP: Add tool: self.screen.snapshot [user]
+I (2118) MCP: Add tool: self.screen.preview_image [user]
+I (2118) MCP: Add tool: self.assets.set_download_url [user]
+I (2128) WifiManager: Initializing...
+I (2128) pp: pp rom version: e7ae62f
+I (2128) net80211: net80211 rom version: e7ae62f
+I (2148) wifi:wifi driver task: 3fce1698, prio:23, stack:6656, core=0
+I (2148) wifi:wifi firmware version: e12a754
+I (2148) wifi:wifi certification version: v7.0
+I (2148) wifi:config NVS flash: disabled
+I (2158) wifi:config nano formatting: disabled
+I (2158) wifi:Init data frame dynamic rx buffer num: 6
+I (2168) wifi:Init dynamic rx mgmt buffer num: 5
+I (2168) wifi:Init management short buffer num: 32
+I (2168) wifi:Init dynamic tx buffer num: 32
+I (2178) wifi:Init static tx FG buffer num: 2
+I (2178) wifi:Init static rx buffer size: 1600
+I (2188) wifi:Init static rx buffer num: 3
+I (2188) wifi:Init dynamic rx buffer num: 6
+I (2198) wifi_init: rx ba win: 3
+I (2198) wifi_init: accept mbox: 6
+I (2198) wifi_init: tcpip mbox: 16
+I (2198) wifi_init: udp mbox: 6
+I (2208) wifi_init: tcp mbox: 6
+I (2208) wifi_init: tcp tx win: 5760
+I (2208) wifi_init: tcp rx win: 5760
+I (2218) wifi_init: tcp mss: 1440
+I (2218) WifiManager: Initialized
+I (2218) WifiBoard: Starting WiFi connection attempt
+I (2228) WifiManager: Starting station
+I (2228) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+I (2238) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (2268) wifi:mode : sta (7c:0c:5f:42:4b:fc)
+I (2268) wifi:enable tsf
+I (2278) WifiStation: Scanning saved channel 11
+I (2278) WifiBoard: WiFi scanning
+I (2398) WifiStation: Found AP: <ssid>, BSSID: <bssid>, RSSI: -77, Channel: 11, Authmode: 3
+I (2398) WifiBoard: WiFi connecting to <ssid>
+W (2398) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+I (2468) wifi:new:<11,2>, old:<1,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+I (2468) wifi:state: init -> auth (0xb0)
+I (2478) wifi:state: auth -> init (0x8a0)
+I (2488) wifi:new:<11,0>, old:<11,2>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+I (2488) wifi:new:<11,2>, old:<11,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+I (2488) wifi:state: init -> auth (0xb0)
+I (2498) wifi:state: auth -> assoc (0x0)
+I (2508) wifi:state: assoc -> run (0x10)
+I (2628) wifi:connected with <ssid>, aid = 4, channel 11, 40D, bssid = <bssid>
+I (2628) wifi:security: WPA2-PSK, phy: bgn, rssi: -76, cipher(pairwise:0x3, group:0x3), pmf:0
+I (2638) wifi:pm start, type: 1
+
+I (2638) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+I (2648) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (2678) wifi:<ba-add>idx:0 (ifx:0, <bssid>), tid:7, ssn:0, winSize:64
+I (2728) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (2798) wifi:<ba-add>idx:1 (ifx:0, <bssid>), tid:0, ssn:0, winSize:64
+I (3708) esp_netif_handlers: sta ip: 192.168.8.148, mask: 255.255.255.0, gw: 192.168.8.1
+I (3708) WifiStation: Got IP: 192.168.8.148
+I (3708) WifiBoard: Connected to WiFi: <ssid>
+I (3708) Application: Network connected
+I (3708) StateMachine: State: starting -> activating
+I (3718) Assets: The storage free size is 21824 KB
+I (3718) Assets: The assets map size is 2944 KB (partition 16384 KB)
+I (3898) Assets: The checksum calculation time is 172 ms
+I (3898) MODEL_LOADER: Successfully load srmodels
+I (3908) Assets: Refreshing display theme...
+W (3908) EmojiCollection: Emoji not found: robot_2
+I (3908) Ota: Current version: 2.5.1
+I (3918) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (4018) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=100
+I (4178) HttpClient: HTTP connection closed
+I (4178) Ota: No mqtt section found !
+I (4178) Ota: Current is the latest version
+I (4188) Ota: Running partition: ota_0
+I (4188) Application: Activation done
+I (4188) SystemInfo: free sram: 157083 minimal sram: 39812
+I (4198) StateMachine: State: activating -> idle
+I (4198) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (4208) wifi:Set ps type: 2, coexist: 0
+
+I (4218) AfeAudioEngine: Model 0: wn9_jarvis_tts
+I (4218) WakeWordCache: Allocated 64000 bytes in PSRAM
+I (4218) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+I (4218) AfeAudioEngine: Before AFE create: free=157251 min=39812 largest=98304
+MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+I (4318) AFE: AFE Version: (1MIC_V251128)
+I (4318) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4328) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+I (4338) AFE: AFE Version: (1MIC_V251128)
+I (4338) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4348) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+I (4358) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+I (4358) AfeAudioEngine: After AFE create: free=136455 min=33468 largest=94208
+I (4368) I2S_IF: Paired data: 0x3fceed08, current mode: playback, paired in_enable: 0, paired out_enable: 0
+I (4378) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+I (4388) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4408) Adev_Codec: Open codec device OK
+I (4408) AudioCodec: Set output enable to true
+I (4408) I2S_IF: Peer mode playback need extend bits 32 to 64
+I (4418) AudioService: Resampling audio from 16000 to 24000
+I (4418) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+I (4428) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4438) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+I (4448) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4448) ES7210: Bits 16
+I (4458) ES7210: Enable ES7210_INPUT_MIC1
+I (4458) ES7210: Enable ES7210_INPUT_MIC2
+I (4468) ES7210: Enable ES7210_INPUT_MIC3
+I (4468) ES7210: Enable ES7210_INPUT_MIC4
+I (4468) ES7210: Enable TDM mode
+I (4478) ES7210: Unmuted
+I (4478) Adev_Codec: Open codec device OK
+I (4478) AudioCodec: Set input enable to true
+I (14078) SystemInfo: free sram: 142299 minimal sram: 33468
+I (24078) SystemInfo: free sram: 143263 minimal sram: 33468
+I (34078) SystemInfo: free sram: 142299 minimal sram: 33468
+I (44078) SystemInfo: free sram: 143263 minimal sram: 33468
+I (54078) SystemInfo: free sram: 142299 minimal sram: 33468
+I (63368) PowerSaveTimer: Enabling power save mode
+I (63368) Backlight: Set brightness to 20
+I (63408) Application: Wake word detected: Jarvis (state: 3)
+I (63418) StateMachine: State: idle -> connecting
+I (63428) PowerSaveTimer: Exiting power save mode
+I (63428) Backlight: Set brightness to 75
+I (63428) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (63428) wifi:Set ps type: 0, coexist: 0
+
+I (63438) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+I (63448) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (63648) AfeAudioEngine: Encoded wake word into 33 packets in 237 ms
+I (63648) WebSocket: WebSocket handshake done, cost=200 tcp=160 handshake=40
+I (63678) WS: Session ID: 1075f559-4516-4964-a6ab-f0dd9efda3bc
+I (63678) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (63678) wifi:Set ps type: 0, coexist: 0
+
+W (63688) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (63698) Application: Wake word detected: Jarvis
+I (63708) StateMachine: State: connecting -> listening
+I (64658) StateMachine: State: listening -> speaking
+I (64678) Application: << 我在这里哦！
+I (66308) StateMachine: State: speaking -> listening
+I (76078) SystemInfo: free sram: 134651 minimal sram: 33468
+I (86078) SystemInfo: free sram: 134627 minimal sram: 33468
