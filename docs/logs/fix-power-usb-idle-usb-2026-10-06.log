@@ -1,0 +1,280 @@
+[    0.0] # port open
+[    0.5] ESP-ROM:esp32s3-20210327
+[    0.5] Build:Mar 27 2021
+[    0.5] rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+[    0.5] Saved PC:0x40388f86
+[    0.5] SPIWP:0xee
+[    0.5] mode:DIO, clock div:1
+[    0.5] load:0x3fce2820,len:0x544
+[    0.5] load:0x403c8700,len:0xd14
+[    0.5] load:0x403cb700,len:0x2eb4
+[    0.5] entry 0x403c88f4
+[    0.5] I (33) octal_psram: vendor id    : 0x0d (AP)
+[    0.5] I (34) octal_psram: dev id       : 0x02 (generation 3)
+[    0.5] I (34) octal_psram: density      : 0x03 (64 Mbit)
+[    0.5] I (36) octal_psram: good-die     : 0x01 (Pass)
+[    0.5] I (40) octal_psram: Latency      : 0x01 (Fixed)
+[    0.5] I (44) octal_psram: VCC          : 0x01 (3V)
+[    0.5] I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+[    0.5] I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+[    0.5] I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+[    0.5] I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+[    0.5] I (67) octal_psram: DriveStrength: 0x00 (1/1)
+[    0.5] I (71) MSPI Timing: Enter psram timing tuning
+[    0.5] I (76) esp_psram: Found 8MB PSRAM device
+[    0.5] I (79) esp_psram: Speed: 80MHz
+[    0.5] I (82) cpu_start: Multicore app
+[    0.5] I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+[    0.5] I (96) cpu_start: Pro cpu start user code
+[    0.5] I (96) cpu_start: cpu freq: 240000000 Hz
+[    0.5] I (98) app_init: Application information:
+[    0.5] I (102) app_init: Project name:     xiaozhi
+[    0.5] I (106) app_init: App version:      2.5.1
+[    0.5] I (109) app_init: Compile time:     Oct  6 2026 22:13:47
+[    0.5] I (114) app_init: ELF file SHA256:  6379c792d...
+[    0.5] I (119) app_init: ESP-IDF:          v6.1
+[    0.5] I (122) efuse_init: Min chip rev:     v0.0
+[    0.5] I (126) efuse_init: Max chip rev:     v0.99
+[    0.5] I (130) efuse_init: Chip rev:         v0.2
+[    0.5] I (134) heap_init: Initializing. RAM available for dynamic allocation:
+[    0.5] I (140) heap_init: At 3FCAB220 len 0003E4F0 (249 KiB): RAM
+[    0.5] I (145) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+[    0.5] I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+[    0.5] I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+[    0.5] I (161) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+[    0.5] I (168) spi_flash: detected chip: gd
+[    0.5] I (171) spi_flash: flash io: qio
+[    0.5] I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[    0.5] I (180) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[    0.5] I (187) main_task: Started on CPU0
+[    0.5] I (187) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+[    0.5] I (197) main_task: Calling app_main()
+[    0.5] I (367) Board: UUID=<redacted> SKU=esp32-s3-touch-amoled-1.75c-weixue
+[    0.5] I (367) button: IoT Button Version: 4.2.1
+[    0.5] I (367) PowerSaveTimer: Power save timer enabled
+[    0.5] I (377) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+[    0.5] I (377) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s
+[    0.5] W (387) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.5] W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.5] W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.5] I (407) co5300: version: 2.2.0
+[    0.5] I (407) co5300_spi: LCD panel create success, version: 2.2.0
+[    1.0] W (577) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+[    2.1] I (1777) Display: Power management not supported
+[    2.1] I (1857) LcdDisplay: Turning display on
+[    2.1] I (1857) LcdDisplay: Initialize LVGL library
+[    2.1] I (1857) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+[    2.1] I (1857) LcdDisplay: Use 2MB of PSRAM for image cache
+[    2.1] I (1867) LcdDisplay: Initialize LVGL port
+[    2.1] I (1867) LcdDisplay: Adding LCD display
+[    2.1] I (1867) LVGL: Starting LVGL task
+[    2.1] I (1877) Backlight: Set brightness to 75
+[    2.1] I (1877) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+[    2.1] I (1957) CST9217: Checkcode: 0x204ECACA
+[    2.1] I (1957) CST9217: Resolution X: 466, Y: 466
+[    2.1] I (1957) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+[    2.1] I (1957) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+[    2.1] I (1957) MCP: Add tool: self.system.reconfigure_wifi
+[    2.1] I (1967) StateMachine: State: unknown -> starting
+[    2.6] W (2037) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+[    2.6] I (2037) BoxAudioCodec: Duplex channels created
+[    2.6] I (2047) ES8311: Work in Slave mode
+[    2.6] I (2057) ES7210: Work in Slave mode
+[    2.6] I (2057) ES7210: Enable ES7210_INPUT_MIC1
+[    2.6] I (2067) ES7210: Enable ES7210_INPUT_MIC2
+[    2.6] I (2067) ES7210: Enable ES7210_INPUT_MIC3
+[    2.6] I (2067) ES7210: Enable ES7210_INPUT_MIC4
+[    2.6] I (2077) ES7210: Enable TDM mode
+[    2.6] I (2077) BoxAudioCodec: BoxAudioDevice initialized
+[    2.6] I (2077) AudioCodec: Audio codec started
+[    2.6] I (2077) Application: After board/audio init
+[    2.6] I (2077) SystemInfo: free sram: 197091 minimal sram: 95564
+[    2.6] I (2087) MCP: Add tool: self.get_device_status
+[    2.6] I (2087) MCP: Add tool: self.audio_speaker.set_volume
+[    2.6] I (2097) MCP: Add tool: self.screen.set_brightness
+[    2.6] I (2097) MCP: Add tool: self.screen.set_theme
+[    2.6] I (2097) MCP: Add tool: self.get_system_info [user]
+[    2.6] I (2107) MCP: Add tool: self.reboot [user]
+[    2.6] I (2107) MCP: Add tool: self.upgrade_firmware [user]
+[    2.6] I (2117) MCP: Add tool: self.screen.get_info [user]
+[    2.6] I (2117) MCP: Add tool: self.screen.snapshot [user]
+[    2.6] I (2127) MCP: Add tool: self.screen.preview_image [user]
+[    2.6] I (2127) MCP: Add tool: self.assets.set_download_url [user]
+[    2.6] I (2137) WifiManager: Initializing...
+[    2.6] I (2137) pp: pp rom version: e7ae62f
+[    2.6] I (2137) net80211: net80211 rom version: e7ae62f
+[    2.6] I (2157) wifi:wifi driver task: 3fce170c, prio:23, stack:6656, core=0
+[    2.6] I (2157) wifi:wifi firmware version: e12a754
+[    2.6] I (2157) wifi:wifi certification version: v7.0
+[    2.6] I (2157) wifi:config NVS flash: disabled
+[    2.6] I (2167) wifi:config nano formatting: disabled
+[    2.6] I (2167) wifi:Init data frame dynamic rx buffer num: 6
+[    2.6] I (2177) wifi:Init dynamic rx mgmt buffer num: 5
+[    2.6] I (2177) wifi:Init management short buffer num: 32
+[    2.6] I (2177) wifi:Init dynamic tx buffer num: 32
+[    2.6] I (2187) wifi:Init static tx FG buffer num: 2
+[    2.6] I (2187) wifi:Init static rx buffer size: 1600
+[    2.6] I (2197) wifi:Init static rx buffer num: 3
+[    2.6] I (2197) wifi:Init dynamic rx buffer num: 6
+[    2.6] I (2197) wifi_init: rx ba win: 3
+[    2.6] I (2207) wifi_init: accept mbox: 6
+[    2.6] I (2207) wifi_init: tcpip mbox: 16
+[    2.6] I (2207) wifi_init: udp mbox: 6
+[    2.6] I (2217) wifi_init: tcp mbox: 6
+[    2.6] I (2217) wifi_init: tcp tx win: 5760
+[    2.6] I (2217) wifi_init: tcp rx win: 5760
+[    2.6] I (2227) wifi_init: tcp mss: 1440
+[    2.6] I (2227) WifiManager: Initialized
+[    2.6] I (2227) WifiBoard: Starting WiFi connection attempt
+[    2.6] I (2237) WifiManager: Starting station
+[    2.6] I (2237) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+[    2.6] I (2247) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+[    2.6] I (2277) wifi:mode : sta (<mac>)
+[    2.6] I (2277) wifi:enable tsf
+[    2.6] I (2287) WifiStation: Scanning saved channel 11
+[    2.6] I (2287) WifiBoard: WiFi scanning
+[    2.6] I (2407) WifiStation: Found AP: <ssid>, BSSID: <mac>, RSSI: -71, Channel: 11, Authmode: 3
+[    2.6] I (2407) WifiBoard: WiFi connecting to <ssid>
+[    2.6] W (2407) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+[    2.6] I (2477) wifi:new:<11,2>, old:<1,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+[    2.6] I (2477) wifi:state: init -> auth (0xb0)
+[    2.6] I (2487) wifi:state: auth -> init (0x8a0)
+[    2.6] I (2497) wifi:new:<11,0>, old:<11,2>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+[    2.6] I (2497) wifi:new:<11,2>, old:<11,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+[    2.6] I (2497) wifi:state: init -> auth (0xb0)
+[    2.6] I (2507) wifi:state: auth -> assoc (0x0)
+[    2.6] I (2527) wifi:state: assoc -> run (0x10)
+[    3.1] I (2577) wifi:connected with <ssid>, aid = 4, channel 11, 40D, bssid = <mac>
+[    3.1] I (2577) wifi:security: WPA2-PSK, phy: bgn, rssi: -71, cipher(pairwise:0x3, group:0x3), pmf:0
+[    3.1] I (2577) wifi:pm start, type: 1
+[    3.1] 
+[    3.1] I (2577) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+[    3.1] I (2587) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+[    3.1] I (2607) wifi:<ba-add>idx:0 (ifx:0, <mac>), tid:7, ssn:0, winSize:64
+[    3.1] I (2737) wifi:<ba-add>idx:1 (ifx:0, <mac>), tid:0, ssn:0, winSize:64
+[    3.1] I (2757) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+[    4.1] I (3667) esp_netif_handlers: sta ip: 192.168.8.148, mask: 255.255.255.0, gw: 192.168.8.1
+[    4.1] I (3667) WifiStation: Got IP: 192.168.8.148
+[    4.1] I (3667) WifiBoard: Connected to WiFi: <ssid>
+[    4.1] I (3667) Application: Network connected
+[    4.1] I (3667) StateMachine: State: starting -> activating
+[    4.1] I (3677) Assets: The storage free size is 21824 KB
+[    4.1] I (3677) Assets: The assets map size is 2944 KB (partition 16384 KB)
+[    4.1] I (3857) Assets: The checksum calculation time is 173 ms
+[    4.1] I (3857) MODEL_LOADER: Successfully load srmodels
+[    4.1] I (3867) Assets: Refreshing display theme...
+[    4.1] W (3867) EmojiCollection: Emoji not found: robot_2
+[    4.1] I (3877) Ota: Current version: 2.5.1
+[    4.1] I (3877) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[    4.6] I (4157) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=280
+[    4.6] I (4267) HttpClient: HTTP connection closed
+[    4.6] I (4267) Ota: No mqtt section found !
+[    4.6] I (4277) Ota: Current is the latest version
+[    4.6] I (4277) Ota: Running partition: ota_0
+[    4.6] I (4277) Application: Activation done
+[    4.6] I (4277) SystemInfo: free sram: 157127 minimal sram: 39812
+[    4.6] I (4287) StateMachine: State: activating -> idle
+[    4.6] I (4297) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[    4.6] I (4297) wifi:Set ps type: 2, coexist: 0
+[    4.6] 
+[    4.6] I (4297) AfeAudioEngine: Model 0: wn9_jarvis_tts
+[    4.6] I (4307) WakeWordCache: Allocated 64000 bytes in PSRAM
+[    4.6] I (4307) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+[    4.6] I (4317) AfeAudioEngine: Before AFE create: free=157615 min=39812 largest=98304
+[    4.6] MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+[    4.6] I (4407) AFE: AFE Version: (1MIC_V251128)
+[    4.6] I (4407) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[    4.6] I (4417) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+[    4.6] I (4427) AFE: AFE Version: (1MIC_V251128)
+[    4.6] I (4427) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[    4.6] I (4437) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+[    4.6] I (4447) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+[    4.6] I (4457) AfeAudioEngine: After AFE create: free=136303 min=33468 largest=94208
+[    4.6] I (4457) I2S_IF: Paired data: 0x3fceed8c, current mode: playback, paired in_enable: 0, paired out_enable: 0
+[    4.6] I (4467) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+[    4.6] I (4477) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    4.6] I (4497) Adev_Codec: Open codec device OK
+[    4.6] I (4497) AudioCodec: Set output enable to true
+[    4.6] I (4507) I2S_IF: Peer mode playback need extend bits 32 to 64
+[    4.6] I (4507) AudioService: Resampling audio from 16000 to 24000
+[    4.6] I (4507) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+[    4.6] I (4517) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    4.6] I (4527) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+[    4.6] I (4537) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    4.6] I (4537) ES7210: Bits 16
+[    4.6] I (4547) ES7210: Enable ES7210_INPUT_MIC1
+[    4.6] I (4557) ES7210: Enable ES7210_INPUT_MIC2
+[    4.6] I (4557) ES7210: Enable ES7210_INPUT_MIC3
+[    4.6] I (4557) ES7210: Enable ES7210_INPUT_MIC4
+[    4.6] I (4557) ES7210: Enable TDM mode
+[    5.1] I (4567) ES7210: Unmuted
+[    5.1] I (4567) Adev_Codec: Open codec device OK
+[    5.1] I (4567) AudioCodec: Set input enable to true
+[   14.2] I (14087) SystemInfo: free sram: 143115 minimal sram: 33468
+[   24.3] I (24087) SystemInfo: free sram: 142151 minimal sram: 33468
+[   34.5] I (34087) SystemInfo: free sram: 143115 minimal sram: 33468
+[   44.2] I (44087) SystemInfo: free sram: 142151 minimal sram: 33468
+[   54.3] I (54087) SystemInfo: free sram: 143115 minimal sram: 33468
+[   60.4] # probe port_present=True ping=ok
+[   64.4] I (64087) SystemInfo: free sram: 142151 minimal sram: 33468
+[   65.9] I (65367) PowerSaveTimer: Enabling power save mode
+[   65.9] I (65367) Backlight: Set brightness to 20
+[   74.5] I (74087) SystemInfo: free sram: 143115 minimal sram: 33468
+[   84.2] I (84087) SystemInfo: free sram: 142151 minimal sram: 33468
+[   94.4] I (94087) SystemInfo: free sram: 143115 minimal sram: 33468
+[  104.6] I (104087) SystemInfo: free sram: 142151 minimal sram: 33468
+[  114.2] I (114087) SystemInfo: free sram: 143079 minimal sram: 33468
+[  120.3] # probe port_present=True ping=ok
+[  124.4] I (124087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  134.5] I (134087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  144.6] I (144087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  154.3] I (154087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  164.4] I (164087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  174.6] I (174087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  180.2] # probe port_present=True ping=ok
+[  184.3] I (184087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  194.4] I (194087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  204.6] I (204087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  214.2] I (214087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  224.4] I (224087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  234.5] I (234087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  240.1] # probe port_present=True ping=ok
+[  244.7] I (244087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  254.3] I (254087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  264.4] I (264087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  274.6] I (274087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  284.3] I (284087) SystemInfo: free sram: 142135 minimal sram: 33468
+[  294.4] I (294087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  300.5] # probe port_present=True ping=ok
+[  304.6] I (304087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  305.6] I (305367) WaveshareEsp32s3TouchAMOLED1inch75: Idle power-off skipped: VBUS present
+[  314.2] I (314087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  324.4] I (324087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  334.6] I (334087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  344.2] I (344087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  354.4] I (354087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  360.5] # probe port_present=True ping=ok
+[  364.2] I (364087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  374.3] I (374087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  384.5] I (384087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  394.6] I (394087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  404.3] I (404087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  414.4] I (414087) SystemInfo: free sram: 143099 minimal sram: 33468
+[  420.5] # probe port_present=True ping=ok
+[  424.4] I (424087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  434.5] I (434087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  444.6] I (444087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  454.3] I (454087) SystemInfo: free sram: 143099 minimal sram: 33468
+[  464.5] I (464087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  474.6] I (474087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  480.2] # probe port_present=True ping=ok
+[  484.4] I (484087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  494.5] I (494087) SystemInfo: free sram: 143099 minimal sram: 33468
+[  504.2] I (504087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  514.3] I (514087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  524.5] I (524087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  534.2] I (534087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  540.2] # probe port_present=True ping=ok
+[  544.2] I (544087) SystemInfo: free sram: 142171 minimal sram: 33468
+[  554.4] I (554087) SystemInfo: free sram: 143135 minimal sram: 33468
+[  564.5] I (564087) SystemInfo: free sram: 142171 minimal sram: 33468

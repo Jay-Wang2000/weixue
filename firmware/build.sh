@@ -59,6 +59,9 @@ for b in json.load(open(sys.argv[1]))["builds"]:
 [ -n "$ota_want" ] || die "config.weixue.json has no CONFIG_OTA_URL"
 grep -qxF "$ota_want" sdkconfig || die "sdkconfig CONFIG_OTA_URL differs from config.weixue.json ($ota_want)"
 echo "$ota_want"
+power_off="$(grep -E '^CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=[0-9]+$' sdkconfig || true)"
+[ -n "$power_off" ] || die "sdkconfig lacks CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS (power patch not applied)"
+echo "$power_off"
 
 if [ -f "$root/firmware/dependencies.lock" ] && ! cmp -s dependencies.lock "$root/firmware/dependencies.lock"; then
   echo "warning: $work/dependencies.lock differs from firmware/dependencies.lock" >&2

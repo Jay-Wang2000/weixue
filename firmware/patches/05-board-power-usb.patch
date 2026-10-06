@@ -1,0 +1,98 @@
+diff --git a/main/Kconfig.projbuild b/main/Kconfig.projbuild
+index afdaf94..8bf5ada 100644
+--- a/main/Kconfig.projbuild
++++ b/main/Kconfig.projbuild
+@@ -1031,6 +1031,14 @@ config RECEIVE_CUSTOM_MESSAGE
+     help
+         Enable custom message reception, allow the device to receive custom messages from the server (preferably through the MQTT protocol)
+ 
++config WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS
++    int "Idle seconds before PMIC power-off on battery (0 = never)"
++    default 300
++    range 0 86400
++    depends on BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_75 || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_75C
++    help
++        Idle power-off applies only while the AXP2101 reports no VBUS; on USB power the board only dims the screen.
++
+ menu "Camera Configuration"
+     depends on !IDF_TARGET_ESP32
+ 
+diff --git a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
+index ab96681..b4c4339 100644
+--- a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
++++ b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
+@@ -52,6 +52,10 @@ public:
+         WriteReg(0x62, 0x08); // set Main battery charger current to 400mA ( 0x08-200mA, 0x09-300mA, 0x0A-400mA )
+         WriteReg(0x63, 0x01); // set Main battery term charge current to 25mA
+     }
++
++    // PMU status 1 (0x00): bit 5 VBUS good, bit 3 battery present.
++    bool IsVbusGood() { return ReadReg(0x00) & 0x20; }
++    bool IsBatteryPresent() { return ReadReg(0x00) & 0x08; }
+ };
+ 
+ #define LCD_OPCODE_WRITE_CMD (0x02ULL)
+@@ -150,16 +154,34 @@ private:
+     CustomBacklight* backlight_;
+     esp_io_expander_handle_t io_expander = NULL;
+     PowerSaveTimer* power_save_timer_;
++    bool power_off_skipped_ = false;
+ 
+     void InitializePowerSaveTimer() {
+-        power_save_timer_ = new PowerSaveTimer(-1, 60, 300);
++        const int power_off_seconds = CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS > 0
++            ? CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS : -1;
++        power_save_timer_ = new PowerSaveTimer(-1, 60, power_off_seconds);
+         power_save_timer_->OnEnterSleepMode([this]() {
+             GetDisplay()->SetPowerSaveMode(true);
+             GetBacklight()->SetBrightness(20); });
+         power_save_timer_->OnExitSleepMode([this]() {
++            power_off_skipped_ = false;
+             GetDisplay()->SetPowerSaveMode(false);
+             GetBacklight()->RestoreBrightness(); });
+-        power_save_timer_->OnShutdownRequest([this](){ 
++        power_save_timer_->OnShutdownRequest([this]() {
++            if (pmic_->IsVbusGood()) {
++                if (!power_off_skipped_) {
++                    ESP_LOGI(TAG, "Idle power-off skipped: VBUS present");
++                    power_off_skipped_ = true;
++                }
++                return;
++            }
++            if (power_off_skipped_) {
++                ESP_LOGI(TAG, "VBUS removed while idle; battery idle countdown restarts");
++                power_off_skipped_ = false;
++                power_save_timer_->WakeUp();
++                return;
++            }
++            ESP_LOGI(TAG, "Idle power-off: no VBUS");
+             pmic_->PowerOff(); });
+         power_save_timer_->SetEnabled(true);
+     }
+@@ -189,6 +211,10 @@ private:
+     void InitializeAxp2101() {
+         ESP_LOGI(TAG, "Init AXP2101");
+         pmic_ = new Pmic(i2c_bus_, 0x34);
++        ESP_LOGI(TAG, "VBUS %s, battery %s, idle power-off on battery after %d s",
++                 pmic_->IsVbusGood() ? "present" : "absent",
++                 pmic_->IsBatteryPresent() ? "present" : "absent",
++                 CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS);
+     }
+ 
+     void InitializeSpi() {
+@@ -351,15 +377,8 @@ public:
+     }
+ 
+     virtual bool GetBatteryLevel(int &level, bool &charging, bool &discharging) override {
+-        static bool last_discharging = false;
+         charging = pmic_->IsCharging();
+         discharging = pmic_->IsDischarging();
+-        if (discharging != last_discharging)
+-        {
+-            power_save_timer_->SetEnabled(discharging);
+-            last_discharging = discharging;
+-        }
+-
+         level = pmic_->GetBatteryLevel();
+         return true;
+     }
