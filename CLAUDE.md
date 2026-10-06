@@ -20,3 +20,6 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 - After the review and test gates pass and the user approves the spec, push the branch to the personal remote and open a pull request (follow the `creating-pull-requests` skill). The PR is merged on GitHub; `main` is only advanced by merged PRs.
 - Each task = one commit (squash before opening the PR) + one PR titled `<task-id>: <short description>`, body linking `DESIGN.md` and the spec doc. No footers.
 - Remote: deferred (2026-10-06). Until `Jay-Wang2000/weixue` exists, approved branches are merged locally with `git merge --no-ff` so dependent tasks can build on them; once the remote exists, push `main` and switch to PRs for every later task. Upstream code (`xiaozhi-esp32`, `xiaozhi-esp32-server`) is vendored locally for now; forks come with the remote.
+
+## Hardware verification rule
+- Any change to firmware UI or device behaviour (face, ring, panel, gestures, wake word, audio) must be flashed to the connected 1.75C and verified end-to-end on the device during review/test, not only by build success or emulator. The tester flashes the branch build, exercises the feature, and records what was observed (photo/log excerpt) in the test result. The device is always connected to this Mac.
