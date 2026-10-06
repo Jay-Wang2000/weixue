@@ -20,7 +20,7 @@ tasks:
   - id: feat-firmware-base
     name: "Build & flash xiaozhi 1.75c, point at own server"
     branch: feat/firmware-base
-    description: 编译 esp32-s3-touch-amoled-1.75c build，OTA_URL 指向自建后端，烧录并验证唤醒与连接。
+    description: 编译 esp32-s3-touch-amoled-1.75c build，sdkconfig 启用双唤醒词 wn9_jarvis_tts + wn9_nihaoxiaozhi_tts（ADR-6），OTA_URL 指向自建后端，烧录并验证两个唤醒词与连接。
     depends_on: [feat-toolchain, feat-server]
     status: pending
     retries: 0
@@ -60,7 +60,7 @@ tasks:
   - id: feat-approvals
     name: "Pending approvals on device"
     branch: feat/approvals
-    description: 先调研 ha-mcp 是否有批准 API（读源码）；有则后端每轮查 /api/policy/pending 并在设备上批准，无则退回 iPhone/面板并记录。
+    description: 按 ADR-9 实现：后端订阅 ha_mcp_approval_requested 事件，推到设备表情中央/监控面板；设备点击 → 后端发 ha_mcp_approval_response（PIN）→ 显示 ha_mcp_approval_result。HTTP /api/policy/* 作备选。
     depends_on: [feat-ha-mcp, feat-ui-panel]
     status: pending
     retries: 0

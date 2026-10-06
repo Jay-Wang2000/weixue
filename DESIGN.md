@@ -22,7 +22,7 @@
 
 ```
 [1.75C 板子: 小智固件]
-  ESP-SR 唤醒(默认「你好小智」，可换/自定义见 ADR-6)+AEC → Opus/WebSocket → [xiaozhi-esp32-server @ Mac(Docker)]
+  ESP-SR 唤醒(Jarvis + 你好小智, ADR-6)+AEC → Opus/WebSocket → [xiaozhi-esp32-server @ Mac(Docker)]
   LVGL 脸/状态环/面板 ← llm emotion / 状态消息          ├ ASR: Google Cloud STT (新 provider)
   QMI8658 手势 → 设备侧 MCP 工具                          ├ LLM: Anthropic Claude (新 provider, claude-sonnet-5-5 默认, haiku-4-5 低延迟备选)
                                                           ├ TTS: Google Cloud TTS Chirp 3 HD (新 provider)
@@ -56,10 +56,10 @@
 - **ADR-2 HA 接口**：ha-mcp 策略引擎；内置 `mcp_server` 无策略，不作备选。
 - **ADR-3 语音服务**：Google Cloud STT+TTS（中英、凭据已就绪、零维护）；自托管留作后续。
 - **ADR-4 后端宿主**：开发期 Mac（Docker Compose）；后期迁到家里 Ubuntu 主机，配置与数据卷保持可迁移。
-- **ADR-6 唤醒词**：默认 ESP-SR 现成模型「你好小智」；可换为模型库中其他词（Hi ESP / Alexa / Jarvis / Hey Willow 等）；真正自定义短语走小智的 MultiNet 自定义唤醒模式（准确率和 CPU 代价更高，短语要短）；不走乐鑫付费定制。
+- **ADR-6 唤醒词**：WakeNet 双模型同时加载（小智音频引擎最多两个）：英文 `Jarvis`（`wn9_jarvis_tts`）+ 中文 `你好小智`（`wn9_nihaoxiaozhi_tts`），编译期通过 `CONFIG_SR_WN_*` 选择；不用 MultiNet 自定义短语（单语言、约 2.9 MB PSRAM、关闭 WakeNet）；不走付费定制。商标问题用户已知悉并接受。调研：`research/reports/weixue-q3-wakeword.md`。
 - **ADR-7 对话逻辑**：仿 ChatGPT 语音：英语为主、中文为辅；STT 多语言识别，LLM 用用户所用语言回答，TTS 随之切换声音；回答结束后保持数秒免唤醒追问；支持打断（设备端 AEC）。
 - **ADR-8 代码托管**：fork `78/xiaozhi-esp32` 与 `xinnan-tech/xiaozhi-esp32-server` 到个人 GitHub（Jay-Wang2000，`github.com-personal` SSH 别名），改动在 fork 上并推送。Flash 先备份再覆盖。
-- **ADR-9 设备上批准**：先调研 ha-mcp 是否有批准 API；无则退回 iPhone/面板。
+- **ADR-9 设备上批准**：ha-mcp 已有批准机制，优先走 HA 事件总线：监听 `ha_mcp_approval_requested {token, tool_name, args, expires_at}`，用 admin 令牌发 `ha_mcp_approval_response {token, decision, pin}`（面板开启 event decisions 并设 PIN），结果由 `ha_mcp_approval_result` 回报。备选 HTTP：`GET /api/policy/pending`、`POST /api/policy/approve|deny {token}`（挂在 secret path 下，无额外鉴权，故只能由后端持有）。ESP32 只负责显示和点击，批准动作在后端。注意：调用默认阻塞 60 s 后返回 `USER_APPROVAL_REQUIRED`，token 5 分钟内有效，重调一次即消费；队列在内存，重启即丢；不记录批准人。调研：`research/reports/weixue-q7-hamcp-approval.md`。
 - **ADR-5 UI**：程序化眼睛而非精灵图/Lottie（无 466 px 素材、性能、烧屏）。
 
 ## Testing Strategy
@@ -70,4 +70,4 @@
 
 ## Open Questions
 
-- 唤醒词最终选哪个词（默认先用「你好小智」）。
+- 无（2026-10-06）。
