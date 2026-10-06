@@ -107,7 +107,7 @@ tasks:
     branch: feat/proactive
     description: 后端提供经鉴权、限流、去重的 webhook，支持 HA 自动化触发播报或发起对话；明确设备忙碌/离线/静音时的交付规则；拥有短应答（嗯/yes/no）监听窗口及其端到端验收。
     depends_on: [feat-tts-google, feat-stt-google, feat-llm, feat-firmware-base]
-    status: pending
+    status: done
     retries: 0
     model: sonnet
   - id: feat-voice-integration
