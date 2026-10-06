@@ -20,7 +20,7 @@ How this project is run, as practised in the 2026-10-06 session. Keep this curre
    - Hardware rule: firmware/UI/behaviour changes are flashed and exercised on the real device by the tester; speech is driven with macOS `say`; evidence (redacted logs, photos) goes under `docs/logs/`.
    - One board, many agents: the device lock `~/Projects/weixue-vendor/.device-lock` (mkdir to acquire) serialises serial/flash/stack-restart access.
 5. **Merge**: local `git merge --no-ff` (or ff) into `main` while the personal remote is deferred; conflicting shared files are integrated in a dedicated `integrate/*` branch with its own gate. Orchestrator bookkeeping (`tasks.yml`, `docs/briefs/`, `docs/reviews/`, `docs/METHODOLOGY.md`) is committed directly on `main`.
-6. **Post-wave review**: Codex reviews `main` (spec + code) read-only; output saved to `docs/reviews/codex-<model>-<scope>-<date>.md`; findings become fix tasks or ADR changes.
+6. **Post-wave review**: Codex reviews `main` (spec + code) read-only; output saved to `docs/reviews/codex-<model>-<scope>-<date>.md`; findings become fix tasks or ADR changes. Its P1/P2 counts per task are logged in `docs/QUALITY-LOG.md` as the control for the gate's time-vs-quality trade-off; if quality drops for two waves, the gate goes back to 2 skeptics per finding.
 7. **Debrief**: milestone message to Jay: what merged, what is live, known issues, what is blocked on him.
 
 ## Conventions

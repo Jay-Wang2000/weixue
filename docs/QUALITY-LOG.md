@@ -1,0 +1,12 @@
+# Gate quality log
+
+Purpose: detect whether the time-bounded gate (`.claude/workflows/wave-gate.js`: capped/deduped findings, info skipped, 1 skeptic per warning, 1 fix pass) lets more defects through than the original gate (every finding, 2 skeptics, 2 fix passes). The control is the independent post-wave Codex review: count its P1/P2 correctness findings per merged task, plus defects found on the device after merge.
+
+Rule: if Codex P1 findings per task rise above the baseline for two consecutive waves, or an on-device regression traces to a finding the gate dropped, restore 2 skeptics for warnings and raise the cap.
+
+| Wave | Gate variant | Gate agents (approx.) | Gate wall time | Confirmed issues (err/warn) | Codex P1 / P2 after merge | Escaped defects seen on device | Verdict |
+|---|---|---|---|---|---|---|---|
+| 1 (toolchain, server) | original | 54 + 81 | ~11 + 18 min | 0/21, 0/28 | included in Wave 2 review | — | baseline |
+| 2 (firmware, stt, tts, llm) + integration | original | 203 + 37 | ~66 + 35 min | 0/15, 0/21, 0/18 (+ integration 0/11) | 5 P1, 5 P2 across 4 tasks (tool index, turn leak, deadline, TTS cancel, exposure) | TTS lost spaces ("isfour"); farewell/long listening | baseline |
+| 3 (timing, face, imu, proactive) | original (launched before change) | tbd | tbd | tbd | tbd | tbd | |
+| 4+ | time-bounded | | | | | | |
