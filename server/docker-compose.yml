@@ -37,6 +37,26 @@ services:
     volumes:
       - ./data/mcp-endpoint:/app/data
 
+  mcp-bridge:
+    image: weixue/mcp-bridge:local
+    build:
+      context: ./mcp-bridge
+    container_name: mcp-bridge
+    restart: unless-stopped
+    environment:
+      - HA_MCP_URL=${HA_MCP_URL:?set HA_MCP_URL in server/.env}
+    volumes:
+      - ./data/mcp-bridge/endpoint-url:/run/secrets/mcp-endpoint-url:ro
+      - ./policy/voice_bridge.json:/app/policy/voice_bridge.json:ro
+    healthcheck:
+      test: ["CMD", "python", "-m", "weixue_bridge.health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    depends_on:
+      - mcp-endpoint-server
+
   xiaozhi-esp32-server-web:
     profiles: [console]
     image: ${UPSTREAM_WEB_IMAGE:-ghcr.io/xinnan-tech/xiaozhi-esp32-server:web_latest@sha256:d5dca8a463a2ce9dbbd9a831787eec843774278c58755c365dadcfef4f6d376c}

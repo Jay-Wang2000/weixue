@@ -1,0 +1,403 @@
+{
+  "settings": {
+    "wait_seconds": 8
+  },
+  "remove_rules": [
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "not_in",
+          "value": [
+            "light",
+            "notify"
+          ]
+        }
+      ],
+      "remember_minutes": 0
+    }
+  ],
+  "add_rules": [
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "not_in",
+          "value": [
+            "light",
+            "notify",
+            "switch",
+            "cover",
+            "media_player",
+            "climate"
+          ]
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.entity_id",
+          "op": "not_in",
+          "value": [
+            "switch.smart_switch_24110844476400510301c4e7ae0f5a9f_outlet",
+            "switch.living_room_donut_light_outlet"
+          ]
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.data.entity_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.data.area_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.data.device_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.data.floor_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.data.label_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.entity_id",
+          "op": "not_in",
+          "value": [
+            "cover.curtain_partner_1"
+          ]
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.data.entity_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.data.area_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.data.device_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.data.floor_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.data.label_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.service",
+          "op": "not_in",
+          "value": [
+            "turn_on",
+            "turn_off",
+            "set_temperature",
+            "set_hvac_mode"
+          ]
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.temperature",
+          "op": "gt",
+          "value": 26
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.temperature",
+          "op": "lt",
+          "value": 16
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.temperature",
+          "op": "regex",
+          "value": "."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_high",
+          "op": "gt",
+          "value": 26
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_high",
+          "op": "lt",
+          "value": 16
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_high",
+          "op": "regex",
+          "value": "."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_low",
+          "op": "gt",
+          "value": 26
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_low",
+          "op": "lt",
+          "value": 16
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_low",
+          "op": "regex",
+          "value": "."
+        }
+      ],
+      "remember_minutes": 0
+    }
+  ]
+}
