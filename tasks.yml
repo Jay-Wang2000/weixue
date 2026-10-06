@@ -163,6 +163,6 @@ tasks:
     branch: fix/power-usb
     description: 热修复：上游 PowerSaveTimer 空闲 300 s 经 PMIC 关机，USB 供电时也关。按 ADR-12 在 USB 供电（AXP2101 VBUS present）时禁用自动关机、保留息屏/休眠；电池供电保留空闲关机且时长可配。以 firmware/patches 形式实现，构建、烧录，实机验证 USB 空闲 ≥7 min 不关机、电池路径逻辑有单元/日志证据。第二步（用户要求立即做）：USB 供电下空闲 300 s 关闭 AMOLED 面板（全黑、面板断电或 sleep），MCU 与唤醒词检测保持；唤醒词、触摸、（IMU 到位后）拿起点亮；实机验证 300 s 关屏与点亮。
     depends_on: [feat-firmware-base]
-    status: in_progress
+    status: review
     retries: 0
     model: opus
