@@ -1,0 +1,22 @@
+server:
+  websocket: "ws://@@LAN_IP@@:8000/xiaozhi/v1/"
+  vision_explain: "http://@@LAN_IP@@:8003/mcp/vision/explain"
+  timezone_offset: @@TZ_OFFSET@@
+  auth:
+    enabled: false
+
+selected_module:
+  VAD: SileroVAD
+  ASR: FunASR
+  LLM: StopgapLLM
+  TTS: EdgeTTS
+  Intent: function_call
+
+LLM:
+  StopgapLLM:
+    type: openai
+    url: "@@LLM_URL@@"
+    api_key: "@@LLM_API_KEY@@"
+    model_name: "@@LLM_MODEL@@"
+
+mcp_endpoint: "@@MCP_ENDPOINT@@"

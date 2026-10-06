@@ -8,3 +8,5 @@ build/
 .secrets/
 __pycache__/
 !CLAUDE.md
+server/data/*
+!server/data/.gitkeep

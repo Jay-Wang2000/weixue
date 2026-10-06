@@ -1,0 +1,8 @@
+# <name> <url> <commit-or-tag>
+xiaozhi-esp32-server https://github.com/xinnan-tech/xiaozhi-esp32-server 87c6df77b0220ddbd8fc804f984f83f69f3225e5
+mcp-endpoint-server https://github.com/xinnan-tech/mcp-endpoint-server 0f9302f327100fb976c7bdea6e4ebbb8ebdb5787
+image ghcr.io/xinnan-tech/xiaozhi-esp32-server:server-base sha256:dc44d9acdec135d7c2100cfd67fb352c46824eed6cc53dcd8aff1bc9c0832c4e
+image ghcr.io/xinnan-tech/xiaozhi-esp32-server:web_latest sha256:d5dca8a463a2ce9dbbd9a831787eec843774278c58755c365dadcfef4f6d376c
+image ghcr.io/xinnan-tech/mcp-endpoint-server:latest sha256:33ca12e06dcafb965fb27ecf2631070a267451331b65f0cb0e0332247b0491cc
+image docker.io/library/mysql:8 sha256:6ea90827b1100f8f2ae306a539f86d2c264a26ed435a2a9f75551dd5c3aeb242
+image docker.io/library/redis:8.0 sha256:ae471bdc20de180beed36e347d170ec0bdf8faa327959ea1f24692f22b05b955
