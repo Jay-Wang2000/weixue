@@ -8,7 +8,7 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 - HA: via ha-mcp (`~/Projects/ha-agent`); never print the secret-path URL; policy changes need user confirmation.
 
 ## Rules
-- Python in a project venv; ESP-IDF installed under the project, no global installs.
+- Python in a project venv. ESP-IDF and upstream clones live in the sibling `~/Projects/weixue-vendor` shared by all worktrees (override with WEIXUE_VENDOR); no global installs.
 - Secrets: Google service account JSON and API keys come from `~/Projects/ha-agent/.env` / `.secrets/` (0600). Never commit, never print values.
 - Backup Flash before any erase; keep `backup/` out of git.
 - Git: personal identity (`Jay_Wang <56106412+Jay-Wang2000@users.noreply.github.com>`), remote via `github.com-personal` SSH alias. Push only to the personal forks/repo.

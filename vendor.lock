@@ -1,0 +1,6 @@
+# <name> <url> <commit-or-tag>
+xiaozhi-esp32 https://github.com/78/xiaozhi-esp32 0d576d3d4c049c6f55eaf879725dc23e516511b4
+esp-idf https://github.com/espressif/esp-idf v6.1
+esptool https://pypi.org/project/esptool 5.4.0
+cmake https://github.com/Kitware/CMake 4.0.3
+ninja https://github.com/ninja-build/ninja 1.12.1
