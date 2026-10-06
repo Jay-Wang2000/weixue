@@ -1,6 +1,6 @@
 # Toolchain
 
-Everything installs under `~/Projects/weixue-vendor` (override with `WEIXUE_VENDOR`) or the project `.venv`; nothing global, no shell-rc edits. Pins are in `vendor.lock`.
+Firmware tools (ESP-IDF, cmake, ninja) install under `~/Projects/weixue-vendor` (override with `WEIXUE_VENDOR`) and esptool 5.4.0 in the project `.venv`; nothing global, no shell-rc edits. Pins are in `vendor.lock`.
 
 ## Fresh-Mac setup
 
@@ -18,7 +18,7 @@ export IDF_TOOLS_PATH=~/Projects/weixue-vendor/.espressif IDF_PATH=~/Projects/we
 (cd esp-idf && ./install.sh esp32s3)
 python3 "$IDF_PATH/tools/idf_tools.py" install cmake ninja
 
-# 3. Project venv with pinned esptool
+# 3. Project venv with pinned esptool (scripts/venv.sh also creates it on first use)
 cd ~/Projects/weixue
 python3 -m venv .venv && .venv/bin/pip install esptool==5.4.0
 
@@ -40,9 +40,9 @@ ls /dev/cu.usbmodem*        # expect /dev/cu.usbmodem2101
 scripts/backup_flash.sh [port]
 ```
 
-Reads the full flash (size auto-detected; override with `FLASH_SIZE`) to `${WEIXUE_BACKUP_DIR:-$HOME/Projects/weixue/backup}/flash-<timestamp>.bin` and prints its byte count and sha256. `backup/` is gitignored.
+Reads the full flash (size auto-detected; override with `FLASH_SIZE`) to `${WEIXUE_BACKUP_DIR:-$HOME/Projects/weixue/backup}/flash-<timestamp>.bin`, writes the device MAC from `flash-id` to `flash-<timestamp>.mac` and the sha256 to `flash-<timestamp>.sha256`, and prints its byte count and sha256. It uses `.venv/bin/esptool` (see `scripts/venv.sh`). `backup/` is gitignored.
 
-Restore (manual, destructive): `.venv/bin/esptool --chip esp32s3 --port <port> write-flash 0 <backup-file>`.
+Restore (manual, destructive): `(cd backup && shasum -a 256 -c flash-<timestamp>.sha256)`, then `.venv/bin/esptool --chip esp32s3 --port <port> write-flash 0 <backup-file>`.
 
 ## Board target check
 

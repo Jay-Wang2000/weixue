@@ -1,0 +1,19 @@
+{
+    "manufacturer": "waveshare",
+    "type": "esp32-s3-touch-amoled-1.75",
+    "target": "esp32s3",
+    "builds": [
+        {
+            "name": "esp32-s3-touch-amoled-1.75c-weixue",
+            "sdkconfig_append": [
+                "CONFIG_USE_WECHAT_MESSAGE_STYLE=n",
+                "CONFIG_BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_75C=y",
+                "CONFIG_USE_DEVICE_AEC=y",
+                "CONFIG_RECEIVE_CUSTOM_MESSAGE=y",
+                "CONFIG_OTA_URL=\"http://192.168.8.220:8003/xiaozhi/ota/\"",
+                "CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y",
+                "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"partitions/v2/32m.csv\""
+            ]
+        }
+    ]
+}
