@@ -113,7 +113,7 @@ tasks:
   - id: feat-voice-integration
     name: "M1 end-to-end voice integration gate"
     branch: feat/voice-integration
-    description: 同一固件 + 同一镜像（Google STT + Anthropic + Google TTS + ha-mcp）跑固定中英各 10 句；记录版本、配置模式、转写、回复语言、HA 结果、端到端与 TTS 首帧延迟；覆盖短应答、打断、服务超时、网络恢复、审批异常；验证 LLM provider 流式工具索引在“无效首工具+有效工具”“有效/无效/有效”“丢弃工具后 direct_answer”三种情形下不抛 IndexError 且不执行被丢弃调用（DESIGN ADR-11 时限亦在此验收）。实机证据按 CLAUDE.md 保存。
+    description: 同一固件 + 同一镜像（Google STT + Anthropic + Google TTS + ha-mcp）跑固定中英各 10 句；记录版本、配置模式、转写、回复语言、HA 结果、端到端与 TTS 首帧延迟；覆盖短应答、打断、服务超时、网络恢复、审批异常；STT 超长输入的 too_long_reply 改为跟随上一轮语言或中英双语；验证 LLM provider 流式工具索引在“无效首工具+有效工具”“有效/无效/有效”“丢弃工具后 direct_answer”三种情形下不抛 IndexError 且不执行被丢弃调用（DESIGN ADR-11 时限亦在此验收）。实机证据按 CLAUDE.md 保存。
     depends_on: [feat-firmware-base, feat-stt-google, feat-tts-google, feat-llm, feat-ha-mcp]
     status: pending
     retries: 0
@@ -123,6 +123,6 @@ tasks:
     branch: fix/server-polish
     description: 整合评审遗留：(1) server/Dockerfile 首行加 `# syntax=docker/dockerfile:1`（COPY --exclude 需 frontend ≥1.19）；(2) 修复英文 TTS 丢空格（上游 `_clean_response_garbage` 去掉流式块尾空格，实机听感 "isfour"）——在 overlay 覆盖或补丁，附回归测试；(3) STT 超长输入改为明确拒绝并提示重说，而非 59 s 静默截断（DESIGN F2）；(4) docs 不把 ANTHROPIC_API_KEY 写在命令行上；(5) tests/conftest.py 的凭据路径改为环境变量；(6) 整理 docs/server.md。重建并重启 live 栈，一轮 WebSocket 文本回合验证。
     depends_on: []
-    status: pending
+    status: done
     retries: 0
     model: sonnet
