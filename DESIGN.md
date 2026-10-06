@@ -76,7 +76,7 @@ xiaozhi-server 的对话循环是深度 ≤5、每工具 30 s、同步阻塞、1
 依赖：feat-llm、feat-ui-face、feat-ui-panel、feat-approvals。结果交付三档借 Gemini Live 的 `INTERRUPT | WHEN_IDLE | SILENT`。
 
 - **ADR-10 agent 层**：Claude Agent SDK 自托管（API key 计费）；Managed Agents 留作不碰 HA 的 side project 后备；不采用 LangGraph/Pydantic AI/Pipecat。
-- **ADR-9 修订**：当前部署的 ha-mcp `wait_seconds=180` 与服务器 30 s 工具超时、固件 120 s 静默超时冲突；feat-ha-mcp 需把 `wait_seconds` 降到 <30 或改为异步审批（立即返回 token，后端轮询/事件裁决）。
+- **ADR-9 修订**：ha-mcp 的同步挂起在 xiaozhi-server 里走不通：MCP 接入点执行器写死 30 s 等待（不透传 `tool_call_timeout`），超时即判工具失败且不再回 LLM，之后到达的批准无人消费；两跳都丢弃进度通知；把服务器等待调到 180 s 又会撞上固件 120 s 信道静默超时。因此审批只能走 token 路径：把 `wait_seconds` 设为 5–10 s，让 `USER_APPROVAL_REQUIRED`+token 在 30 s 内返回，后端显示批准卡、经事件总线裁决、再重发调用。`wait_seconds` 本身只是上限，不是安全边界。
 - feat-firmware-base 的构建应开启 `CONFIG_RECEIVE_CUSTOM_MESSAGE`，为 M2 预留通道；feat-ui-panel 预留任务芯片位。
 
 ## Testing Strategy
