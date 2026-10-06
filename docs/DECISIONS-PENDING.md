@@ -13,5 +13,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 6. Audio/transcript retention and Google data-logging choice.
 7. HA-MCP panel: enable event decisions and set a PIN (needed by feat-approvals).
 
+## FYI (proceeding; our own stack, not an external service)
+9. Codex Wave 2 code review (`docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md`): fix-first verdict. Three fix tasks queued after Wave 3: `fix-server-review-2`, `fix-turn-isolation`, `fix-firmware-scripts-2`. Includes enabling `server.auth` with the device MAC allow-list and binding OTA/WS to needed interfaces only.
+
 ## User-only test items
 8. `feat-voice-integration`: 10× "Jarvis" wake count (2/2 so far).

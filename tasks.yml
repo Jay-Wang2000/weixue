@@ -134,3 +134,27 @@ tasks:
     status: pending
     retries: 0
     model: opus
+  - id: fix-server-review-2
+    name: "Server fixes from Codex Wave 2 code review"
+    branch: fix/server-review-2
+    description: 按 docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md 修复：C1 Anthropic 流式工具索引仅在发出时分配、direct_answer 复用索引，三种丢弃场景回归测试跑在真实上游 merger 上；C3 Google TTS 取消独立于响应到达（首响应预取期间也可取消；abort/close 时 cancel RPC；区分主动中止与 Cancelled 错误）；C4 TTS 分片 UTF-8 字节硬上限 5000 + 英文句号分句（有界缓冲，处理小数/缩写）；C5 whitespace 修复改为 framing-aware 的 direct_answer 增量解码，不再按块判断引号/括号；C6 STT 仅在明确的语言组合错误时回退 ["auto"]，接收缓冲有界，拒绝提示语双语；C8 setup.sh 渲染到 0600 临时文件、校验 YAML、构建成功后原子发布、保留回滚与就绪检查；patch 11 锁定传递依赖并在镜像构建跑 pip check；patch 4 网络边界：server.auth.enabled + allowed_devices（设备 MAC 7c:0c:5f:42:4b:fc），OTA/WS 只绑定需要的接口，docs 不再声称 firmware-base 已启用。每项附测试；端到端：实机一轮 + 打断一轮。
+    depends_on: [fix-conversation-timing, feat-proactive]
+    status: pending
+    retries: 0
+    model: opus
+  - id: fix-turn-isolation
+    name: "Turn identity, cancellation and ADR-11 deadline"
+    branch: fix/turn-isolation
+    description: Codex C2/patch 3：在 overlay 中给每个对话轮不可变 turn id 与取消状态；工具 future 等待、结果处理、历史写入、递归 LLM 调用前检查 turn id，旧轮结果不得进入新轮或借新轮 sentence_id 播报；已派发动作标记“结果未知”而非自动重试；实现 ADR-11 的 90 s 单调截止（重试/回退/工具轮共用），到期前向设备发终态。测试：模拟慢工具期间插话；端到端：实机慢工具（延时 MCP）+ 打断。与 M2 agent 服务的 job 模型兼容。
+    depends_on: [fix-server-review-2]
+    status: pending
+    retries: 0
+    model: opus
+  - id: fix-firmware-scripts-2
+    name: "Firmware script provenance and device-bound backups"
+    branch: fix/firmware-scripts-2
+    description: Codex C7/C9/patch 6/12：flash.sh 只接受与当前设备 MAC 绑定的备份并显式校验所选 .bin 摘要（历史无标签备份走单独迁移校验）；备份文件 0600；build.sh 的 manifest 绑定源码补丁集、项目修订、dependencies.lock 与 ESP-IDF 修订，flash.sh 不匹配即拒绝；lock 漂移报错而非警告；env.sh 校验 IDF pin；设备锁（~/Projects/weixue-vendor/.device-lock）在 flash.sh/backup_flash.sh 入口内获取。端到端：实机备份→烧录→启动日志。
+    depends_on: [feat-ui-face, feat-imu]
+    status: pending
+    retries: 0
+    model: opus
