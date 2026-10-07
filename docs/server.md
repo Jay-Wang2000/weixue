@@ -15,7 +15,14 @@ Replace `<LAN_IP>` with `LAN_IP` from `server/.env`.
 
 `GET` on the OTA URL returns a plain-text banner. The device `POST`s JSON with `Device-Id` and `Client-Id` headers and receives the *OTA response*: `{"server_time":…,"firmware":…,"websocket":{"url":"ws://<LAN_IP>:8000/xiaozhi/v1/","token":""}}`.
 
-Auth is disabled (`server.auth.enabled: false`). feat-firmware-base enables `server.auth.enabled` and `allowed_devices` once the device MAC is known.
+## Network boundary
+
+- OTA (8003) and WebSocket (8000) are published on `BIND_IP` from `server/.env`. `setup.sh` accepts `0.0.0.0` or `127.0.0.1`, and on Linux also an IPv4 address on a local interface. The Mac uses `BIND_IP=0.0.0.0`: both ports on every Mac interface, the same exposure as an unbound `8000:8000` mapping. `mcp-endpoint-server` (8004) is on `127.0.0.1` only.
+- `server.auth.enabled: true`; `allowed_devices` is rendered from `ALLOWED_DEVICES` in `server/.env` (lower-case MACs, comma-separated; `.env.example` holds the 1.75C, `7c:0c:5f:42:4b:fc`). `setup.sh` fails at pre-flight when it is unset or empty and at validation when it is not lower-case.
+- Strict allow-list (`weixue_patches.py`): an OTA `POST` whose `Device-Id` is listed gets the websocket section with `"token":""`; any other id, or none, gets `403` `{"success":false,"message":"device not allowed"}` and no websocket section. A WebSocket handshake with an unlisted `Device-Id` (header or query parameter) receives `认证失败` and is closed, whatever `Authorization` token it presents; a listed id connects with or without one. Both refusals log a warning naming the id. The firmware retries a failed OTA check with 10 s doubling back-off, at most 10 times, then uses its stored websocket settings.
+- A WebSocket client without `Device-Id` receives the upstream "端口正常…" banner and is closed (the readiness probe).
+- The list admits a claimed header value: it is not proof of device identity, and OTA/WS are plain HTTP/WS.
+- Enrol a device: read its id from the refusal warning (`docker logs xiaozhi-esp32-server 2>&1 | grep 'not in allowed_devices'`) or its serial log, append it to `ALLOWED_DEVICES` in `server/.env`, run `./scripts/setup.sh`, then reboot the device so it repeats the OTA check.
 
 ## MCP endpoint (`mcp_endpoint`)
 
@@ -33,13 +40,14 @@ ws://<host>:8004/mcp_endpoint/mcp/?token=<AES-encrypted token>
 
 ## Adding provider code
 
-`server/overlay/` is the only way to add or change server code. Its contents mirror `main/xiaozhi-server/` of the upstream clone (for example `server/overlay/core/providers/llm/<name>/<name>.py`) and are copied over the upstream tree at image build (`server/Dockerfile`, `__pycache__` excluded from both). Python packages the overlay needs beyond the upstream base image are pinned in `server/requirements-overlay.txt`, installed by the same Dockerfile. Apply with `./scripts/setup.sh`. The vendored clone is never edited.
+`server/overlay/` is the only way to add or change server code. Its contents mirror `main/xiaozhi-server/` of the upstream clone (for example `server/overlay/core/providers/llm/<name>/<name>.py`) and are copied over the upstream tree at image build (`server/Dockerfile`, `__pycache__` excluded from both). Python packages the overlay needs are listed in `server/requirements-overlay.txt`; `server/requirements-overlay.lock` pins them and their transitive dependencies (regeneration command in `scripts/lock_overlay_deps.py`). The Dockerfile installs the lock with `--no-deps` and fails the build if `pip check` finds a conflict. Apply with `./scripts/setup.sh`. The vendored clone is never edited.
 
 Changes to upstream functions that are too small to justify overriding a whole module go in `server/overlay/weixue_patches.py`. The image's entrypoint, `weixue_main.py`, applies them and then runs upstream `app.py`. Current patches:
 
-- `ConnectionHandler._clean_response_garbage` keeps a streamed chunk's trailing whitespace when the chunk ends in non-CJK text and no JSON closing characters were removed from its end. Upstream strips it from every chunk, so English words at chunk edges run together ("isfour").
+- `ConnectionHandler._extract_direct_answer_response` is replaced by `decode_direct_answer`: it decodes the `response` JSON string of the streamed `direct_answer` arguments (escapes, `\uXXXX`, surrogate pairs) and stops at its closing quote or at an incomplete escape, so each streamed result extends the previous one. `_clean_response_garbage` returns its input unchanged: with framing removed by the decoder, no chunk-level stripping is applied (upstream's stripped whitespace and quotes at chunk edges: "isfour", "Say 'onnow").
 - `ConnectionHandler.handle_connection`, `ListenTextMessageHandler.handle` and the aiohttp app of `core.http_server` are wrapped for proactive messages (`docs/proactive.md`).
 - `ListenTextMessageHandler.handle` is also wrapped for the wake cue, and `core.providers.vad.silero.VADProvider.is_vad` for the wake utterance hold (see Wake cue).
+- `OTAHandler.handle_post` and `WebSocketServer._handle_auth` are wrapped for the strict device allow-list (see Network boundary).
 - `ConnectionHandler.just_woken_up` is a property that always reads `False`: upstream sets it on every `listen detect` and then drops the next 2 s of microphone audio.
 - `receiveAudioHandle.no_voice_close_connect`: an audio frame received while the server holds the turn (`client_is_speaking`, from the STT result or wake cue to `tts stop`) refreshes `last_activity_time`, so the idle close counts from the end of the reply (see Conversation timing).
 - `McpTextMessageHandler.handle` logs every device MCP notification whose method starts with `notifications/weixue/` as `device event <method> device=<mac> params=<json>` before upstream handles it (panel decisions, `docs/firmware.md` Monitor panel; IMU gestures).
@@ -91,11 +99,11 @@ The live tests take `ANTHROPIC_API_KEY` and `GOOGLE_SA_FILE` from `server/.env`,
 
 ## Google Cloud STT (`ASR.GoogleSTT`, `type: google_stt`)
 
-`server/overlay/core/providers/asr/google_stt.py`: Speech-to-Text v2, model `chirp_3`, location `us`, synchronous `Recognize` on the 16 kHz mono PCM the server already produces, `language_codes: ["en-US", "cmn-Hans-CN"]` (one retry with `["auto"]` if the list is rejected). An utterance over 59 s (`Recognize` accepts at most 60 s) is not sent or trimmed: the provider logs a warning, skips the LLM turn and the device speaks `too_long_reply` (default: "Sorry, that was too long for me. Please say it again, a bit shorter."). The live test sends the two 16 kHz clips in `tests/assets/` and expects "turn on the living room lights" in English and Mandarin.
+`server/overlay/core/providers/asr/google_stt.py`: Speech-to-Text v2, model `chirp_3`, location `us`, synchronous `Recognize` on the 16 kHz mono PCM the server already produces, `language_codes: ["en-US", "cmn-Hans-CN"]`. Only an `InvalidArgument` that rejects the language list (a `language_codes` field violation, "Bad language code", or "The language … is not supported by the model") is retried once with `["auto"]`, within what is left of the same `timeout`; any other error ends the turn with no transcript. An utterance over 59 s (`Recognize` accepts at most 60 s) is not sent or trimmed: the receive buffer stops growing one frame past the limit, the provider logs a warning, skips the LLM turn and the device speaks `too_long_reply` (default, English then Mandarin: "Sorry, that was too long for me. Please say it again, a bit shorter." / "抱歉，这段话太长了，请说短一点再试一次。"). The live test sends the two 16 kHz clips in `tests/assets/` and expects "turn on the living room lights" in English and Mandarin.
 
 ## Google Cloud TTS (`TTS.GoogleTTS`, `type: google_tts`)
 
-`server/overlay/core/providers/tts/google_tts.py`: Chirp 3 HD, one speaker for both locales (`speaker`, default `Charon`): CJK text goes to `cmn-CN-Chirp3-HD-<speaker>`, Latin text to `en-US-Chirp3-HD-<speaker>`, anything else to `default_language` (`en` | `zh`). The streaming path uses `streaming_synthesize` with raw PCM at the connection sample rate, one request per text segment, 60 ms Opus frames; the sync path (`to_tts`, wake-word cache) uses `LINEAR16`. `speaking_rate` (0.25-2.0, or the `ttsRate` percentage) is the only streaming-path knob. A relative `credentials_file` resolves against the server directory; without one the client uses `GOOGLE_APPLICATION_CREDENTIALS`.
+`server/overlay/core/providers/tts/google_tts.py`: Chirp 3 HD, one speaker for both locales (`speaker`, default `Charon`): CJK text goes to `cmn-CN-Chirp3-HD-<speaker>`, Latin text to `en-US-Chirp3-HD-<speaker>`, anything else to `default_language` (`en` | `zh`). The streaming path uses `streaming_synthesize` with raw PCM at the connection sample rate, one request per text segment, 60 ms Opus frames. Besides upstream's punctuation, a segment ends at an English sentence end (`.`/`…` followed by whitespace; abbreviations such as "Dr." and single-letter initials excluded, decimals never match), and unpunctuated text is cut at a word boundary once it exceeds 250 characters. A request is split to at most 5,000 UTF-8 bytes, preferring a sentence end, then a clause mark, then whitespace, then a character boundary. Each streaming call is cancelled within 50 ms of an abort, a newer turn (`sentence_id`) or `close()`, also while the first response is pending; a cancellation the provider did not request is logged as an error and still ends the turn; the sync path (`to_tts`, wake-word cache) uses `LINEAR16`. `speaking_rate` (0.25-2.0, or the `ttsRate` percentage) is the only streaming-path knob. A relative `credentials_file` resolves against the server directory; without one the client uses `GOOGLE_APPLICATION_CREDENTIALS`.
 
 ## LLM: Anthropic Claude (`LLM.AnthropicLLM`, `type: anthropic`)
 
@@ -124,11 +132,13 @@ Prerequisites: Rancher Desktop running (`~/.rd/bin` on PATH), python3, the two c
 
 ```bash
 cd server
-cp .env.example .env     # set LAN_IP, TZ/TZ_OFFSET, ANTHROPIC_API_KEY, GOOGLE_SA_FILE, HA_MCP_URL (chmod 600)
+cp .env.example .env     # set LAN_IP, BIND_IP (Mac: 0.0.0.0), ALLOWED_DEVICES, TZ/TZ_OFFSET, ANTHROPIC_API_KEY, GOOGLE_SA_FILE, HA_MCP_URL (chmod 600)
 ./scripts/setup.sh
 ```
 
-`setup.sh` is idempotent. In order: downloads SenseVoiceSmall (~936 MB) if missing, checks the vendor clone, starts `mcp-endpoint-server`, writes `data/mcp-bridge/endpoint-url`, renders `config/config.template.yaml` to `data/.config.yaml` with `scripts/render_config.py` (values are escaped; `@@NAME?@@` is optional and renders empty when unset), then builds and force-recreates the `mcp-bridge` and server containers. Logs: `docker logs -f xiaozhi-esp32-server`.
+Required `.env` keys: `LAN_IP`, `BIND_IP`, `ALLOWED_DEVICES`, `TZ_OFFSET`, `ANTHROPIC_API_KEY`, `GOOGLE_SA_FILE`, `HA_MCP_URL` (`REQUIRED_KEYS` in `setup.sh`).
+
+`setup.sh` is idempotent. In order: a pre-flight that fails before any build, publish or container change when a required key is unset or empty, `GOOGLE_SA_FILE` is missing, or `BIND_IP` is not accepted (Network boundary); downloads SenseVoiceSmall (~936 MB) if missing, checks the vendor clone, starts `mcp-endpoint-server`, renders `config/config.template.yaml` with `scripts/render_config.py` (values are escaped; `@@NAME?@@` is optional and renders empty when unset) to a mode-0600 temporary file next to `data/.config.yaml`, tags the current `mcp-bridge` and server images (and `weixue/wg:local` while `WG_TUNNEL=1`) `:rollback`, builds them, and validates the rendered file with `scripts/validate_config.py` inside the new server image (YAML, `server.websocket`, auth allow-list, selected modules, LLM key, `mcp_endpoint`; problems are printed without values). A failed render, build or validation exits with `data/.config.yaml` and the `:local` images unchanged. Then it renames the file over `data/.config.yaml` (the previous one is kept as `data/.config.yaml.rollback`), writes `data/mcp-bridge/endpoint-url` the same way, force-recreates the containers (`wg` too while `WG_TUNNEL=1`; otherwise it then removes the `wg` container) and waits up to 90 s for `scripts/check_ready.py` (OTA banner on 8003, WebSocket handshake and banner frame on 8000, at `BIND_IP`, or `127.0.0.1` for `0.0.0.0`). After a successful check it copies `.env` to `.env.deployed` (0600). If the recreate or the check fails, it restores the previous config and images and, when `.env.deployed` exists, `.env` from it (the attempted file is kept as `.env.failed`, 0600), recreates the containers in that file's tunnel mode and exits 1. If that second recreate also fails, the stack is down: it prints a `manual restore:` block (retag each `:rollback` image to `:local`, then `docker compose [--profile …] up -d --force-recreate …` from `server/`) and exits 1. `docker-compose.yml` is not rolled back; without `.env.deployed` (first run) neither is `.env`. Logs: `docker logs -f xiaozhi-esp32-server`.
 
 Providers: VAD SileroVAD, ASR `GoogleSTT`, LLM `AnthropicLLM`, TTS `GoogleTTS`. Upstream `FunASR` (SenseVoiceSmall, local), `EdgeTTS` and the OpenAI-compatible `StopgapLLM` (Groq, `LLM_*` in `.env`) stay configured and are selected by editing `selected_module`. `wakeup_words` adds `Jarvis` to the upstream list.
 
@@ -184,7 +194,7 @@ Not covered: inbound traffic from the home LAN to the Mac, such as the proactive
 1. Install Docker Engine + compose plugin; clone this repo; clone both repos from `vendor.lock` at the pinned commits into `~/Projects/weixue-vendor/`.
 2. Copy `server/.env` (secrets, 0600) and `server/data/` (`.config.yaml`, `mcp-endpoint/` key, `models/`). Copying `mcp-endpoint/` keeps MCP URLs valid; omit `models/` to let `setup.sh` re-download.
 3. Copy the Google service-account JSON (0600) and point `GOOGLE_SA_FILE` at it.
-4. Set `LAN_IP` in `.env` to the Ubuntu host's address and run `./scripts/setup.sh`.
+4. Set `LAN_IP` and `BIND_IP` in `.env` to the Ubuntu host's address (the ports then bind to that address only) and run `./scripts/setup.sh`.
 5. Re-point the firmware `OTA_URL` to the new address, or give the host the old IP / a DNS name. MCP clients on other hosts need an SSH tunnel or a changed 8004 binding.
 6. Open TCP 8000 and 8003 on the host firewall.
 

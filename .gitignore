@@ -3,6 +3,8 @@ backup/
 build/
 *.bin
 .env
+.env.*
+!.env.example
 .secrets/
 __pycache__/
 !CLAUDE.md

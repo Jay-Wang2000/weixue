@@ -126,7 +126,7 @@ async def test_other_transcripts_go_to_the_llm(text):
 
 def stub_handler_modules(monkeypatch):
     """Stubs the upstream modules weixue_patches.apply() patches or imports besides
-    core.connection, core.http_server and the listen handler."""
+    core.connection, core.http_server, core.auth and the listen handler."""
     receive = types.ModuleType("core.handle.receiveAudioHandle")
     receive.no_voice_close_connect = UPSTREAM_NO_VOICE
     intent = types.ModuleType("core.handle.intentHandler")
@@ -160,7 +160,21 @@ def stub_handler_modules(monkeypatch):
             return "upstream"
 
     mcp.McpTextMessageHandler = McpTextMessageHandler
-    for module in (receive, intent, util, send, silero, mcp):
+    ota = types.ModuleType("core.api.ota_handler")
+
+    class OTAHandler:
+        async def handle_post(self, request):
+            return "upstream"
+
+    ota.OTAHandler = OTAHandler
+    websocket_server = types.ModuleType("core.websocket_server")
+
+    class WebSocketServer:
+        async def _handle_auth(self, websocket):
+            return None
+
+    websocket_server.WebSocketServer = WebSocketServer
+    for module in (receive, intent, util, send, silero, mcp, ota, websocket_server):
         monkeypatch.setitem(sys.modules, module.__name__, module)
     return receive, intent, VADProvider
 
@@ -185,6 +199,7 @@ async def test_apply_patches_handlers_once(monkeypatch):
 
     class ConnectionHandler:
         _clean_response_garbage = staticmethod(lambda text: text)
+        _extract_direct_answer_response = staticmethod(lambda arguments: "")
 
         async def handle_connection(self, ws):
             return None

@@ -13,7 +13,9 @@ from core.providers.llm.anthropic.anthropic import (
     TRUNCATED_TEXT,
     LLMProvider,
 )
+from core.providers.tts.dto.dto import SentenceType
 from core.utils.dialogue import Dialogue, Message
+from tests.upstream_chat import SYSTEM_ERROR, UpstreamChat, make_connection, run_chat, spoken
 
 DIRECT_ANSWER_TOOL = {
     "type": "function",
@@ -142,22 +144,7 @@ def make_provider(config=SONNET_CONFIG, *scripts):
 
 
 def merge_tool_calls(tool_calls_list, tools_call):
-    """Copy of ConnectionHandler._merge_tool_calls (core/connection.py)."""
-    for tool_call in tools_call:
-        tool_index = getattr(tool_call, "index", None)
-        if tool_index is None:
-            if tool_call.function.name:
-                tool_index = len(tool_calls_list)
-            else:
-                tool_index = len(tool_calls_list) - 1 if tool_calls_list else 0
-        if tool_index >= len(tool_calls_list):
-            tool_calls_list.append({"id": "", "name": "", "arguments": ""})
-        if tool_call.id:
-            tool_calls_list[tool_index]["id"] = tool_call.id
-        if tool_call.function.name:
-            tool_calls_list[tool_index]["name"] = tool_call.function.name
-        if tool_call.function.arguments:
-            tool_calls_list[tool_index]["arguments"] += tool_call.function.arguments
+    UpstreamChat._merge_tool_calls(None, tool_calls_list, tools_call)
 
 
 def drive(provider, dialogue, functions):
@@ -470,6 +457,72 @@ def test_stream_parallel_tools_get_ordinals_zero_and_one():
     _, calls, _ = drive(provider, [{"role": "user", "content": "both"}], [LIGHT_TOOL])
     assert [c["id"] for c in calls] == ["toolu_1", "toolu_2"]
     assert [json.loads(c["arguments"])["entity_id"] for c in calls] == ["a", "b"]
+
+
+def _invalid_tool(index, tool_id="toolu_bad"):
+    return [ev_start(index, tool_block(tool_id, "light_on")), ev_json(index, '{"entity_id": light'), ev_stop(index)]
+
+
+def _valid_tool(index, tool_id, entity):
+    return [ev_start(index, tool_block(tool_id, "light_on")), ev_json(index, json.dumps({"entity_id": entity})), ev_stop(index)]
+
+
+def _chat(events):
+    provider = make_provider(SONNET_CONFIG, FakeStream(events, final_message("tool_use")))
+    conn = make_connection(provider, [LIGHT_TOOL])
+    messages = run_chat(conn, "lights")
+    return conn, messages
+
+
+def _indexes(events):
+    provider = make_provider(SONNET_CONFIG, FakeStream(events, final_message("tool_use")))
+    items = provider.response_with_functions("s", [{"role": "user", "content": "x"}], functions=[LIGHT_TOOL])
+    return [t.index for _, tools in items if tools for t in tools]
+
+
+def test_dropped_then_valid_tool_is_dispatched_by_upstream_chat():
+    events = _invalid_tool(0) + _valid_tool(1, "toolu_ok", "light.a")
+    assert _indexes(events) == [0]
+    conn, messages = _chat(events)
+    assert [(c["id"], json.loads(c["arguments"])) for c in conn.func_handler.dispatched] == [
+        ("toolu_ok", {"entity_id": "light.a"})
+    ]
+    assert SYSTEM_ERROR not in spoken(messages)
+    assert messages[-1].sentence_type == SentenceType.LAST
+
+
+def test_valid_dropped_valid_tools_are_dispatched_in_order():
+    events = _valid_tool(0, "toolu_1", "light.a") + _invalid_tool(1) + _valid_tool(2, "toolu_2", "light.b")
+    assert _indexes(events) == [0, 1]
+    conn, messages = _chat(events)
+    assert [c["id"] for c in conn.func_handler.dispatched] == ["toolu_1", "toolu_2"]
+    assert [r[1]["id"] for r in conn.results] == ["toolu_1", "toolu_2"]
+    assert SYSTEM_ERROR not in spoken(messages)
+
+
+def test_dropped_tool_then_direct_answer_is_spoken_and_nothing_dispatched():
+    events = _invalid_tool(0) + [
+        ev_start(1, tool_block("toolu_da", DIRECT_ANSWER)),
+        ev_json(1, '{"response": "The light '),
+        ev_json(1, 'is already on."}'),
+        ev_stop(1),
+    ]
+    assert _indexes(events) == [0, 0, 0]
+    conn, messages = _chat(events)
+    assert conn.func_handler.dispatched == []
+    assert spoken(messages) == "The light is already on."
+    assert conn.dialogue.dialogue[-1].content == "The light is already on."
+
+
+def test_direct_answer_between_real_tools_keeps_its_index():
+    events = [
+        ev_start(0, tool_block("toolu_da", DIRECT_ANSWER)),
+        ev_json(0, '{"response": "On it'),
+    ] + _valid_tool(1, "toolu_1", "light.a") + [ev_json(0, '."}'), ev_stop(0)] + _invalid_tool(2) + _valid_tool(3, "toolu_2", "light.b")
+    assert _indexes(events) == [0, 0, 1, 0, 2]
+    conn, messages = _chat(events)
+    assert spoken(messages) == "On it."
+    assert [c["id"] for c in conn.func_handler.dispatched] == ["toolu_1", "toolu_2"]
 
 
 def test_stream_truncated_tool_dropped_with_warning_text():

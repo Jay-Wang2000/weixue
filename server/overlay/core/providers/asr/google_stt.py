@@ -27,9 +27,33 @@ BYTES_PER_SECOND = SAMPLE_RATE_HZ * 2
 MAX_SYNC_AUDIO_BYTES = 59 * BYTES_PER_SECOND  # Recognize accepts at most 60 s
 DEFAULT_LANGUAGE_CODES = ("en-US", "cmn-Hans-CN")
 AUTO_LANGUAGE_CODES = ("auto",)
-DEFAULT_TOO_LONG_REPLY = "Sorry, that was too long for me. Please say it again, a bit shorter."
+DEFAULT_TOO_LONG_REPLY = (
+    "Sorry, that was too long for me. Please say it again, a bit shorter.\n"
+    "抱歉，这段话太长了，请说短一点再试一次。"
+)
+_LANGUAGE_REJECTION = re.compile(r"^Bad language code|^The language .* is not supported by the model")
 _CJK = r"[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]"
 _CJK_INNER_SPACE = re.compile(rf"(?<={_CJK})\s+(?={_CJK})")
+
+
+def is_language_rejection(error: InvalidArgument) -> bool:
+    """True when Recognize rejected the language_codes list, by field violation or message."""
+    for detail in getattr(error, "details", None) or []:
+        for violation in getattr(detail, "field_violations", None) or []:
+            if str(getattr(violation, "field", "")).split(".")[-1] == "language_codes":
+                return True
+    return bool(_LANGUAGE_REJECTION.search(str(getattr(error, "message", "") or "")))
+
+
+def cap_buffered_audio(frames: List[bytes]) -> None:
+    """Drops the frames after the one that takes frames past MAX_SYNC_AUDIO_BYTES; the
+    remaining buffer still exceeds the limit, so its voice stop is rejected as too long."""
+    total = 0
+    for i, frame in enumerate(frames):
+        total += len(frame)
+        if total > MAX_SYNC_AUDIO_BYTES:
+            del frames[i + 1 :]
+            return
 
 
 class ASRProvider(ASRProviderBase):
@@ -98,7 +122,7 @@ class ASRProvider(ASRProviderBase):
         )
 
     def _recognize(
-        self, pcm_bytes: bytes, language_codes: Sequence[str]
+        self, pcm_bytes: bytes, language_codes: Sequence[str], timeout: float
     ) -> cloud_speech.RecognizeResponse:
         client = self._get_client()
         request = cloud_speech.RecognizeRequest(
@@ -106,7 +130,7 @@ class ASRProvider(ASRProviderBase):
             config=self._build_config(language_codes),
             content=pcm_bytes,
         )
-        return client.recognize(request=request, timeout=self.timeout, retry=None)
+        return client.recognize(request=request, timeout=timeout, retry=None)
 
     @staticmethod
     def _extract(response: cloud_speech.RecognizeResponse) -> Tuple[str, Optional[str]]:
@@ -133,16 +157,21 @@ class ASRProvider(ASRProviderBase):
         try:
             try:
                 response = await asyncio.to_thread(
-                    self._recognize, pcm_bytes, self.language_codes
+                    self._recognize, pcm_bytes, self.language_codes, self.timeout
                 )
             except InvalidArgument as e:
-                if list(self.language_codes) == list(AUTO_LANGUAGE_CODES):
+                remaining = self.timeout - (time.monotonic() - start_time)
+                if (
+                    list(self.language_codes) == list(AUTO_LANGUAGE_CODES)
+                    or not is_language_rejection(e)
+                    or remaining <= 0
+                ):
                     raise
                 logger.bind(tag=TAG).warning(
                     f"language_codes={self.language_codes} 被拒绝（{e.message}），改用 auto 重试"
                 )
                 response = await asyncio.to_thread(
-                    self._recognize, pcm_bytes, AUTO_LANGUAGE_CODES
+                    self._recognize, pcm_bytes, AUTO_LANGUAGE_CODES, remaining
                 )
         except Exception as e:
             logger.bind(tag=TAG).error(f"语音识别失败: {e}")
@@ -159,6 +188,10 @@ class ASRProvider(ASRProviderBase):
             f"音频 {num_bytes / BYTES_PER_SECOND:.1f}s 超过同步识别上限 "
             f"{MAX_SYNC_AUDIO_BYTES // BYTES_PER_SECOND}s，已拒绝"
         )
+
+    async def receive_audio(self, conn, pcm_frame, audio_have_voice):
+        await super().receive_audio(conn, pcm_frame, audio_have_voice)
+        cap_buffered_audio(conn.asr_audio)
 
     async def handle_voice_stop(self, conn, asr_audio_task: List[bytes]):
         """Utterances over the Recognize limit are not transcribed; the device speaks too_long_reply."""

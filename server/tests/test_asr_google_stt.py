@@ -1,6 +1,7 @@
 import json
 import os
 import queue
+import time
 import wave
 from pathlib import Path
 from types import SimpleNamespace
@@ -165,22 +166,77 @@ async def test_api_error_returns_empty(tmp_path, monkeypatch, log_records):
     assert any(level == "error" for level, _ in log_records)
 
 
-async def test_invalid_argument_retries_with_auto(tmp_path, monkeypatch):
+def _violation(field, description):
+    from google.rpc import error_details_pb2
+
+    return error_details_pb2.BadRequest(
+        field_violations=[error_details_pb2.BadRequest.FieldViolation(field=field, description=description)]
+    )
+
+
+# Messages and details as returned by Recognize (chirp_3, location us) on 2026-10-07.
+LANGUAGE_REJECTIONS = [
+    gexc.InvalidArgument("Bad language code"),
+    gexc.InvalidArgument(
+        "Invalid arguments were provided.",
+        details=[_violation("language_codes", "Maximum number of allowed language codes is 3.")],
+    ),
+    gexc.InvalidArgument(
+        'The language "cmn-Hans-CN" is not supported by the model "telephony" in the location named "us".'
+    ),
+]
+OTHER_INVALID_ARGUMENTS = [
+    gexc.InvalidArgument(
+        "Invalid arguments were provided.",
+        details=[_violation("sample_rate_hertz", "Invalid sample rate hertz value: 7.")],
+    ),
+    gexc.InvalidArgument('The model "chirp_2" does not exist in the location named "us"..'),
+    gexc.InvalidArgument("unsupported sample rate"),
+]
+
+
+@pytest.mark.parametrize("error", LANGUAGE_REJECTIONS)
+async def test_language_rejection_retries_with_auto_within_the_timeout(tmp_path, monkeypatch, error):
     provider, client = make_provider(
-        tmp_path,
-        monkeypatch,
-        responses=[gexc.InvalidArgument("bad language"), _response(("ok", "en-US"))],
+        tmp_path, monkeypatch, responses=[error, _response(("ok", "en-US"))]
     )
     text, _ = await provider.speech_to_text([], "sid", artifacts_for(PCM_ONE_SECOND))
     assert text == "ok"
     assert len(client.calls) == 2
     assert list(client.calls[0]["request"].config.language_codes) == ["en-US", "cmn-Hans-CN"]
     assert list(client.calls[1]["request"].config.language_codes) == ["auto"]
+    assert client.calls[0]["timeout"] == 7
+    assert 0 < client.calls[1]["timeout"] <= 7
+
+
+@pytest.mark.parametrize("error", OTHER_INVALID_ARGUMENTS)
+async def test_other_invalid_arguments_are_not_retried(tmp_path, monkeypatch, log_records, error):
+    provider, client = make_provider(
+        tmp_path, monkeypatch, responses=[error, _response(("ok", "en-US"))]
+    )
+    assert await provider.speech_to_text([], "sid", artifacts_for(PCM_ONE_SECOND)) == ("", None)
+    assert len(client.calls) == 1
+    assert any(level == "error" for level, _ in log_records)
+
+
+async def test_language_rejection_after_the_timeout_is_not_retried(tmp_path, monkeypatch):
+    provider, client = make_provider(
+        tmp_path, monkeypatch, responses=[LANGUAGE_REJECTIONS[0], _response(("ok", "en-US"))], timeout=0.1
+    )
+    recognize = client.recognize
+
+    def slow_recognize(request, timeout=None, retry="unset"):
+        time.sleep(0.15)
+        return recognize(request, timeout=timeout, retry=retry)
+
+    client.recognize = slow_recognize
+    assert await provider.speech_to_text([], "sid", artifacts_for(PCM_ONE_SECOND)) == ("", None)
+    assert len(client.calls) == 1
 
 
 async def test_invalid_argument_with_auto_does_not_loop(tmp_path, monkeypatch):
     provider, client = make_provider(
-        tmp_path, monkeypatch, responses=[gexc.InvalidArgument("bad")], language_codes=["auto"]
+        tmp_path, monkeypatch, responses=[LANGUAGE_REJECTIONS[0]], language_codes=["auto"]
     )
     assert await provider.speech_to_text([], "sid", artifacts_for(PCM_ONE_SECOND)) == ("", None)
     assert len(client.calls) == 1
@@ -256,6 +312,64 @@ async def test_voice_stop_over_limit_speaks_too_long_reply(tmp_path, monkeypatch
     spoken = "".join(i.content_detail for i in items if i.content_type == ContentType.TEXT)
     assert spoken == google_stt.DEFAULT_TOO_LONG_REPLY
     assert any(level == "warning" and "59s" in msg for level, msg in log_records)
+
+
+def test_default_too_long_reply_is_bilingual():
+    english, chinese = google_stt.DEFAULT_TOO_LONG_REPLY.split("\n")
+    assert english.isascii() and "too long" in english
+    assert all("\u4e00" <= c <= "\u9fff" or c in "，。" for c in chinese)
+
+
+FRAME = b"\x01\x00" * 960  # 60 ms at 16 kHz
+
+
+class ListeningConn(SimpleNamespace):
+    def reset_audio_states(self):
+        self.asr_audio = []
+        self.client_have_voice = False
+        self.client_voice_stop = False
+        self.resets += 1
+
+
+async def test_receive_buffer_is_bounded_and_overlong_speech_is_rejected(tmp_path, monkeypatch):
+    provider, client = make_provider(tmp_path, monkeypatch, responses=[])
+    conn = make_conn()
+    conn = ListeningConn(
+        **vars(conn), client_listen_mode="realtime", asr_audio=[], client_have_voice=True,
+        client_voice_stop=False, asr=provider, resets=0,
+    )
+    largest = 0
+    for _ in range(62 * 1000 // 60):
+        await provider.receive_audio(conn, FRAME, True)
+        largest = max(largest, sum(len(f) for f in conn.asr_audio))
+    assert google_stt.MAX_SYNC_AUDIO_BYTES < largest <= google_stt.MAX_SYNC_AUDIO_BYTES + len(FRAME)
+
+    conn.client_voice_stop = True
+    await provider.receive_audio(conn, FRAME, False)
+    assert conn.resets == 1 and client.calls == []
+    items = _drain(conn.tts.tts_text_queue)
+    spoken = "".join(i.content_detail for i in items if i.content_type == ContentType.TEXT)
+    assert spoken == google_stt.DEFAULT_TOO_LONG_REPLY
+
+
+async def test_receive_buffer_within_limit_is_recognized(tmp_path, monkeypatch):
+    provider, client = make_provider(tmp_path, monkeypatch, responses=[_response(("short", "en-US"))])
+    conn = ListeningConn(
+        **vars(make_conn()), client_listen_mode="realtime", asr_audio=[], client_have_voice=True,
+        client_voice_stop=False, asr=provider, resets=0, voiceprint_provider=None,
+    )
+    started = []
+
+    async def start_to_chat(_conn, text):
+        started.append(text)
+
+    monkeypatch.setattr("core.providers.asr.base.startToChat", start_to_chat)
+    for _ in range(30):
+        await provider.receive_audio(conn, FRAME, True)
+    conn.client_voice_stop = True
+    await provider.receive_audio(conn, FRAME, False)
+    assert started == ["short"]
+    assert len(client.calls[0]["request"].content) == 31 * len(FRAME)
 
 
 async def test_voice_stop_too_long_reply_is_configurable(tmp_path, monkeypatch):

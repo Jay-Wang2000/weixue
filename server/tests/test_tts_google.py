@@ -89,7 +89,7 @@ class FakeClient:
     instances = []
     chunks = [_pcm(0.05), _pcm(0.07), b"\x01\x02\x03"]  # last chunk is odd-length
     call_error = None
-    stale_after_chunk = None  # index after which the test flips conn.sentence_id
+    call_factory = None
 
     def __init__(self, *args, **kwargs):
         self.sync_calls = []
@@ -126,7 +126,8 @@ class FakeClient:
         )
         if FakeClient.call_error is not None:
             raise FakeClient.call_error
-        call = FakeCall(FakeClient.chunks)
+        factory = FakeClient.call_factory or FakeCall
+        call = factory(FakeClient.chunks)
         self.calls.append(call)
         return call
 
@@ -135,6 +136,7 @@ class FakeClient:
 def fake_client(monkeypatch):
     FakeClient.instances = []
     FakeClient.call_error = None
+    FakeClient.call_factory = None
     FakeClient.chunks = [_pcm(0.05), _pcm(0.07), b"\x01\x02\x03"]
     monkeypatch.setattr(texttospeech, "TextToSpeechClient", FakeClient)
     yield FakeClient
@@ -232,14 +234,83 @@ def test_credentials_file_is_used(tmp_path):
     assert p.client is p.client
 
 
-def test_split_request_respects_byte_limit():
-    long_zh = "这是一个很长的句子，" * 300
-    chunks = _provider()._split_request(long_zh)
+def _utf8_len(text):
+    return len(text.encode("utf-8"))
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "a" * 5001,
+        "这是一个很长的句子" * 189,
+        "Hello world. " * 500,
+        "word " * 1001,
+        "\U0001F600" * 1300,
+        "这是一个很长的句子，" * 300,
+        "x" * 4999 + "\U0001F600",
+    ],
+)
+def test_split_request_never_exceeds_5000_bytes(text):
+    chunks = _provider()._split_request(text)
+    assert _utf8_len(text) > 5000
     assert len(chunks) > 1
-    assert "".join(chunks) == long_zh
-    assert all(len(c.encode("utf-8")) <= 4500 for c in chunks)
+    assert "".join(chunks) == text
+    assert all(0 < _utf8_len(c) <= 5000 for c in chunks)
+
+
+def test_split_request_prefers_sentence_then_word_boundaries():
+    sentences = _provider()._split_request("Hello world. " * 500)
+    assert all(c.rstrip().endswith(".") for c in sentences[:-1])
+    words = _provider()._split_request("word " * 1001)
+    assert all(c.endswith(" ") for c in words[:-1])
+    zh = _provider()._split_request("这是一个很长的句子，" * 300)
+    assert all(c.endswith("，") for c in zh[:-1])
+
+
+def test_split_request_short_text():
     assert _provider()._split_request("short") == ["short"]
+    assert _provider()._split_request("x" * 5000) == ["x" * 5000]
     assert _provider()._split_request("") == []
+
+
+def _segments(chunks):
+    p = _provider()
+    out = []
+    for chunk in chunks:
+        p.tts_text_buff.append(chunk)
+        segment = p._get_segment_text()
+        if segment is not None:
+            out.append(segment)
+    return out, "".join(p.tts_text_buff)[p.processed_chars :]
+
+
+@pytest.mark.parametrize(
+    "chunks, segments, rest",
+    [
+        (["Hello there. ", "How are you"], ["Hello there"], " How are you"),
+        (["Hello there.", " How are you"], ["Hello there"], " How are you"),
+        (["The light is on. It is ", "warm. Anything"], ["The light is on", "It is warm"], " Anything"),
+        (["Dr. Smith is here. He"], ["Dr. Smith is here"], " He"),
+        (["It is 3.5 degrees. Ok"], ["It is 3.5 degrees"], " Ok"),
+        (["J. R. R. Tolkien wrote it. Yes"], ["J. R. R. Tolkien wrote it"], " Yes"),
+        (["Meet at 9 a.m. tomorrow"], [], "Meet at 9 a.m. tomorrow"),
+        (["He said \"stop.\" Then"], ["He said \"stop"], " Then"),
+        (["Wait... ok"], ["Wait"], " ok"),
+        (["The light is on"], [], "The light is on"),
+    ],
+)
+def test_english_sentences_are_segmented(chunks, segments, rest):
+    assert _segments(chunks) == (segments, rest)
+
+
+def test_unpunctuated_stream_is_cut_at_a_word_within_the_bound():
+    text = "word " * 60 + "tail"
+    segments, rest = _segments([text])
+    assert len(segments) == 1
+    assert text.startswith(segments[0]) and len(segments[0]) < 250
+    assert len(rest) < 250 and rest.endswith("tail")
+    segments, rest = _segments(["长" * 251])
+    assert segments == ["长" * 250] and rest == "长"
 
 
 # --------------------------------------------------------------------------- sync path
@@ -381,6 +452,179 @@ def test_messages_for_other_sentence_are_ignored(running):
     time.sleep(0.3)
     assert _drain(provider.tts_audio_queue) == []
     assert FakeClient.instances == []
+
+
+class StalledCall:
+    """A streaming call that yields `released` responses and then blocks until cancel()."""
+
+    started = None
+
+    def __init__(self, chunks, released=0, error=None):
+        self._chunks = list(chunks)
+        self._released = released
+        self._error = error
+        self._cancel = threading.Event()
+        self.cancelled = False
+        self._i = 0
+        StalledCall.started.set()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._i < self._released:
+            self._i += 1
+            return SimpleNamespace(audio_content=self._chunks[0])
+        if self._error is not None:
+            raise self._error
+        self._cancel.wait(10)
+        raise gexc.Cancelled("Locally cancelled by application!")
+
+    def cancel(self):
+        self.cancelled = True
+        self._cancel.set()
+
+
+def _stall(released=0, error=None):
+    StalledCall.started = threading.Event()
+    FakeClient.call_factory = lambda chunks: StalledCall(chunks, released, error)
+
+
+def _next_turn_is_served(provider, conn):
+    FakeClient.call_factory = None
+    conn.client_abort = False
+    conn.sentence_id = "sid-2"
+    _run_turn(provider, conn, ["Next turn."])
+    items = _collect_until_last(provider, conn, timeout=2.0)
+    assert items and items[-1][0] == SentenceType.LAST and items[-1][3] == "sid-2"
+    assert {i[3] for i in items} == {"sid-2"}
+
+
+@pytestmark_opus
+@pytest.mark.parametrize("released", [0, 1])
+def test_abort_cancels_a_stalled_stream_and_frees_the_worker(running, released):
+    provider, conn = running
+    _stall(released)
+    _run_turn(provider, conn, ["Hello world."])
+    assert StalledCall.started.wait(2)
+    time.sleep(0.1)
+    aborted = time.monotonic()
+    conn.client_abort = True
+    call = provider.client.calls[0]
+    while not call.cancelled and time.monotonic() - aborted < 1:
+        time.sleep(0.01)
+    assert call.cancelled and time.monotonic() - aborted < 0.5
+    time.sleep(0.1)
+    assert SentenceType.LAST not in [i[0] for i in _drain(provider.tts_audio_queue)]
+    _next_turn_is_served(provider, conn)
+
+
+@pytestmark_opus
+def test_newer_turn_cancels_a_stalled_stream(running):
+    provider, conn = running
+    _stall()
+    _run_turn(provider, conn, ["Hello world."])
+    assert StalledCall.started.wait(2)
+    conn.sentence_id = "sid-other"
+    time.sleep(0.3)
+    assert provider.client.calls[0].cancelled
+    assert SentenceType.LAST not in [i[0] for i in _drain(provider.tts_audio_queue)]
+    _next_turn_is_served(provider, conn)
+
+
+@pytestmark_opus
+def test_service_cancellation_is_an_error_that_ends_the_turn(running, log_records):
+    provider, conn = running
+    _stall(error=gexc.Cancelled("The operation was cancelled."))
+    _run_turn(provider, conn, ["Hello world."])
+    items = _collect_until_last(provider, conn)
+    assert [i[0] for i in items] == [SentenceType.FIRST, SentenceType.LAST]
+    assert provider.client.calls[0].cancelled is False
+    assert any("cancelled by the service" in m for level, m in log_records if level == "error")
+
+
+@pytestmark_opus
+def test_close_cancels_the_active_stream(running):
+    provider, conn = running
+    _stall()
+    _run_turn(provider, conn, ["Hello world."])
+    assert StalledCall.started.wait(2)
+    time.sleep(0.1)
+    call = provider.client.calls[0]
+    asyncio.run(provider.close())
+    assert call.cancelled
+
+
+def _grpc_tts_server(first_response):
+    """In-process StreamingSynthesize server that waits for first_response before answering;
+    returns (server, port, cancelled event)."""
+    import grpc
+    from concurrent import futures
+    from google.cloud.texttospeech_v1.types import cloud_tts
+
+    cancelled = threading.Event()
+
+    def synthesize(request_iterator, context):
+        context.add_callback(cancelled.set)
+        for _ in request_iterator:
+            pass
+        while not first_response.wait(0.05):
+            if not context.is_active():
+                return
+        yield cloud_tts.StreamingSynthesizeResponse(audio_content=_pcm(0.06))
+
+    handler = grpc.method_handlers_generic_handler(
+        "google.cloud.texttospeech.v1.TextToSpeech",
+        {
+            "StreamingSynthesize": grpc.stream_stream_rpc_method_handler(
+                synthesize,
+                request_deserializer=cloud_tts.StreamingSynthesizeRequest.deserialize,
+                response_serializer=cloud_tts.StreamingSynthesizeResponse.serialize,
+            )
+        },
+    )
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
+    server.add_generic_rpc_handlers((handler,))
+    port = server.add_insecure_port("127.0.0.1:0")
+    server.start()
+    return server, port, cancelled
+
+
+@pytestmark_opus
+def test_abort_cancels_a_real_grpc_stream_before_its_first_response(monkeypatch):
+    import grpc
+    from google.cloud.texttospeech_v1.services.text_to_speech.transports import TextToSpeechGrpcTransport
+
+    monkeypatch.setattr(texttospeech, "TextToSpeechClient", REAL_CLIENT)
+    first_response = threading.Event()
+    server, port, cancelled = _grpc_tts_server(first_response)
+    try:
+        provider = _provider()
+        conn = _conn()
+        _attach(provider, conn)
+        provider._client = REAL_CLIENT(
+            transport=TextToSpeechGrpcTransport(channel=grpc.insecure_channel(f"127.0.0.1:{port}"))
+        )
+        result = []
+        worker = threading.Thread(target=lambda: result.append(provider._stream_segment("Hello.", True)))
+        worker.start()
+        time.sleep(0.5)
+        assert worker.is_alive()
+        aborted = time.monotonic()
+        conn.client_abort = True
+        worker.join(2)
+        assert not worker.is_alive() and result == [False]
+        assert time.monotonic() - aborted < 0.5
+        assert cancelled.wait(2)
+        assert [i[0] for i in _drain(provider.tts_audio_queue)] == [SentenceType.FIRST]
+
+        conn.client_abort = False
+        first_response.set()
+        assert provider._stream_segment("Hello.", True) is True
+        kinds = [i[0] for i in _drain(provider.tts_audio_queue)]
+        assert kinds[0] == SentenceType.FIRST and SentenceType.MIDDLE in kinds and kinds[-1] == SentenceType.LAST
+    finally:
+        server.stop(0)
 
 
 def test_close_releases_transport():

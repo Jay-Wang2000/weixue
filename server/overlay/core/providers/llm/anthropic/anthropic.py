@@ -292,11 +292,20 @@ class LLMProvider(LLMProviderBase):
         )
 
     def _stream_once(self, params):
-        ordinal_by_block = {}
+        """Yields (text, None) and (None, [tool item]). Tool indexes are contiguous from 0 and
+        allocated at a call's first emission (a real tool once its arguments parse, direct_answer
+        at block start), so a dropped call takes none."""
+        out_index = {}
         pending = {}
         dropped = []
         text_yielded = False
         tool_yielded = False
+
+        def emit(block, tool_id, name, arguments):
+            if block not in out_index:
+                out_index[block] = len(out_index)
+            return None, [_tool_item(out_index[block], tool_id, name, arguments)]
+
         with self.client.messages.stream(**params) as stream:
             try:
                 for event in stream:
@@ -305,11 +314,9 @@ class LLMProvider(LLMProviderBase):
                         cb = event.content_block
                         if cb.type != "tool_use":
                             continue
-                        ordinal = len(ordinal_by_block)
-                        ordinal_by_block[event.index] = ordinal
                         if cb.name == DIRECT_ANSWER:
                             tool_yielded = True
-                            yield None, [_tool_item(ordinal, cb.id, cb.name, "")]
+                            yield emit(event.index, cb.id, cb.name, "")
                         else:
                             pending[event.index] = {"id": cb.id, "name": cb.name, "args": ""}
                     elif etype == "content_block_delta":
@@ -319,14 +326,12 @@ class LLMProvider(LLMProviderBase):
                                 text_yielded = True
                                 yield delta.text, None
                         elif delta.type == "input_json_delta":
-                            if not delta.partial_json or event.index not in ordinal_by_block:
+                            if not delta.partial_json:
                                 continue
                             if event.index in pending:
                                 pending[event.index]["args"] += delta.partial_json
-                            else:
-                                yield None, [
-                                    _tool_item(ordinal_by_block[event.index], None, None, delta.partial_json)
-                                ]
+                            elif event.index in out_index:
+                                yield emit(event.index, None, None, delta.partial_json)
                     elif etype == "content_block_stop" and event.index in pending:
                         p = pending.pop(event.index)
                         args = p["args"] or "{}"
@@ -339,7 +344,7 @@ class LLMProvider(LLMProviderBase):
                             dropped.append(p["name"])
                             continue
                         tool_yielded = True
-                        yield None, [_tool_item(ordinal_by_block[event.index], p["id"], p["name"], args)]
+                        yield emit(event.index, p["id"], p["name"], args)
             except ValueError as e:
                 logger.bind(tag=TAG).warning(f"SDK 无法解析流式工具参数: {e}")
                 return

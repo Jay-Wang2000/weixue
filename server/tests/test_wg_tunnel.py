@@ -12,6 +12,8 @@ WG_DIR = SERVER_DIR / "wg"
 SENTINEL = "PrivateKey = sentinel-must-not-be-printed"
 BASE_ENV = [
     "LAN_IP=192.0.2.1",
+    "BIND_IP=0.0.0.0",
+    "ALLOWED_DEVICES=7c:0c:5f:42:4b:fc",
     "TZ_OFFSET=0",
     "ANTHROPIC_API_KEY=x",
     "HA_MCP_URL=http://192.0.2.2:9584/secret",
@@ -126,6 +128,7 @@ def test_setup_tunnel_on_writes_profile_and_recreates_wg(setup, existing, profil
     calls = setup.compose_calls()
     assert calls and all(c.startswith(f"COMPOSE_PROFILES={profiles} ") for c in calls)
     assert calls[-1].split("--force-recreate ")[1].split() == ["wg", "mcp-bridge", "xiaozhi-esp32-server"]
+    assert any(c.endswith(" compose build wg mcp-bridge xiaozhi-esp32-server") for c in calls)
     assert not any(c.endswith(" rm -f wg") for c in setup.docker_calls())
 
 
@@ -147,8 +150,41 @@ def test_setup_tunnel_off_strips_profile_and_skips_wg(setup, existing, seen):
     calls = setup.compose_calls()
     assert calls and all(c.startswith(f"COMPOSE_PROFILES={seen} ") for c in calls)
     assert calls[-1].split("--force-recreate ")[1].split() == ["mcp-bridge", "xiaozhi-esp32-server"]
+    assert any(c.endswith(" compose build mcp-bridge xiaozhi-esp32-server") for c in calls)
     docker_calls = setup.docker_calls()
     assert docker_calls[-1].endswith(" rm -f wg") and docker_calls[-2] == calls[-1]
+
+
+def test_failed_up_and_rollback_print_the_manual_restore_with_the_profile(setup):
+    setup.write_env("WG_TUNNEL=1", "COMPOSE_PROFILES=console")
+    setup.write_conf(0o600)
+    write_stubs(setup.tmp / "bin", {"docker": STUBS["docker"].replace(
+        "exit 0", 'case "$*" in *--force-recreate*) exit 1 ;; *"image inspect"*) exit 1 ;; esac\nexit 0')})
+    code, out = setup.run()
+    assert code == 1
+    assert "docker compose up failed; rolling back" in out
+    assert "  docker compose --profile console --profile tunnel up -d --force-recreate wg mcp-bridge xiaozhi-esp32-server" in out
+    assert "sentinel" not in out
+
+
+def test_rollback_recreates_in_the_previous_tunnel_mode(setup):
+    setup.write_env("WG_TUNNEL=1")
+    setup.write_conf(0o600)
+    code, out = setup.run()
+    assert code == 0, out
+    deployed = setup.env_file.read_text()
+    setup.write_env("WG_TUNNEL=")
+    counter = setup.tmp / "recreates"
+    write_stubs(setup.tmp / "bin", {"docker": STUBS["docker"].replace("exit 0", (
+        f'case "$*" in *--force-recreate*) n=$(cat {counter} 2>/dev/null || echo 0); echo $((n + 1)) > {counter};'
+        ' [ "$n" -ge 1 ] || exit 1 ;; esac\nexit 0'))})
+    code, out = setup.run()
+    assert code == 1 and "docker compose up failed; rolling back" in out
+    assert setup.env_file.read_text() == deployed
+    calls = setup.docker_calls()
+    assert calls[-1].startswith("COMPOSE_PROFILES=tunnel ")
+    assert calls[-1].split("--force-recreate ")[1].split() == ["wg", "mcp-bridge", "xiaozhi-esp32-server"]
+    assert not any(c.endswith(" rm -f wg") for c in calls)
 
 
 # --- wg sidecar scripts ---------------------------------------------------------
@@ -227,7 +263,7 @@ def test_compose_profile_from_env_file_switches_bridge_namespace(tmp_path, tunne
     if not docker or subprocess.run([docker, "compose", "version"], capture_output=True).returncode != 0:
         pytest.skip("docker compose not available")
     env_file = tmp_path / ".env"
-    lines = ["GOOGLE_SA_FILE=/dev/null", "HA_MCP_URL=http://192.0.2.2:9584/secret"]
+    lines = ["LAN_IP=192.0.2.1", "GOOGLE_SA_FILE=/dev/null", "HA_MCP_URL=http://192.0.2.2:9584/secret"]
     if tunnel:
         lines += ["WG_TUNNEL=1", "COMPOSE_PROFILES=tunnel"]
     env_file.write_text("\n".join(lines) + "\n")

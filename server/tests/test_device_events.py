@@ -68,6 +68,7 @@ async def test_apply_wraps_mcp_handler_once(monkeypatch):
 
     class ConnectionHandler:
         _clean_response_garbage = staticmethod(lambda text: text)
+        _extract_direct_answer_response = staticmethod(lambda arguments: "")
 
         async def handle_connection(self, ws):
             return None
