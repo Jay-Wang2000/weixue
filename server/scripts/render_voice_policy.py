@@ -3,20 +3,22 @@
 
 Usage: render_voice_policy.py BASE_POLICY.json [OVERLAY.json] > merged.json
 Each `remove_rules` entry must match a base rule exactly; `add_rules` take the
-position of the first removed rule. Exits non-zero on a missing rule or an
-invalid result (wait_seconds outside 5-10 or not below approval_ttl_minutes*60).
+position of the first removed rule. `wait_seconds` always comes from BASE. Exits
+non-zero on a missing rule or an overlay that sets wait_seconds.
 """
 import json
 import sys
 from pathlib import Path
 
 DEFAULT_OVERLAY = Path(__file__).resolve().parents[1] / "policy" / "voice_policy.proposed.json"
-SETTINGS = {"wait_seconds", "approval_ttl_minutes"}
+SETTINGS = {"approval_ttl_minutes"}
 
 
 def apply_overlay(base: dict, overlay: dict) -> dict:
     if set(overlay) != {"settings", "remove_rules", "add_rules"}:
         raise ValueError("overlay keys must be exactly settings, remove_rules, add_rules")
+    if "wait_seconds" in overlay["settings"]:
+        raise ValueError("overlay must not change wait_seconds")
     if not set(overlay["settings"]) <= SETTINGS:
         raise ValueError(f"overlay settings must be a subset of {sorted(SETTINGS)}")
     merged = {**base, **overlay["settings"]}
@@ -31,9 +33,6 @@ def apply_overlay(base: dict, overlay: dict) -> dict:
     if insert_at is None:
         insert_at = len(rules)
     merged["rules"] = rules[:insert_at] + list(overlay["add_rules"]) + rules[insert_at:]
-    wait, ttl = merged["wait_seconds"], merged.get("approval_ttl_minutes", 5)
-    if not 5 <= wait <= 10 or wait >= ttl * 60:
-        raise ValueError("wait_seconds must be 5-10 and below approval_ttl_minutes * 60")
     return merged
 
 

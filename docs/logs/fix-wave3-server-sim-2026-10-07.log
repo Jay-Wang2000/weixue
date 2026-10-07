@@ -1,0 +1,243 @@
+# fix-wave3-server simulated-device run, 2026-10-07 (office mode: no device, no audio, no live deploy)
+# server/sim: compose project weixue-wave3-sim, container weixue-wave3-sim-server, 127.0.0.1:18100/18103,
+# image weixue/xiaozhi-esp32-server:local with this branch (rebased onto main with fix-server-review-2) weixue_patches/weixue_proactive/google_tts mounted.
+# server.auth enabled, allowed_devices [aa:bb:cc:dd:ee:01] (simulated MAC); wake_cues as config.template.yaml.
+# No credentials: Google TTS client replaced by a local tone generator (SIMFAIL in the text raises
+# InvalidArgument, SIMBREAK raises ServiceUnavailable after the first chunk), scripted ASR, one-line LLM;
+# real upstream WebSocket/OTA/VAD, TTS threads and sendAudioMessage.
+# Device side: server/scripts/proactive_sim_device.py, driven by server/sim/scenarios.sh.
+
+## Scenario output
+## 1. S1 poll identity
+poll, Device-Id not on allowed_devices: 401
+poll, no Device-Id: 401
+poll, upper-case form of a listed Device-Id: 401
+## 2. S1 WebSocket from a device not on allowed_devices
+15:55:51 session closed by the server before hello: received 1000 (OK); then sent 1000 (OK)
+## 3. Announce from idle (poll answer carries id + urgent)
+15:55:51 poll 200 {"pending": true, "urgent": false, "id": "e9229f16cca147e59ad45dd4528a0a91"}
+15:55:51 hello 35d8e664-7d19-43af-b59b-4474ce0f849e
+15:55:51 << {"type": "tts", "state": "start"} (audio frames so far 0)
+15:55:51 << {"type": "tts", "state": "sentence_start", "text": "The washing machine has finished"} (audio frames so far 0)
+15:55:53 << {"type": "tts", "state": "stop"} (audio frames so far 32)
+15:55:53 session ended: server closed audio frames 32
+{"id": "e9229f16cca147e59ad45dd4528a0a91", "mode": "announce", "status": "delivered", "device": null, "attempts": 1, "created_at": "2026-10-07T14:55:51+00:00", "finished_at": "2026-10-07T14:55:53+00:00"}
+## 4. S1 invoke from an allowed device with no reservation
+15:55:53 hello fdfff6fb-cb2e-4d64-aeac-3546bf3a501c
+15:55:53 session ended: server closed audio frames 0
+## 5. C7 synthesis failure (fake client raises InvalidArgument)
+15:55:53 poll 200 {"pending": true, "urgent": false, "id": "9de8eea7a7df467d9877b6273885b158"}
+15:55:53 hello 55ee80c7-f211-4262-af61-1f9c4a23c511
+15:55:54 << {"type": "tts", "state": "start"} (audio frames so far 0)
+15:55:54 << {"type": "tts", "state": "sentence_start", "text": "SIMFAIL Water detected under the sink"} (audio frames so far 0)
+15:55:54 << {"type": "tts", "state": "stop"} (audio frames so far 0)
+15:55:54 session ended: server closed audio frames 0
+15:55:56 poll 200 {"pending": true, "urgent": false, "id": "9de8eea7a7df467d9877b6273885b158"}
+15:55:56 hello 30728968-1559-4917-afff-ddf9fad10b68
+15:55:56 << {"type": "tts", "state": "start"} (audio frames so far 0)
+15:55:56 << {"type": "tts", "state": "sentence_start", "text": "SIMFAIL Water detected under the sink"} (audio frames so far 0)
+15:55:56 << {"type": "tts", "state": "stop"} (audio frames so far 0)
+15:55:56 session ended: server closed audio frames 0
+15:56:01 poll 200 {"pending": true, "urgent": false, "id": "9de8eea7a7df467d9877b6273885b158"}
+15:56:01 hello e68c8e4a-0008-4f19-9daf-896d597a8c8d
+15:56:01 << {"type": "tts", "state": "start"} (audio frames so far 0)
+15:56:01 << {"type": "tts", "state": "sentence_start", "text": "SIMFAIL Water detected under the sink"} (audio frames so far 0)
+15:56:01 << {"type": "tts", "state": "stop"} (audio frames so far 0)
+15:56:01 session ended: server closed audio frames 0
+{"id": "9de8eea7a7df467d9877b6273885b158", "mode": "announce", "status": "failed", "device": null, "attempts": 3, "created_at": "2026-10-07T14:55:53+00:00", "finished_at": "2026-10-07T14:56:01+00:00", "error": "no_audio"}
+## 6. Conversation, urgent, real Yes after the opener
+15:56:01 poll 200 {"pending": true, "urgent": true, "id": "80f53dd7baf54a98a2b2937f7b9ae423"}
+15:56:01 hello 7d1d2890-ca53-4266-bc97-2287e50b1c11
+15:56:01 << {"type": "tts", "state": "start"} (audio frames so far 0)
+15:56:01 << {"type": "tts", "state": "sentence_start", "text": "Water detected under the kitchen sink"} (audio frames so far 0)
+15:56:03 << {"type": "tts", "state": "sentence_start", "text": "Do you want me to turn off the main water valve?"} (audio frames so far 37)
+15:56:07 << {"type": "tts", "state": "stop"} (audio frames so far 85)
+15:56:07 sending reply clip 26 frames
+15:56:09 << {"type": "stt", "text": "Yes"} (audio frames so far 85)
+15:56:09 << {"type": "tts", "state": "start"} (audio frames so far 85)
+15:56:09 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 85)
+15:56:09 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 85)
+15:56:09 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 89)
+15:56:11 << {"type": "tts", "state": "stop"} (audio frames so far 111)
+15:56:19 session ended: server closed audio frames 111
+{"id": "80f53dd7baf54a98a2b2937f7b9ae423", "mode": "conversation", "status": "answered", "device": null, "attempts": 1, "created_at": "2026-10-07T14:56:01+00:00", "finished_at": "2026-10-07T14:56:09+00:00", "reply": "Yes."}
+## 7. Echo guard: utterance during the opener transcribed as the opener, then a real Yes
+15:56:19 poll 200 {"pending": true, "urgent": false, "id": "3b0c980b40f4487a8932ce3ea2f67df5"}
+15:56:19 hello a9445c64-a167-4e9e-a555-344f72cf3751
+15:56:19 << {"type": "tts", "state": "start"} (audio frames so far 0)
+15:56:19 << {"type": "tts", "state": "sentence_start", "text": "Water detected under the kitchen sink"} (audio frames so far 0)
+15:56:19 sending reply clip 26 frames
+15:56:21 << {"type": "tts", "state": "sentence_start", "text": "Do you want me to turn off the main water valve?"} (audio frames so far 37)
+15:56:24 << {"type": "tts", "state": "stop"} (audio frames so far 85)
+15:56:25 sending reply clip 26 frames
+15:56:27 << {"type": "stt", "text": "Yes"} (audio frames so far 85)
+15:56:27 << {"type": "tts", "state": "start"} (audio frames so far 85)
+15:56:27 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 85)
+15:56:27 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 85)
+15:56:27 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 89)
+15:56:28 << {"type": "tts", "state": "stop"} (audio frames so far 111)
+15:56:36 session ended: server closed audio frames 111
+{"id": "3b0c980b40f4487a8932ce3ea2f67df5", "mode": "conversation", "status": "answered", "device": null, "attempts": 1, "created_at": "2026-10-07T14:56:19+00:00", "finished_at": "2026-10-07T14:56:27+00:00", "reply": "Yes."}
+## 8. Real speech during playback still barges in (transcript Stop.)
+15:56:37 poll 200 {"pending": true, "urgent": false, "id": "fc981bbab605474abca055b38a74ff4e"}
+15:56:37 hello b9d5c8d8-3a24-40e4-ba36-ac258194519a
+15:56:37 << {"type": "tts", "state": "start"} (audio frames so far 0)
+15:56:37 << {"type": "tts", "state": "sentence_start", "text": "Water detected under the kitchen sink"} (audio frames so far 0)
+15:56:37 sending reply clip 26 frames
+15:56:39 << {"type": "tts", "state": "sentence_start", "text": "Do you want me to turn off the main water valve?"} (audio frames so far 37)
+15:56:39 << {"type": "tts", "state": "stop"} (audio frames so far 43)
+15:56:39 << {"type": "stt", "text": "Stop"} (audio frames so far 43)
+15:56:39 << {"type": "tts", "state": "start"} (audio frames so far 43)
+15:56:39 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 43)
+15:56:39 sending reply clip 26 frames
+15:56:39 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 43)
+15:56:39 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 47)
+15:56:41 << {"type": "tts", "state": "stop"} (audio frames so far 69)
+15:56:41 << {"type": "stt", "text": "Yes"} (audio frames so far 69)
+15:56:41 << {"type": "tts", "state": "start"} (audio frames so far 69)
+15:56:41 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 69)
+15:56:41 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 69)
+15:56:41 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 73)
+15:56:43 << {"type": "tts", "state": "stop"} (audio frames so far 95)
+15:56:51 session ended: server closed audio frames 95
+{"id": "fc981bbab605474abca055b38a74ff4e", "mode": "conversation", "status": "answered", "device": null, "attempts": 1, "created_at": "2026-10-07T14:56:36+00:00", "finished_at": "2026-10-07T14:56:39+00:00", "reply": "Stop."}
+## 9. S1 second client polls with the device id while the device's session is open
+-- device session:
+15:56:51 hello c8e21d6d-0bba-484b-8bb3-10aeede98534
+15:56:55 << {"type": "tts", "state": "start"} (audio frames so far 0)
+15:56:55 << {"type": "tts", "state": "sentence_start", "text": "The dryer has finished"} (audio frames so far 0)
+15:56:56 << {"type": "tts", "state": "stop"} (audio frames so far 22)
+15:57:04 session ended: server closed audio frames 22
+-- second client:
+15:57:18 poll 204 
+{"id": "c86d09d41a1a4f21bc6093e6589c5bf7", "mode": "announce", "status": "delivered", "device": null, "attempts": 1, "created_at": "2026-10-07T14:56:53+00:00", "finished_at": "2026-10-07T14:56:56+00:00"}
+## 10. Wake cue then a real Yes (every template cue; loops until Yes? has played)
+-- run 1: cue "text": "Yes?"
+15:57:19 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+15:57:22 << {"type": "stt", "text": "Yes"} (audio frames so far 10)
+15:57:22 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 10)
+15:57:22 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 14)
+## 11. C7 synthesis fails after its first audio chunk
+15:57:26 poll 200 {"pending": true, "urgent": false, "id": "9df6c1265f484adeb51c1d9911e9f232"}
+15:57:26 hello feaf9d16-32fb-4fb8-8ac4-7465c9299eeb
+15:57:26 << {"type": "tts", "state": "start"} (audio frames so far 0)
+15:57:26 << {"type": "tts", "state": "sentence_start", "text": "SIMBREAK The dryer has finished"} (audio frames so far 0)
+15:57:27 << {"type": "tts", "state": "stop"} (audio frames so far 3)
+15:57:27 session ended: server closed audio frames 3
+{"id": "9df6c1265f484adeb51c1d9911e9f232", "mode": "announce", "status": "partial", "device": null, "attempts": 1, "created_at": "2026-10-07T14:57:26+00:00", "finished_at": "2026-10-07T14:57:27+00:00", "error": "synthesis failed after audio started"}
+
+## Server log (weixue lines, ASR results, aborts, TTS errors)
+261007 14:55:44[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261007 14:55:44[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-初始化组件: asr成功 SimASR
+261007 14:55:51[0.9.7_00000000000000][weixue_patches]-WARNING-WebSocket refused: device 'aa:bb:cc:dd:ee:99' is not in allowed_devices
+261007 14:55:51[0.9.7_00000000000000][weixue_proactive]-INFO-proactive e9229f16cca147e59ad45dd4528a0a91 queued: mode=announce device=any urgent=False ttl=600
+261007 14:55:51[0.9.7_00000000000000][weixue_proactive]-INFO-proactive e9229f16cca147e59ad45dd4528a0a91 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 14:55:51[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:55:51[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:55:51[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "35d8e664-7d19-43af-b59b-4474ce0f849e", "type": "listen", "state": "detect", "text": "weixue:proactive"}
+261007 14:55:51[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "35d8e664-7d19-43af-b59b-4474ce0f849e", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:55:51[0.9.7_00000000000000][weixue_proactive]-INFO-proactive e9229f16cca147e59ad45dd4528a0a91 delivering: attempt=1 session=35d8e664-7d19-43af-b59b-4474ce0f849e invoked=True urgent=False
+261007 14:55:51[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.020s: The washing machine has finished
+261007 14:55:53[0.9.7_00000000000000][weixue_proactive]-INFO-proactive e9229f16cca147e59ad45dd4528a0a91 delivered
+261007 14:55:53[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 29744f67162a4d7aaf1c33af3176a312 queued: mode=announce device=aa:bb:cc:dd:ee:02 urgent=False ttl=600
+261007 14:55:53[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:55:53[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:55:53[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "fdfff6fb-cb2e-4d64-aeac-3546bf3a501c", "type": "listen", "state": "detect", "text": "weixue:proactive"}
+261007 14:55:53[0.9.7_00000000000000][weixue_proactive]-INFO-proactive session opened with nothing reserved for it; closing
+261007 14:55:53[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "fdfff6fb-cb2e-4d64-aeac-3546bf3a501c", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:55:53[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9de8eea7a7df467d9877b6273885b158 queued: mode=announce device=any urgent=False ttl=60
+261007 14:55:53[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9de8eea7a7df467d9877b6273885b158 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 14:55:53[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:55:53[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:55:53[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "55ee80c7-f211-4262-af61-1f9c4a23c511", "type": "listen", "state": "detect", "text": "weixue:proactive"}
+261007 14:55:53[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "55ee80c7-f211-4262-af61-1f9c4a23c511", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:55:53[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9de8eea7a7df467d9877b6273885b158 delivering: attempt=1 session=55ee80c7-f211-4262-af61-1f9c4a23c511 invoked=True urgent=False
+261007 14:55:53[0.9.7_00000000000000][core.providers.tts.google_tts]-ERROR-Google TTS rejected request (voice/sample_rate_hertz): 400 simulated synthesis failure
+261007 14:55:53[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9de8eea7a7df467d9877b6273885b158 requeued: no_audio; retry in 2s
+261007 14:55:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9de8eea7a7df467d9877b6273885b158 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 14:55:56[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:55:56[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:55:56[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "30728968-1559-4917-afff-ddf9fad10b68", "type": "listen", "state": "detect", "text": "weixue:proactive"}
+261007 14:55:56[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "30728968-1559-4917-afff-ddf9fad10b68", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:55:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9de8eea7a7df467d9877b6273885b158 delivering: attempt=2 session=30728968-1559-4917-afff-ddf9fad10b68 invoked=True urgent=False
+261007 14:55:56[0.9.7_00000000000000][core.providers.tts.google_tts]-ERROR-Google TTS rejected request (voice/sample_rate_hertz): 400 simulated synthesis failure
+261007 14:55:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9de8eea7a7df467d9877b6273885b158 requeued: no_audio; retry in 5s
+261007 14:56:01[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9de8eea7a7df467d9877b6273885b158 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 14:56:01[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:56:01[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:56:01[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "e68c8e4a-0008-4f19-9daf-896d597a8c8d", "type": "listen", "state": "detect", "text": "weixue:proactive"}
+261007 14:56:01[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "e68c8e4a-0008-4f19-9daf-896d597a8c8d", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:56:01[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9de8eea7a7df467d9877b6273885b158 delivering: attempt=3 session=e68c8e4a-0008-4f19-9daf-896d597a8c8d invoked=True urgent=False
+261007 14:56:01[0.9.7_00000000000000][core.providers.tts.google_tts]-ERROR-Google TTS rejected request (voice/sample_rate_hertz): 400 simulated synthesis failure
+261007 14:56:01[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9de8eea7a7df467d9877b6273885b158 failed: no_audio
+261007 14:56:01[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 80f53dd7baf54a98a2b2937f7b9ae423 queued: mode=conversation device=any urgent=True ttl=600
+261007 14:56:01[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 80f53dd7baf54a98a2b2937f7b9ae423 reserved for aa:bb:cc:dd:ee:01 urgent=True
+261007 14:56:01[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:56:01[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:56:01[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "7d1d2890-ca53-4266-bc97-2287e50b1c11", "type": "listen", "state": "detect", "text": "weixue:proactive"}
+261007 14:56:01[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "7d1d2890-ca53-4266-bc97-2287e50b1c11", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:56:01[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 80f53dd7baf54a98a2b2937f7b9ae423 delivering: attempt=1 session=7d1d2890-ca53-4266-bc97-2287e50b1c11 invoked=True urgent=True
+261007 14:56:01[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.022s: Water detected under the kitchen sink
+261007 14:56:01[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.023s: Do you want me to turn off the main water valve?
+261007 14:56:09[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261007 14:56:09[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.003s: Okay
+261007 14:56:09[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.012s: I will close the valve
+261007 14:56:09[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 80f53dd7baf54a98a2b2937f7b9ae423 answered
+261007 14:56:19[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3b0c980b40f4487a8932ce3ea2f67df5 queued: mode=conversation device=any urgent=False ttl=600
+261007 14:56:19[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3b0c980b40f4487a8932ce3ea2f67df5 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 14:56:19[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:56:19[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:56:19[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "a9445c64-a167-4e9e-a555-344f72cf3751", "type": "listen", "state": "detect", "text": "weixue:proactive"}
+261007 14:56:19[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "a9445c64-a167-4e9e-a555-344f72cf3751", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:56:19[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3b0c980b40f4487a8932ce3ea2f67df5 delivering: attempt=1 session=a9445c64-a167-4e9e-a555-344f72cf3751 invoked=True urgent=False
+261007 14:56:19[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.021s: Water detected under the kitchen sink
+261007 14:56:19[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.024s: Do you want me to turn off the main water valve?
+261007 14:56:21[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Do you want me to turn off the main water valve
+261007 14:56:21[0.9.7_00000000000000][weixue_patches]-INFO-playback echo ignored: 'Do you want me to turn off the main water valve' matches 'Do you want me to turn off the main water valve?'
+261007 14:56:27[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261007 14:56:27[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.008s: Okay
+261007 14:56:27[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.017s: I will close the valve
+261007 14:56:27[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3b0c980b40f4487a8932ce3ea2f67df5 answered
+261007 14:56:36[0.9.7_00000000000000][weixue_proactive]-INFO-proactive fc981bbab605474abca055b38a74ff4e queued: mode=conversation device=any urgent=False ttl=600
+261007 14:56:37[0.9.7_00000000000000][weixue_proactive]-INFO-proactive fc981bbab605474abca055b38a74ff4e reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 14:56:37[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:56:37[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:56:37[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "b9d5c8d8-3a24-40e4-ba36-ac258194519a", "type": "listen", "state": "detect", "text": "weixue:proactive"}
+261007 14:56:37[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "b9d5c8d8-3a24-40e4-ba36-ac258194519a", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:56:37[0.9.7_00000000000000][weixue_proactive]-INFO-proactive fc981bbab605474abca055b38a74ff4e delivering: attempt=1 session=b9d5c8d8-3a24-40e4-ba36-ac258194519a invoked=True urgent=False
+261007 14:56:37[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.023s: Water detected under the kitchen sink
+261007 14:56:37[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.023s: Do you want me to turn off the main water valve?
+261007 14:56:39[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Stop.
+261007 14:56:39[0.9.7_SiSiSiGononoCh][core.handle.abortHandle]-INFO-Abort message received
+261007 14:56:39[0.9.7_SiSiSiGononoCh][core.handle.abortHandle]-INFO-Abort message received-end
+261007 14:56:39[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.006s: Okay
+261007 14:56:39[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.017s: I will close the valve
+261007 14:56:39[0.9.7_00000000000000][weixue_proactive]-INFO-proactive fc981bbab605474abca055b38a74ff4e answered
+261007 14:56:41[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261007 14:56:41[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.006s: Okay
+261007 14:56:41[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.019s: I will close the valve
+261007 14:56:51[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:56:51[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:56:51[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "c8e21d6d-0bba-484b-8bb3-10aeede98534", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:56:53[0.9.7_00000000000000][weixue_proactive]-INFO-proactive c86d09d41a1a4f21bc6093e6589c5bf7 queued: mode=announce device=any urgent=False ttl=600
+261007 14:56:54[0.9.7_00000000000000][weixue_proactive]-INFO-proactive c86d09d41a1a4f21bc6093e6589c5bf7 delivering: attempt=1 session=c8e21d6d-0bba-484b-8bb3-10aeede98534 invoked=False urgent=False
+261007 14:56:55[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.026s: The dryer has finished
+261007 14:56:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive c86d09d41a1a4f21bc6093e6589c5bf7 delivered
+261007 14:57:18[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:57:18[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:57:18[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "9d9d72fc-c65b-446d-a9ce-cee67ab1134e", "type": "listen", "state": "detect", "text": "Jarvis"}
+261007 14:57:18[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "9d9d72fc-c65b-446d-a9ce-cee67ab1134e", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:57:19[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Yes?
+261007 14:57:22[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261007 14:57:22[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.010s: Okay
+261007 14:57:22[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.018s: I will close the valve
+261007 14:57:26[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9df6c1265f484adeb51c1d9911e9f232 queued: mode=announce device=any urgent=False ttl=600
+261007 14:57:26[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9df6c1265f484adeb51c1d9911e9f232 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 14:57:26[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 14:57:26[0.9.7_SiSiSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 14:57:26[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "feaf9d16-32fb-4fb8-8ac4-7465c9299eeb", "type": "listen", "state": "detect", "text": "weixue:proactive"}
+261007 14:57:26[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "feaf9d16-32fb-4fb8-8ac4-7465c9299eeb", "type": "listen", "state": "start", "mode": "realtime"}
+261007 14:57:26[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9df6c1265f484adeb51c1d9911e9f232 delivering: attempt=1 session=feaf9d16-32fb-4fb8-8ac4-7465c9299eeb invoked=True urgent=False
+261007 14:57:26[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.017s: SIMBREAK The dryer has finished
+261007 14:57:26[0.9.7_00000000000000][core.providers.tts.google_tts]-ERROR-Google TTS stream failed: ServiceUnavailable: 503 simulated stream failure
+261007 14:57:27[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 9df6c1265f484adeb51c1d9911e9f232 partial: synthesis failed after audio started

@@ -1,0 +1,24 @@
+# Simulated-device stack: no credentials, no live containers or ports.
+#   cd server/sim && docker compose -p weixue-wave3-sim up -d && ./scenarios.sh
+#   docker compose -p weixue-wave3-sim down
+name: weixue-wave3-sim
+services:
+  sim-server:
+    image: weixue/xiaozhi-esp32-server:local
+    container_name: weixue-wave3-sim-server
+    command: ["python", "sim_main.py"]
+    environment:
+      - TZ=UTC
+      - WEIXUE_PROACTIVE_TOKEN=scratch-sim-token
+    ports:
+      - "127.0.0.1:18100:8000"
+      - "127.0.0.1:18103:8003"
+    volumes:
+      - ./data:/opt/xiaozhi-esp32-server/data
+      - ./sim_main.py:/opt/xiaozhi-esp32-server/sim_main.py:ro
+      - ./sim_asr.py:/opt/xiaozhi-esp32-server/core/providers/asr/sim_asr.py:ro
+      - ./sim_llm:/opt/xiaozhi-esp32-server/core/providers/llm/sim_llm:ro
+      - ../overlay/weixue_patches.py:/opt/xiaozhi-esp32-server/weixue_patches.py:ro
+      - ../overlay/weixue_proactive.py:/opt/xiaozhi-esp32-server/weixue_proactive.py:ro
+      - ../overlay/weixue_main.py:/opt/xiaozhi-esp32-server/weixue_main.py:ro
+      - ../overlay/core/providers/tts/google_tts.py:/opt/xiaozhi-esp32-server/core/providers/tts/google_tts.py:ro

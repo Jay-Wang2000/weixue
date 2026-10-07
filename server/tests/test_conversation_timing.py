@@ -191,7 +191,30 @@ def stub_listen_and_http(monkeypatch):
     http_server.web = types.SimpleNamespace(Application=lambda: types.SimpleNamespace(routes=[]))
     monkeypatch.setitem(sys.modules, listen.__name__, listen)
     monkeypatch.setitem(sys.modules, http_server.__name__, http_server)
+    stub_playback_modules(monkeypatch, http_server)
     return ListenTextMessageHandler
+
+
+def stub_playback_modules(monkeypatch, http_server):
+    """Stubs what weixue_patches.apply_playback_guards() patches: SimpleHttpServer on the
+    given core.http_server stub, and the TTS and ASR base modules."""
+
+    class SimpleHttpServer:
+        def __init__(self, config):
+            self.config = config
+
+    http_server.SimpleHttpServer = SimpleHttpServer
+    tts_base = types.ModuleType("core.providers.tts.base")
+    tts_base.sendAudioMessage = None
+    asr_base = types.ModuleType("core.providers.asr.base")
+
+    async def start_to_chat(_conn, _text):
+        return "upstream"
+
+    asr_base.startToChat = start_to_chat
+    for module in (tts_base, asr_base):
+        monkeypatch.setitem(sys.modules, module.__name__, module)
+    return tts_base, asr_base, SimpleHttpServer
 
 
 async def test_apply_patches_handlers_once(monkeypatch):

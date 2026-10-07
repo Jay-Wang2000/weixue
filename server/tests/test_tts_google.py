@@ -90,6 +90,7 @@ class FakeClient:
     chunks = [_pcm(0.05), _pcm(0.07), b"\x01\x02\x03"]  # last chunk is odd-length
     call_error = None
     call_factory = None
+    fail_mid = None
 
     def __init__(self, *args, **kwargs):
         self.sync_calls = []
@@ -126,8 +127,10 @@ class FakeClient:
         )
         if FakeClient.call_error is not None:
             raise FakeClient.call_error
-        factory = FakeClient.call_factory or FakeCall
-        call = factory(FakeClient.chunks)
+        if FakeClient.call_factory is not None:
+            call = FakeClient.call_factory(FakeClient.chunks)
+        else:
+            call = FakeCall(FakeClient.chunks, FakeClient.fail_mid)
         self.calls.append(call)
         return call
 
@@ -137,6 +140,7 @@ def fake_client(monkeypatch):
     FakeClient.instances = []
     FakeClient.call_error = None
     FakeClient.call_factory = None
+    FakeClient.fail_mid = None
     FakeClient.chunks = [_pcm(0.05), _pcm(0.07), b"\x01\x02\x03"]
     monkeypatch.setattr(texttospeech, "TextToSpeechClient", FakeClient)
     yield FakeClient

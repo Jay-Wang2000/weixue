@@ -8,6 +8,7 @@ import traceback
 from google.cloud import texttospeech
 from google.api_core import exceptions as gexc
 
+import weixue_patches
 from config.logger import setup_logging
 from config.config_loader import get_project_dir
 from core.utils import textUtils
@@ -371,6 +372,7 @@ class TTSProvider(TTSProviderBase):
                 watch.stop()
             self._active_watch = None
             self.pcm_buffer.clear()
+        weixue_patches.note_synthesis_failure(self.conn, sid)
         if is_last:
             self.tts_audio_queue.put((SentenceType.LAST, [], None, sid))
         return True

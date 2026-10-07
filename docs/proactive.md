@@ -18,17 +18,23 @@ HA automation --POST /weixue/proactive/messages--> xiaozhi-esp32-server (8003)
 | Device long-poll and session open | `firmware/patches/10-proactive-poll.patch` |
 | Tests | `server/tests/test_proactive.py`, `server/tests/test_weixue_patches.py` |
 
-The device keeps no WebSocket open while idle, so the server cannot push to it. The firmware patch adds a task that, only while the device is idle, holds `GET http://<OTA host>/weixue/proactive/poll` (header `Device-Id`). The server answers `204` after 25 s with nothing to deliver and `200` with `{"pending": true, "urgent": <bool>}` (the `urgent` field of the next message) as soon as a message is deliverable. On `200` the device opens a session as for a wake word, sending `listen detect` with the text `weixue:proactive` instead of "Jarvis"; the server answers it with the queued message instead of the LLM. Failed polls back off from 5 s to 60 s.
+The device keeps no WebSocket open while idle, so the server cannot push to it. The firmware patch adds a task that, only while the device is idle, holds `GET http://<OTA host>/weixue/proactive/poll` (header `Device-Id`). The server answers `204` after 25 s with nothing to deliver and `200` with `{"pending": true, "urgent": <bool>, "id": "<message id>"}` as soon as a message is deliverable; that message is reserved for the device and `urgent` is its own flag. On `200` the device opens a session as for a wake word, sending `listen detect` with the text `weixue:proactive` instead of "Jarvis"; the server answers it with the reserved message instead of the LLM. Failed polls back off from 5 s to 60 s.
+
+## Device identity
+
+Device requests (the poll, the WebSocket session and its `weixue:proactive` invocation) are accepted only for an identity verified under the server's `server.auth` (the same check as the WebSocket server, `weixue_patches.unlisted`): auth enabled and a `Device-Id` on `allowed_devices` (exact match); only with `allowed_devices` empty, a `Bearer` token issued by the OTA endpoint for the request's `Client-Id` and `Device-Id`. With `server.auth.enabled: false` the poll answers `503` and no session can take a message. An unverified poll gets `401` and leaves no state; an unverified session is never registered and its invocation is closed without consuming anything. Under the allow-list a listed `Device-Id` header is the whole credential, so any client on the LAN that sends it is accepted as that device; a per-device credential sent with the poll (option D) is future work. Server auth settings: `docs/server.md`.
+
+Session liveness follows the connection: a session is registered while its handler runs. A poll from a device that still has registered sessions pings them; one that does not answer within 3 s is unregistered and closed, so a second client polling with the device's id cannot hide a live session. At most 8 polls are held at once (`429` beyond that, one per device: a newer poll from the device ends its older one with `204`), and at most 32 devices are remembered.
 
 ## Setup
 
-1. `server/.env`: `WEIXUE_PROACTIVE_TOKEN=<openssl rand -hex 32>` (chmod 600). Without it every authenticated route answers `503`.
+1. `server/.env`: `WEIXUE_PROACTIVE_TOKEN=<openssl rand -hex 32>` (chmod 600). Without it every authenticated route answers `503`. The device side needs `server.auth` enabled with the device on `allowed_devices` (Device identity).
 2. `server/scripts/setup.sh` (compose passes the variable to the server container).
 3. Firmware built with `firmware/build.sh` (applies `firmware/patches/*.patch`) and flashed with `firmware/flash.sh`. The boot log shows `Application: Proactive poller: http://<host>:8003/weixue/proactive/poll`.
 
 ## API
 
-All routes except `/poll` need `Authorization: Bearer <WEIXUE_PROACTIVE_TOKEN>`. Port 8003 is plain HTTP on the LAN.
+All routes except `/poll` need `Authorization: Bearer <WEIXUE_PROACTIVE_TOKEN>`; `/poll` needs a verified device identity. Port 8003 is plain HTTP on the LAN.
 
 | Route | Purpose |
 |---|---|
@@ -36,7 +42,7 @@ All routes except `/poll` need `Authorization: Bearer <WEIXUE_PROACTIVE_TOKEN>`.
 | `GET /weixue/proactive/messages/{id}` | Status of one message |
 | `GET /weixue/proactive` | Devices (session open, last poll, reachable), mute state, queued messages |
 | `PUT /weixue/proactive/mute` | `{"minutes": 0-1440}`; `0` unmutes |
-| `GET /weixue/proactive/poll` | Device long-poll (`Device-Id` header) |
+| `GET /weixue/proactive/poll` | Device long-poll (Device identity): `200` with the reserved message's `id` and `urgent`, `204`, `401` unverified, `429` too many polls, `503` `server.auth` disabled |
 
 Request body:
 
@@ -56,19 +62,22 @@ Response and status record: `id`, `mode`, `status`, `reason` (while queued), `at
 |---|---|
 | `queued` | Waiting; `reason` is `offline`, `busy`, `muted`, or empty when the device is about to take it |
 | `delivering` | Being spoken, or a conversation waiting for its answer |
-| `delivered` | Announcement played to the end, or interrupted by the user |
+| `delivered` | Announcement's audio sent to the end, or interrupted by the user after its audio started |
 | `answered` | Conversation answered; `reply` is the transcript |
 | `no_reply` | Conversation spoken, nothing said within the reply window |
+| `partial` | Session lost, playback timed out, or synthesis failed for part of the text after some of the audio was sent; not retried |
 | `expired` | TTL passed before delivery |
-| `failed` | Session lost during playback 3 times (`error`) |
+| `failed` | 3 attempts failed before any audio was sent (`error`: `no_audio` when synthesis produced none, `closed`, `superseded`, `no_tts`, `timeout`) |
 
 ## Delivery rules
 
-- **Idle device**: the held poll returns `200`; the device opens a session and the message plays within the poll round trip plus session setup.
+- **Idle device**: the held poll reserves the first deliverable message for the device and returns `200` with its `id` and `urgent`; the device opens a session and that message plays within the poll round trip plus session setup. A reservation holds the message for 15 s (its TTL does not expire it meanwhile, other devices and in-session delivery skip it); an invocation delivers only the message reserved for its device and closes the session when there is none, or when the reserved message is not urgent and mute started since.
 - **Busy device** (a session is open): the message waits until the session is quiet (not speaking, no user voice and no audio for 1.5 s, session older than 3 s), then plays inside that session. That session is not closed afterwards.
 - **Offline device** (no session and no poll in the last 60 s): queued until the device polls or opens a session, or until the TTL.
 - **Muted**: everything except `urgent` waits until the mute ends or the TTL passes.
-- **Retry**: if the session closes before playback ends, the message goes back to the queue (3 attempts, within the TTL).
+- **One delivery**: a message is claimed (status `delivering`, attempt counted) before its delivery task starts; only that claim finishes or requeues it.
+- **Outcome**: taken from the message's own sentence: the audio packets sent for it, whether its last packet went out unaborted, and whether any part failed (a synthesis request raised, or a text segment got no audio). Heard (all audio sent, or interrupted after audio started) finishes it; audio cut off by a lost session or the 90 s playback limit, or a part that failed after audio started, finishes it as `partial` (`error` names which).
+- **Retry**: a failure before any audio was sent (synthesis produced no audio, session closed, a newer turn took over, TTS not ready, timeout) puts the message back in the queue (3 attempts, within the TTL); the second attempt waits 2 s, the third 5 s.
 - **Order**: first in, first out, one at a time per session.
 - **Dedup**: a repeated idempotency key returns the original record (keys kept 24 h); without a key, an identical request within 60 s is a duplicate.
 - **Rate limit**: 5 new messages in a burst, then one per 10 s per client address; duplicates are not counted. At most 20 messages queued.
@@ -137,12 +146,14 @@ curl -s -X POST http://<LAN_IP>:8003/weixue/proactive/messages \
 curl -s -H "Authorization: Bearer $WEIXUE_PROACTIVE_TOKEN" http://<LAN_IP>:8003/weixue/proactive
 ```
 
-Without the device, `server/scripts/proactive_sim_device.py` plays the device side (test venv, `websockets` and `opuslib_next` from `server/requirements-test.txt`):
+Without the device, `server/scripts/proactive_sim_device.py` plays the device side (test venv, `websockets` and `opuslib_next` from `server/requirements-test.txt`; `--device` must be on `allowed_devices`; `--token` only with `allowed_devices` empty):
 
 ```bash
 DYLD_FALLBACK_LIBRARY_PATH=.venv/lib .venv/bin/python server/scripts/proactive_sim_device.py \
-  --base http://<LAN_IP>:8003 --ws ws://<LAN_IP>:8000/xiaozhi/v1/ --reply yes.wav   # then POST a message
+  --base http://<LAN_IP>:8003 --ws ws://<LAN_IP>:8000/xiaozhi/v1/ --device <MAC> --reply yes.wav   # then POST a message
 ```
+
+`server/sim/` runs the same flows without credentials or the live stack: a compose project `weixue-wave3-sim` (container `weixue-wave3-sim-server`, `127.0.0.1:18100/18103`) from the built server image with the working tree's overlay mounted, a local tone generator in place of the Google TTS client, scripted ASR and a one-line LLM; `server/sim/scenarios.sh` runs the checks (usage in its header).
 
 Server log lines: `proactive <id> queued`, `delivering: attempt=1 session=<id> invoked=True`, then `delivered`, `answered`, `no_reply`, `expired` or `failed`. Device serial: `Proactive message pending`, `Proactive session opened`, `<< <message>`.
 
@@ -176,3 +187,23 @@ Logs: `docs/logs/proactive-integration-2026-10-06.log` (serial, webhook response
 | Unit tests | 233 passed, 10 skipped (live) |
 
 Not run: offline delivery after a device reboot, a server restart with queued messages (dropped by design), HA calling the webhook.
+
+### Simulated device, device identity and delivery outcomes (2026-10-07)
+
+Log: `docs/logs/fix-wave3-server-sim-2026-10-07.log` (`server/sim`, office mode: no device, no audio, live stack untouched).
+
+| Check | Result |
+|---|---|
+| Poll with an unlisted or missing `Device-Id` | `401` |
+| WebSocket from an unlisted device | `认证失败`, closed |
+| Announce from idle | poll `200` with `id` and `urgent`, `delivered` (attempt 1) |
+| Invocation with nothing reserved for the device | session closed, message stays queued |
+| Synthesis fails (`InvalidArgument`) | `requeued: no_audio; retry in 2s`, then `retry in 5s`, then `failed: no_audio` (attempts 2 s and 6 s apart) |
+| Synthesis fails after its first audio chunk | `partial`, `error: synthesis failed after audio started`, attempt 1 |
+| Urgent conversation, "Yes." after the opener | `answered`, `reply: "Yes."` |
+| Opener echo during playback, then "Yes." | `playback echo ignored`, opener played to the end, `answered` |
+| "Stop." during playback | barge-in (`Abort message received`), `answered` |
+| Second client polls with the device id during its open session | ping answered, session kept, message played in-session, second poll `204` |
+| Wake, cue ("Mm-hm?", "Hmm?", "Yes?"), then "Yes." | each cue: `stt Yes`, LLM reply played, no `playback echo ignored` |
+
+Not run: the device itself, a real Google TTS failure, HA calling the webhook.
