@@ -83,7 +83,7 @@ tasks:
     branch: feat/ui-ring-bedside
     description: 贴边状态环；夜间暗红时钟页，≤15% 亮像素，像素平移。
     depends_on: [feat-ui-face]
-    status: pending
+    status: in_progress
     retries: 0
     model: sonnet
   - id: feat-ui-panel
@@ -91,7 +91,7 @@ tasks:
     branch: feat/ui-panel
     description: 左滑面板：待批、后端连接、电量、最近转写；触摸手势切页。
     depends_on: [feat-ui-face]
-    status: pending
+    status: in_progress
     retries: 0
     model: sonnet
   - id: feat-imu
