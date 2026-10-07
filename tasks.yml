@@ -91,7 +91,7 @@ tasks:
     branch: feat/ui-panel
     description: 左滑面板：待批、后端连接、电量、最近转写；触摸手势切页。
     depends_on: [feat-ui-face]
-    status: in_progress
+    status: done
     retries: 0
     model: sonnet
   - id: feat-imu
