@@ -33,3 +33,14 @@ How this project is run, as practised in the 2026-10-06 session. Keep this curre
 
 ## Milestones so far
 - 2026-10-06: research v1 + agent-backend research; spec v0.2 + codex spec review; Wave 1 (toolchain, server) merged; Wave 2 (firmware base, Google STT/TTS, Anthropic LLM) merged and live; `fix-server-polish` merged; Wave 3 + `feat-ha-mcp` in progress.
+
+## UI design method (device screens)
+
+Used for the face UI (2026-10-06) and the agent UI (2026-10-07). Jay's standing instruction: try several approaches, find references from real designers and products, and let images carry the design with text as annotation.
+
+1. **Ground**: extract the existing design system from code and device screenshots (palette, geometry, fonts, gesture map, burn-in budget) into `00-design-system.md`.
+2. **References**: a scout collects 12-16 references with URL, what to borrow, what to avoid: designer portfolios and galleries (Dribbble, Behance, Mobbin, Screenlane, Godly, Awwwards), product teardowns (Rabbit r1, Humane, Apple Watch, Wear OS, Nothing/CMF, Cozmo/Vector/Loona, Muse, Instinct), and the app-store screenshots of comparable products. Save allowed images under `<report>-ui/refs/` with an INDEX of sources.
+3. **Concepts**: three independent designers, each with a distinct angle (glanceable / character-first / card-first), each writing exact 466x466 layouts and one SVG per key screen.
+4. **Judge panel**: three lenses (glanceability + voice-first, LVGL/AMOLED feasibility + consistency, interaction correctness) score the concepts; the lead designer synthesises and writes the final spec plus final SVGs.
+5. **Images**: SVG mockups (viewBox 466x466, real text, round mask) are the layout truth and are rendered to PNG with `qlmanage -t -s 466`; Codex gpt-image renders are mood/marketing only: `codex exec --sandbox workspace-write --skip-git-repo-check "<ASCII prompt, no quotes or dashes>"`, outputs in `~/.codex/generated_images/<id>/`, every image eyeballed and critiqued in the INDEX (model self-description is not evidence).
+6. **Delivery**: report in `~/Projects/research/reports/<name>.md` + `<name>-ui/` folder, published as an artifact; the firmware task then verifies the built UI on the device with screenshots/logs (hardware verification rule).
