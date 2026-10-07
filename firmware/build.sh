@@ -12,6 +12,7 @@ build_name=esp32-s3-touch-amoled-1.75c-weixue
 language=en-US
 wake_word=wn9_jarvis_tts
 face_diag="${WEIXUE_FACE_DIAG:-0}"
+agent_loopback="${WEIXUE_AGENT_LOOPBACK:-0}"
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -28,6 +29,7 @@ rsync -a --delete \
   --exclude /.git --exclude /managed_components --exclude /build \
   --exclude /sdkconfig --exclude /sdkconfig.old --exclude /dependencies.lock \
   --exclude /main/assets/lang_config.h --exclude "/main/boards/$board_dir/face_diag.h" \
+  --exclude "/main/boards/$board_dir/agent_loopback.h" \
   "$src/" "$work/"
 if [ -d "$root/firmware/overrides" ]; then
   while IFS= read -r f; do
@@ -40,6 +42,11 @@ diag_h="$work/main/boards/$board_dir/face_diag.h"
 diag_want="#define WEIXUE_FACE_DIAG $face_diag"
 [ "$(cat "$diag_h" 2>/dev/null)" = "$diag_want" ] || echo "$diag_want" > "$diag_h"
 echo "face_diag: $face_diag"
+case "$agent_loopback" in 0|1) ;; *) die "WEIXUE_AGENT_LOOPBACK must be 0 or 1" ;; esac
+loopback_h="$work/main/boards/$board_dir/agent_loopback.h"
+loopback_want="#define WEIXUE_AGENT_LOOPBACK $agent_loopback"
+[ "$(cat "$loopback_h" 2>/dev/null)" = "$loopback_want" ] || echo "$loopback_want" > "$loopback_h"
+echo "agent_loopback: $agent_loopback"
 cp "$root/firmware/board/config.weixue.json" "$work/main/boards/$board_dir/config.weixue.json"
 cp "$root/firmware/dependencies.lock" "$work/dependencies.lock"
 shopt -s nullglob

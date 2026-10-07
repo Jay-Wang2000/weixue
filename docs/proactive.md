@@ -18,7 +18,7 @@ HA automation --POST /weixue/proactive/messages--> xiaozhi-esp32-server (8003)
 | Device long-poll and session open | `firmware/patches/10-proactive-poll.patch` |
 | Tests | `server/tests/test_proactive.py`, `server/tests/test_weixue_patches.py` |
 
-The device keeps no WebSocket open while idle, so the server cannot push to it. The firmware patch adds a task that, only while the device is idle, holds `GET http://<OTA host>/weixue/proactive/poll` (header `Device-Id`). The server answers `204` after 25 s with nothing to deliver and `200` with `{"pending": true, "urgent": <bool>, "id": "<message id>", "lease": "<nonce>"}` as soon as a message is deliverable; that message is leased to the device and `urgent` is its own flag. On `200` the device opens a session as for a wake word, sending `listen detect` with the text `weixue:proactive` instead of "Jarvis"; the server answers it with the leased message instead of the LLM. Failed polls back off from 5 s to 60 s.
+The device keeps no WebSocket open while idle, so the server cannot push to it. The firmware patch adds a task that, only while the device is idle, holds `GET http://<OTA host>/weixue/proactive/poll` (header `Device-Id`). The server answers `204` after 25 s with nothing to deliver and `200` with `{"pending": true, "speak": true, "urgent": <bool>, "id": "<message id>", "lease": "<nonce>"}` as soon as a message is deliverable; that message is leased to the device and `urgent` is its own flag. A poll with `X-Weixue-Agent-Seq` also gets `200` when only agent items are pending (`speak: false`, `id` and `lease` null) and an `agent` array in either case (`docs/agent-protocol.md`). On `200` with `speak: true` the device opens a session as for a wake word, sending `listen detect` with the text `weixue:proactive` instead of "Jarvis"; the server answers it with the leased message instead of the LLM. Failed polls back off from 5 s to 60 s.
 
 The invocation text may name its lease: `weixue:proactive:<id>:<lease>` delivers only that message under that lease. The current firmware sends the bare `weixue:proactive`, which delivers the device's lease only when it was issued before the session opened. Either way an expired or replaced lease, or a lease for another message, closes the session and consumes nothing (Delivery rules).
 
@@ -44,7 +44,7 @@ All routes except `/poll` need `Authorization: Bearer <WEIXUE_PROACTIVE_TOKEN>`;
 | `GET /weixue/proactive/messages/{id}` | Status of one message |
 | `GET /weixue/proactive` | Devices (session open, last poll, reachable), mute state, queued messages |
 | `PUT /weixue/proactive/mute` | `{"minutes": 0-1440}`; `0` unmutes |
-| `GET /weixue/proactive/poll` | Device long-poll (Device identity): `200` with the leased message's `id`, `urgent` and `lease`, `204`, `401` unverified, `429` too many polls, `503` `server.auth` disabled |
+| `GET /weixue/proactive/poll` | Device long-poll (Device identity): `200` with `speak`, the leased message's `id`, `urgent` and `lease`, and agent items (`docs/agent-protocol.md`), `204`, `401` unverified, `429` too many polls, `503` `server.auth` disabled |
 
 Request body:
 
