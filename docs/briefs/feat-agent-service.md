@@ -366,3 +366,7 @@ Per CLAUDE.md the spec must state that this task cannot be exercised on the devi
 - **feat-ui-sessions**: list from `GET /chats` (current first, ≤12), `switch`/`back`/`resolve` (≥2 matches above 0.5 → clarification), `last_summary` for the switch toast, `read` on open; voice synonyms resolved in the provider.
 - **feat-approvals**: its approval source becomes this service's interactions plus ha-mcp policy; the held-call live test needs the policy overlay applied by Jay.
 - **fix-wave3-server / proactive**: expose `GET /weixue/proactive/messages/{id}` polling semantics the gateway relies on (already present) and keep `device` mandatory on agent posts.
+
+## Addendum 2026-10-07: data the monitor board needs (feat-agent-monitor)
+
+The agent service owns the single SQLite database; the monitor reads it read-only. Persist, with timestamps and ids that join to chats/tasks: every tool call (name, args summary, result summary/status, duration, ha-mcp token id when held, approval decision + source device/panel/voice + decided_at), every SDK result's usage (input/output/cache tokens, cost estimate, model, session kind), task state transitions, device connection events (WS open/close, device id), health probe results (ha-mcp reachable, tool count, pending count, policy version; mcp-endpoint; bridge; tunnel handshake age), and errors. Keep a daily rollup table for tokens/cost. Retention follows decision 21.

@@ -219,6 +219,15 @@ tasks:
     status: pending
     retries: 0
     model: opus
+  - id: feat-agent-monitor
+    name: "Agent backend monitor board (M2)"
+    branch: feat/agent-monitor
+    description: |
+      DESIGN.md M2 feat-agent-monitor：agent 服务的事件库 + 只读 Web 监控台——动作时间线（工具调用、审批裁决）、token/费用（会话/任务/天）、家庭状态快照、连接（设备 WS、bridge/endpoint/隧道健康）、MCP 状态（可达、工具数、pending、策略版本）、chats、错误。数据来自 feat-agent-service 的 SQLite（同一库，只读）与定期健康探测；不执行任何动作。曝光/鉴权按 DECISIONS-PENDING 的决定（默认 127.0.0.1）。端到端：跑一次长任务后监控台显示全部工具调用与 token；断隧道 30 s 内状态变红。
+    depends_on: [feat-agent-service]
+    status: pending
+    retries: 0
+    model: opus
   - id: feat-ui-sessions
     name: "Session switcher UI (M2)"
     branch: feat/ui-sessions

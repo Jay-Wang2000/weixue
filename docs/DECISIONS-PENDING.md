@@ -46,6 +46,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 27. 4. **任务列表手势** — decided 2026-10-07 (Jay): the existing horizontal-swipe view becomes a single management view (current chat + chats switcher, agent tasks, HA status/approvals); chats are selected inside it; no swipe-up list. Design being amended; DESIGN.md updates with feat-ui-agent-states/feat-ui-sessions.
 28. 5. **Approve 左 / Deny 右**（现有面板约定）而非手表约定的「确认在右」。保持左 / 右？
 
+30. **Monitor board exposure** (`feat-agent-monitor`): read-only web UI. Options: A = bind 127.0.0.1 only, open from the phone via SSH port-forward or later over the home VPN; B = bind the LAN/tunnel address with HTTP basic auth + TLS later on Ubuntu. Recommendation: A now, B with the Ubuntu move.
+
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
 - `fix-server-review-2`: only the barge-in / TTS-cancel audio check; the HA round and auth check gate now (tunnel).
