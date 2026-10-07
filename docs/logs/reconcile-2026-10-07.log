@@ -1,0 +1,676 @@
+# Device reconciliation with main (2026-10-07). main at 695cd70. Firmware: firmware/build.sh then firmware/flash.sh under the device lock; stack: weixue/xiaozhi-esp32-server:local, overlay identical to main's server/overlay (diff -rq clean), upstream revision label 87c6df77 = vendor.lock.
+# Capture 2026-10-07T01:54:13Z UTC, serial from RTS reset, 120 s. Events (UTC): say jarvis 01:54:53;say time 01:54:59; capture end 01:56:13. Mac volume 55. Redacted: SSID, BSSID, MACs in device lines, client ids, MCP token URL.
+# Server log times are UTC-7 (18:54 = 01:54 UTC).
+
+## build (firmware/build.sh, key lines and manifest)
+face_diag: 0
+patch: 05-board-power-usb.patch
+patch: 10-proactive-poll.patch
+patch: 11-face-display.patch
+CONFIG_OTA_URL="http://192.168.8.220:8003/xiaozhi/ota/"
+CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=300
+CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300
+build_seconds: 217
+size: build/bootloader/bootloader.bin 16736
+size: build/partition_table/partition-table.bin 3072
+size: build/xiaozhi.bin 2895408
+size: build/generated_assets.bin 2985927
+size: build/merged-binary.bin 13471687
+98d95f4bea0d363032d525a96c6a65db568e87a6ff73917c90a798ddc1ecc25b  sdkconfig
+99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b  main/boards/waveshare/esp32-s3-touch-amoled-1.75/config.weixue.json
+2e8eded1c3cbc720bd0e62263de06542027ec16e9d6e0160223764b9df60e6ac  build/flash_args
+3f426200db800dd02c35f27aada4da2e7db69d1540f5d63084b68f529316366b  build/bootloader/bootloader.bin
+d2c535fc5f29da4d32f122befe65b97925777549b000f93ced719e71a942a3a9  build/partition_table/partition-table.bin
+7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f  build/ota_data_initial.bin
+710bdac786aec1c08bd65241ec1e54bc83e0b6dce9a35b999925b4b37e30196a  build/generated_assets.bin
+1f6e8a151a56a0b82a7203c6e99f3fea7cb3b49328b20e2892048ac1e9591cf5  build/xiaozhi.bin
+work_dir: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue
+
+## flash.sh (progress lines removed)
+port: /dev/cu.usbmodem2101
+[notice] A new release of pip is available: 26.0 -> 26.2.1
+[notice] To update, run: /Users/jwang14/Projects/weixue/.venv/bin/python3.14 -m pip install --upgrade pip
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+MAC:                <mac>
+Detected flash size: 32MB
+backup: /Users/jwang14/Projects/weixue/backup/flash-20261006-210524.bin
+flash-20261006-210524.bin: OK
+esptool --chip esp32s3 --port /dev/cu.usbmodem2101 --baud 460800 --before default-reset --after hard-reset write-flash --flash-mode dio --flash-freq 80m --flash-size 32MB 0x0 bootloader/bootloader.bin 0x8000 partition_table/partition-table.bin 0x10d000 ota_data_initial.bin 0xa00000 generated_assets.bin 0x200000 xiaozhi.bin
+esptool v5.4.0
+Serial port /dev/cu.usbmodem2101:
+Connecting...
+Connected to ESP32-S3 on /dev/cu.usbmodem2101:
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+Features:           Wi-Fi, BT 5 (LE), Dual Core + LP Core, 240MHz, Embedded PSRAM 8MB (AP_3v3)
+Crystal frequency:  40MHz
+USB mode:           USB-Serial/JTAG
+MAC:                <mac>
+Uploading stub flasher...
+Running stub flasher...
+Stub flasher running.
+Changing baud rate to 460800...
+Changed.
+Configuring flash size...
+Writing 'bootloader/bootloader.bin' at 0x00000000...
+SHA digest in image updated.
+Flash will be erased from 0x00000000 to 0x00004fff...
+Compressed 16736 bytes to 11597...
+Wrote 16736 bytes (11597 compressed) at 0x00000000 in 0.3 seconds (516.9 kbit/s).
+Verifying written data...
+Hash of data verified.
+Writing 'partition_table/partition-table.bin' at 0x00008000...
+Flash will be erased from 0x00008000 to 0x00008fff...
+Compressed 3072 bytes to 158...
+Wrote 3072 bytes (158 compressed) at 0x00008000 in 0.0 seconds (614.4 kbit/s).
+Verifying written data...
+Hash of data verified.
+Writing 'ota_data_initial.bin' at 0x0010d000...
+Flash will be erased from 0x0010d000 to 0x0010efff...
+Compressed 8192 bytes to 31...
+Wrote 8192 bytes (31 compressed) at 0x0010d000 in 0.1 seconds (1008.2 kbit/s).
+Verifying written data...
+Hash of data verified.
+Writing 'generated_assets.bin' at 0x00a00000...
+Flash will be erased from 0x00a00000 to 0x00cd8fff...
+Compressed 2985928 bytes to 1378101...
+Wrote 2985928 bytes (1378101 compressed) at 0x00a00000 in 18.8 seconds (1269.6 kbit/s).
+Verifying written data...
+Hash of data verified.
+Writing 'xiaozhi.bin' at 0x00200000...
+Flash will be erased from 0x00200000 to 0x004c2fff...
+Compressed 2895408 bytes to 1708560...
+Wrote 2895408 bytes (1708560 compressed) at 0x00200000 in 19.9 seconds (1162.3 kbit/s).
+Verifying written data...
+Hash of data verified.
+Hard resetting via RTS pin...
+flash exit 0
+
+## device serial
+ESP-ROM:esp32s3-20210327
+
+Build:Mar 27 2021
+
+rst:0x15 (USB_UART_CHIPESP-ROM:esp32s3-20210327
+
+Build:Mar 27 2021
+
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+
+Saved PC:0x40382d5a
+
+SPIWP:0xee
+
+mode:DIO, clock div:1
+
+load:0x3fce2820,len:0x544
+
+load:0x403c8700,len:0xd14
+
+load:0x403cb700,len:0x2eb4
+
+entry 0x403c88f4
+
+I (33) octal_psram: vendor id    : 0x0d (AP)
+
+I (34) octal_psram: dev id       : 0x02 (generation 3)
+
+I (34) octal_psram: density      : 0x03 (64 Mbit)
+
+I (36) octal_psram: good-die     : 0x01 (Pass)
+
+I (40) octal_psram: Latency      : 0x01 (Fixed)
+
+I (44) octal_psram: VCC          : 0x01 (3V)
+
+I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+
+I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+
+I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+
+I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+
+I (67) octal_psram: DriveStrength: 0x00 (1/1)
+
+I (71) MSPI Timing: Enter psram timing tuning
+
+I (76) esp_psram: Found 8MB PSRAM device
+
+I (79) esp_psram: Speed: 80MHz
+
+I (82) cpu_start: Multicore app
+
+I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+
+I (96) cpu_start: Pro cpu start user code
+
+I (96) cpu_start: cpu freq: 240000000 Hz
+
+I (98) app_init: Application information:
+
+I (102) app_init: Project name:     xiaozhi
+
+I (106) app_init: App version:      2.5.1
+
+I (109) app_init: Compile time:     Oct  7 2026 02:51:16
+
+I (114) app_init: ELF file SHA256:  aea466ada...
+
+I (119) app_init: ESP-IDF:          v6.1
+
+I (122) efuse_init: Min chip rev:     v0.0
+
+I (126) efuse_init: Max chip rev:     v0.99 
+
+I (130) efuse_init: Chip rev:         v0.2
+
+I (134) heap_init: Initializing. RAM available for dynamic allocation:
+
+I (140) heap_init: At 3FCAB240 len 0003E4D0 (249 KiB): RAM
+
+I (145) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+
+I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+
+I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+
+I (161) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+
+I (168) spi_flash: detected chip: gd
+
+I (171) spi_flash: flash io: qio
+
+I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+
+I (180) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+
+I (187) main_task: Started on CPU0
+
+I (187) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+
+I (197) main_task: Calling app_main()
+
+I (367) Board: UUID=ad786b10-efaf-422a-ab57-40edacba9d51 SKU=esp32-s3-touch-amoled-1.75c-weixue
+
+I (367) button: IoT Button Version: 4.2.1
+
+I (367) PowerSaveTimer: Power save timer enabled
+
+I (377) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+
+I (377) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+
+W (387) spi_common: GPIO 0 is conflict with others and be overwritten
+
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+
+W (407) spi_common: GPIO 0 is conflict with others and be overwritten
+
+I (407) co5300: version: 2.2.0
+
+I (407) co5300_spi: LCD panel create success, version: 2.2.0
+
+W (577) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+
+I (1777) Display: Power management not supported
+
+I (1857) LcdDisplay: Turning display on
+
+I (1857) LcdDisplay: Initialize LVGL library
+
+I (1857) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+
+I (1857) LcdDisplay: Use 2MB of PSRAM for image cache
+
+I (1867) LcdDisplay: Initialize LVGL port
+
+I (1867) LcdDisplay: Adding LCD display
+
+I (1867) LVGL: Starting LVGL task
+
+I (1877) Backlight: Set brightness to 75
+
+I (1877) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+
+I (1957) CST9217: Checkcode: 0x204ECACA
+
+I (1957) CST9217: Resolution X: 466, Y: 466
+
+I (1957) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+
+I (1957) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+
+I (1957) MCP: Add tool: self.system.reconfigure_wifi
+
+I (1967) StateMachine: State: unknown -> starting
+
+W (2037) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+
+I (2047) BoxAudioCodec: Duplex channels created
+
+I (2047) ES8311: Work in Slave mode
+
+I (2057) ES7210: Work in Slave mode
+
+I (2067) ES7210: Enable ES7210_INPUT_MIC1
+
+I (2067) ES7210: Enable ES7210_INPUT_MIC2
+
+I (2067) ES7210: Enable ES7210_INPUT_MIC3
+
+I (2067) ES7210: Enable ES7210_INPUT_MIC4
+
+I (2077) ES7210: Enable TDM mode
+
+I (2077) BoxAudioCodec: BoxAudioDevice initialized
+
+I (2077) AudioCodec: Audio codec started
+
+I (2087) Application: After board/audio init
+
+I (2087) SystemInfo: free sram: 196663 minimal sram: 95136
+
+I (2087) MCP: Add tool: self.get_device_status
+
+I (2087) MCP: Add tool: self.audio_speaker.set_volume
+
+I (2097) MCP: Add tool: self.screen.set_brightness
+
+I (2097) MCP: Add tool: self.screen.set_theme
+
+I (2107) MCP: Add tool: self.get_system_info [user]
+
+I (2107) MCP: Add tool: self.reboot [user]
+
+I (2117) MCP: Add tool: self.upgrade_firmware [user]
+
+I (2117) MCP: Add tool: self.screen.get_info [user]
+
+I (2127) MCP: Add tool: self.screen.snapshot [user]
+
+I (2127) MCP: Add tool: self.screen.preview_image [user]
+
+I (2137) MCP: Add tool: self.assets.set_download_url [user]
+
+I (2137) WifiManager: Initializing...
+
+I (2137) pp: pp rom version: e7ae62f
+
+I (2147) net80211: net80211 rom version: e7ae62f
+
+I (2157) wifi:wifi driver task: 3fce18b8, prio:23, stack:6656, core=0
+
+I (2157) wifi:wifi firmware version: e12a754
+
+I (2157) wifi:wifi certification version: v7.0
+
+I (2167) wifi:config NVS flash: disabled
+
+I (2167) wifi:config nano formatting: disabled
+
+I (2167) wifi:Init data frame dynamic rx buffer num: 6
+
+I (2177) wifi:Init dynamic rx mgmt buffer num: 5
+
+I (2177) wifi:Init management short buffer num: 32
+
+I (2187) wifi:Init dynamic tx buffer num: 32
+
+I (2187) wifi:Init static tx FG buffer num: 2
+
+I (2197) wifi:Init static rx buffer size: 1600
+
+I (2197) wifi:Init static rx buffer num: 3
+
+I (2197) wifi:Init dynamic rx buffer num: 6
+
+I (2207) wifi_init: rx ba win: 3
+
+I (2207) wifi_init: accept mbox: 6
+
+I (2207) wifi_init: tcpip mbox: 16
+
+I (2217) wifi_init: udp mbox: 6
+
+I (2217) wifi_init: tcp mbox: 6
+
+I (2217) wifi_init: tcp tx win: 5760
+
+I (2227) wifi_init: tcp rx win: 5760
+
+I (2227) wifi_init: tcp mss: 1440
+
+I (2227) WifiManager: Initialized
+
+I (2237) WifiBoard: Starting WiFi connection attempt
+
+I (2237) WifiManager: Starting station
+
+I (2237) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+
+I (2247) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+
+I (2287) wifi:mode : sta (<mac>)
+
+I (2287) wifi:enable tsf
+
+I (2287) WifiStation: Scanning saved channel 11
+
+I (2287) WifiBoard: WiFi scanning
+
+I (2407) WifiStation: Found AP: <ssid>, BSSID: <mac>, RSSI: -71, Channel: 11, Authmode: 3
+
+I (2407) WifiBoard: WiFi connecting to <ssid>
+
+W (2407) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+
+I (2477) wifi:new:<11,2>, old:<1,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+
+I (2477) wifi:state: init -> auth (0xb0)
+
+I (2487) wifi:state: auth -> init (0x8a0)
+
+I (2487) wifi:new:<11,0>, old:<11,2>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+
+I (2497) wifi:new:<11,2>, old:<11,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+
+I (2497) wifi:state: init -> auth (0xb0)
+
+I (2507) wifi:state: auth -> assoc (0x0)
+
+I (2557) wifi:state: assoc -> run (0x10)
+
+I (2587) wifi:connected with <ssid>, aid = 4, channel 11, 40D, bssid = <mac>
+
+I (2587) wifi:security: WPA2-PSK, phy: bgn, rssi: -71, cipher(pairwise:0x3, group:0x3), pmf:0
+
+I (2597) wifi:pm start, type: 1
+
+
+
+I (2597) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+
+I (2607) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+
+I (2627) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+
+I (2647) wifi:<ba-add>idx:0 (ifx:0, <mac>), tid:7, ssn:0, winSize:64
+
+I (2747) wifi:<ba-add>idx:1 (ifx:0, <mac>), tid:0, ssn:0, winSize:64
+
+I (3667) esp_netif_handlers: sta ip: 192.168.8.148, mask: 255.255.255.0, gw: 192.168.8.1
+
+I (3667) WifiStation: Got IP: 192.168.8.148
+
+I (3667) WifiBoard: Connected to WiFi: <ssid>
+
+I (3667) Application: Network connected
+
+I (3667) StateMachine: State: starting -> activating
+
+I (3677) Assets: The storage free size is 21760 KB
+
+I (3677) Assets: The assets map size is 2944 KB (partition 16384 KB)
+
+I (3857) Assets: The checksum calculation time is 173 ms
+
+I (3857) MODEL_LOADER: Successfully load srmodels
+
+I (3867) Assets: Refreshing display theme...
+
+I (3877) Ota: Current version: 2.5.1
+
+I (3877) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+
+I (3997) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=120
+
+I (4167) HttpClient: HTTP connection closed
+
+I (4167) Ota: No mqtt section found !
+
+I (4167) Ota: Current is the latest version
+
+I (4167) Ota: Running partition: ota_0
+
+I (4177) Application: Activation done
+
+I (4177) SystemInfo: free sram: 147971 minimal sram: 39812
+
+I (4177) StateMachine: State: activating -> idle
+
+I (4187) Application: Proactive poller: http://192.168.8.220:8003/weixue/proactive/poll
+
+I (4197) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+
+I (4197) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+
+I (4197) wifi:Set ps type: 2, coexist: 0
+
+
+
+I (4207) AfeAudioEngine: Model 0: wn9_jarvis_tts
+
+I (4217) WakeWordCache: Allocated 64000 bytes in PSRAM
+
+I (4217) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+
+I (4227) AfeAudioEngine: Before AFE create: free=146259 min=39812 largest=98304
+
+I (4237) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=40
+
+MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+
+I (4317) AFE: AFE Version: (1MIC_V251128)
+
+I (4317) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+
+I (4327) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+
+I (4337) AFE: AFE Version: (1MIC_V251128)
+
+I (4347) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+
+I (4347) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+
+I (4357) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+
+I (4367) AfeAudioEngine: After AFE create: free=121163 min=33500 largest=77824
+
+I (4377) I2S_IF: Paired data: 0x3fcd2a98, current mode: playback, paired in_enable: 0, paired out_enable: 0
+
+I (4387) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+
+I (4387) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+
+I (4417) Adev_Codec: Open codec device OK
+
+I (4417) AudioCodec: Set output enable to true
+
+I (4417) I2S_IF: Peer mode playback need extend bits 32 to 64
+
+I (4417) AudioService: Resampling audio from 16000 to 24000
+
+I (4417) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+
+I (4427) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+
+I (4437) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+
+I (4447) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+
+I (4457) ES7210: Bits 16
+
+I (4467) ES7210: Enable ES7210_INPUT_MIC1
+
+I (4467) ES7210: Enable ES7210_INPUT_MIC2
+
+I (4467) ES7210: Enable ES7210_INPUT_MIC3
+
+I (4467) ES7210: Enable ES7210_INPUT_MIC4
+
+I (4477) ES7210: Enable TDM mode
+
+I (4477) ES7210: Unmuted
+
+I (4477) Adev_Codec: Open codec device OK
+
+I (4477) AudioCodec: Set input enable to true
+
+I (14087) SystemInfo: free sram: 126967 minimal sram: 33500
+
+I (24087) SystemInfo: free sram: 126967 minimal sram: 33500
+
+I (30877) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+
+I (30897) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=20
+
+I (34087) SystemInfo: free sram: 127015 minimal sram: 33500
+
+I (42197) Application: Wake word detected: Jarvis (state: 3)
+
+I (42197) StateMachine: State: idle -> connecting
+
+I (42197) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+
+I (42197) wifi:Set ps type: 0, coexist: 0
+
+
+
+I (42207) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+
+I (42217) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+
+I (42267) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+
+I (42287) WS: Session ID: 1477197a-61e5-46a3-83d4-54178c16ac49
+
+I (42287) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+
+I (42287) wifi:Set ps type: 0, coexist: 0
+
+
+
+W (42287) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+
+I (42297) Application: Wake word detected: Jarvis
+
+I (42337) FaceDisplay: mode=listening mood=neutral
+
+I (42487) AfeAudioEngine: Encoded wake word into 33 packets in 296 ms
+
+I (42497) StateMachine: State: connecting -> listening
+
+I (43127) StateMachine: State: listening -> speaking
+
+I (43157) FaceDisplay: mode=speaking mood=neutral
+
+I (43337) Application: << Mm-hm?
+
+I (43877) StateMachine: State: speaking -> listening
+
+I (43907) FaceDisplay: mode=listening mood=neutral
+
+I (50097) Application: >> What time is it?
+
+I (50107) StateMachine: State: listening -> speaking
+
+I (50207) FaceDisplay: mode=thinking mood=neutral
+
+I (51897) Application: << It's five to seven in the evening
+
+I (51907) FaceDisplay: mode=speaking mood=neutral
+
+I (54487) StateMachine: State: speaking -> listening
+
+I (54517) FaceDisplay: mode=listening mood=neutral
+
+I (62477) WS: Websocket disconnected
+
+I (62477) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+
+I (62477) wifi:Set ps type: 2, coexist: 0
+
+
+
+I (62477) StateMachine: State: listening -> idle
+
+I (62507) FaceDisplay: mode=idle mood=neutral
+
+I (62927) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+
+I (62927) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+
+I (72087) SystemInfo: free sram: 119319 minimal sram: 33500
+
+I (82087) SystemInfo: free sram: 124167 minimal sram: 33500
+
+I (89137) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+
+I (89147) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+
+I (92087) SystemInfo: free sram: 124163 minimal sram: 33500
+
+I (102087) SystemInfo: free sram: 124163 minimal sram: 33500
+
+I (112087) SystemInfo: free sram: 124163 minimal sram: 33500
+
+I (115867) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+
+I (115877) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+
+
+## server
+261006 18:54:17[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: <mac>
+261006 18:54:17[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: <redacted>
+261006 18:54:17[0.9.7_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 <mac> 下发WebSocket配置
+261006 18:54:17[0.9.7_00000000000000][core.api.ota_handler]-INFO-Firmware cache refreshed: 0 models
+261006 18:54:17[0.9.7_00000000000000][core.api.ota_handler]-INFO-查找型号 esp32-s3-touch-amoled-1.75 的固件，找到 0 个候选
+261006 18:54:17[0.9.7_00000000000000][core.api.ota_handler]-INFO-设备 <mac> 固件已是最新: 2.5.1
+261006 18:54:55[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': '<redacted>', 'connection': 'Upgrade', 'device-id': '<mac>', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 18:54:55[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 18:54:55[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 18:54:55[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 18:54:55[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 18:54:55[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 18:54:55[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 18:54:55[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_news_from_newsnow', 'web_search', 'handle_exit_intent', 'play_music', 'get_weather', 'change_role', 'get_lunar']
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://<redacted>
+261006 18:54:55[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_news_from_newsnow', 'web_search', 'handle_exit_intent', 'play_music', 'get_weather', 'change_role', 'get_lunar']
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_news_from_newsnow', 'web_search', 'handle_exit_intent', 'play_music', 'get_weather', 'change_role', 'get_lunar', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 18:54:55[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 18:54:55[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"1477197a-61e5-46a3-83d4-54178c16ac49","type":"listen","state":"detect","text":"Jarvis"}
+261006 18:54:55[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"1477197a-61e5-46a3-83d4-54178c16ac49","type":"listen","state":"start","mode":"realtime"}
+261006 18:54:55[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"1477197a-61e5-46a3-83d4-54178c16ac49","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261006 18:54:56[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Mm-hm?
+261006 18:54:56[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Mm-hm?
+261006 18:54:56[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Mm-hm?
+261006 18:54:56[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 18:54:56[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"1477197a-61e5-46a3-83d4-54178c16ac49","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.system.reconfigure_wifi","description":"End this conversation and enter WiFi configuration mode.\n**CAUTION** You must ask the user to confirm this action.","inputSchema":{"type":"object","properties":{}}}]}}}
+261006 18:54:56[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 5
+261006 18:54:56[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_news_from_newsnow', 'web_search', 'handle_exit_intent', 'play_music', 'get_weather', 'change_role', 'get_lunar', 'self_get_device_status', 'self_audio_speaker_set_volume', 'self_screen_set_brightness', 'self_screen_set_theme', 'self_system_reconfigure_wifi', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 18:54:57[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.505s | 语言: en-US | 结果: Jarvis
+261006 18:54:57[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis
+261006 18:54:57[0.9.7_00000000000000][weixue_patches]-INFO-wake word transcript ignored: Jarvis
+261006 18:55:03[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.356s | 语言: en-US | 结果: What time is it?
+261006 18:55:03[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: What time is it?
+261006 18:55:03[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: What time is it?
+261006 18:55:05[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 11869，输出 59，缓存读取 0；stop_reason=tool_use request_id=req_011Cfn3WWmUmo1MGBXpYG5jc
+261006 18:55:05[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: It's five to seven in the evening
+261006 18:55:05[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, It's five to seven in the evening
+261006 18:55:05[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.283s: It's five to seven in the evening
+261006 18:55:05[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 18:55:15[0.9.7_SiGoAnGonocaCh][core.handle.receiveAudioHandle]-INFO-结束对话，无需发送结束提示语
+261006 18:55:15[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 18:55:15[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 18:55:25[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 18:55:25[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 18:55:25[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 18:55:25[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
