@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <string>
 
+class MonitorPanel;
+
 #if WEIXUE_FACE_DIAG
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
@@ -20,6 +22,7 @@
 // The pose follows the device state (idle, listening, thinking, speaking) and the
 // last emotion; chat text stays available as a caption below the eyes. A ring at the
 // screen edge shows the voice state; at night the idle screen is a dim red clock page.
+// Swiping left opens the monitor panel, swiping right returns to the face.
 class FaceDisplay : public SpiLcdDisplay {
 public:
     FaceDisplay(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_handle_t panel, int width,
@@ -67,6 +70,7 @@ private:
     lv_obj_t* clock_ = nullptr;
     lv_obj_t* ring_obj_ = nullptr;
     lv_timer_t* timer_ = nullptr;
+    MonitorPanel* panel_ = nullptr;
 
     Mode mode_ = Mode::kIdle;
     Mood mood_ = Mood::kNeutral;
@@ -112,6 +116,7 @@ private:
     char clock_text_[6] = "--:--";
 
     static void TickCb(lv_timer_t* timer);
+    static void GestureCb(lv_event_t* e);
     static void EyeDrawCb(lv_event_t* e);
     static void RingDrawCb(lv_event_t* e);
     static void ClockDrawCb(lv_event_t* e);
@@ -136,6 +141,7 @@ private:
     bool ApplyEye(int i, const EyeShape& s);
     void DrawEye(lv_layer_t* layer, lv_obj_t* obj, int i) const;
     void StyleChrome();
+    void ShowPanel(bool show);
 
 #if WEIXUE_FACE_DIAG
     int64_t diag_window_us_ = 0;

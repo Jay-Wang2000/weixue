@@ -3,6 +3,7 @@
 #include "application.h"
 #include "assets/lang_config.h"
 #include "lvgl_theme.h"
+#include "monitor_panel.h"
 #include "settings.h"
 
 #include <esp_heap_caps.h>
@@ -46,6 +47,7 @@ constexpr float kShapeTau = 0.09f;
 constexpr float kGazeTau = 0.22f;
 constexpr int64_t kThinkTimeoutUs = 20LL * 1000 * 1000;
 constexpr int64_t kShiftPeriodUs = 60LL * 1000 * 1000;
+constexpr uint32_t kPanelReturnMs = 60000;
 constexpr int8_t kShiftPath[8][2] = {{0, 0},  {1, 0},  {1, 1},   {0, 1},
                                      {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}};
 constexpr float kPi = 3.14159265f;
@@ -257,6 +259,19 @@ void FaceDisplay::SetupUI() {
 
     StyleChrome();
 
+    auto* theme = static_cast<LvglTheme*>(current_theme_);
+    panel_ = new MonitorPanel(screen, width_, height_, theme->icon_font()->font(), [this](bool covered) {
+        if (covered) {
+            lv_obj_add_flag(face_root_, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_remove_flag(face_root_, LV_OBJ_FLAG_HIDDEN);
+        }
+    });
+    lv_obj_add_event_cb(screen, GestureCb, LV_EVENT_GESTURE, this);
+#if WEIXUE_FACE_DIAG
+    panel_->StartTouchReplay();
+#endif
+
     EyeShape initial[2];
     TargetShapes(initial, false);
     cur_[0] = initial[0];
@@ -306,6 +321,7 @@ void FaceDisplay::SetTheme(Theme* theme) {
     if (face_root_ != nullptr) {
         DisplayLockGuard lock(this);
         StyleChrome();
+        panel_->ApplyFonts();
     }
 }
 
@@ -372,6 +388,28 @@ std::string FaceDisplay::BedsideStateJson() {
     return buf;
 }
 
+void FaceDisplay::GestureCb(lv_event_t* e) {
+    auto* self = static_cast<FaceDisplay*>(lv_event_get_user_data(e));
+    lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
+    if (dir == LV_DIR_LEFT) {
+        self->ShowPanel(true);
+    } else if (dir == LV_DIR_RIGHT) {
+        self->ShowPanel(false);
+    }
+}
+
+void FaceDisplay::ShowPanel(bool show) {
+    if (show == panel_->IsShown()) {
+        return;
+    }
+    panel_->Show(show);
+#if WEIXUE_FACE_DIAG
+    if (show) {
+        diag_dump_due_us_ = esp_timer_get_time() + 800 * 1000;
+    }
+#endif
+}
+
 void FaceDisplay::SetEmotion(const char* emotion) {
     DisplayLockGuard lock(this);
     mood_ = MoodFromEmotion(emotion);
@@ -381,6 +419,9 @@ void FaceDisplay::SetChatMessage(const char* role, const char* content) {
     if (role != nullptr && strcmp(role, "assistant") == 0) {
         DisplayLockGuard lock(this);
         user_turn_ = false;
+        if (panel_ != nullptr) {
+            panel_->AddReply(content);
+        }
     }
     if (role != nullptr && strcmp(role, "user") == 0) {
         {
@@ -388,6 +429,9 @@ void FaceDisplay::SetChatMessage(const char* role, const char* content) {
             if (content != nullptr && content[0] != '\0') {
                 user_turn_ = true;
                 user_turn_us_ = esp_timer_get_time();
+            }
+            if (panel_ != nullptr) {
+                panel_->SetHeard(content);
             }
         }
         SpiLcdDisplay::SetChatMessage(role, "");
@@ -427,8 +471,13 @@ void FaceDisplay::Tick() {
     if (state != last_state_) {
         if (state == kDeviceStateIdle) {
             user_turn_ = false;
+        } else if (last_state_ == kDeviceStateIdle) {
+            ShowPanel(false);
         }
         last_state_ = state;
+    }
+    if (panel_->IsShown() && lv_display_get_inactive_time(display_) > kPanelReturnMs) {
+        ShowPanel(false);
     }
 
     UpdateClock(now);
@@ -675,6 +724,7 @@ void FaceDisplay::UpdateShift(int64_t now) {
     if (bedside_) {
         PlaceClock();
     }
+    panel_->SetShift(shift_x_, shift_y_);
 #if WEIXUE_FACE_DIAG
     ESP_LOGI(TAG, "diag shift=%d,%d", shift_x_, shift_y_);
 #endif
@@ -1225,7 +1275,8 @@ void FaceDisplay::DiagDump() {
     }
 
     uint32_t id = ++diag_dump_id_;
-    DiagDumpMsg msg = {id, w, h, lit, ModeName(mode_), MoodName(shown_mood_), nullptr, runs * 4};
+    const char* mode = panel_->IsShown() ? "panel" : ModeName(mode_);
+    DiagDumpMsg msg = {id, w, h, lit, mode, MoodName(shown_mood_), nullptr, runs * 4};
     msg.data = static_cast<uint8_t*>(heap_caps_malloc(msg.size, MALLOC_CAP_SPIRAM));
     if (msg.data != nullptr) {
         uint8_t* out = msg.data;

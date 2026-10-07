@@ -1,6 +1,7 @@
 """Runtime patches to upstream modules, applied by weixue_main.py before app.py runs."""
 import asyncio
 import importlib
+import json
 import random
 import re
 import time
@@ -231,6 +232,27 @@ def acknowledge_wake(handle, remove_punctuation_and_length, play):
     return wrapper
 
 
+DEVICE_EVENT_PREFIX = "notifications/weixue/"
+
+
+def log_device_events(handle, logger):
+    """Wraps McpTextMessageHandler.handle: a device MCP notification whose method starts with
+    DEVICE_EVENT_PREFIX is logged with the device id and its params before upstream handles it."""
+
+    async def wrapper(self, conn, msg_json):
+        payload = msg_json.get("payload")
+        method = payload.get("method") if isinstance(payload, dict) else None
+        if isinstance(method, str) and method.startswith(DEVICE_EVENT_PREFIX):
+            params = json.dumps(payload.get("params"), ensure_ascii=False, sort_keys=True)
+            logger.bind(tag=__name__).info(
+                f"device event {method} device={getattr(conn, 'device_id', None)} params={params}"
+            )
+        return await handle(self, conn, msg_json)
+
+    wrapper.weixue_wrapped = handle
+    return wrapper
+
+
 def apply():
     from config.logger import setup_logging
     from core.connection import ConnectionHandler
@@ -240,6 +262,7 @@ def apply():
     import weixue_proactive
 
     intentHandler = importlib.import_module("core.handle.intentHandler")
+    mcpMessageHandler = importlib.import_module("core.handle.textHandler.mcpMessageHandler")
     receiveAudioHandle = importlib.import_module("core.handle.receiveAudioHandle")
     sendAudioHandle = importlib.import_module("core.handle.sendAudioHandle")
     silero = importlib.import_module("core.providers.vad.silero")
@@ -283,3 +306,7 @@ def apply():
 
     if not getattr(intentHandler.checkWakeupWords, "weixue_replacement", False):
         intentHandler.checkWakeupWords = ignore_bare_wake_word(remove_punctuation_and_length, logger)
+
+    mcp_handler = mcpMessageHandler.McpTextMessageHandler
+    if getattr(mcp_handler.handle, "weixue_wrapped", None) is None:
+        mcp_handler.handle = log_device_events(mcp_handler.handle, logger)

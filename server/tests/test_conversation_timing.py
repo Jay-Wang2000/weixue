@@ -153,7 +153,14 @@ def stub_handler_modules(monkeypatch):
             return False
 
     silero.VADProvider = VADProvider
-    for module in (receive, intent, util, send, silero):
+    mcp = types.ModuleType("core.handle.textHandler.mcpMessageHandler")
+
+    class McpTextMessageHandler:
+        async def handle(self, conn, msg_json):
+            return "upstream"
+
+    mcp.McpTextMessageHandler = McpTextMessageHandler
+    for module in (receive, intent, util, send, silero, mcp):
         monkeypatch.setitem(sys.modules, module.__name__, module)
     return receive, intent, VADProvider
 

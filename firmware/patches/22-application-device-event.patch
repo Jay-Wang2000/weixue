@@ -1,0 +1,131 @@
+--- a/main/application.h
++++ b/main/application.h
+@@ -134,6 +134,21 @@ public:
+      */
+     void SetMicMuted(bool muted);
+     bool IsMicMuted() const { return mic_muted_; }
++
++    struct BackendStatus {
++        bool channel_open;
++        int poll_status;      // HTTP status of the last finished proactive poll, 0 = no response
++        int64_t poll_age_ms;  // -1 before the first poll finished
++    };
++    /** Audio channel state and the last proactive poll result (any task). */
++    BackendStatus GetBackendStatus() const;
++
++    /**
++     * Sends an MCP notification to the server (any task). While idle with no audio channel, opens
++     * one for the message and closes it kDeviceEventLingerMs later if the device is still idle.
++     * `done(sent)` runs on the main task.
++     */
++    void SendDeviceEvent(const std::string& payload, std::function<void(bool)> done);
+     
+     /**
+      * Reset protocol resources (thread-safe)
+@@ -174,6 +189,11 @@ private:
+     TaskHandle_t activation_task_handle_ = nullptr;
+     std::string proactive_poll_url_;
+     TaskHandle_t proactive_task_handle_ = nullptr;
++    std::atomic<bool> channel_open_{false};
++    std::atomic<int> poll_status_{0};
++    std::atomic<int64_t> poll_done_us_{0};
++    esp_timer_handle_t event_close_timer_ = nullptr;
++    bool event_channel_ = false;  // the open audio channel was opened by SendDeviceEvent
+ 
+ 
+     // Event handlers
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -28,6 +28,7 @@ static constexpr const char* kProactiveWakeText = "weixue:proactive";
+ static constexpr int kProactivePollTimeoutMs = 40000;  // exceeds the server's hold time
+ static constexpr int kProactiveRetryMinMs = 5000;
+ static constexpr int kProactiveRetryMaxMs = 60000;
++static constexpr int kDeviceEventLingerMs = 2000;
+ 
+ Application::Application() : notify_player_(audio_service_) {
+     event_group_ = xEventGroupCreate();
+@@ -573,6 +574,7 @@ void Application::InitializeProtocol() {
+     });
+ 
+     protocol_->OnAudioChannelOpened([this, codec, &board]() {
++        channel_open_ = true;
+         board.SetPowerSaveLevel(PowerSaveLevel::PERFORMANCE);
+         if (protocol_->server_sample_rate() != codec->output_sample_rate()) {
+             ESP_LOGW(TAG,
+@@ -583,8 +585,10 @@ void Application::InitializeProtocol() {
+     });
+ 
+     protocol_->OnAudioChannelClosed([this, &board]() {
++        channel_open_ = false;
+         board.SetPowerSaveLevel(PowerSaveLevel::LOW_POWER);
+         Schedule([this]() {
++            event_channel_ = false;
+             auto display = Board::GetInstance().GetDisplay();
+             display->SetChatMessage("system", "");
+             SetDeviceState(kDeviceStateIdle);
+@@ -1245,6 +1249,8 @@ void Application::ProactivePollTask() {
+             }
+             http->Close();
+         }
++        poll_status_ = status;
++        poll_done_us_ = esp_timer_get_time();
+         if (status == 200) {
+             retry_ms = kProactiveRetryMinMs;
+             ESP_LOGI(TAG, "Proactive message pending (urgent=%d)", urgent);
+@@ -1480,6 +1486,56 @@ void Application::SendMcpMessage(const std::string& payload) {
+     });
+ }
+ 
++Application::BackendStatus Application::GetBackendStatus() const {
++    int64_t done_us = poll_done_us_;
++    return {
++        .channel_open = channel_open_,
++        .poll_status = poll_status_,
++        .poll_age_ms = done_us == 0 ? -1 : (esp_timer_get_time() - done_us) / 1000,
++    };
++}
++
++void Application::SendDeviceEvent(const std::string& payload, std::function<void(bool)> done) {
++    Schedule([this, payload, done = std::move(done)]() {
++        bool sent = false;
++        if (protocol_) {
++            if (!protocol_->IsAudioChannelOpened() && GetDeviceState() == kDeviceStateIdle &&
++                protocol_->OpenAudioChannel()) {
++                event_channel_ = true;
++                if (event_close_timer_ == nullptr) {
++                    const esp_timer_create_args_t args = {
++                        .callback = [](void* arg) {
++                            auto* app = static_cast<Application*>(arg);
++                            app->Schedule([app]() {
++                                if (app->event_channel_ && app->GetDeviceState() == kDeviceStateIdle &&
++                                    app->protocol_ && app->protocol_->IsAudioChannelOpened()) {
++                                    ESP_LOGI(TAG, "Closing the device event channel");
++                                    app->protocol_->CloseAudioChannel();
++                                }
++                            });
++                        },
++                        .arg = this,
++                        .dispatch_method = ESP_TIMER_TASK,
++                        .name = "event_close",
++                        .skip_unhandled_events = true,
++                    };
++                    esp_timer_create(&args, &event_close_timer_);
++                }
++                esp_timer_stop(event_close_timer_);
++                esp_timer_start_once(event_close_timer_, kDeviceEventLingerMs * 1000);
++            }
++            if (protocol_->IsAudioChannelOpened()) {
++                protocol_->SendMcpMessage(payload);
++                sent = true;
++            }
++        }
++        ESP_LOGI(TAG, "Device event %s: %s", sent ? "sent" : "not sent", payload.c_str());
++        if (done) {
++            done(sent);
++        }
++    });
++}
++
+ void Application::SetAecMode(AecMode mode) {
+     aec_mode_ = mode;
+     Schedule([this]() {
