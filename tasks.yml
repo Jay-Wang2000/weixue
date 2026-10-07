@@ -145,9 +145,9 @@ tasks:
   - id: fix-turn-isolation
     name: "Turn identity, cancellation and ADR-11 deadline"
     branch: fix/turn-isolation
-    description: Codex C2/patch 3：在 overlay 中给每个对话轮不可变 turn id 与取消状态；工具 future 等待、结果处理、历史写入、递归 LLM 调用前检查 turn id，旧轮结果不得进入新轮或借新轮 sentence_id 播报；已派发动作标记“结果未知”而非自动重试；实现 ADR-11 的 90 s 单调截止（重试/回退/工具轮共用），到期前向设备发终态。测试：模拟慢工具期间插话；端到端：实机慢工具（延时 MCP）+ 打断。与 M2 agent 服务的 job 模型兼容。 2026-10-07 手测异常根因（docs/logs/handson-2026-10-07-stall-rca.md）：「Tell me a story」卡在 Anthropic HTTP 调用首字节约 60 s（client timeout），SDK 静默重试一次，迟到的 direct_answer 被 TTS 因 sentence_id 过期丢弃却仍写入历史；旧连接 teardown 与 abort 均已排除。修复归此任务：(a) turn-id 守卫——sentence_id 不匹配时丢弃事件且不写历史；(b) Jay 2026-10-07 决定：保留 SDK 自带重试，不改重试策略；在生成器外强制 ADR-11 90 s 墙钟截止，对 APITimeoutError/APIConnectionError/APIStatusError 等网络与外部服务异常优雅处理——设备得到提示或终态而非沉默，不进入历史，必要时走 fallback 模型；(c) anthropic/httpx 日志桥到 loguru 的 INFO，使重试可见。超时数值不改；如实现需要改动须写 question.json。回归：首次 stream 阻塞后成功、阻塞期间第二轮不污染历史；端到端在家：人为延迟 api.anthropic.com 约 70 s 说「Tell me a story」，预算内收到超时提示且历史无过期故事。
+    description: SUPERSEDED 2026-10-07（Jay：不再为小智 LLM 循环做打磨）——需求并入 feat-llm-claude-agent：90 s 墙钟截止并向设备发提示/终态、语音边界的过期结果守卫、网络/Anthropic 异常优雅处理、迟到回复不入历史（根因见 docs/logs/handson-2026-10-07-stall-rca.md）。原始范围：Codex C2/patch 3：在 overlay 中给每个对话轮不可变 turn id 与取消状态；工具 future 等待、结果处理、历史写入、递归 LLM 调用前检查 turn id，旧轮结果不得进入新轮或借新轮 sentence_id 播报；已派发动作标记“结果未知”而非自动重试；实现 ADR-11 的 90 s 单调截止（重试/回退/工具轮共用），到期前向设备发终态。测试：模拟慢工具期间插话；端到端：实机慢工具（延时 MCP）+ 打断。与 M2 agent 服务的 job 模型兼容。 2026-10-07 手测异常根因（docs/logs/handson-2026-10-07-stall-rca.md）：「Tell me a story」卡在 Anthropic HTTP 调用首字节约 60 s（client timeout），SDK 静默重试一次，迟到的 direct_answer 被 TTS 因 sentence_id 过期丢弃却仍写入历史；旧连接 teardown 与 abort 均已排除。修复归此任务：(a) turn-id 守卫——sentence_id 不匹配时丢弃事件且不写历史；(b) Jay 2026-10-07 决定：保留 SDK 自带重试，不改重试策略；在生成器外强制 ADR-11 90 s 墙钟截止，对 APITimeoutError/APIConnectionError/APIStatusError 等网络与外部服务异常优雅处理——设备得到提示或终态而非沉默，不进入历史，必要时走 fallback 模型；(c) anthropic/httpx 日志桥到 loguru 的 INFO，使重试可见。超时数值不改；如实现需要改动须写 question.json。回归：首次 stream 阻塞后成功、阻塞期间第二轮不污染历史；端到端在家：人为延迟 api.anthropic.com 约 70 s 说「Tell me a story」，预算内收到超时提示且历史无过期故事。
     depends_on: [fix-server-review-2]
-    status: pending
+    status: superseded
     retries: 0
     model: opus
   - id: fix-firmware-scripts-2
@@ -183,6 +183,42 @@ tasks:
     status: done
     retries: 0
     model: opus
+  - id: feat-agent-service
+    name: "Agent service on the Claude Agent SDK (M2)"
+    branch: feat/agent-service
+    description: |
+      DESIGN.md M2 feat-agent-service + ADR-10/11、docs/briefs/feat-agent-service.md：独立 Python 服务（Docker，`claude-agent-sdk`，个人 ANTHROPIC_API_KEY 注入，model claude-fable-5-1 + fallback）；每个 chat 一个 SDK session（resume/fork），会话索引持久化；任务 API（POST /tasks、SSE 事件 progress|needs_input|needs_approval|done|failed|cancelled、answer/approve 回传）；连接≠任务的 job 模型，重启恢复；ha-mcp 作为 MCP 工具源，经本服务的 HA MCP 代理实现 ADR-9（约 8 s 预算→pending、保持原请求、事件总线闭环，不改 ha-mcp wait_seconds）与 can_use_tool 审批门；CLAUDE.md/记忆目录按 setting_sources 加载。端到端：模拟设备客户端发起「把客厅灯做成日落自动化」类长任务（>30 s、≥3 个工具，HA 用只读或测试实体），期间第二个短问不并发、完成后收到 done；一次真实 HA 自由灯控经代理。
+    depends_on: [fix-server-review-2]
+    status: pending
+    retries: 0
+    model: opus
+  - id: feat-llm-claude-agent
+    name: "xiaozhi provider type claude_agent (M2)"
+    branch: feat/llm-claude-agent
+    description: |
+      DESIGN.md M2 feat-llm-claude-agent：小智 LLM provider `claude_agent` 把每轮转发到 agent 服务；短问直答流式回传，长任务建 task 后立即应答并发 LAST；文本流 + 侧信道事件；长任务保活；继承自 fix-turn-isolation 的要求：ADR-11 90 s 墙钟截止并在固件 120 s 前发提示/终态、语音边界 sentence_id 过期守卫、APITimeoutError/APIConnectionError 等异常优雅处理（保留 SDK 重试，重试可见）、迟到回复不入历史。端到端：实机一轮短问 + 一轮长任务（办公室模式可用模拟设备）。
+    depends_on: [feat-agent-service, fix-wave3-server]
+    status: pending
+    retries: 0
+    model: opus
+  - id: feat-protocol-agent-msg
+    name: "Server→device agent message (M2)"
+    branch: feat/protocol-agent-msg
+    description: |
+      DESIGN.md M2 feat-protocol-agent-msg：服务器→设备 `agent` 消息 {task_id,state,summary,progress,options,scheduling}（先借 custom 通道，CONFIG_RECEIVE_CUSTOM_MESSAGE 已开）；后端通知重投队列（设备忙时回 Idle 后 10 s 内送达）；固件侧解析与状态存储，供 feat-ui-agent-states 使用。端到端：实机接收并记录 4 种状态。
+    depends_on: [feat-agent-service, feat-ui-panel]
+    status: pending
+    retries: 0
+    model: opus
+  - id: feat-ui-agent-states
+    name: "Agent states UI: working / needs input / needs approval / unread (M2)"
+    branch: feat/ui-agent-states
+    description: |
+      DESIGN.md M2 feat-ui-agent-states，按设计稿 ~/Projects/research/reports/weixue-agent-ui-v1.md（final-*.svg 为版式真值）：空闲态的四种 agent 状态表现、整屏审批卡与澄清卡（按钮 + 语音作答经 response 回传）、任务芯片与任务列表、三档投递 INTERRUPT|WHEN_IDLE|SILENT 的呈现；烧屏预算与手势不冲突。实机端到端：四态可辨、卡片按钮与语音都能应答（音频部分在家）。
+    depends_on: [feat-protocol-agent-msg, feat-ui-panel]
+    status: pending
+    retries: 0
+    model: opus
   - id: feat-ui-sessions
     name: "Session switcher UI (M2)"
     branch: feat/ui-sessions
@@ -203,7 +239,7 @@ tasks:
   - id: fix-wave3-server
     name: "Server fixes from Codex Wave 3 review"
     branch: fix/wave3-server
-    description: 按同一评审：S1 proactive 的设备轮询/消费端点必须鉴权并绑定到已验证的会话归属（未鉴权客户端不得冒充设备消费通知或作废登记）；C6 消息在创建任务前先 claim，杜绝重复投递；C7 合成失败不得报成功，按逐句合成/播放结果收尾；C4 唤醒提示音加 generation fence/取消，不得覆盖更新的一轮；C5 去掉对「Yes」等真实短回答的词法抑制；Wave 4 评审：轮询广告的 urgent 标志可能属于另一条通知而非最终投递的那条——urgency 必须随被 claim 的那条消息返回；C3/R1 mcp-bridge 实现 ADR-9 修订版：每个 HA 调用约 8 s 预算，超时返回「待批准/结果待定」并保持原请求直至完成或策略 wait_seconds 到期，经事件总线闭环；请求预算与服务器 30 s 执行器对齐、保留“已派发结果未知”状态、心跳仅在 RPC 成功后刷新健康并补重连测试。端到端：实机 announce + conversation + 一次 HA 控灯。 2026-10-07 手测补充：服务端回声护栏——TTS 播放期间收到的转写若与最近合成文本模糊匹配则丢弃不计为打断（与 C5 同处，仅在播放窗口内生效）。 2026-10-07 补充：server/policy/voice_policy.proposed.json 的 settings 不得再改 wait_seconds（ADR-9 修订版：超时在 bridge），render_voice_policy.py 去掉 5–10 s 校验、改为拒绝任何改动 wait_seconds 的 overlay，tests/test_voice_policy.py 同步；policy 的实际应用仍由 Jay 确认后执行。
+    description: 按同一评审：S1 proactive 的设备轮询/消费端点必须鉴权并绑定到已验证的会话归属（未鉴权客户端不得冒充设备消费通知或作废登记）；C6 消息在创建任务前先 claim，杜绝重复投递；C7 合成失败不得报成功，按逐句合成/播放结果收尾；C4 唤醒提示音加 generation fence/取消，不得覆盖更新的一轮；C5 去掉对「Yes」等真实短回答的词法抑制；Wave 4 评审：轮询广告的 urgent 标志可能属于另一条通知而非最终投递的那条——urgency 必须随被 claim 的那条消息返回；【2026-10-07 裁剪】C3/R1 的 bridge 侧 ADR-9 预算/pending 逻辑移出本任务，改在 feat-agent-service 中作为 SDK agent 的 HA MCP 代理一次做对（小智 30 s 工具超时随 M2 消失）；本任务只做网关侧项。端到端：实机 announce + conversation + 一次 HA 控灯。 2026-10-07 手测补充：服务端回声护栏——TTS 播放期间收到的转写若与最近合成文本模糊匹配则丢弃不计为打断（与 C5 同处，仅在播放窗口内生效）。 2026-10-07 补充：server/policy/voice_policy.proposed.json 的 settings 不得再改 wait_seconds（ADR-9 修订版：超时在 bridge），render_voice_policy.py 去掉 5–10 s 校验、改为拒绝任何改动 wait_seconds 的 overlay，tests/test_voice_policy.py 同步；policy 的实际应用仍由 Jay 确认后执行。
     depends_on: [fix-server-review-2]
     status: pending
     retries: 0

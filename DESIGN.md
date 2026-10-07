@@ -62,13 +62,13 @@
 - **ADR-9 设备审批（M1 生效，2026-10-07 修订）**：后端持有 HA 凭据；设备只发送与当前审批卡关联的决定。ha-mcp 的同步挂起在 xiaozhi-server 内走不通（接入点执行器写死 30 s；进度通知两跳丢弃；拉长等待撞固件 120 s 信道静默）。**超时放在我们自己的应用里，不改 ha-mcp 策略的 `wait_seconds`**：mcp-bridge 对每个 HA 调用自设约 8 s 预算，超时即向 LLM 返回「待批准 / 结果待定」，同时保持对 ha-mcp 的原始请求继续等待（最长至策略的 wait_seconds），用 HA 事件总线（`ha_mcp_approval_requested` / `ha_mcp_approval_response`+PIN / `ha_mcp_approval_result`）或原请求的最终返回完成闭环；HTTP `/api/policy/*` 为后端备选。记录 token、原始工具及参数、来源设备/会话、到期时间、状态；拒绝/过期/未知 token 不得执行；重复决定不得重复执行；结果未知时不得盲目重试。验收覆盖早到批准、延迟批准、拒绝、过期、重复点击、断连和 HA/后端重启。调研：`research/reports/weixue-q7-hamcp-approval.md`。
 - **ADR-5 UI**：程序化眼睛而非精灵图/Lottie（无 466 px 素材、性能、烧屏）。
 
-## Milestone M2 — agent 化（待 Wave 5 后排程；调研：`research/reports/weixue-agent-backend-v1.md`）
+## Milestone M2 — agent 化（2026-10-07 Jay 决定：M1 收尾后立即开始；调研：`research/reports/weixue-agent-backend-v1.md`，UI 设计稿 `research/reports/weixue-agent-ui-v1.md`）
 
 xiaozhi-server 的对话循环是深度 ≤5、每工具 30 s、同步阻塞、180 s 无声断连的受限 loop，做不了分钟级多步任务。M2 把它退化为语音网关，新增独立 agent 服务并补齐设备协议与 UI。
 
 | ID | 功能 | 验收 |
 |---|---|---|
-| feat-agent-service | Claude Agent SDK 服务（每设备会话一个 client；ha-mcp 作 http MCP；`permission_mode=default` + `can_use_tool` → 审批队列）；任务 API `POST /tasks`、SSE 事件 `progress|needs_input|needs_approval|done|failed|cancelled`、`answer|approve|cancel`；`dispatch_dev_job` 用 `claude -p --output-format stream-json` 在目标仓库跑 HA 开发任务 | 「把客厅灯做成日落自动化」跨 ≥3 工具、>30 s，期间设备可被唤醒问天气且不并发 `chat()`，完成后设备收到 done |
+| feat-agent-service | Claude Agent SDK 服务（每个 chat 一个 SDK session，会话索引持久化；HA MCP 代理在本服务内实现 ADR-9 的 pending/异步审批，不改 ha-mcp wait_seconds；ha-mcp 作 http MCP；`permission_mode=default` + `can_use_tool` → 审批队列）；任务 API `POST /tasks`、SSE 事件 `progress|needs_input|needs_approval|done|failed|cancelled`、`answer|approve|cancel`；`dispatch_dev_job` 用 `claude -p --output-format stream-json` 在目标仓库跑 HA 开发任务 | 「把客厅灯做成日落自动化」跨 ≥3 工具、>30 s，期间设备可被唤醒问天气且不并发 `chat()`，完成后设备收到 done |
 | feat-llm-claude-agent | xiaozhi provider `type: claude_agent`：短问直答，长任务建 task 后立即应答并发 LAST；文本流 + 侧信道事件；长任务保活；MCP 接入点执行器透传超时 | 5 min 无语音任务期间连接不断 |
 | feat-protocol-agent-msg | 服务器→设备 `agent` 消息 `{task_id,state,summary,progress,options,scheduling}`（先借 `custom`，固件开 `CONFIG_RECEIVE_CUSTOM_MESSAGE`）；后端通知重投队列 | 设备忙时的通知回 Idle 后 10 s 内送达 |
 | feat-ui-sessions | 会话切换页（Jay 2026-10-07）：左滑面板再滑或面板内入口进入「chats」列表——每个 chat 显示标题（首句/自动摘要）、最近活动时间、状态芯片（进行中/需批准/有未读）、当前会话高亮；点按切换、顶部「新对话」；语音同义：「new chat」「switch to <title>」「back to the last chat」；切换时服务端 `resume` 对应 SDK session，设备 UI 在 1 s 内显示所选会话的最近一轮摘要；列表来自 agent 服务的会话索引（持久化，重启后仍在） | 5 个 chat 间来回切换 10 次，每次语音追问落在正确会话；重启服务后列表与当前会话不变 |
@@ -76,7 +76,7 @@ xiaozhi-server 的对话循环是深度 ≤5、每工具 30 s、同步阻塞、1
 
 依赖：feat-llm、feat-ui-face、feat-ui-panel、feat-approvals。结果交付三档借 Gemini Live 的 `INTERRUPT | WHEN_IDLE | SILENT`。
 
-- **ADR-11 前台对话轮绝对时限**：每个前台语音轮 90 s 绝对期限，SDK 重试、provider 回退、工具轮次共用，不被单请求超时重置；到期停止调度新工作、阻止迟到结果进入新轮，并在固件 120 s 信道超时前向设备发送终态。已派发的动作结果未知时不得报为已取消或自动重试。
+- **ADR-11 前台对话轮绝对时限**（2026-10-07：不再在小智 chat() 覆盖层实现，fix-turn-isolation 作废；由 feat-llm-claude-agent 在网关 provider 层实现）：每个前台语音轮 90 s 绝对期限，SDK 重试、provider 回退、工具轮次共用，不被单请求超时重置；到期停止调度新工作、阻止迟到结果进入新轮，并在固件 120 s 信道超时前向设备发送终态。已派发的动作结果未知时不得报为已取消或自动重试。
 - **ADR-12 电源策略**：上游固件 PowerSaveTimer 在空闲 300 s 后经 PMIC 关机，即使 USB 供电也会关——这是设备反复“从 USB 消失”的原因。决定：USB 供电时禁用自动关机；空闲 60 s 调暗、300 s **关闭屏幕**（AMOLED 全黑，MCU 与唤醒词检测保持运行），唤醒词、拿起（IMU）或触摸点亮；电池供电时保留空闲关机，时长可配。热修复 fix-power-usb 负责去掉关机；300 s 关屏若未随热修复实现，由 feat-ui-ring-bedside 补。
 - **ADR-10 agent 层**：Claude Agent SDK 自托管；Managed Agents 留作不碰 HA 的 side project 后备；不采用 LangGraph/Pydantic AI/Pipecat。2026-10-07 Jay 决定：模型用 `claude-fable-5-1`（成本不是约束，响应性与稳定性优先，保留 fallback）；多会话——设备上可切换 chat，每个 chat 对应一个 SDK session（原生 resume/history），5 min 无语音任务的连接断开可接受，任务与会话状态在 agent 服务侧持久化；记忆——以 SDK 自带机制（CLAUDE.md/settings 加载、项目记忆目录）为主，应用层只补会话索引；鉴权：SDK 文档（code.claude.com/docs/en/agent-sdk/overview）明确 SDK 构建的 agent 不得使用 claude.ai 登录，须用 API key；且本机 `claude` 登录是 Yahoo 企业账号——故 agent 服务用 Jay 的个人 ANTHROPIC_API_KEY（`~/Projects/weixue/.env`），容器以环境变量注入。SDK 事实：session 持久化为 `~/.claude/projects/<cwd>/*.jsonl`，`resume`/`continue_conversation`/`fork_session`；CLAUDE.md、`.claude/rules/` 与项目记忆目录按 `setting_sources` 加载；`model`/`fallback_model`/`max_turns`/`max_budget_usd` 可设；进程内 `@tool` + `create_sdk_mcp_server`，外部 MCP 经 `mcp_servers`，`can_use_tool` 作审批门。待实现时核实：流式模式下的中途打断（interrupt）与 partial message 事件。
 - feat-firmware-base 必须在最终 sdkconfig 验证 `CONFIG_RECEIVE_CUSTOM_MESSAGE=y`，并在实机确认合法 custom 消息可达、未知消息不影响语音。feat-ui-panel 用 fixture 数据预留任务芯片和审批卡并输出 UI 决定；真实审批执行由 feat-approvals 验收。
