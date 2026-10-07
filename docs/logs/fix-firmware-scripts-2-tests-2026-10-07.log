@@ -1,0 +1,103 @@
+# fix-firmware-scripts-2 host checks (2026-10-07), commit tree as in the final commit.
+
+## bash scripts/tests/device_lock_test.sh
+ok   acquire writes pid owner
+ok   released after normal exit
+ok   released after error exit
+ok   released after SIGTERM
+ok   runs device_lock_cleanup
+ok   child of holder reuses lock and leaves it
+ok   outer release after nested use
+ok   takes over lock of exited pid
+ok   waits for live owner, then fails
+ok   WEIXUE_DEVICE_LOCK_OWNER grants use
+ok   legacy owner: fails at once with hint, lock kept
+ok   legacy owner: WEIXUE_DEVICE_LOCK_OWNER grants use, lock kept
+ok   legacy owner: same-shell holder is the caller
+ok   cli acquire prints holder pid
+ok   cli status live
+ok   script under cli holder keeps lock
+ok   release refused for non-holder
+ok   release ends holder and removes lock
+ok   expired holder is stale
+ok   expired holder lock taken over
+ok   cli acquire after a wait longer than hold is live
+ok   cli hold counts from acquisition
+ok   concurrent takeover of a stale lock: each waiter holds it alone
+failures: 0
+rc=0
+
+## bash scripts/tests/flash_scripts_test.sh
+ok   nvs_board_uuid: full image
+ok   nvs_board_uuid: partition dump
+ok   nvs_board_uuid: other uuid differs
+ok   nvs_board_uuid: no board:uuid exits 2
+ok   provenance: repeatable
+ok   provenance: patch edit changes its patch line
+ok   provenance: dependencies.lock edit
+ok   provenance: new override listed
+ok   provenance: committed scripts change changes inputs
+ok   provenance: commit outside inputs keeps it
+ok   provenance: ESP-IDF commit
+ok   provenance: restored
+ok   flash: no backup refused
+ok   flash: untagged backup refused
+ok   flash: backup tagged with another MAC refused
+ok   flash: same backup tagged with the device MAC flashes
+ok   flash: newer short tagged backup skipped, older full one used
+ok   flash: only a short tagged backup refused
+ok   flash: digest mismatch refused
+ok   flash: missing .sha256 refused
+ok   flash: .sha256 naming another file refused
+ok   flash: patch edited after build refused before serial access
+ok   flash: dependencies.lock edited after build refused
+ok   flash: scripts edited after build refused
+ok   flash: other ESP-IDF in provenance refused
+ok   flash: image changed after build refused
+ok   flash: manifest without provenance refused
+ok   flash: rebuilt checkout flashes
+ok   flash: live lock of another owner refused, lock kept
+ok   flash: lock held by caller used and kept
+ok   backup: writes bin, mac and sha256
+ok   backup: files 0600, directory 0700, no partial
+ok   backup: flash.sh accepts the new backup
+ok   backup: MAC change during the read refused, partial removed
+ok   adopt: matching board:uuid tags the backup
+ok   adopt: files 0600
+ok   adopt: already tagged refused
+ok   adopt: flash.sh accepts the adopted backup
+ok   adopt: other board:uuid refused, untagged
+ok   adopt: short backup refused
+ok   adopt: digest mismatch refused
+ok   adopt: backup without board:uuid refused
+ok   adopt: device without board:uuid refused
+failures: 0
+rc=0
+
+## bash: source scripts/env.sh with vendor.lock cmake pin 9.9.9 (ESP-IDF export.sh progress lines removed)
+error: export.sh puts cmake 4.0.3 on PATH, vendor.lock pins 9.9.9
+rc=1
+IDF_PATH=unset IDF_TOOLS_PATH=unset XIAOZHI_PATH=unset
+idf.py not on PATH
+PATH entries under .espressif: 0
+
+## zsh: source scripts/env.sh with vendor.lock cmake pin 9.9.9 (ESP-IDF export.sh progress lines removed)
+error: export.sh puts cmake 4.0.3 on PATH, vendor.lock pins 9.9.9
+rc=1
+IDF_PATH=unset IDF_TOOLS_PATH=unset XIAOZHI_PATH=unset
+idf.py not on PATH
+PATH entries under .espressif: 0
+
+## bash: source scripts/env.sh with vendor.lock ninja pin 9.9.9 (ESP-IDF export.sh progress lines removed)
+error: export.sh puts ninja 1.12.1 on PATH, vendor.lock pins 9.9.9
+rc=1
+IDF_PATH=unset IDF_TOOLS_PATH=unset XIAOZHI_PATH=unset
+idf.py not on PATH
+PATH entries under .espressif: 0
+
+## zsh: source scripts/env.sh with vendor.lock ninja pin 9.9.9 (ESP-IDF export.sh progress lines removed)
+error: export.sh puts ninja 1.12.1 on PATH, vendor.lock pins 9.9.9
+rc=1
+IDF_PATH=unset IDF_TOOLS_PATH=unset XIAOZHI_PATH=unset
+idf.py not on PATH
+PATH entries under .espressif: 0

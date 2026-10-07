@@ -1,0 +1,75 @@
+## env.sh with vendor.lock esp-idf pin v6.0
+error: /Users/jwang14/Projects/weixue-vendor/esp-idf is not at vendor.lock esp-idf v6.0
+rc=1
+idf.py not on PATH
+Updated 1 path from the index
+## env.sh with vendor.lock cmake pin 4.0.2
+error: cmake 4.0.3 on PATH, vendor.lock pins 4.0.2
+rc=1
+Updated 1 path from the index
+## env.sh with an uncommitted change in esp-idf
+error: /Users/jwang14/Projects/weixue-vendor/esp-idf has local changes
+rc=1
+Updated 1 path from the index
+       0
+
+## flash.sh after an uncommitted edit to firmware/patches/22-application-device-event.patch (no serial access, no lock taken)
+port: /dev/cu.usbmodem2101
+built:   uncommitted none
+current: uncommitted 5cd2cb9c38304bbc23e17657c5fd191ac12e22a5dc54a06eb3a37780c4e92bbb
+built:   patch 4a299df17fb79548a9f5bebbbb651a69de5f8694c7c55846a123e906c6328a7c 22-application-device-event.patch
+current: patch 48b5352dc5b9509d434710087129e3e670868a587dddbdabda27c02d8ddae2d6 22-application-device-event.patch
+error: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-firmware-scripts-2 was built from different sources than /Users/jwang14/Projects/weixue-wt-fix-firmware-scripts-2; run firmware/build.sh
+rc=1
+Updated 1 path from the index
+
+## flash.sh after an uncommitted edit to scripts/venv.sh
+port: /dev/cu.usbmodem2101
+built:   uncommitted none
+current: uncommitted a7593bb6fe49a2b01cda2e9871dabb38cf3b1a36ebb484dc3168210f7f861531
+error: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-firmware-scripts-2 was built from different sources than /Users/jwang14/Projects/weixue-wt-fix-firmware-scripts-2; run firmware/build.sh
+rc=1
+Updated 1 path from the index
+
+## provenance after an uncommitted docs edit (equal to the build's)
+provenance: equal
+Updated 1 path from the index
+
+## flash.sh with the scratch copy's provenance file edited (manifest check)
+port: /dev/cu.usbmodem2101
+weixue-build.provenance: FAILED
+shasum: WARNING: 1 computed checksum did NOT match
+error: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-firmware-scripts-2 differs from the image firmware/build.sh verified; run firmware/build.sh
+rc=1
+ls: /Users/jwang14/Projects/weixue-vendor/.device-lock: No such file or directory
+
+## flash.sh: only an untagged full backup
+device lock: held by caller (pid=46597 since=2026-10-07T05:11:04Z by=holder(1500s))
+MAC:                <mac>
+error: no backup tagged with MAC <mac> in <tmp-backup-dir>; run scripts/backup_flash.sh (or scripts/adopt_backup.sh for an untagged backup of this device)
+exit: non-zero, write-flash not reached
+
+## flash.sh: backup tagged with another MAC
+device lock: held by caller (pid=46597 since=2026-10-07T05:11:04Z by=holder(1500s))
+MAC:                <mac>
+error: no backup tagged with MAC <mac> in <tmp-backup-dir>; run scripts/backup_flash.sh (or scripts/adopt_backup.sh for an untagged backup of this device)
+exit: non-zero, write-flash not reached
+
+## flash.sh: matching MAC, .sha256 names a different file
+device lock: held by caller (pid=46597 since=2026-10-07T05:11:04Z by=holder(1500s))
+MAC:                <mac>
+backup: <tmp-backup-dir>/flash-20990101-000000.bin
+error: <tmp-backup-dir>/flash-20990101-000000.sha256 names 'flash-20261007-061112.bin', not flash-20990101-000000.bin
+exit: non-zero, write-flash not reached
+
+## flash.sh: matching MAC, .sha256 hash differs
+device lock: held by caller (pid=46597 since=2026-10-07T05:11:04Z by=holder(1500s))
+MAC:                <mac>
+backup: <tmp-backup-dir>/flash-20990101-000000.bin
+error: <tmp-backup-dir>/flash-20990101-000000.bin sha256 8474fc4392fd377b42d899b2e3126b20740afb5e664ff0820e19114b3e322070 differs from <tmp-backup-dir>/flash-20990101-000000.sha256 (0000000000000000000000000000000000000000000000000000000000000000)
+exit: non-zero, write-flash not reached
+
+## build.sh with firmware/dependencies.lock manifest_hash edited (component manager re-solves and rewrites the lock)
+error: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-firmware-scripts-2/dependencies.lock differs from firmware/dependencies.lock (managed components resolved differently)
+rc=1
+no weixue-build.sha256 / weixue-build.provenance left in the scratch copy, so flash.sh refuses

@@ -33,6 +33,8 @@ idf.py --version            # ESP-IDF v6.1
 source scripts/env.sh       # idf.py, cmake, ninja on PATH; IDF_PATH, XIAOZHI_PATH set
 ```
 
+`env.sh` returns an error without exporting ESP-IDF unless `esp-idf` is at the `vendor.lock` pin (tag or commit) with a clean `git status`, and the cmake and ninja that ESP-IDF `export.sh` puts on PATH (checked in a subshell before anything is exported) match their `vendor.lock` versions. On success it prints the pinned versions and the ESP-IDF commit.
+
 ## Flash backup (read-only)
 
 ```bash
@@ -40,9 +42,9 @@ ls /dev/cu.usbmodem*        # expect /dev/cu.usbmodem2101
 scripts/backup_flash.sh [port]
 ```
 
-Reads the full flash (size auto-detected; override with `FLASH_SIZE`) to `${WEIXUE_BACKUP_DIR:-$HOME/Projects/weixue/backup}/flash-<timestamp>.bin`, writes the device MAC from `flash-id` to `flash-<timestamp>.mac` and the sha256 to `flash-<timestamp>.sha256`, and prints its byte count and sha256. It uses `.venv/bin/esptool` (see `scripts/venv.sh`). `backup/` is gitignored.
+Under the device lock, reads the full flash (size auto-detected; override with `FLASH_SIZE`) to `${WEIXUE_BACKUP_DIR:-$HOME/Projects/weixue/backup}/flash-<timestamp>.bin`, writes the device MAC from `flash-id` to `flash-<timestamp>.mac` and the sha256 to `flash-<timestamp>.sha256` (files 0600, directory 0700), and prints its byte count and sha256. It uses `.venv/bin/esptool` (see `scripts/venv.sh`). `backup/` is gitignored. An older backup without `.mac` is tagged with `scripts/adopt_backup.sh <backup.bin> [port]` after its NVS `board:uuid` is checked against the device (see `docs/firmware.md`, Flash).
 
-Restore (manual, destructive): `(cd backup && shasum -a 256 -c flash-<timestamp>.sha256)`, then `.venv/bin/esptool --chip esp32s3 --port <port> write-flash 0 <backup-file>`.
+Restore (manual, destructive): check that `flash-<timestamp>.mac` is the device's MAC and that `shasum -a 256 backup/flash-<timestamp>.bin` equals the hash in `flash-<timestamp>.sha256`, take the device lock (`docs/firmware.md`, Device lock), then `.venv/bin/esptool --chip esp32s3 --port <port> write-flash 0 <backup-file>`.
 
 ## Board target check
 
