@@ -139,7 +139,7 @@ tasks:
     branch: fix/server-review-2
     description: 按 docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md 修复：C1 Anthropic 流式工具索引仅在发出时分配、direct_answer 复用索引，三种丢弃场景回归测试跑在真实上游 merger 上；C3 Google TTS 取消独立于响应到达（首响应预取期间也可取消；abort/close 时 cancel RPC；区分主动中止与 Cancelled 错误）；C4 TTS 分片 UTF-8 字节硬上限 5000 + 英文句号分句（有界缓冲，处理小数/缩写）；C5 whitespace 修复改为 framing-aware 的 direct_answer 增量解码，不再按块判断引号/括号；C6 STT 仅在明确的语言组合错误时回退 ["auto"]，接收缓冲有界，拒绝提示语双语；C8 setup.sh 渲染到 0600 临时文件、校验 YAML、构建成功后原子发布、保留回滚与就绪检查；patch 11 锁定传递依赖并在镜像构建跑 pip check；patch 4 网络边界：server.auth.enabled + allowed_devices（设备 MAC 7c:0c:5f:42:4b:fc），OTA/WS 只绑定需要的接口，docs 不再声称 firmware-base 已启用。每项附测试；端到端：实机一轮 + 打断一轮。
     depends_on: [fix-conversation-timing, feat-proactive]
-    status: in_progress
+    status: review
     retries: 0
     model: opus
   - id: fix-turn-isolation
@@ -155,7 +155,7 @@ tasks:
     branch: fix/firmware-scripts-2
     description: Codex C7/C9/patch 6/12：flash.sh 只接受与当前设备 MAC 绑定的备份并显式校验所选 .bin 摘要（历史无标签备份走单独迁移校验）；备份文件 0600；build.sh 的 manifest 绑定源码补丁集、项目修订、dependencies.lock 与 ESP-IDF 修订，flash.sh 不匹配即拒绝；lock 漂移报错而非警告；env.sh 校验 IDF pin；设备锁（~/Projects/weixue-vendor/.device-lock）在 flash.sh/backup_flash.sh 入口内获取。端到端：实机备份→烧录→启动日志。
     depends_on: [feat-ui-face, feat-imu]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: fix-power-usb
@@ -179,7 +179,7 @@ tasks:
     branch: fix/wave3-firmware
     description: 按 docs/reviews/codex-gpt6-astra-high-wave3-code-review-2026-10-07.md：C2 一口气说「Jarvis, what time is it?」丢开头（唤醒→建连→进入监听期间约 300 ms 采集缺口；当前 0/8 成功）——唤醒检测到监听之间保持连续采音并前滚缓冲，中英短命令连说与停顿后各 10 次 ≥9；C1 面朝下静音必须无条件关闭传输、作废排队回调，并在 tts start / 进入监听 / 发送麦克风数据三处强制静音不变量，测试超时后静音与迟到帧；C9 IMU 20 ms 轮询超时后重新同步、拒绝不连续样本；C8 脸的 thinking 态保持到真正开口或明确终态/错误，而非 20 s 后假装 speaking；面板（feat-ui-panel 与 Codex Wave 4 评审，P1）：设备事件发送不得阻塞应用主任务（建连期间也不得阻塞，影响唤醒与 IMU 静音），发送失败不得显示“已发送”也不得触发错误提示音（后端不可达时点卡片曾阻塞 10 s），后端状态行在长会话/取消静音后误显示 offline 要修，回复文本不得跨轮累积；床头时钟依赖启动时一次性的固定 UTC 偏移（DST 后偏 1 h、离线启动显示 --:--）——改为每次重连重同步时间或在 OTA 响应里带 POSIX TZ。实机端到端验证。
     depends_on: [feat-ui-ring-bedside, feat-ui-panel]
-    status: in_progress
+    status: review
     retries: 0
     model: opus
   - id: fix-wave3-server

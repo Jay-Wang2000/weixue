@@ -16,6 +16,13 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 6. Audio/transcript retention and Google data-logging choice.
 7. HA-MCP panel: enable event decisions and set a PIN (needed by feat-approvals).
 
+## Security posture (needs your decision)
+13. **Server network/auth boundary** (`fix-server-review-2`, code ready on branch, not merged): upstream `allowed_devices` only skips the token check for a listed Device-Id header, and OTA hands a token to anyone who POSTs; Rancher Desktop on the Mac cannot bind a specific host IP (must use 0.0.0.0). Options: (A) accept both until the Ubuntu move; (B) pin the port forward to the LAN IP via a Rancher/lima override; (C) strict allow-list in `weixue_patches` (OTA gives no token to unlisted ids, WS refuses them); (D) real device credential or TLS/WireGuard. **Recommendation: C now, D with the Ubuntu move.** The branch also fixes the Anthropic tool-index bug, TTS cancel, 5000-byte TTS split, direct_answer decoding, STT fallback, atomic setup.sh with rollback, and a pinned requirements lock (393 tests pass). Merge + live end-to-end wait for home (needs device audio).
+
+## Deferred to home (device audio/network needed)
+- `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
+- `fix-server-review-2` live round + barge-in + auth check.
+
 ## FYI (proceeding; our own stack, not an external service)
 9. Codex Wave 2 code review (`docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md`): fix-first verdict. Three fix tasks queued after Wave 3: `fix-server-review-2`, `fix-turn-isolation`, `fix-firmware-scripts-2`. Includes enabling `server.auth` with the device MAC allow-list and binding OTA/WS to needed interfaces only.
 
