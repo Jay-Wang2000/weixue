@@ -1,0 +1,51 @@
+face_diag: 0
+patch: 05-board-power-usb.patch
+patch: 10-proactive-poll.patch
+patch: 11-face-display.patch
+patch: 12-application-mic-mute.patch
+patch: 20-board-imu-gestures.patch
+patch: 21-ring-bedside.patch
+patch: 22-application-device-event.patch
+CONFIG_OTA_URL="http://192.168.8.220:8003/xiaozhi/ota/"
+CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=300
+CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300
+build_seconds: 223
+size: build/bootloader/bootloader.bin 16736
+size: build/partition_table/partition-table.bin 3072
+size: build/xiaozhi.bin 3040608
+size: build/generated_assets.bin 2985927
+size: build/merged-binary.bin 13471687
+project: a0413f05e28ca164e86aa6a0ae8cdb3f71f56a97
+inputs b148fed73a2876c5485875a7fec48d7cb0895614 57f93dd5d4a946bf75bddf24bb121931c59dcc9c 7dcab58e68b8c8f897fdf32a1109875712160162
+uncommitted none
+xiaozhi-esp32 0d576d3d4c049c6f55eaf879725dc23e516511b4
+esp-idf fff9895c82d744c7237be8847347bdd1b07c6643
+board 99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b
+dependencies.lock 30b86369bf8cc6631c2df24021cbf86fcf81bf2c43ca56830375abdadc4b8469
+patch 3bb5a2a1cf2e67de45887bb3d08959849aa33e2a7a2615d349dc278d402e49e1 05-board-power-usb.patch
+patch 7f600fe5ab6655deab014f28577a8fe62c4e1cb58abfcc353a547a0364dc3d3f 10-proactive-poll.patch
+patch c3b551dde0533abc3dbb2cc767e337102a1881b6117174a3d2a7ef78b8c9c1dd 11-face-display.patch
+patch b7032650d0dba8142b7df7f060c32a9e2c66054d387190e8dc4470be844fb140 12-application-mic-mute.patch
+patch 54f65b61bbb4112694f9f6dcb5aece708f1932dc06c3f32bf9ea0872873d1897 20-board-imu-gestures.patch
+patch f91de10a57929da8ed7430aa0d280ba0b36776e23ee1e0ce3765801b4df3b8ca 21-ring-bedside.patch
+patch 4a299df17fb79548a9f5bebbbb651a69de5f8694c7c55846a123e906c6328a7c 22-application-device-event.patch
+override 4d5d40fc1a8ca7397afb6f13d5ff920e09d59b791805b9b048fac73ade479ce6 main/boards/waveshare/esp32-s3-touch-amoled-1.75/bedside_schedule.h
+override a747de2a0a04079c823717494ef110e5826955bd24927824e4f081ecfb698a98 main/boards/waveshare/esp32-s3-touch-amoled-1.75/face_display.cc
+override 0b9217dec29a631bca04d29020ec724e8c88288a42b07b19b016955521afa378 main/boards/waveshare/esp32-s3-touch-amoled-1.75/face_display.h
+override 1660661fa6969e7bd629cd0234512145748493d7ad2d658361f7504fb591775b main/boards/waveshare/esp32-s3-touch-amoled-1.75/imu_gestures.h
+override 872c8c8d1455bf748aeb3be98e9f15d60485c32fe8797a216f5f85362ffab09c main/boards/waveshare/esp32-s3-touch-amoled-1.75/monitor_panel.cc
+override 9d0747988b60ac73e2b57f27cf455b375380eb7fa48c5aa9ec71025a8c80124f main/boards/waveshare/esp32-s3-touch-amoled-1.75/monitor_panel.h
+override 3c7faf4bf354bb0f6c6adb9938f634ce47f3be473e826e629326eb9aad032d1d main/boards/waveshare/esp32-s3-touch-amoled-1.75/qmi8658.cc
+override 5b76f7effb9f81cf74dd50a88983aa97eff45bbf1f392015bb905032868378c1 main/boards/waveshare/esp32-s3-touch-amoled-1.75/qmi8658.h
+override c718c426ac4d6d2a10a17b52b711deb90dcf5fe5bd3c8a55ead8a8a804da1cb5 main/boards/waveshare/esp32-s3-touch-amoled-1.75/voice_ring.h
+4846d552c4c003af584df3724b164f3986bf3e0999620d2881393ead9fdc48af  weixue-build.provenance
+7c46a12f7b24dae67a3e6b395e021b991d9893f0ee9e77d37501cee3cbf1fd71  sdkconfig
+99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b  main/boards/waveshare/esp32-s3-touch-amoled-1.75/config.weixue.json
+2e8eded1c3cbc720bd0e62263de06542027ec16e9d6e0160223764b9df60e6ac  build/flash_args
+c9f4fcdafa362396c2ce67391d199a5db421a7fa9e4533823259679253a0acf1  build/bootloader/bootloader.bin
+d2c535fc5f29da4d32f122befe65b97925777549b000f93ced719e71a942a3a9  build/partition_table/partition-table.bin
+7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f  build/ota_data_initial.bin
+710bdac786aec1c08bd65241ec1e54bc83e0b6dce9a35b999925b4b37e30196a  build/generated_assets.bin
+e016864c5b039c194fdc5e9e6c201bad30f39e1e5c16fbe942407179cf7bf23c  build/xiaozhi.bin
+work_dir: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-firmware-scripts-2
+exit=0

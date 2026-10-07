@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Builds the weixue firmware in a scratch copy of the vendored xiaozhi-esp32 clone (plus firmware/overrides and firmware/patches), writes the sha256 of sdkconfig, config.weixue.json and every flashed file to $work/weixue-build.sha256, and prints build time and binary sizes.
+# Builds the weixue firmware in a scratch copy of the vendored xiaozhi-esp32 clone (plus firmware/overrides and firmware/patches), writes the firmware/provenance.sh source identity to $work/weixue-build.provenance and the sha256 of it, sdkconfig, config.weixue.json and every flashed file to $work/weixue-build.sha256, and prints build time and binary sizes.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 vendor="${WEIXUE_VENDOR:-$HOME/Projects/weixue-vendor}"
 src="$vendor/xiaozhi-esp32"
 work="${WEIXUE_FW_WORK:-$vendor/fw-work/$(basename "$root")}"
 manifest=weixue-build.sha256
+provenance=weixue-build.provenance
 board_dir=waveshare/esp32-s3-touch-amoled-1.75
 build_name=esp32-s3-touch-amoled-1.75c-weixue
 language=en-US
@@ -17,11 +18,12 @@ die() { echo "error: $*" >&2; exit 1; }
 expected="$(awk '$1=="xiaozhi-esp32"{print $3}' "$root/vendor.lock")"
 [ "$(git -C "$src" rev-parse HEAD)" = "$expected" ] || die "$src is not at vendor.lock commit $expected"
 [ -z "$(git -C "$src" status --porcelain)" ] || die "$src has local changes"
+[ -f "$root/firmware/dependencies.lock" ] || die "firmware/dependencies.lock is missing"
 
 [ "$(cd "$src" && pwd -P)" != "$(mkdir -p "$work" && cd "$work" && pwd -P)" ] || die "WEIXUE_FW_WORK must not be the vendored clone"
 [ -z "$(ls -A "$work")" ] || [ -f "$work/main/boards/$board_dir/config.weixue.json" ] \
   || die "$work is not empty and not a weixue scratch copy"
-rm -f "$work/$manifest"
+rm -f "$work/$manifest" "$work/$provenance"
 rsync -a --delete \
   --exclude /.git --exclude /managed_components --exclude /build \
   --exclude /sdkconfig --exclude /sdkconfig.old --exclude /dependencies.lock \
@@ -39,7 +41,7 @@ diag_want="#define WEIXUE_FACE_DIAG $face_diag"
 [ "$(cat "$diag_h" 2>/dev/null)" = "$diag_want" ] || echo "$diag_want" > "$diag_h"
 echo "face_diag: $face_diag"
 cp "$root/firmware/board/config.weixue.json" "$work/main/boards/$board_dir/config.weixue.json"
-[ -f "$root/firmware/dependencies.lock" ] && cp "$root/firmware/dependencies.lock" "$work/dependencies.lock"
+cp "$root/firmware/dependencies.lock" "$work/dependencies.lock"
 shopt -s nullglob
 for patch in "$root"/firmware/patches/*.patch; do
   git -C "$work" apply --check "$patch" || die "$(basename "$patch") does not apply to vendor.lock commit $expected"
@@ -50,6 +52,7 @@ shopt -u nullglob
 
 # shellcheck disable=SC1091
 . "$root/scripts/env.sh" >/dev/null
+sources="$("$root/firmware/provenance.sh")"
 cd "$work"
 start=$(date +%s)
 python scripts/build.py "$board_dir" -c config.weixue.json --name "$build_name" \
@@ -78,17 +81,20 @@ screen_off="$(grep -E '^CONFIG_WEIXUE_SCREEN_OFF_SECONDS=[0-9]+$' sdkconfig || t
 [ -n "$screen_off" ] || die "sdkconfig lacks CONFIG_WEIXUE_SCREEN_OFF_SECONDS (power patch not applied)"
 echo "$screen_off"
 
-if [ -f "$root/firmware/dependencies.lock" ] && ! cmp -s dependencies.lock "$root/firmware/dependencies.lock"; then
-  echo "warning: $work/dependencies.lock differs from firmware/dependencies.lock" >&2
-fi
+cmp -s dependencies.lock "$root/firmware/dependencies.lock" \
+  || die "$work/dependencies.lock differs from firmware/dependencies.lock (managed components resolved differently)"
+[ "$("$root/firmware/provenance.sh")" = "$sources" ] || die "sources changed during the build"
+echo "$sources" > "$provenance"
 
 head -1 build/flash_args | grep -q -- '--flash-size 32MB' || die "build/flash_args is not a 32MB layout"
-{ echo sdkconfig; echo "main/boards/$board_dir/config.weixue.json"; echo build/flash_args
+{ echo "$provenance"; echo sdkconfig; echo "main/boards/$board_dir/config.weixue.json"; echo build/flash_args
   awk 'NR>1{print "build/"$2}' build/flash_args; } | while read -r f; do shasum -a 256 "$f"; done > "$manifest"
 echo "build_seconds: $elapsed"
 for f in build/bootloader/bootloader.bin build/partition_table/partition-table.bin \
          build/xiaozhi.bin build/generated_assets.bin build/merged-binary.bin; do
   [ -f "$f" ] && echo "size: $f $(wc -c < "$f" | tr -d ' ')"
 done
+echo "project: $(git -C "$root" rev-parse HEAD)"
+cat "$provenance"
 cat "$manifest"
 echo "work_dir: $work"

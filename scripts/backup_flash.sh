@@ -1,29 +1,30 @@
 #!/usr/bin/env bash
-# Read-only full-flash backup to ${WEIXUE_BACKUP_DIR:-$HOME/Projects/weixue/backup}/flash-<timestamp>.bin plus the device MAC in flash-<timestamp>.mac and its sha256 in flash-<timestamp>.sha256. Never erases or writes the device.
+# Read-only full-flash backup under the device lock to ${WEIXUE_BACKUP_DIR:-$HOME/Projects/weixue/backup}/flash-<timestamp>.bin with the device MAC in flash-<timestamp>.mac and its sha256 in flash-<timestamp>.sha256, all mode 0600. Never erases or writes the device.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 backup_dir="${WEIXUE_BACKUP_DIR:-$HOME/Projects/weixue/backup}"
+umask 077
 
-if [ -n "${1:-}" ]; then
-  port="$1"
-else
-  ports=(/dev/cu.usbmodem*)
-  [ -e "${ports[0]}" ] || { echo "no /dev/cu.usbmodem* port found" >&2; exit 1; }
-  [ "${#ports[@]}" -eq 1 ] || { echo "multiple ports: ${ports[*]}; pass one as \$1" >&2; exit 1; }
-  port="${ports[0]}"
-fi
-echo "port: $port"
-
-# shellcheck source=scripts/venv.sh
-. "$root/scripts/venv.sh"
+# shellcheck source=scripts/device.sh
+. "$root/scripts/device.sh"
+device_select_port "${1:-}"
 mkdir -p "$backup_dir"
+chmod 700 "$backup_dir"
 out="$backup_dir/flash-$(date +%Y%m%d-%H%M%S).bin"
-id_out="$("$esptool" --chip esp32s3 --port "$port" flash-id)"
-echo "$id_out"
-mac="$(echo "$id_out" | awk '$1=="MAC:"{print $NF; exit}')"
-[ -n "$mac" ] || { echo "no MAC in esptool flash-id output" >&2; exit 1; }
-"$esptool" --chip esp32s3 --port "$port" read-flash 0 "${FLASH_SIZE:-all}" "$out"
+partial="$out.partial"
+# shellcheck disable=SC2016
+device_lock_cleanup='rm -f "$partial"'
+device_lock_acquire backup_flash.sh
+
+device_flash_id
+mac_before="$mac"
+"$esptool" --chip esp32s3 --port "$port" read-flash 0 "${FLASH_SIZE:-all}" "$partial"
+device_flash_id
+[ "$mac" = "$mac_before" ] || die "device MAC changed during the read ($mac_before, then $mac)"
 echo "$mac" > "${out%.bin}.mac"
-(cd "$backup_dir" && shasum -a 256 "$(basename "$out")") > "${out%.bin}.sha256"
+echo "$(shasum -a 256 "$partial" | awk '{print $1}')  $(basename "$out")" > "${out%.bin}.sha256"
+mv "$partial" "$out"
+chmod 600 "$out" "${out%.bin}.mac" "${out%.bin}.sha256"
+backup_verify_digest "$out"
+echo "mac: $mac"
 echo "file: $out ($(wc -c < "$out" | tr -d ' ') bytes)"
-cat "${out%.bin}.sha256"
