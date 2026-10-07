@@ -14,6 +14,7 @@ BASE_ENV = [
     "LAN_IP=192.0.2.1",
     "BIND_IP=0.0.0.0",
     "ALLOWED_DEVICES=7c:0c:5f:42:4b:fc",
+    "TZ=UTC",
     "TZ_OFFSET=0",
     "ANTHROPIC_API_KEY=x",
     "HA_MCP_URL=http://192.0.2.2:9584/secret",

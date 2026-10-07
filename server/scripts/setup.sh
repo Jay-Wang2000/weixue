@@ -8,7 +8,7 @@ export PATH="$HOME/.rd/bin:$PATH"
 [ -f .env ] || { echo "missing server/.env (copy .env.example)"; exit 1; }
 set -a; . ./.env; set +a
 # Pre-flight: every key server/.env must set; nothing is built, published or started before it passes.
-REQUIRED_KEYS=(LAN_IP BIND_IP ALLOWED_DEVICES TZ_OFFSET ANTHROPIC_API_KEY GOOGLE_SA_FILE HA_MCP_URL)
+REQUIRED_KEYS=(LAN_IP BIND_IP ALLOWED_DEVICES TZ TZ_OFFSET ANTHROPIC_API_KEY GOOGLE_SA_FILE HA_MCP_URL)
 MISSING=()
 for key in "${REQUIRED_KEYS[@]}"; do [ -n "${!key:-}" ] || MISSING+=("$key"); done
 if [ ${#MISSING[@]} -gt 0 ]; then

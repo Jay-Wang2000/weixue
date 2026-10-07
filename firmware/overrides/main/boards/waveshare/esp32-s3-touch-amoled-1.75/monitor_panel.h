@@ -2,6 +2,7 @@
 #define WEIXUE_MONITOR_PANEL_H
 
 #include "face_diag.h"
+#include "face_state.h"
 
 #include <lvgl.h>
 
@@ -23,7 +24,8 @@ public:
     bool IsShown() const { return shown_; }
 
     void SetHeard(const char* text);
-    void AddReply(const char* text);
+    // reply: Application::GetReplyCount() when the text arrived; a new value starts a new reply.
+    void AddReply(const char* text, uint32_t reply);
     void SetShift(int32_t x, int32_t y);
     // Re-derives line heights from the inherited text font after a theme or font change.
     void ApplyFonts();
@@ -58,7 +60,8 @@ private:
     lv_timer_t* refresh_timer_ = nullptr;
     lv_timer_t* rearm_timer_ = nullptr;
 
-    std::string reply_;
+    static constexpr size_t kMaxReplyBytes = 240;
+    ReplyText reply_{kMaxReplyBytes};
     CardState card_state_ = CardState::kPending;
     uint32_t event_seq_ = 0;
     int decision_ = 0;
@@ -84,7 +87,9 @@ private:
     int64_t replay_start_us_ = 0;
     char diag_values_[96] = "";
     int64_t diag_values_us_ = 0;
+    const char* diag_backend_ = nullptr;
     static void ReplayReadCb(lv_indev_t* indev, lv_indev_data_t* data);
+    static void DiagBackendCb(lv_timer_t* timer);
 #endif
 };
 

@@ -1,0 +1,144 @@
+# fix-wave3-firmware retry: IMU stall and read-failure injection on the final gate, 2026-10-07 (UTC). Serial, I (ms) is uptime; lines filtered to IMU, state and Wi-Fi. The Mac is off the device's network (no AP found, config mode at 62 s), so no backend; the IMU task runs regardless.
+# Diag build (WEIXUE_FACE_DIAG=1) injects a 120 ms stall plus an immediate extra read every 30 s and a simulated read failure every 45 s; before each injection it logs the sampling counters.
+## run A, 08:26 UTC: ImuPoll gate without the TIMESTAMP re-read. 43557/43577: a torn TIMESTAMP read (+265 counts, then -245) gave two resyncs; every injection otherwise resyncs once.
+I (106) app_init: App version:      2.5.1
+I (2007) StateMachine: State: unknown -> starting
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.033 y=-0.010 z=1.005 g
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+I (2417) WifiBoard: Starting WiFi connection attempt
+I (2427) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+I (2477) WifiStation: Scanning saved channel 11
+I (2477) WifiBoard: WiFi scanning
+I (2597) WifiStation: No AP on saved channels, starting full scan
+I (2597) WifiStation: Scanning all channels
+I (5007) WifiStation: No AP found, next scan in 10 seconds
+I (15007) WifiStation: Scanning all channels
+I (17417) WifiStation: No AP found, next scan in 20 seconds
+I (32017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=3 resyncs=1 skipped=3 read_errors=0
+I (32017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (32137) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 136 ms without a sample (2)
+I (37417) WifiStation: Scanning all channels
+I (39827) WifiStation: No AP found, next scan in 40 seconds
+I (43557) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 530 ms without a sample (3)
+I (43577) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 33553940 ms without a sample (4)
+I (47017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=4 resyncs=4 skipped=6 read_errors=0
+I (47017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+W (47017) WaveshareEsp32s3TouchAMOLED1inch75: IMU read failed (1)
+I (47037) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (5)
+I (62017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=5 resyncs=5 skipped=7 read_errors=1
+I (62017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+W (62427) WifiBoard: WiFi connection timeout, entering config mode
+I (62427) WifiStation: Stopping WiFi station
+W (62437) WifiBoard: WiFi disconnected
+I (62437) StateMachine: State: starting -> wifi_configuring
+I (62487) WifiBoard: WiFi config mode entered
+I (92017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=8 resyncs=8 skipped=11 read_errors=1
+I (92017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (92137) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=8 resyncs=8 skipped=11 read_errors=1
+I (92137) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+I (122017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=9 resyncs=9 skipped=12 read_errors=2
+I (122017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (137017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=10 resyncs=10 skipped=14 read_errors=2
+I (137017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+I (152037) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=10 resyncs=11 skipped=14 read_errors=3
+I (152037) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (182037) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=11 resyncs=12 skipped=16 read_errors=3
+I (182037) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (182157) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=11 resyncs=12 skipped=16 read_errors=3
+I (182157) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+## run B, 08:43 UTC: final gate with the TIMESTAMP re-read (AgreedCounter). 4 torn reads corrected in 7 min ("sample counter re-read"), no unexplained resync.
+## Expected at the 407108 snapshot: resyncs = 1 (boot) + 13 stalls + 8 failures - 4 (stall and failure in the same poll) = 18; read_errors = 8. Logged: resyncs=18 read_errors=8.
+I (106) app_init: App version:      2.5.1
+I (2008) StateMachine: State: unknown -> starting
+I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.033 y=-0.007 z=1.001 g
+I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+I (2418) WifiBoard: Starting WiFi connection attempt
+I (2428) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+I (2478) WifiStation: Scanning saved channel 11
+I (2478) WifiBoard: WiFi scanning
+I (2598) WifiStation: No AP on saved channels, starting full scan
+I (2598) WifiStation: Scanning all channels
+I (5008) WifiStation: No AP found, next scan in 10 seconds
+I (8838) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (1)
+I (14098) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (2)
+I (15008) WifiStation: Scanning all channels
+I (17418) WifiStation: No AP found, next scan in 20 seconds
+I (32018) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=3 resyncs=1 skipped=2 read_errors=0 torn_timestamps=2
+I (32018) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (32138) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 136 ms without a sample (2)
+I (37418) WifiStation: Scanning all channels
+I (39828) WifiStation: No AP found, next scan in 40 seconds
+I (47018) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=5 resyncs=2 skipped=4 read_errors=0 torn_timestamps=2
+I (47018) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+W (47018) WaveshareEsp32s3TouchAMOLED1inch75: IMU read failed (1)
+I (47038) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (3)
+I (62018) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=5 resyncs=3 skipped=5 read_errors=1 torn_timestamps=2
+I (62018) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (62138) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 136 ms without a sample (4)
+W (62428) WifiBoard: WiFi connection timeout, entering config mode
+I (62428) WifiStation: Stopping WiFi station
+W (62438) WifiBoard: WiFi disconnected
+I (62438) StateMachine: State: starting -> wifi_configuring
+I (62488) WifiBoard: WiFi config mode entered
+I (71438) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (3)
+I (92038) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=8 resyncs=4 skipped=9 read_errors=1 torn_timestamps=3
+I (92038) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (92158) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=8 resyncs=4 skipped=9 read_errors=1 torn_timestamps=3
+I (92158) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+I (92158) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (5)
+I (122048) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=9 resyncs=5 skipped=10 read_errors=2 torn_timestamps=3
+I (122048) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (137048) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=10 resyncs=6 skipped=12 read_errors=2 torn_timestamps=3
+I (137048) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+I (152068) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=10 resyncs=7 skipped=12 read_errors=3 torn_timestamps=3
+I (152068) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (182068) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=11 resyncs=8 skipped=15 read_errors=3 torn_timestamps=3
+I (182068) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (182188) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=11 resyncs=8 skipped=15 read_errors=3 torn_timestamps=3
+I (182188) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+I (212088) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=12 resyncs=9 skipped=16 read_errors=4 torn_timestamps=3
+I (212088) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (227088) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=13 resyncs=10 skipped=18 read_errors=4 torn_timestamps=3
+I (227088) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+I (242108) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=13 resyncs=11 skipped=18 read_errors=5 torn_timestamps=3
+I (242108) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (260028) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (4)
+I (272108) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=14 resyncs=12 skipped=20 read_errors=5 torn_timestamps=4
+I (272108) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+I (272128) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=14 resyncs=12 skipped=20 read_errors=6 torn_timestamps=4
+I (272128) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (302128) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=15 resyncs=13 skipped=22 read_errors=6 torn_timestamps=4
+I (302128) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (317108) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=16 resyncs=14 skipped=24 read_errors=6 torn_timestamps=4
+I (317108) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+I (332128) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=16 resyncs=15 skipped=24 read_errors=7 torn_timestamps=4
+I (332128) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (362108) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=17 resyncs=16 skipped=26 read_errors=7 torn_timestamps=4
+I (362108) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+I (362128) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=17 resyncs=16 skipped=26 read_errors=8 torn_timestamps=4
+I (362128) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (392128) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=18 resyncs=17 skipped=28 read_errors=8 torn_timestamps=4
+I (392128) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+I (407108) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=19 resyncs=18 skipped=30 read_errors=8 torn_timestamps=4
+I (407108) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+## release build boot, 08:54 UTC (90 s)
+I (106) app_init: App version:      2.5.1
+I (2007) StateMachine: State: unknown -> starting
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.031 y=-0.008 z=1.003 g
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+I (2417) WifiBoard: Starting WiFi connection attempt
+I (2427) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+I (2477) WifiStation: Scanning saved channel 11
+I (2477) WifiBoard: WiFi scanning
+I (2597) WifiStation: No AP on saved channels, starting full scan
+I (2597) WifiStation: Scanning all channels
+I (5007) WifiStation: No AP found, next scan in 10 seconds
+I (15007) WifiStation: Scanning all channels
+I (17417) WifiStation: No AP found, next scan in 20 seconds
+I (37417) WifiStation: Scanning all channels
+I (39827) WifiStation: No AP found, next scan in 40 seconds
+W (62417) WifiBoard: WiFi connection timeout, entering config mode
+I (62417) WifiStation: Stopping WiFi station
+W (62437) WifiBoard: WiFi disconnected
+I (62437) StateMachine: State: starting -> wifi_configuring
+I (62487) WifiBoard: WiFi config mode entered

@@ -13,7 +13,7 @@ Replace `<LAN_IP>` with `LAN_IP` from `server/.env`.
 | Vision explain | `http://<LAN_IP>:8003/mcp/vision/explain` |
 | Proactive webhook and device long-poll | `http://<LAN_IP>:8003/weixue/proactive/...` (`docs/proactive.md`) |
 
-`GET` on the OTA URL returns a plain-text banner. The device `POST`s JSON with `Device-Id` and `Client-Id` headers and receives the *OTA response*: `{"server_time":…,"firmware":…,"websocket":{"url":"ws://<LAN_IP>:8000/xiaozhi/v1/","token":""}}`.
+`GET` on the OTA URL returns a plain-text banner. The device `POST`s JSON with `Device-Id` and `Client-Id` headers and receives the *OTA response*: `{"server_time":…,"firmware":…,"websocket":{"url":"ws://<LAN_IP>:8000/xiaozhi/v1/","token":""}}`. `server_time` is `{"timestamp": <UTC ms>, "timezone_offset": <minutes>, "tz": "<POSIX TZ>"}`; `tz` (from `weixue_clock`) is the POSIX rule of `TZ` in `server/.env` (for example `Europe/Dublin` → `IST-1GMT0,M10.5.0,M3.5.0/1`), read from the footer of its TZif file, and is omitted when `TZ` is unset or has no TZif v2+ file. Compose passes the `.env` value as `WEIXUE_TZ` (`${TZ:-}`), because the container's own `TZ` falls back to `UTC` and an explicit `TZ=UTC` must stay distinguishable from that fallback. The firmware keeps a UTC clock with this TZ (`docs/firmware.md` Device behaviour); `timezone_offset` (`TZ_OFFSET`) is used only without `tz`.
 
 ## Network boundary
 
@@ -42,7 +42,7 @@ ws://<host>:8004/mcp_endpoint/mcp/?token=<AES-encrypted token>
 
 `server/overlay/` is the only way to add or change server code. Its contents mirror `main/xiaozhi-server/` of the upstream clone (for example `server/overlay/core/providers/llm/<name>/<name>.py`) and are copied over the upstream tree at image build (`server/Dockerfile`, `__pycache__` excluded from both). Python packages the overlay needs are listed in `server/requirements-overlay.txt`; `server/requirements-overlay.lock` pins them and their transitive dependencies (regeneration command in `scripts/lock_overlay_deps.py`). The Dockerfile installs the lock with `--no-deps` and fails the build if `pip check` finds a conflict. Apply with `./scripts/setup.sh`. The vendored clone is never edited.
 
-Changes to upstream functions that are too small to justify overriding a whole module go in `server/overlay/weixue_patches.py`. The image's entrypoint, `weixue_main.py`, applies them and then runs upstream `app.py`. Current patches:
+Changes to upstream functions that are too small to justify overriding a whole module go in `server/overlay/weixue_patches.py` (and `weixue_clock.py` for the OTA clock). The image's entrypoint, `weixue_main.py`, applies both and then runs upstream `app.py`. Current patches:
 
 - `ConnectionHandler._extract_direct_answer_response` is replaced by `decode_direct_answer`: it decodes the `response` JSON string of the streamed `direct_answer` arguments (escapes, `\uXXXX`, surrogate pairs) and stops at its closing quote or at an incomplete escape, so each streamed result extends the previous one. `_clean_response_garbage` returns its input unchanged: with framing removed by the decoder, no chunk-level stripping is applied (upstream's stripped whitespace and quotes at chunk edges: "isfour", "Say 'onnow").
 - `ConnectionHandler.handle_connection`, `ListenTextMessageHandler.handle` and the aiohttp app of `core.http_server` are wrapped for proactive messages (`docs/proactive.md`).
@@ -51,6 +51,7 @@ Changes to upstream functions that are too small to justify overriding a whole m
 - `ConnectionHandler.just_woken_up` is a property that always reads `False`: upstream sets it on every `listen detect` and then drops the next 2 s of microphone audio.
 - `receiveAudioHandle.no_voice_close_connect`: an audio frame received while the server holds the turn (`client_is_speaking`, from the STT result or wake cue to `tts stop`) refreshes `last_activity_time`, so the idle close counts from the end of the reply (see Conversation timing).
 - `McpTextMessageHandler.handle` logs every device MCP notification whose method starts with `notifications/weixue/` as `device event <method> device=<mac> params=<json>` before upstream handles it (panel decisions, `docs/firmware.md` Monitor panel; IMU gestures).
+- `OTAHandler.handle_post` (`weixue_clock.py`) adds `server_time.tz` to the OTA response; the server logs `OTA server_time.tz: <tz>` at start.
 - `intentHandler.checkWakeupWords` is replaced: a transcript that is only a `wakeup_words` entry (case-insensitive, punctuation ignored) is dropped with no reply. `enable_wakeup_words_response_cache` and the cached `wakeup_words` clips are therefore unused.
 - `sendAudioMessage` (in `core.handle.sendAudioHandle` and `core.providers.tts.base`) is wrapped to record, for the current sentence, the audio packets sent, whether its last packet went out unaborted and whether a text segment got no audio (proactive delivery outcome, `docs/proactive.md`), and each captioned reply sentence with the times of its first and latest packet (echo guard). The Google TTS provider reports a synthesis that raised to the same record.
 - `core.providers.asr.base.startToChat` is wrapped as the echo guard (see Echo guard); a transcript that passes it cancels a pending wake cue.
@@ -78,7 +79,7 @@ The device listens in realtime mode and streams microphone audio for the whole s
 - The microphone is never muted; speech during the cue reaches ASR.
 - The cue belongs to the turn that was current at the detect (`sentence_id`). Before it takes the connection, and after every await (clip load, `tts start`, decoder reset, audio), it stops once a newer turn owns the connection, live voice was heard, the server holds a turn or the connection closed. A new detect cancels a pending cue, as do a transcript that starts a turn and the end of the session.
 
-The device captures no audio between wake detection and listening start (286-330 ms measured), and live audio in the first ~0.6 s after it transcribes poorly, so a short request said in one breath with the wake word ("Jarvis, what time is it?") usually reaches the LLM clipped or not at all; longer ones lose their first words (`docs/logs/conversation-timing-onebreath-2026-10-07.log`).
+The device's microphone stream is continuous from the wake word into listening (`docs/firmware.md` Device behaviour, wake capture): the audio after the wake word arrives right behind the wake-word audio, before the `listen detect`, so a short request said in one breath with the wake word ("Jarvis, what time is it?") reaches ASR whole and the cue is skipped (`docs/logs/fix-wave3-firmware-wake-trials-2026-10-07.log`).
 
 Re-render the clips with `server/scripts/render_wake_cues.py` (usage in its docstring; runs in the server container).
 
@@ -140,11 +141,11 @@ Prerequisites: Rancher Desktop running (`~/.rd/bin` on PATH), python3, the two c
 
 ```bash
 cd server
-cp .env.example .env     # set LAN_IP, BIND_IP (Mac: 0.0.0.0), ALLOWED_DEVICES, TZ/TZ_OFFSET, ANTHROPIC_API_KEY, GOOGLE_SA_FILE, HA_MCP_URL (chmod 600)
+cp .env.example .env     # set LAN_IP, BIND_IP (Mac: 0.0.0.0), ALLOWED_DEVICES, TZ, TZ_OFFSET, ANTHROPIC_API_KEY, GOOGLE_SA_FILE, HA_MCP_URL (chmod 600)
 ./scripts/setup.sh
 ```
 
-Required `.env` keys: `LAN_IP`, `BIND_IP`, `ALLOWED_DEVICES`, `TZ_OFFSET`, `ANTHROPIC_API_KEY`, `GOOGLE_SA_FILE`, `HA_MCP_URL` (`REQUIRED_KEYS` in `setup.sh`).
+Required `.env` keys: `LAN_IP`, `BIND_IP`, `ALLOWED_DEVICES`, `TZ`, `TZ_OFFSET`, `ANTHROPIC_API_KEY`, `GOOGLE_SA_FILE`, `HA_MCP_URL` (`REQUIRED_KEYS` in `setup.sh`).
 
 `setup.sh` is idempotent. In order: a pre-flight that fails before any build, publish or container change when a required key is unset or empty, `GOOGLE_SA_FILE` is missing, or `BIND_IP` is not accepted (Network boundary); downloads SenseVoiceSmall (~936 MB) if missing, checks the vendor clone, starts `mcp-endpoint-server`, renders `config/config.template.yaml` with `scripts/render_config.py` (values are escaped; `@@NAME?@@` is optional and renders empty when unset) to a mode-0600 temporary file next to `data/.config.yaml`, tags the current `mcp-bridge` and server images (and `weixue/wg:local` while `WG_TUNNEL=1`) `:rollback`, builds them, and validates the rendered file with `scripts/validate_config.py` inside the new server image (YAML, `server.websocket`, auth allow-list, selected modules, LLM key, `mcp_endpoint`; problems are printed without values). A failed render, build or validation exits with `data/.config.yaml` and the `:local` images unchanged. Then it renames the file over `data/.config.yaml` (the previous one is kept as `data/.config.yaml.rollback`), writes `data/mcp-bridge/endpoint-url` the same way, force-recreates the containers (`wg` too while `WG_TUNNEL=1`; otherwise it then removes the `wg` container) and waits up to 90 s for `scripts/check_ready.py` (OTA banner on 8003, WebSocket handshake and banner frame on 8000, at `BIND_IP`, or `127.0.0.1` for `0.0.0.0`). After a successful check it copies `.env` to `.env.deployed` (0600). If the recreate or the check fails, it restores the previous config and images and, when `.env.deployed` exists, `.env` from it (the attempted file is kept as `.env.failed`, 0600), recreates the containers in that file's tunnel mode and exits 1. If that second recreate also fails, the stack is down: it prints a `manual restore:` block (retag each `:rollback` image to `:local`, then `docker compose [--profile …] up -d --force-recreate …` from `server/`) and exits 1. `docker-compose.yml` is not rolled back; without `.env.deployed` (first run) neither is `.env`. Logs: `docker logs -f xiaozhi-esp32-server`.
 
@@ -208,4 +209,4 @@ Not covered: inbound traffic from the home LAN to the Mac, such as the proactive
 
 ## Timezone
 
-The server is configured for `Europe/Dublin` (`TZ`/`TZ_OFFSET` in `server/.env`). `TZ_OFFSET` is a fixed integer that the device receives once at boot via OTA; it must be changed to `0` when DST ends (2026-10-25) and back to `1` on 2027-03-28 until `fix-wave3-firmware` lands time resync with a POSIX TZ string.
+The server is configured for `Europe/Dublin` (`TZ` in `server/.env`, required by `setup.sh`). The device follows daylight saving time from `server_time.tz` (see the OTA response above). `TZ_OFFSET` (whole hours) only sets `server_time.timezone_offset`, which the firmware applies when `tz` is absent; with `tz` present it needs no change at DST transitions.

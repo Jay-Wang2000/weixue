@@ -1,0 +1,232 @@
+# fix-wave3-firmware builds, 2026-10-07 (firmware/build.sh in ~/Projects/weixue-vendor/fw-work/weixue-wt-fix-wave3-firmware). Compiler output omitted. Retry sections (08:2x-08:5x UTC) follow the first run.
+## release, 05:20 UTC: flashed for the wake trials and IMU run 1 (rebuilt unchanged at 06:16)
+face_diag: 0
+patch: 05-board-power-usb.patch
+patch: 10-proactive-poll.patch
+patch: 11-face-display.patch
+patch: 12-application-mic-mute.patch
+patch: 20-board-imu-gestures.patch
+patch: 21-ring-bedside.patch
+patch: 22-application-device-event.patch
+patch: 23-application-wake-capture.patch
+patch: 24-application-mute-transport.patch
+patch: 25-application-turn-counts.patch
+patch: 26-application-device-event-async.patch
+patch: 27-clock-posix-tz.patch
+patch: 28-board-imu-resync.patch
+  sdkconfig: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-wave3-firmware/sdkconfig
+CONFIG_OTA_URL="http://192.168.8.220:8003/xiaozhi/ota/"
+CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=300
+CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300
+build_seconds: 82
+size: build/bootloader/bootloader.bin 16736
+size: build/partition_table/partition-table.bin 3072
+size: build/xiaozhi.bin 3047728
+size: build/generated_assets.bin 2985927
+size: build/merged-binary.bin 13471687
+7c46a12f7b24dae67a3e6b395e021b991d9893f0ee9e77d37501cee3cbf1fd71  sdkconfig
+99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b  main/boards/waveshare/esp32-s3-touch-amoled-1.75/config.weixue.json
+2e8eded1c3cbc720bd0e62263de06542027ec16e9d6e0160223764b9df60e6ac  build/flash_args
+cf52fb693d7684d4d6a8d7a70d8ec5a37e8fcb98c1f56d561242c7e2069b6e10  build/bootloader/bootloader.bin
+d2c535fc5f29da4d32f122befe65b97925777549b000f93ced719e71a942a3a9  build/partition_table/partition-table.bin
+7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f  build/ota_data_initial.bin
+710bdac786aec1c08bd65241ec1e54bc83e0b6dce9a35b999925b4b37e30196a  build/generated_assets.bin
+c8eb9ba706703d42e2d08015fab5e741f9dfa95e01b5b9e5263bf16b59942290  build/xiaozhi.bin
+## diag (WEIXUE_FACE_DIAG=1), 05:39 UTC: flashed for diag runs a-c
+face_diag: 1
+patch: 05-board-power-usb.patch
+patch: 10-proactive-poll.patch
+patch: 11-face-display.patch
+patch: 12-application-mic-mute.patch
+patch: 20-board-imu-gestures.patch
+patch: 21-ring-bedside.patch
+patch: 22-application-device-event.patch
+patch: 23-application-wake-capture.patch
+patch: 24-application-mute-transport.patch
+patch: 25-application-turn-counts.patch
+patch: 26-application-device-event-async.patch
+patch: 27-clock-posix-tz.patch
+patch: 28-board-imu-resync.patch
+  sdkconfig: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-wave3-firmware/sdkconfig
+CONFIG_OTA_URL="http://192.168.8.220:8003/xiaozhi/ota/"
+CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=300
+CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300
+build_seconds: 123
+size: build/bootloader/bootloader.bin 16736
+size: build/partition_table/partition-table.bin 3072
+size: build/xiaozhi.bin 3053472
+size: build/generated_assets.bin 2985927
+size: build/merged-binary.bin 13471687
+7c46a12f7b24dae67a3e6b395e021b991d9893f0ee9e77d37501cee3cbf1fd71  sdkconfig
+99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b  main/boards/waveshare/esp32-s3-touch-amoled-1.75/config.weixue.json
+2e8eded1c3cbc720bd0e62263de06542027ec16e9d6e0160223764b9df60e6ac  build/flash_args
+cf52fb693d7684d4d6a8d7a70d8ec5a37e8fcb98c1f56d561242c7e2069b6e10  build/bootloader/bootloader.bin
+d2c535fc5f29da4d32f122befe65b97925777549b000f93ced719e71a942a3a9  build/partition_table/partition-table.bin
+7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f  build/ota_data_initial.bin
+710bdac786aec1c08bd65241ec1e54bc83e0b6dce9a35b999925b4b37e30196a  build/generated_assets.bin
+5fe3ceec21022aa4a3976bbfb9b6892310144dc0590f3ab40ae1be14fc831787  build/xiaozhi.bin
+## release, 06:28 UTC: final commit (patch 28 with the measured-spacing IMU gate), flashed for IMU run 2 and left on the device
+face_diag: 0
+patch: 05-board-power-usb.patch
+patch: 10-proactive-poll.patch
+patch: 11-face-display.patch
+patch: 12-application-mic-mute.patch
+patch: 20-board-imu-gestures.patch
+patch: 21-ring-bedside.patch
+patch: 22-application-device-event.patch
+patch: 23-application-wake-capture.patch
+patch: 24-application-mute-transport.patch
+patch: 25-application-turn-counts.patch
+patch: 26-application-device-event-async.patch
+patch: 27-clock-posix-tz.patch
+patch: 28-board-imu-resync.patch
+  sdkconfig: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-wave3-firmware/sdkconfig
+CONFIG_OTA_URL="http://192.168.8.220:8003/xiaozhi/ota/"
+CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=300
+CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300
+build_seconds: 119
+size: build/bootloader/bootloader.bin 16736
+size: build/partition_table/partition-table.bin 3072
+size: build/xiaozhi.bin 3047744
+size: build/generated_assets.bin 2985927
+size: build/merged-binary.bin 13471687
+7c46a12f7b24dae67a3e6b395e021b991d9893f0ee9e77d37501cee3cbf1fd71  sdkconfig
+99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b  main/boards/waveshare/esp32-s3-touch-amoled-1.75/config.weixue.json
+2e8eded1c3cbc720bd0e62263de06542027ec16e9d6e0160223764b9df60e6ac  build/flash_args
+cf52fb693d7684d4d6a8d7a70d8ec5a37e8fcb98c1f56d561242c7e2069b6e10  build/bootloader/bootloader.bin
+d2c535fc5f29da4d32f122befe65b97925777549b000f93ced719e71a942a3a9  build/partition_table/partition-table.bin
+7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f  build/ota_data_initial.bin
+710bdac786aec1c08bd65241ec1e54bc83e0b6dce9a35b999925b4b37e30196a  build/generated_assets.bin
+3da42ee36f2f0b924adbd3e12381a8ce3c9ac6b607d5ea46254714c64a63cf7a  build/xiaozhi.bin
+## retry: diag, 08:23 UTC (IMU injection run A)
+face_diag: 1
+patch: 05-board-power-usb.patch
+patch: 10-proactive-poll.patch
+patch: 11-face-display.patch
+patch: 12-application-mic-mute.patch
+patch: 20-board-imu-gestures.patch
+patch: 21-ring-bedside.patch
+patch: 22-application-device-event.patch
+patch: 23-application-wake-capture.patch
+patch: 24-application-mute-transport.patch
+patch: 25-application-turn-counts.patch
+patch: 26-application-device-event-async.patch
+patch: 27-clock-posix-tz.patch
+patch: 28-board-imu-resync.patch
+CONFIG_OTA_URL="http://192.168.8.220:8003/xiaozhi/ota/"
+CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=300
+CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300
+build_seconds: 133
+size: build/bootloader/bootloader.bin 16736
+size: build/partition_table/partition-table.bin 3072
+size: build/xiaozhi.bin 3054112
+size: build/generated_assets.bin 2985927
+size: build/merged-binary.bin 13471687
+7c46a12f7b24dae67a3e6b395e021b991d9893f0ee9e77d37501cee3cbf1fd71  sdkconfig
+99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b  main/boards/waveshare/esp32-s3-touch-amoled-1.75/config.weixue.json
+2e8eded1c3cbc720bd0e62263de06542027ec16e9d6e0160223764b9df60e6ac  build/flash_args
+cf52fb693d7684d4d6a8d7a70d8ec5a37e8fcb98c1f56d561242c7e2069b6e10  build/bootloader/bootloader.bin
+d2c535fc5f29da4d32f122befe65b97925777549b000f93ced719e71a942a3a9  build/partition_table/partition-table.bin
+7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f  build/ota_data_initial.bin
+710bdac786aec1c08bd65241ec1e54bc83e0b6dce9a35b999925b4b37e30196a  build/generated_assets.bin
+aee173581df6f16eb3fddeefdc81c447b267b4c7c2d06a1aaf7a29b96d8ff2d2  build/xiaozhi.bin
+work_dir: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-wave3-firmware
+## retry: release, 08:35 UTC (superseded)
+face_diag: 0
+patch: 05-board-power-usb.patch
+patch: 10-proactive-poll.patch
+patch: 11-face-display.patch
+patch: 12-application-mic-mute.patch
+patch: 20-board-imu-gestures.patch
+patch: 21-ring-bedside.patch
+patch: 22-application-device-event.patch
+patch: 23-application-wake-capture.patch
+patch: 24-application-mute-transport.patch
+patch: 25-application-turn-counts.patch
+patch: 26-application-device-event-async.patch
+patch: 27-clock-posix-tz.patch
+patch: 28-board-imu-resync.patch
+CONFIG_OTA_URL="http://192.168.8.220:8003/xiaozhi/ota/"
+CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=300
+CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300
+build_seconds: 126
+size: build/bootloader/bootloader.bin 16736
+size: build/partition_table/partition-table.bin 3072
+size: build/xiaozhi.bin 3048224
+size: build/generated_assets.bin 2985927
+size: build/merged-binary.bin 13471687
+7c46a12f7b24dae67a3e6b395e021b991d9893f0ee9e77d37501cee3cbf1fd71  sdkconfig
+99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b  main/boards/waveshare/esp32-s3-touch-amoled-1.75/config.weixue.json
+2e8eded1c3cbc720bd0e62263de06542027ec16e9d6e0160223764b9df60e6ac  build/flash_args
+cf52fb693d7684d4d6a8d7a70d8ec5a37e8fcb98c1f56d561242c7e2069b6e10  build/bootloader/bootloader.bin
+d2c535fc5f29da4d32f122befe65b97925777549b000f93ced719e71a942a3a9  build/partition_table/partition-table.bin
+7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f  build/ota_data_initial.bin
+710bdac786aec1c08bd65241ec1e54bc83e0b6dce9a35b999925b4b37e30196a  build/generated_assets.bin
+2cd088dff10c8be45484705e7d91bc99b592457d1742f98a9bbfd9d2c4f82e93  build/xiaozhi.bin
+work_dir: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-wave3-firmware
+## retry: diag, 08:40 UTC (IMU injection run B)
+face_diag: 1
+patch: 05-board-power-usb.patch
+patch: 10-proactive-poll.patch
+patch: 11-face-display.patch
+patch: 12-application-mic-mute.patch
+patch: 20-board-imu-gestures.patch
+patch: 21-ring-bedside.patch
+patch: 22-application-device-event.patch
+patch: 23-application-wake-capture.patch
+patch: 24-application-mute-transport.patch
+patch: 25-application-turn-counts.patch
+patch: 26-application-device-event-async.patch
+patch: 27-clock-posix-tz.patch
+patch: 28-board-imu-resync.patch
+CONFIG_OTA_URL="http://192.168.8.220:8003/xiaozhi/ota/"
+CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=300
+CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300
+build_seconds: 125
+size: build/bootloader/bootloader.bin 16736
+size: build/partition_table/partition-table.bin 3072
+size: build/xiaozhi.bin 3054384
+size: build/generated_assets.bin 2985927
+size: build/merged-binary.bin 13471687
+7c46a12f7b24dae67a3e6b395e021b991d9893f0ee9e77d37501cee3cbf1fd71  sdkconfig
+99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b  main/boards/waveshare/esp32-s3-touch-amoled-1.75/config.weixue.json
+2e8eded1c3cbc720bd0e62263de06542027ec16e9d6e0160223764b9df60e6ac  build/flash_args
+cf52fb693d7684d4d6a8d7a70d8ec5a37e8fcb98c1f56d561242c7e2069b6e10  build/bootloader/bootloader.bin
+d2c535fc5f29da4d32f122befe65b97925777549b000f93ced719e71a942a3a9  build/partition_table/partition-table.bin
+7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f  build/ota_data_initial.bin
+710bdac786aec1c08bd65241ec1e54bc83e0b6dce9a35b999925b4b37e30196a  build/generated_assets.bin
+800bf4ae64a54cd896a2b54973584779f4bc1fc877d4fbf9616618b492675f94  build/xiaozhi.bin
+work_dir: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-wave3-firmware
+## retry: release (final), 08:51 UTC: left on the device
+face_diag: 0
+patch: 05-board-power-usb.patch
+patch: 10-proactive-poll.patch
+patch: 11-face-display.patch
+patch: 12-application-mic-mute.patch
+patch: 20-board-imu-gestures.patch
+patch: 21-ring-bedside.patch
+patch: 22-application-device-event.patch
+patch: 23-application-wake-capture.patch
+patch: 24-application-mute-transport.patch
+patch: 25-application-turn-counts.patch
+patch: 26-application-device-event-async.patch
+patch: 27-clock-posix-tz.patch
+patch: 28-board-imu-resync.patch
+CONFIG_OTA_URL="http://192.168.8.220:8003/xiaozhi/ota/"
+CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS=300
+CONFIG_WEIXUE_SCREEN_OFF_SECONDS=300
+build_seconds: 134
+size: build/bootloader/bootloader.bin 16736
+size: build/partition_table/partition-table.bin 3072
+size: build/xiaozhi.bin 3048480
+size: build/generated_assets.bin 2985927
+size: build/merged-binary.bin 13471687
+7c46a12f7b24dae67a3e6b395e021b991d9893f0ee9e77d37501cee3cbf1fd71  sdkconfig
+99cdfdb248a03b59fef9f8477696797180c7e206da921cdcc8fc59d0079c093b  main/boards/waveshare/esp32-s3-touch-amoled-1.75/config.weixue.json
+2e8eded1c3cbc720bd0e62263de06542027ec16e9d6e0160223764b9df60e6ac  build/flash_args
+cf52fb693d7684d4d6a8d7a70d8ec5a37e8fcb98c1f56d561242c7e2069b6e10  build/bootloader/bootloader.bin
+d2c535fc5f29da4d32f122befe65b97925777549b000f93ced719e71a942a3a9  build/partition_table/partition-table.bin
+7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f  build/ota_data_initial.bin
+710bdac786aec1c08bd65241ec1e54bc83e0b6dce9a35b999925b4b37e30196a  build/generated_assets.bin
+058c165ba8a9c9655e5a393d98eae09e72a6595d535abb1f5c6175ee74907276  build/xiaozhi.bin
+work_dir: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue-wt-fix-wave3-firmware

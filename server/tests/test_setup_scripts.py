@@ -23,6 +23,7 @@ VENDOR_ROOT = VENDOR_DIR.parent.parent.parent
 ENV = {
     "LAN_IP": "192.168.1.10",
     "BIND_IP": "0.0.0.0",
+    "TZ": "America/Los_Angeles",
     "TZ_OFFSET": "-7",
     "ANTHROPIC_API_KEY": "sk-test",
     "GOOGLE_SA_FILE": "/dev/null",
@@ -131,6 +132,11 @@ def test_ota_and_websocket_bind_to_bind_ip_or_lan_ip():
         "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8000:8000",
         "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8003:8003",
     ]
+
+
+def test_server_gets_tz_only_as_set_in_env():
+    environment = yaml.safe_load((SERVER_DIR / "docker-compose.yml").read_text())["services"]["xiaozhi-esp32-server"]["environment"]
+    assert {"TZ=${TZ:-UTC}", "WEIXUE_TZ=${TZ:-}"} <= set(environment)
 
 
 def _pins(path):
@@ -409,6 +415,7 @@ def test_failed_readiness_restores_previous_config_and_images(setup_tree):
         ({"BIND_IP": ""}, "server/.env must set BIND_IP"),
         ({"ALLOWED_DEVICES": None}, "server/.env must set ALLOWED_DEVICES"),
         ({"ALLOWED_DEVICES": "", "LAN_IP": None}, "server/.env must set LAN_IP ALLOWED_DEVICES"),
+        ({"TZ": None}, "server/.env must set TZ"),
     ],
 )
 def test_preflight_fails_before_any_docker_call(setup_tree, values, message):
@@ -419,7 +426,7 @@ def test_preflight_fails_before_any_docker_call(setup_tree, values, message):
     assert result.returncode == 1
     assert message in result.stdout
     if "must set" in message:
-        assert "required: LAN_IP BIND_IP ALLOWED_DEVICES TZ_OFFSET ANTHROPIC_API_KEY GOOGLE_SA_FILE HA_MCP_URL" in result.stdout
+        assert "required: LAN_IP BIND_IP ALLOWED_DEVICES TZ TZ_OFFSET ANTHROPIC_API_KEY GOOGLE_SA_FILE HA_MCP_URL" in result.stdout
     assert state["log"] == []
     assert (server / ".env").read_text() == env_before
     assert (server / "data" / ".config.yaml").read_text() == OLD_CONFIG

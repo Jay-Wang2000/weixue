@@ -1,0 +1,137 @@
+diff --git a/main/application.cc b/main/application.cc
+index 0ed0fe7..023abeb 100644
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -11,14 +11,17 @@
+ #include "system_info.h"
+ #include "text_glyph_payload.h"
+ #include "websocket_protocol.h"
++#include "weixue_clock.h"
+ 
+ #include <driver/gpio.h>
+ #include <esp_log.h>
+ #include <arpa/inet.h>
+ #include <cJSON.h>
+ #include <algorithm>
++#include <cstdlib>
+ #include <cstring>
+ #include <limits>
++#include <sys/time.h>
+ 
+ #define TAG "Application"
+ 
+@@ -76,6 +79,16 @@ bool Application::SetDeviceState(DeviceState state) {
+ void Application::Initialize() {
+     auto& board = Board::GetInstance();
+     SetDeviceState(kDeviceStateStarting);
++    {
++        // The last POSIX TZ from the OTA response, until this boot's OTA response arrives.
++        Settings clock("clock", false);
++        std::string tz = clock.GetString("tz");
++        if (!tz.empty()) {
++            setenv("TZ", tz.c_str(), 1);
++            tzset();
++            ESP_LOGI(TAG, "Clock: stored TZ %s", tz.c_str());
++        }
++    }
+ 
+     // Setup the display
+     auto display = board.GetDisplay();
+@@ -1308,6 +1321,9 @@ void Application::ProactivePollTask() {
+             auto code = http->GetStatusCode();
+             if (code) {
+                 status = *code;
++                if (status == 200 || status == 204) {
++                    ResyncClock(http->GetResponseHeader("Date"));
++                }
+                 auto body = http->ReadAll();
+                 if (status == 200) {
+                     cJSON* root = cJSON_Parse(body.c_str());
+@@ -1335,6 +1351,17 @@ void Application::ProactivePollTask() {
+     }
+ }
+ 
++// Sets the UTC system clock from an HTTP Date header (see weixue_clock::ResyncFromDate).
++void Application::ResyncClock(const std::string& date) {
++    auto resync = weixue_clock::ResyncFromDate(getenv("TZ") != nullptr, date.c_str(), time(nullptr));
++    if (!resync.apply) {
++        return;
++    }
++    struct timeval tv = {.tv_sec = resync.server, .tv_usec = 0};
++    settimeofday(&tv, nullptr);
++    ESP_LOGI(TAG, "Clock: resynced from the backend Date header (was %+lld s)", resync.drift_s);
++}
++
+ void Application::ProactiveInvoke(bool urgent) {
+     if (!protocol_ || mic_muted_ || GetDeviceState() != kDeviceStateIdle) {
+         return;
+diff --git a/main/application.h b/main/application.h
+index a2b554c..0b26dc1 100644
+--- a/main/application.h
++++ b/main/application.h
+@@ -242,6 +242,7 @@ private:
+     void HandleNotificationFinished(uint32_t playback_id, bool success);
+     void StartProactivePoller(const std::string& ota_url);
+     void ProactivePollTask();
++    void ResyncClock(const std::string& date);
+     void ProactiveInvoke(bool urgent);
+ 
+     // Activation task (runs in background)
+diff --git a/main/ota.cc b/main/ota.cc
+index 07d5116..4ae5b36 100644
+--- a/main/ota.cc
++++ b/main/ota.cc
+@@ -2,6 +2,7 @@
+ #include "system_info.h"
+ #include "settings.h"
+ #include "assets/lang_config.h"
++#include "weixue_clock.h"
+ 
+ #include <freertos/FreeRTOS.h>
+ #include <freertos/task.h>
+@@ -195,6 +196,22 @@ NetworkResult<> Ota::CheckVersion() {
+     if (cJSON_IsObject(server_time)) {
+         cJSON *timestamp = cJSON_GetObjectItem(server_time, "timestamp");
+         cJSON *timezone_offset = cJSON_GetObjectItem(server_time, "timezone_offset");
++        // POSIX TZ: the system clock stays UTC and localtime() follows the TZ rules (DST).
++        cJSON *tz = cJSON_GetObjectItem(server_time, "tz");
++        const bool has_tz = cJSON_IsString(tz) && tz->valuestring[0] != '\0';
++        {
++            Settings clock("clock", true);
++            if (has_tz) {
++                setenv("TZ", tz->valuestring, 1);
++                if (clock.GetString("tz") != tz->valuestring) {
++                    clock.SetString("tz", tz->valuestring);
++                }
++            } else {
++                unsetenv("TZ");
++                clock.EraseKey("tz");
++            }
++            tzset();
++        }
+         
+         if (cJSON_IsNumber(timestamp)) {
+             // 设置系统时间
+@@ -202,7 +219,7 @@ NetworkResult<> Ota::CheckVersion() {
+             double ts = timestamp->valuedouble;
+             
+             // 如果有时区偏移，计算本地时间
+-            if (cJSON_IsNumber(timezone_offset)) {
++            if (!has_tz && cJSON_IsNumber(timezone_offset)) {
+                 ts += (timezone_offset->valueint * 60 * 1000); // 转换分钟为毫秒
+             }
+             
+@@ -210,6 +227,13 @@ NetworkResult<> Ota::CheckVersion() {
+             tv.tv_usec = (suseconds_t)((long long)ts % 1000) * 1000;  // 剩余的毫秒转换为微秒
+             settimeofday(&tv, NULL);
+             has_server_time_ = true;
++            if (has_tz) {
++                // Fixed mid-January and mid-July 2026 instants show the standard and DST offsets.
++                ESP_LOGI(TAG, "Clock: TZ %s, UTC offset %+d min (January %+d, July %+d)",
++                         tz->valuestring, weixue_clock::UtcOffsetMinutes(tv.tv_sec),
++                         weixue_clock::UtcOffsetMinutes(1768478400),
++                         weixue_clock::UtcOffsetMinutes(1784116800));
++            }
+         }
+     } else {
+         ESP_LOGW(TAG, "No server_time section found!");

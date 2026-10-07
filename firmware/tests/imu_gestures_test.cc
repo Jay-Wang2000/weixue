@@ -1,4 +1,4 @@
-// Host test for ImuGestureDetector: firmware/tests/run.sh
+// Host test for imu_gestures.h: firmware/tests/run.sh
 #include "imu_gestures.h"
 
 #include <cmath>
@@ -9,7 +9,10 @@
 namespace {
 
 using D = ImuGestureDetector;
+using G = ImuSampleGate;
 constexpr int kPeriod = D::kSamplePeriodMs;
+// QMI8658 sample counter at 500 Hz: 2 ms per count.
+constexpr int kSampleMs = 2;
 int failures = 0;
 
 struct Counts {
@@ -58,8 +61,38 @@ public:
         }
     }
 
+    // Gated mode: every sample carries the sensor sample counter and goes through ImuPoll, as in
+    // the board's IMU task.
+    void Gate() { gated_ = true; }
+
+    // A stalled bus: no sample is read for ms.
+    void Stall(int ms) { ts_ += ms / kSampleMs; }
+
+    // n catch-up reads right after the last one: the sensor counter advances by at most one.
+    void CatchUp(int n, float extra_z_g = 0.0f) {
+        auto v = Vec(tilt_);
+        for (int i = 0; i < n; i++) {
+            ts_ += i % 2;
+            Deliver({v[0], v[1], v[2] + extra_z_g}, 0.0f);
+        }
+    }
+
+    // Polls late by one 10 ms tick, then on schedule again (10 ms later), as under CPU load.
+    void Jitter(bool on) { jitter_ = on; }
+
+    // A failed read at the next poll.
+    void ReadFailure() {
+        ts_ += kPeriod / kSampleMs;
+        ImuPollResult r = ImuPoll(detector, gate, false, ts_ & 0xFFFFFF, 0.0f, 0.0f, 0.0f);
+        read_failures += r.kind == ImuPollResult::kReadFailed ? 1 : 0;
+    }
+
     Counts counts;
     D detector;
+    G gate;
+    int skipped = 0;
+    int resyncs = 0;
+    int read_failures = 0;
 
 private:
     std::vector<float> Vec(float tilt_deg) {
@@ -68,8 +101,26 @@ private:
     }
 
     void Feed(std::vector<float> v, float noise_g) {
+        if (jitter_) {
+            ts_ += (jitter_phase_++ % 2 == 0 ? 15 : 5);
+        } else {
+            ts_ += kPeriod / kSampleMs;
+        }
+        Deliver(v, noise_g);
+    }
+
+    void Deliver(std::vector<float> v, float noise_g) {
         std::normal_distribution<float> n(0.0f, noise_g > 0 ? noise_g : 1e-9f);
-        uint8_t e = detector.Update(v[0] + n(rng_), v[1] + n(rng_), v[2] + n(rng_));
+        float x = v[0] + n(rng_), y = v[1] + n(rng_), z = v[2] + n(rng_);
+        uint8_t e = 0;
+        if (gated_) {
+            ImuPollResult r = ImuPoll(detector, gate, true, ts_ & 0xFFFFFF, x, y, z);
+            skipped += r.kind == ImuPollResult::kSkipped ? 1 : 0;
+            resyncs += r.kind == ImuPollResult::kResynced ? 1 : 0;
+            e = r.events;
+        } else {
+            e = detector.Update(x, y, z);
+        }
         counts.pick_up += (e & D::kPickUp) ? 1 : 0;
         counts.face_down += (e & D::kFaceDown) ? 1 : 0;
         counts.face_up += (e & D::kFaceUp) ? 1 : 0;
@@ -77,7 +128,153 @@ private:
 
     std::mt19937 rng_;
     float tilt_ = 0.0f;
+    bool gated_ = false;
+    bool jitter_ = false;
+    unsigned jitter_phase_ = 0;
+    uint32_t ts_ = 0xFFFF00;  // wraps past 0xFFFFFF in the first second
 };
+
+void ExpectInt(const char* name, int got, int want) {
+    bool ok = got == want;
+    std::printf("%s %s: %d (want %d)\n", ok ? "PASS" : "FAIL", name, got, want);
+    if (!ok) {
+        failures++;
+    }
+}
+
+void TestGate() {
+    G g;
+    int elapsed = 0;
+    struct Step {
+        uint32_t ts;
+        G::Result want;
+        int elapsed;
+    };
+    const Step steps[] = {
+        {0xFFFFF8, G::kResync, 0},   // first sample
+        {0x000002, G::kAccept, 20},  // counter wrap
+        {0x000011, G::kAccept, 30},  // one tick late
+        {0x000011, G::kSkip, 0},     // same sample read again
+        {0x000013, G::kSkip, 4},     // catch-up read
+        {0x000016, G::kAccept, 10},  // measured from the last accepted sample
+        {0x000048, G::kAccept, 100}, // 50 counts: still the same series
+        {0x00007B, G::kResync, 102}, // 51 counts: a gap
+        {0x000085, G::kAccept, 20},
+    };
+    bool ok = true;
+    for (const Step& s : steps) {
+        G::Result r = g.Check(s.ts, &elapsed);
+        if (r != s.want || elapsed != s.elapsed) {
+            std::printf("FAIL gate ts=0x%06X: result %d elapsed %d (want %d elapsed %d)\n", s.ts, r,
+                        elapsed, s.want, s.elapsed);
+            ok = false;
+        }
+    }
+    g.Invalidate();
+    if (g.Check(0x00008F, &elapsed) != G::kResync || elapsed != 0) {
+        std::printf("FAIL gate: sample after a failed read must restart the series\n");
+        ok = false;
+    }
+    std::printf("%s sample gate sequence\n", ok ? "PASS" : "FAIL");
+    if (!ok) {
+        failures++;
+    }
+}
+
+void TestPoll() {
+    using R = ImuPollResult;
+    D d;
+    G g;
+    bool ok = true;
+    auto check = [&ok](const char* what, const R& r, R::Kind kind, int elapsed) {
+        if (r.kind != kind || r.elapsed_ms != elapsed) {
+            std::printf("FAIL poll %s: kind %d elapsed %d (want %d elapsed %d)\n", what, r.kind,
+                        r.elapsed_ms, kind, elapsed);
+            ok = false;
+        }
+    };
+    uint32_t ts = 1000;
+    check("first sample", ImuPoll(d, g, true, ts, 0, 0, 1), R::kResynced, 0);
+    for (int i = 0; i < 200; i++) {
+        ts += kPeriod / kSampleMs;
+        check("on schedule", ImuPoll(d, g, true, ts, 0, 0, 1), R::kAccepted, kPeriod);
+    }
+    if (!d.armed()) {
+        std::printf("FAIL poll: detector not armed after 4 s at rest\n");
+        ok = false;
+    }
+    check("catch-up read", ImuPoll(d, g, true, ts + 1, 0, 0, 1), R::kSkipped, kSampleMs);
+    check("read failure", ImuPoll(d, g, false, 0, 0, 0, 0), R::kReadFailed, 0);
+    if (!d.armed()) {
+        std::printf("FAIL poll: a read failure alone must not reset the detector\n");
+        ok = false;
+    }
+    ts += kPeriod / kSampleMs;
+    check("after a read failure", ImuPoll(d, g, true, ts, 0, 0, 1), R::kResynced, 0);
+    if (d.armed()) {
+        std::printf("FAIL poll: a resync must reset the detector before the sample\n");
+        ok = false;
+    }
+    for (int i = 0; i < 200; i++) {
+        ts += kPeriod / kSampleMs;
+        ImuPoll(d, g, true, ts, 0, 0, 1);
+    }
+    ts += G::kMaxCounts + 1;
+    check("sampling gap", ImuPoll(d, g, true, ts, 0, 0, 1), R::kResynced,
+          static_cast<int>((G::kMaxCounts + 1) * kSampleMs));
+    if (d.armed()) {
+        std::printf("FAIL poll: a sampling gap must reset the detector\n");
+        ok = false;
+    }
+    std::printf("%s poll step sequence\n", ok ? "PASS" : "FAIL");
+    if (!ok) {
+        failures++;
+    }
+}
+
+void TestAgreedCounter() {
+    struct Case {
+        const char* name;
+        uint32_t first;
+        std::vector<uint32_t> rereads;  // returned in order; a read past the end fails
+        bool ok;
+        uint32_t want;
+        int reads;
+    };
+    const Case cases[] = {
+        {"first read confirmed", 0x000200, {0x000201}, true, 0x000200, 2},
+        {"counter wrap", 0xFFFFFF, {0x000001}, true, 0xFFFFFF, 2},
+        // L read before an increment, M after: 0x0001FF -> 0x0002FF.
+        {"torn first read", 0x0002FF, {0x000201, 0x000202}, true, 0x000201, 3},
+        {"torn re-read", 0x000200, {0x0002FF, 0x000201}, true, 0x000200, 3},
+        {"torn across M/H", 0x01FFFF + 0x10000, {0x020001, 0x020002}, true, 0x020001, 3},
+        {"no two reads agree", 0x000100, {0x000300, 0x000500}, false, 0, 3},
+        {"bus error on the re-read", 0x000100, {}, false, 0, 2},
+    };
+    bool ok = true;
+    for (const Case& c : cases) {
+        size_t next = 0;
+        auto read = [&c, &next](uint32_t* counter) {
+            if (next >= c.rereads.size()) {
+                return false;
+            }
+            *counter = c.rereads[next++];
+            return true;
+        };
+        uint32_t out = 0;
+        int reads = 0;
+        bool agreed = AgreedCounter(c.first, read, &out, &reads);
+        if (agreed != c.ok || (agreed && out != c.want) || reads != c.reads) {
+            std::printf("FAIL counter %s: agreed %d value 0x%06X reads %d\n", c.name, agreed, out,
+                        reads);
+            ok = false;
+        }
+    }
+    std::printf("%s timestamp counter re-reads\n", ok ? "PASS" : "FAIL");
+    if (!ok) {
+        failures++;
+    }
+}
 
 void Expect(const char* name, const Counts& got, const Counts& want) {
     bool ok = got.pick_up == want.pick_up && got.face_down == want.face_down &&
@@ -93,6 +290,82 @@ void Expect(const char* name, const Counts& got, const Counts& want) {
 }  // namespace
 
 int main() {
+    TestGate();
+    TestPoll();
+    TestAgreedCounter();
+    {
+        Sim s;
+        s.Gate();
+        s.Hold(0, 5 * 60 * 1000);
+        Expect("gated idle face-up 5 min", s.counts, {0, 0, 0});
+        ExpectInt("gated idle resyncs (first sample only)", s.resyncs, 1);
+        ExpectInt("gated idle skipped", s.skipped, 0);
+    }
+    {
+        // A knock read three times by catch-up reads after a stall passes a 5-sample median.
+        Sim s;
+        s.Gate();
+        s.Hold(0, 3000);
+        s.Stall(200);
+        s.CatchUp(3, 1.5f);
+        s.Hold(0, 2000);
+        Expect("knock repeated by catch-up reads after a stall", s.counts, {0, 0, 0});
+        ExpectInt("catch-up reads skipped", s.skipped, 2);
+    }
+    {
+        Sim s;
+        s.Hold(0, 3000);
+        s.Stall(200);
+        s.CatchUp(3, 1.5f);
+        s.Hold(0, 2000);
+        Expect("same knock without the gate (control)", s.counts, {1, 0, 0});
+    }
+    {
+        // Face-down needs 800 ms of continuous sampling; a stall restarts the count.
+        Sim s;
+        s.Gate();
+        s.Hold(0, 2000);
+        s.Rotate(180, 600);
+        s.Hold(180, 500);
+        s.Stall(300);
+        s.CatchUp(4);
+        s.Hold(180, 600);
+        Counts before = s.counts;
+        s.Hold(180, 400);
+        Expect("face-down not within 800 ms after a stall", before, {1, 0, 0});
+        Expect("face-down 800 ms after the stall", s.counts, {1, 1, 0});
+    }
+    {
+        // Tick jitter (30 ms / 10 ms polls) keeps one series and the measured timing.
+        Sim s;
+        s.Gate();
+        s.Jitter(true);
+        s.Hold(0, 60 * 1000);
+        Expect("gated jitter idle 1 min", s.counts, {0, 0, 0});
+        ExpectInt("gated jitter resyncs (first sample only)", s.resyncs, 1);
+        s.Rotate(30, 300);
+        s.Hold(30, 1000, 0.03f);
+        Expect("gated jitter pick-up", s.counts, {1, 0, 0});
+        s.Rotate(180, 600);
+        s.Hold(180, 600);
+        Counts early = s.counts;
+        s.Hold(180, 600);
+        Expect("gated jitter face-down not before 800 ms", early, {1, 0, 0});
+        Expect("gated jitter face-down after 800 ms", s.counts, {1, 1, 0});
+    }
+    {
+        Sim s;
+        s.Gate();
+        s.Hold(0, 3000);
+        s.ReadFailure();
+        s.Hold(0, 1200);
+        Expect("read failure is not a pick-up", s.counts, {0, 0, 0});
+        ExpectInt("read failures", s.read_failures, 1);
+        ExpectInt("read failure resyncs", s.resyncs, 2);
+        s.Rotate(30, 300);
+        s.Hold(30, 1000, 0.03f);
+        Expect("pick-up after the rest is re-established", s.counts, {1, 0, 0});
+    }
     {
         Sim s;
         s.Hold(0, 5 * 60 * 1000);

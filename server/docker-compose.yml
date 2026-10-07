@@ -14,6 +14,7 @@ services:
       - seccomp:unconfined
     environment:
       - TZ=${TZ:-UTC}
+      - WEIXUE_TZ=${TZ:-}
       - WEIXUE_PROACTIVE_TOKEN=${WEIXUE_PROACTIVE_TOKEN:-}
     ports:
       - "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8000:8000"

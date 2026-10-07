@@ -1,0 +1,118 @@
+diff --git a/main/application.cc b/main/application.cc
+index 672b190..231420e 100644
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -252,7 +252,10 @@ void Application::Run() {
+         }
+ 
+         if (bits & MAIN_EVENT_SEND_AUDIO) {
+-            if (wake_capture_ && GetDeviceState() == kDeviceStateConnecting) {
++            if (!weixue_session::MuteFence::SendMicAudio(mic_muted_)) {
++                while (audio_service_.PopPacketFromSendQueue())
++                    ;
++            } else if (wake_capture_ && GetDeviceState() == kDeviceStateConnecting) {
+                 HoldWakeAudio();
+             }
+             while (auto packet = audio_service_.PopPacketFromSendQueue()) {
+@@ -571,7 +574,8 @@ void Application::InitializeProtocol() {
+     });
+ 
+     protocol_->OnIncomingAudio([this](std::unique_ptr<AudioStreamPacket> packet) {
+-        if (GetDeviceState() == kDeviceStateSpeaking) {
++        if (weixue_session::MuteFence::DecodeIncomingAudio(
++                GetDeviceState() == kDeviceStateSpeaking, mic_muted_)) {
+             audio_service_.PushPacketToDecodeQueue(std::move(packet));
+         }
+     });
+@@ -643,13 +647,21 @@ void Application::InitializeProtocol() {
+             if (!cJSON_IsString(state)) {
+                 return;
+             }
++            const uint32_t generation = mute_fence_.generation();
+             if (strcmp(state->valuestring, "start") == 0) {
+-                Schedule([this]() {
++                Schedule([this, generation]() {
++                    if (!mute_fence_.AcceptTtsStart(mic_muted_, generation)) {
++                        ESP_LOGW(TAG, "Ignoring tts start (muted, or sent before a mute)");
++                        return;
++                    }
+                     aborted_ = false;
+                     SetDeviceState(kDeviceStateSpeaking);
+                 });
+             } else if (strcmp(state->valuestring, "stop") == 0) {
+-                Schedule([this]() {
++                Schedule([this, generation]() {
++                    if (!mute_fence_.AcceptTtsStop(generation)) {
++                        return;
++                    }
+                     if (GetDeviceState() == kDeviceStateSpeaking) {
+                         if (listening_mode_ == kListeningModeManualStop) {
+                             SetDeviceState(kDeviceStateIdle);
+@@ -1138,6 +1150,12 @@ void Application::StartListeningAudio() {
+     if (GetDeviceState() != kDeviceStateListening) {
+         return;
+     }
++    if (!weixue_session::MuteFence::StartListening(mic_muted_)) {
++        ESP_LOGW(TAG, "Microphone muted, closing the audio channel instead of listening");
++        protocol_->CloseAudioChannel();
++        SetDeviceState(kDeviceStateIdle);
++        return;
++    }
+ 
+     // Send the start listening command
+     protocol_->SendStartListening(listening_mode_);
+@@ -1365,16 +1383,26 @@ void Application::SetMicMuted(bool muted) {
+     }
+     audio_service_.EnableWakeWordDetection(false);
+     audio_service_.EnableVoiceProcessing(false);
++    EndWakeCapture();
++    while (audio_service_.PopPacketFromSendQueue())
++        ;
++    mute_fence_.OnMute();
+     if (state == kDeviceStateNotifying) {
+         StopNotification();
+     }
+-    if (state == kDeviceStateSpeaking) {
++    const bool opened = protocol_ && protocol_->IsAudioChannelOpened();
++    const auto actions = weixue_session::ActionsOnMute(
++        protocol_ != nullptr, opened, state == kDeviceStateSpeaking,
++        state == kDeviceStateConnecting || state == kDeviceStateListening ||
++            state == kDeviceStateSpeaking);
++    if (actions.abort_speaking) {
+         AbortSpeaking(kAbortReasonNone);
+     }
+-    if (protocol_ && protocol_->IsAudioChannelOpened()) {
++    if (actions.close_transport) {
++        ESP_LOGI(TAG, "Closing the audio channel transport (opened=%d)", opened);
+         protocol_->CloseAudioChannel();
+-    } else if (state == kDeviceStateConnecting || state == kDeviceStateListening ||
+-               state == kDeviceStateSpeaking) {
++    }
++    if (actions.to_idle) {
+         SetDeviceState(kDeviceStateIdle);
+     }
+ }
+diff --git a/main/application.h b/main/application.h
+index 6a22683..7888281 100644
+--- a/main/application.h
++++ b/main/application.h
+@@ -130,8 +130,9 @@ public:
+ 
+     /**
+      * Software microphone mute (main task only). While muted, wake word detection and voice
+-     * processing stay off, conversations, proactive polling and notify playback are off; muting
+-     * stops a notification and closes an open audio channel.
++     * processing stay off, conversations, proactive polling and notify playback are off, no
++     * microphone audio is sent and `tts start` is ignored; muting stops a notification, closes
++     * the audio channel transport whatever its state and drops queued tts callbacks.
+      */
+     void SetMicMuted(bool muted);
+     bool IsMicMuted() const { return mic_muted_; }
+@@ -181,6 +182,7 @@ private:
+     bool has_server_time_ = false;
+     bool aborted_ = false;
+     std::atomic<bool> mic_muted_{false};
++    weixue_session::MuteFence mute_fence_;
+     std::atomic<SessionOrigin> session_origin_{SessionOrigin::kUser};
+     std::atomic<SessionOrigin> next_session_origin_{SessionOrigin::kUser};
+     bool assets_version_checked_ = false;

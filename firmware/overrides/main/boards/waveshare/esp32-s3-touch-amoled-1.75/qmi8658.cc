@@ -1,5 +1,7 @@
 #include "qmi8658.h"
 
+#include "imu_gestures.h"
+
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -19,7 +21,7 @@ constexpr uint8_t kCtrl9 = 0x0A;
 constexpr uint8_t kCal1L = 0x0B;
 constexpr uint8_t kStatusInt = 0x2D;
 constexpr uint8_t kStatus1 = 0x2F;
-constexpr uint8_t kAxL = 0x35;
+constexpr uint8_t kTimestampL = 0x30;
 constexpr uint8_t kResetResult = 0x4D;
 constexpr uint8_t kTapStatus = 0x59;
 constexpr uint8_t kReset = 0x60;
@@ -172,15 +174,31 @@ esp_err_t Qmi8658::Initialize() {
     return ESP_OK;
 }
 
-esp_err_t Qmi8658::ReadAccel(Accel& out) {
-    uint8_t raw[6];
-    esp_err_t err = Read(kAxL, raw, sizeof(raw));
+esp_err_t Qmi8658::ReadSample(Sample& out) {
+    // TIMESTAMP L/M/H, TEMP L/H, AX..AZ L/H
+    uint8_t raw[11];
+    esp_err_t err = Read(kTimestampL, raw, sizeof(raw));
     if (err != ESP_OK) {
         return err;
     }
-    out.x = static_cast<int16_t>(raw[0] | (raw[1] << 8)) / kLsbPerG;
-    out.y = static_cast<int16_t>(raw[2] | (raw[3] << 8)) / kLsbPerG;
-    out.z = static_cast<int16_t>(raw[4] | (raw[5] << 8)) / kLsbPerG;
+    uint32_t first = raw[0] | (raw[1] << 8) | (static_cast<uint32_t>(raw[2]) << 16);
+    int reads = 0;
+    auto reread = [this](uint32_t* counter) {
+        uint8_t ts[3];
+        if (Read(kTimestampL, ts, sizeof(ts)) != ESP_OK) {
+            return false;
+        }
+        *counter = ts[0] | (ts[1] << 8) | (static_cast<uint32_t>(ts[2]) << 16);
+        return true;
+    };
+    bool agreed = AgreedCounter(first, reread, &out.timestamp, &reads);
+    out.timestamp_reads = static_cast<uint8_t>(reads);
+    if (!agreed) {
+        return ESP_ERR_INVALID_RESPONSE;
+    }
+    out.accel.x = static_cast<int16_t>(raw[5] | (raw[6] << 8)) / kLsbPerG;
+    out.accel.y = static_cast<int16_t>(raw[7] | (raw[8] << 8)) / kLsbPerG;
+    out.accel.z = static_cast<int16_t>(raw[9] | (raw[10] << 8)) / kLsbPerG;
     return ESP_OK;
 }
 
