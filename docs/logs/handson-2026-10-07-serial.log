@@ -1,0 +1,506 @@
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIPESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40382d5a
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x544
+load:0x403c8700,len:0xd14
+load:0x403cb700,len:0x2eb4
+entry 0x403c88f4
+I (34) octal_psram: vendor id    : 0x0d (AP)
+I (34) octal_psram: dev id       : 0x02 (generation 3)
+I (34) octal_psram: density      : 0x03 (64 Mbit)
+I (36) octal_psram: good-die     : 0x01 (Pass)
+I (40) octal_psram: Latency      : 0x01 (Fixed)
+I (44) octal_psram: VCC          : 0x01 (3V)
+I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (67) octal_psram: DriveStrength: 0x00 (1/1)
+I (71) MSPI Timing: Enter psram timing tuning
+I (76) esp_psram: Found 8MB PSRAM device
+I (79) esp_psram: Speed: 80MHz
+I (82) cpu_start: Multicore app
+I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (97) cpu_start: Pro cpu start user code
+I (97) cpu_start: cpu freq: 240000000 Hz
+I (98) app_init: Application information:
+I (102) app_init: Project name:     xiaozhi
+I (106) app_init: App version:      2.5.1
+I (109) app_init: Compile time:     Oct  7 2026 05:42:06
+I (115) app_init: ELF file SHA256:  063fa5e6c...
+I (119) app_init: ESP-IDF:          v6.1
+I (123) efuse_init: Min chip rev:     v0.0
+I (126) efuse_init: Max chip rev:     v0.99 
+I (130) efuse_init: Chip rev:         v0.2
+I (134) heap_init: Initializing. RAM available for dynamic allocation:
+I (140) heap_init: At 3FCAB270 len 0003E4A0 (249 KiB): RAM
+I (146) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+I (161) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (168) spi_flash: detected chip: gd
+I (171) spi_flash: flash io: qio
+I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (180) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (187) main_task: Started on CPU0
+I (187) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+I (197) main_task: Calling app_main()
+I (367) Board: UUID=<UUID> SKU=esp32-s3-touch-amoled-1.75c-weixue
+I (367) button: IoT Button Version: 4.2.1
+I (367) PowerSaveTimer: Power save timer enabled
+I (367) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+I (377) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+W (387) spi_common: GPIO 0 is conflict with others and be overwritten
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+I (407) co5300: version: 2.2.0
+I (407) co5300_spi: LCD panel create success, version: 2.2.0
+W (577) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+I (1777) Display: Power management not supported
+I (1857) LcdDisplay: Turning display on
+I (1857) LcdDisplay: Initialize LVGL library
+I (1857) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+I (1857) LcdDisplay: Use 2MB of PSRAM for image cache
+I (1867) LcdDisplay: Initialize LVGL port
+I (1867) LcdDisplay: Adding LCD display
+I (1867) LVGL: Starting LVGL task
+I (1877) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+I (1877) Backlight: Set brightness to 75
+I (1887) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+I (1957) CST9217: Checkcode: 0x204ECACA
+I (1957) CST9217: Resolution X: 466, Y: 466
+I (1957) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+I (1957) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+I (1957) Qmi8658: QMI8658 found at 0x6B
+I (1987) Qmi8658: Reset result 0x80
+I (2007) MCP: Add tool: self.system.reconfigure_wifi
+I (2007) MCP: Add tool: self.screen.set_bedside
+I (2007) MCP: Add tool: self.imu.get_state
+I (2007) StateMachine: State: unknown -> starting
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.811 y=-0.203 z=0.579 g
+W (2217) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+I (2217) BoxAudioCodec: Duplex channels created
+I (2227) ES8311: Work in Slave mode
+I (2237) ES7210: Work in Slave mode
+I (2247) ES7210: Enable ES7210_INPUT_MIC1
+I (2247) ES7210: Enable ES7210_INPUT_MIC2
+I (2247) ES7210: Enable ES7210_INPUT_MIC3
+I (2257) ES7210: Enable ES7210_INPUT_MIC4
+I (2257) ES7210: Enable TDM mode
+I (2257) BoxAudioCodec: BoxAudioDevice initialized
+I (2257) AudioCodec: Audio codec started
+I (2267) Application: After board/audio init
+I (2267) SystemInfo: free sram: 190995 minimal sram: 89468
+I (2267) MCP: Add tool: self.get_device_status
+I (2277) MCP: Add tool: self.audio_speaker.set_volume
+I (2277) MCP: Add tool: self.screen.set_brightness
+I (2277) MCP: Add tool: self.screen.set_theme
+I (2287) MCP: Add tool: self.get_system_info [user]
+I (2287) MCP: Add tool: self.reboot [user]
+I (2297) MCP: Add tool: self.upgrade_firmware [user]
+I (2297) MCP: Add tool: self.screen.get_info [user]
+I (2307) MCP: Add tool: self.screen.snapshot [user]
+I (2307) MCP: Add tool: self.screen.preview_image [user]
+I (2317) MCP: Add tool: self.assets.set_download_url [user]
+I (2317) WifiManager: Initializing...
+I (2327) pp: pp rom version: e7ae62f
+I (2327) net80211: net80211 rom version: e7ae62f
+I (2337) wifi:wifi driver task: 3fce2ee8, prio:23, stack:6656, core=0
+I (2337) wifi:wifi firmware version: e12a754
+I (2337) wifi:wifi certification version: v7.0
+I (2347) wifi:config NVS flash: disabled
+I (2347) wifi:config nano formatting: disabled
+I (2347) wifi:Init data frame dynamic rx buffer num: 6
+I (2357) wifi:Init dynamic rx mgmt buffer num: 5
+I (2357) wifi:Init management short buffer num: 32
+I (2367) wifi:Init dynamic tx buffer num: 32
+I (2367) wifi:Init static tx FG buffer num: 2
+I (2377) wifi:Init static rx buffer size: 1600
+I (2377) wifi:Init static rx buffer num: 3
+I (2377) wifi:Init dynamic rx buffer num: 6
+I (2387) wifi_init: rx ba win: 3
+I (2387) wifi_init: accept mbox: 6
+I (2387) wifi_init: tcpip mbox: 16
+I (2397) wifi_init: udp mbox: 6
+I (2397) wifi_init: tcp mbox: 6
+I (2397) wifi_init: tcp tx win: 5760
+I (2407) wifi_init: tcp rx win: 5760
+I (2407) wifi_init: tcp mss: 1440
+I (2407) WifiManager: Initialized
+I (2417) WifiBoard: Starting WiFi connection attempt
+I (2417) WifiManager: Starting station
+I (2417) WifiStation: Station DHCP hostname: Xiaozhi-<HOST>
+I (2427) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (2467) wifi:mode : sta (<MAC>)
+I (2467) wifi:enable tsf
+I (2467) WifiStation: Scanning 2 saved channels
+I (2467) WifiBoard: WiFi scanning
+I (2707) WifiStation: Found AP: <SSID>, BSSID: <BSSID>, RSSI: -63, Channel: 6, Authmode: 3
+I (2707) WifiBoard: WiFi connecting to <SSID>
+W (2707) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+I (2777) wifi:new:<6,0>, old:<1,0>, ap:<255,255>, sta:<6,0>, prof:1, snd_ch_cfg:0x0
+I (2777) wifi:state: init -> auth (0xb0)
+I (2777) wifi:state: auth -> assoc (0x0)
+I (2787) wifi:state: assoc -> run (0x10)
+I (2947) wifi:connected with <SSID>, aid = 2, channel 6, BW20, bssid = <MAC>
+I (2947) wifi:security: WPA2-PSK, phy: bgn, rssi: -62, cipher(pairwise:0x3, group:0x3), pmf:0
+I (2947) wifi:pm start, type: 1
+
+I (2957) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+I (2967) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (2967) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (3277) wifi:<ba-add>idx:0 (ifx:0, <MAC>), tid:0, ssn:2, winSize:64
+I (3607) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 1)
+I (4167) MonitorPanel: page=panel
+I (4287) esp_netif_handlers: sta ip: <IP>, mask: <IP>, gw: <IP>
+I (4287) WifiStation: Got IP: <IP>
+I (4287) WifiBoard: Connected to WiFi: <SSID>
+I (4307) Application: Network connected
+I (4307) StateMachine: State: starting -> activating
+I (4307) Assets: The storage free size is 21632 KB
+I (4317) Assets: The assets map size is 2944 KB (partition 16384 KB)
+I (4487) Assets: The checksum calculation time is 172 ms
+I (4497) MODEL_LOADER: Successfully load srmodels
+I (4517) Assets: Refreshing display theme...
+I (4527) Ota: Current version: 2.5.1
+I (4537) EspTcp: Resolved <IP> -> <IP>
+I (4707) HttpClient: Established new connection to <IP>:8003 protocol=http cost=170
+I (4747) HttpClient: HTTP connection closed
+I (4747) Ota: No mqtt section found !
+I (4747) Ota: Current is the latest version
+I (4747) Ota: Running partition: ota_0
+I (4797) Application: Activation done
+I (4797) SystemInfo: free sram: 151827 minimal sram: 39812
+I (4797) StateMachine: State: activating -> idle
+I (4797) Application: Proactive poller: http://<IP>:8003/weixue/proactive/poll
+I (4807) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (4807) EspTcp: Resolved <IP> -> <IP>
+I (4817) wifi:Set ps type: 2, coexist: 0
+
+I (4827) AfeAudioEngine: Model 0: wn9_jarvis_tts
+I (4827) WakeWordCache: Allocated 64000 bytes in PSRAM
+I (4827) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (4827) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+I (4847) AfeAudioEngine: Before AFE create: free=137063 min=39812 largest=94208
+MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+I (4937) AFE: AFE Version: (1MIC_V251128)
+I (4937) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4947) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+I (4957) AFE: AFE Version: (1MIC_V251128)
+I (4957) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4967) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+I (4977) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+I (4987) AfeAudioEngine: After AFE create: free=115783 min=33468 largest=73728
+I (4987) I2S_IF: Paired data: 0x3fcee838, current mode: playback, paired in_enable: 0, paired out_enable: 0
+I (4997) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+I (5007) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (5027) MonitorPanel: page=face
+I (5037) Adev_Codec: Open codec device OK
+I (5037) AudioCodec: Set output enable to true
+I (5037) I2S_IF: Peer mode playback need extend bits 32 to 64
+I (5037) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+I (5047) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (5057) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+I (5057) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+W (5067) WaveshareEsp32s3TouchAMOLED1inch75: IMU read failed (1)
+I (5067) ES7210: Bits 16
+I (5077) AudioService: Resampling audio from 16000 to 24000
+I (5087) ES7210: Enable ES7210_INPUT_MIC1
+I (5087) ES7210: Enable ES7210_INPUT_MIC2
+I (5097) ES7210: Enable ES7210_INPUT_MIC3
+I (5097) ES7210: Enable ES7210_INPUT_MIC4
+I (5097) ES7210: Enable TDM mode
+I (5107) ES7210: Unmuted
+I (5107) Adev_Codec: Open codec device OK
+I (5107) AudioCodec: Set input enable to true
+I (9787) Application: Wake word detected: Jarvis (state: 3)
+I (9787) StateMachine: State: idle -> connecting
+I (9797) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (9797) wifi:Set ps type: 0, coexist: 0
+
+I (9797) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+I (9807) EspTcp: Resolved <IP> -> <IP>
+I (9847) FaceDisplay: mode=listening mood=neutral
+I (9847) FaceDisplay: ring=pulse bedside=0
+I (9857) WebSocket: WebSocket handshake done, cost=50 tcp=20 handshake=30
+I (9887) WS: Session ID: <UUID>
+I (9887) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (9887) wifi:Set ps type: 0, coexist: 0
+
+W (9887) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (9897) Application: Wake word detected: Jarvis
+I (10097) AfeAudioEngine: Encoded wake word into 33 packets in 302 ms
+I (10097) StateMachine: State: connecting -> listening
+I (10727) StateMachine: State: listening -> speaking
+I (10787) FaceDisplay: mode=speaking mood=neutral
+I (10787) FaceDisplay: ring=level bedside=0
+I (10967) Application: << Yes?
+I (11617) StateMachine: State: speaking -> listening
+I (11637) FaceDisplay: mode=listening mood=neutral
+I (11637) FaceDisplay: ring=pulse bedside=0
+I (13087) Application: >> Chavez
+I (13087) StateMachine: State: listening -> speaking
+I (13107) FaceDisplay: mode=thinking mood=neutral
+I (13107) FaceDisplay: ring=spin bedside=0
+I (14507) FaceDisplay: mode=thinking mood=confused
+I (15467) Application: << Chavez?
+I (15477) FaceDisplay: mode=speaking mood=confused
+I (15477) FaceDisplay: ring=level bedside=0
+I (16437) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 2)
+I (16867) Application: << I'm not sure what you'd like. Do you want to hear about someone named Chavez, or was that something else?
+I (20487) StateMachine: State: speaking -> listening
+I (20507) Application: >> service
+I (20517) StateMachine: State: listening -> speaking
+I (20527) FaceDisplay: mode=thinking mood=neutral
+I (20527) FaceDisplay: ring=spin bedside=0
+I (22167) Application: << I'm not sure what you mean by "service." Could you say a bit more about what you need?
+I (22187) FaceDisplay: mode=speaking mood=neutral
+I (22187) FaceDisplay: ring=level bedside=0
+I (26817) StateMachine: State: speaking -> listening
+I (26817) FaceDisplay: mode=listening mood=neutral
+I (26817) FaceDisplay: ring=pulse bedside=0
+I (28087) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 3)
+I (31227) Application: >> Sorry, what time is it?
+I (31227) StateMachine: State: listening -> speaking
+I (31237) FaceDisplay: mode=thinking mood=neutral
+I (31237) FaceDisplay: ring=spin bedside=0
+I (33007) Application: << It's ten forty in the morning
+I (33027) FaceDisplay: mode=speaking mood=neutral
+I (33027) FaceDisplay: ring=level bedside=0
+I (34087) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 4)
+I (35557) StateMachine: State: speaking -> listening
+I (35587) FaceDisplay: mode=listening mood=neutral
+I (35587) FaceDisplay: ring=pulse bedside=0
+I (36537) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 5)
+I (42057) Application: >> Tell me a story
+I (42057) StateMachine: State: listening -> speaking
+I (42067) FaceDisplay: mode=thinking mood=neutral
+I (42067) FaceDisplay: ring=spin bedside=0
+I (51267) SystemInfo: free sram: 120051 minimal sram: 33468
+I (55047) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 6)
+I (60767) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 7)
+I (61267) SystemInfo: free sram: 119767 minimal sram: 33468
+I (62067) FaceDisplay: mode=speaking mood=neutral
+I (62067) FaceDisplay: ring=level bedside=0
+I (71267) SystemInfo: free sram: 120039 minimal sram: 33468
+I (81267) SystemInfo: free sram: 120039 minimal sram: 33468
+I (91267) SystemInfo: free sram: 120039 minimal sram: 33468
+I (94487) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 8)
+I (96357) MonitorPanel: page=panel
+I (97577) MonitorPanel: page=face
+I (98497) Application: Abort speaking
+I (98517) StateMachine: State: speaking -> listening
+I (98517) FaceDisplay: mode=listening mood=neutral
+I (98517) FaceDisplay: ring=pulse bedside=0
+I (102577) Application: >> Jarvis, what time is it?
+I (102627) StateMachine: State: listening -> speaking
+I (102637) FaceDisplay: mode=thinking mood=neutral
+I (102637) FaceDisplay: ring=spin bedside=0
+I (104097) FaceDisplay: mode=thinking mood=happy
+I (104407) Application: << It's ten forty-one. Here's a story. Once upon a time
+I (104417) FaceDisplay: mode=speaking mood=happy
+I (104417) FaceDisplay: ring=level bedside=0
+I (107857) StateMachine: State: speaking -> listening
+I (107857) Application: >> It's 10:41
+I (107857) StateMachine: State: listening -> speaking
+I (107887) FaceDisplay: mode=thinking mood=neutral
+I (107887) FaceDisplay: ring=spin bedside=0
+I (109237) FaceDisplay: mode=thinking mood=happy
+I (109617) Application: << Yep
+I (109647) FaceDisplay: mode=speaking mood=happy
+I (109647) FaceDisplay: ring=level bedside=0
+I (109877) StateMachine: State: speaking -> listening
+I (109877) Application: >> Here's the story
+I (109877) StateMachine: State: listening -> speaking
+I (109887) FaceDisplay: mode=thinking mood=neutral
+I (109887) FaceDisplay: ring=spin bedside=0
+I (111527) Application: << Did you want me to tell you a new story?
+I (111557) FaceDisplay: mode=speaking mood=neutral
+I (111557) FaceDisplay: ring=level bedside=0
+I (113477) Application: << Say the word, and pick a theme if you like, such as animals, space, or something funny
+I (114357) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 9)
+I (119297) SystemInfo: free sram: 120487 minimal sram: 33468
+I (119547) StateMachine: State: speaking -> listening
+I (119557) FaceDisplay: mode=listening mood=neutral
+I (119557) FaceDisplay: ring=pulse bedside=0
+I (124247) Application: >> Yes, you can tell me a story
+I (124247) StateMachine: State: listening -> speaking
+I (124257) FaceDisplay: mode=thinking mood=neutral
+I (124257) FaceDisplay: ring=spin bedside=0
+I (125597) Application: << Once upon a time
+I (125627) FaceDisplay: mode=speaking mood=neutral
+I (125627) FaceDisplay: ring=level bedside=0
+I (127167) Application: << a small cloud named Pip drifted over a dry, dusty village. The children looked up and sighed, because they hadn't seen rain in ages. Pip was tiny and nervous, but he squeezed his eyes shut and tried his best. One single drop fell, then another, then a whole happy shower. The children danced in the puddles, and Pip glowed with pride. Want to hear what Pip did the next day?
+I (128057) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 10)
+I (131687) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 11)
+I (133377) SystemInfo: free sram: 118423 minimal sram: 33468
+I (139527) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 12)
+I (143297) SystemInfo: free sram: 118947 minimal sram: 33468
+I (144997) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 13)
+I (147447) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 14)
+I (148167) StateMachine: State: speaking -> listening
+I (148167) Application: >> a whole happy shower
+I (148227) StateMachine: State: listening -> speaking
+I (148237) FaceDisplay: mode=thinking mood=neutral
+I (148237) FaceDisplay: ring=spin bedside=0
+I (149547) Application: << Yes
+I (149557) FaceDisplay: mode=speaking mood=neutral
+I (149557) FaceDisplay: ring=level bedside=0
+I (149857) StateMachine: State: speaking -> listening
+I (149857) Application: >> The children dance
+I (149857) FaceDisplay: mode=listening mood=neutral
+I (149857) FaceDisplay: ring=pulse bedside=0
+I (149897) StateMachine: State: listening -> speaking
+I (149907) FaceDisplay: mode=thinking mood=neutral
+I (149907) FaceDisplay: ring=spin bedside=0
+I (151637) Application: << Yes
+I (151657) FaceDisplay: mode=speaking mood=neutral
+I (151657) FaceDisplay: ring=level bedside=0
+I (152967) Application: << they danced and splashed in every puddle
+I (154327) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 15)
+I (155487) Application: << Want to hear what Pip did the next day?
+I (158307) StateMachine: State: speaking -> listening
+I (158317) FaceDisplay: mode=listening mood=neutral
+I (158317) FaceDisplay: ring=pulse bedside=0
+E (162257) EspTcp: TCP receive failed: -1
+I (162257) WS: Websocket disconnected
+I (162257) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (162257) wifi:Set ps type: 2, coexist: 0
+
+I (162267) StateMachine: State: listening -> idle
+I (162277) FaceDisplay: mode=idle mood=neutral
+I (162277) FaceDisplay: ring=off bedside=0
+I (162887) EspTcp: Resolved <IP> -> <IP>
+I (162927) HttpClient: Established new connection to <IP>:8003 protocol=http cost=40
+I (166427) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 16)
+I (169197) Application: Wake word detected: Jarvis (state: 3)
+I (169207) StateMachine: State: idle -> connecting
+I (169207) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (169207) wifi:Set ps type: 0, coexist: 0
+
+I (169217) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+I (169217) EspTcp: Resolved <IP> -> <IP>
+I (169237) FaceDisplay: mode=listening mood=neutral
+I (169247) FaceDisplay: ring=pulse bedside=0
+I (169267) WebSocket: WebSocket handshake done, cost=50 tcp=20 handshake=30
+I (169297) WS: Session ID: <UUID>
+I (169297) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (169297) wifi:Set ps type: 0, coexist: 0
+
+W (169307) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (169317) Application: Wake word detected: Jarvis
+I (169527) AfeAudioEngine: Encoded wake word into 33 packets in 323 ms
+I (169527) StateMachine: State: connecting -> listening
+I (170157) StateMachine: State: listening -> speaking
+I (170217) FaceDisplay: mode=speaking mood=neutral
+I (170217) FaceDisplay: ring=level bedside=0
+I (170367) Application: << Mm-hm?
+I (170907) StateMachine: State: speaking -> listening
+I (170917) FaceDisplay: mode=listening mood=neutral
+I (170917) FaceDisplay: ring=pulse bedside=0
+I (171967) Application: >> charis
+I (171987) StateMachine: State: listening -> speaking
+I (171997) FaceDisplay: mode=thinking mood=neutral
+I (171997) FaceDisplay: ring=spin bedside=0
+I (173437) FaceDisplay: mode=thinking mood=happy
+I (174027) Application: << I'm here. What can I do for you?
+I (174047) FaceDisplay: mode=speaking mood=happy
+I (174047) FaceDisplay: ring=level bedside=0
+I (177297) StateMachine: State: speaking -> listening
+I (177307) FaceDisplay: mode=listening mood=neutral
+I (177307) FaceDisplay: ring=pulse bedside=0
+I (177907) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 17)
+I (180637) Application: >> Chavés
+I (180637) StateMachine: State: listening -> speaking
+I (180677) FaceDisplay: mode=thinking mood=neutral
+I (180677) FaceDisplay: ring=spin bedside=0
+I (182547) Application: << I didn't quite catch that. Were you calling me
+I (182567) FaceDisplay: mode=speaking mood=neutral
+I (182567) FaceDisplay: ring=level bedside=0
+I (183347) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 18)
+I (185657) Application: << Jarvis?
+I (186877) Application: << What do you need?
+I (188667) StateMachine: State: speaking -> listening
+I (188687) FaceDisplay: mode=listening mood=neutral
+I (188687) FaceDisplay: ring=pulse bedside=0
+I (194647) Application: >> Set bedtime mode
+I (194697) StateMachine: State: listening -> speaking
+I (194707) FaceDisplay: mode=thinking mood=neutral
+I (194707) FaceDisplay: ring=spin bedside=0
+I (196527) Application: >> % self_screen_set_bedside
+I (196527) FaceDisplay: bedside hint=night local=10:43
+I (197857) Application: << Bedside mode is on until seven. The red clock will show up fifteen seconds after we finish talking
+I (197887) FaceDisplay: mode=speaking mood=happy
+I (197887) FaceDisplay: ring=level bedside=0
+I (203817) StateMachine: State: speaking -> listening
+I (203837) FaceDisplay: mode=listening mood=neutral
+I (203837) FaceDisplay: ring=pulse bedside=0
+I (209947) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 19)
+I (211827) WS: Websocket disconnected
+I (211827) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (211827) wifi:Set ps type: 2, coexist: 0
+
+I (211827) StateMachine: State: listening -> idle
+I (211837) FaceDisplay: mode=idle mood=neutral
+I (211837) FaceDisplay: ring=off bedside=0
+I (211997) EspTcp: Resolved <IP> -> <IP>
+I (212017) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (221267) SystemInfo: free sram: 113915 minimal sram: 33468
+I (226807) FaceDisplay: bedside=on reason=night local=10:43 hint=1
+I (231267) SystemInfo: free sram: 118767 minimal sram: 33468
+I (238477) EspTcp: Resolved <IP> -> <IP>
+I (238487) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (241267) SystemInfo: free sram: 118767 minimal sram: 33468
+I (251267) SystemInfo: free sram: 118767 minimal sram: 33468
+I (253987) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 20)
+I (255847) FaceDisplay: bedside=off reason=touch local=10:44 hint=1
+I (261267) SystemInfo: free sram: 118767 minimal sram: 33468
+I (265097) EspTcp: Resolved <IP> -> <IP>
+I (265127) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+I (271267) SystemInfo: free sram: 118767 minimal sram: 33468
+I (271667) FaceDisplay: bedside=on reason=night local=10:44 hint=1
+I (275267) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 21)
+I (278097) FaceDisplay: bedside=off reason=touch local=10:44 hint=1
+I (281267) SystemInfo: free sram: 118767 minimal sram: 33468
+I (291267) SystemInfo: free sram: 123123 minimal sram: 33468
+I (291717) EspTcp: Resolved <IP> -> <IP>
+I (291727) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (293817) FaceDisplay: bedside=on reason=night local=10:44 hint=1
+I (301267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (311267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (318347) EspTcp: Resolved <IP> -> <IP>
+I (318367) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (321267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (331267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (338367) PowerSaveTimer: Enabling power save mode
+I (338367) Backlight: Set brightness to 20
+I (338477) FaceDisplay: mode=idle mood=sleepy
+I (341267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (344967) EspTcp: Resolved <IP> -> <IP>
+I (344987) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (351267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (361267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (371267) SystemInfo: free sram: 122779 minimal sram: 33468
+I (371597) EspTcp: Resolved <IP> -> <IP>
+I (371617) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (381267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (391267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (398217) EspTcp: Resolved <IP> -> <IP>
+I (399267) HttpClient: Established new connection to <IP>:8003 protocol=http cost=1050
+I (401267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (411267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (421267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (425867) EspTcp: Resolved <IP> -> <IP>
+I (426507) HttpClient: Established new connection to <IP>:8003 protocol=http cost=640
+I (431267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (441267) SystemInfo: free sram: 118939 minimal sram: 33468
+I (451267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (453517) EspTcp: Resolved <IP> -> <IP>
+I (453547) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+I (461267) SystemInfo: free sram: 118975 minimal sram: 33468
+I (471267) SystemInfo: free sram: 118975 minimal sram: 33468
