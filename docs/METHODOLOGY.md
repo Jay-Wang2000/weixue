@@ -48,3 +48,10 @@ Used for the face UI (2026-10-06) and the agent UI (2026-10-07). Jay's standing 
 
 ## Office-mode exception (2026-10-07)
 When the orchestrator and its agents cannot deploy to the live stack (permission classifier treats compose up/restart as a production deploy; Jay away from the home LAN or on the corporate VPN), gates run host-only: code lenses, unit tests, simulated-device or scratch-compose evidence, and the spec lists the deferred live checks. Live checks for several tasks are batched into one orchestrator-run live step after Jay runs `server/scripts/setup.sh` once; a failed live check becomes a follow-up task. Device playback tests may run with the device volume at 0 (no audible output) to exercise playback/ack paths; `say` and audible device output stay forbidden. This bends "live gate before merge" deliberately and is recorded per task in `docs/QUALITY-LOG.md`.
+
+## Lighter pipeline (Jay, 2026-10-07: "workflow 太 heavy，cut 掉一些 gate 和 review")
+- Default runner is `.claude/workflows/wave-lite.js`: Opus developer → ONE Sonnet reviewer+tester → fix pass only on errors or a failing acceptance-critical check. No lens panel, no skeptics, no dedupe stage.
+- `wave-gate.js` (3 lenses + skeptics + tester) is opt-in for security-sensitive changes only (device/proactive auth, ha-mcp policy handling, secrets, deploy/rollback scripts).
+- Codex external review runs once per milestone (M2 end), not after every wave; the orchestrator may request an ad-hoc Codex pass for a security-sensitive merge.
+- Spec docs stay (200-400 words); QUALITY-LOG keeps one line per gate so the lighter gate's miss rate stays visible.
+- Agent authority: task prompts state that they come from the orchestrator and are already authorized; Jay's conversational messages do not redirect a running task.
