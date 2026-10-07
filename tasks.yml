@@ -183,6 +183,15 @@ tasks:
     status: done
     retries: 0
     model: opus
+  - id: feat-ui-sessions
+    name: "Session switcher UI (M2)"
+    branch: feat/ui-sessions
+    description: |
+      DESIGN.md M2 feat-ui-sessions：设备上在多个 agent 会话（chat）间切换——chats 列表页（标题/最近活动/状态芯片/当前高亮）、点按切换、新对话入口、语音同义指令；服务端按会话 resume SDK session；列表来自 agent 服务持久化的会话索引。依赖 agent 服务的会话 API。实机端到端验收见 DESIGN 行。
+    depends_on: [feat-ui-panel, feat-agent-service]
+    status: pending
+    retries: 0
+    model: opus
   - id: fix-wave3-firmware
     name: "Firmware fixes from Codex Wave 3 review"
     branch: fix/wave3-firmware

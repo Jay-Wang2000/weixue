@@ -71,6 +71,7 @@ xiaozhi-server 的对话循环是深度 ≤5、每工具 30 s、同步阻塞、1
 | feat-agent-service | Claude Agent SDK 服务（每设备会话一个 client；ha-mcp 作 http MCP；`permission_mode=default` + `can_use_tool` → 审批队列）；任务 API `POST /tasks`、SSE 事件 `progress|needs_input|needs_approval|done|failed|cancelled`、`answer|approve|cancel`；`dispatch_dev_job` 用 `claude -p --output-format stream-json` 在目标仓库跑 HA 开发任务 | 「把客厅灯做成日落自动化」跨 ≥3 工具、>30 s，期间设备可被唤醒问天气且不并发 `chat()`，完成后设备收到 done |
 | feat-llm-claude-agent | xiaozhi provider `type: claude_agent`：短问直答，长任务建 task 后立即应答并发 LAST；文本流 + 侧信道事件；长任务保活；MCP 接入点执行器透传超时 | 5 min 无语音任务期间连接不断 |
 | feat-protocol-agent-msg | 服务器→设备 `agent` 消息 `{task_id,state,summary,progress,options,scheduling}`（先借 `custom`，固件开 `CONFIG_RECEIVE_CUSTOM_MESSAGE`）；后端通知重投队列 | 设备忙时的通知回 Idle 后 10 s 内送达 |
+| feat-ui-sessions | 会话切换页（Jay 2026-10-07）：左滑面板再滑或面板内入口进入「chats」列表——每个 chat 显示标题（首句/自动摘要）、最近活动时间、状态芯片（进行中/需批准/有未读）、当前会话高亮；点按切换、顶部「新对话」；语音同义：「new chat」「switch to <title>」「back to the last chat」；切换时服务端 `resume` 对应 SDK session，设备 UI 在 1 s 内显示所选会话的最近一轮摘要；列表来自 agent 服务的会话索引（持久化，重启后仍在） | 5 个 chat 间来回切换 10 次，每次语音追问落在正确会话；重启服务后列表与当前会话不变 |
 | feat-ui-agent-states | 新状态：后台工作中 / 需澄清 / 需批准 / 有未读结果；澄清与批准为中央整屏卡；语音非选项答案经 `response` 回传；任务芯片 + 左滑任务列表（参考 Muse 头像状态行 / Goals 页 / 批准卡） | 四态可辨，卡片按钮与语音都能应答 |
 
 依赖：feat-llm、feat-ui-face、feat-ui-panel、feat-approvals。结果交付三档借 Gemini Live 的 `INTERRUPT | WHEN_IDLE | SILENT`。
