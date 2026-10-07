@@ -65,7 +65,7 @@ tasks:
   - id: feat-approvals
     name: "Pending approvals on device"
     branch: feat/approvals
-    description: 按 ADR-9 实现：后端订阅 ha_mcp_approval_requested 事件，推到设备表情中央/监控面板；设备点击 → 后端发 ha_mcp_approval_response（PIN）→ 显示 ha_mcp_approval_result。HTTP /api/policy/* 作备选。
+    description: 按 ADR-9（决定 18 = B）实现：pending 期间每 2 s 轮询 /api/policy/pending，待批推到设备审批卡（管理视图/整屏卡）；设备决定经 HTTP /api/policy/approve|deny（既有 secret path）闭环；只裁决能证明属于本设备原始调用的 token，其余只读；不再需要 HA 面板的 event decisions/PIN。语音裁决按 Q1 决定。
     depends_on: [feat-ha-mcp, feat-ui-panel]
     status: pending
     retries: 0
@@ -196,7 +196,7 @@ tasks:
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
     description: |
-      DESIGN.md M2 feat-agent-service + ADR-10/11、docs/briefs/feat-agent-service.md：独立 Python 服务（Docker，`claude-agent-sdk`，个人 ANTHROPIC_API_KEY 注入，model claude-fable-5-1 + fallback）；每个 chat 一个 SDK session（resume/fork），会话索引持久化；任务 API（POST /tasks、SSE 事件 progress|needs_input|needs_approval|done|failed|cancelled、answer/approve 回传）；连接≠任务的 job 模型，重启恢复；ha-mcp 作为 MCP 工具源，经本服务的 HA MCP 代理实现 ADR-9（约 8 s 预算→pending、保持原请求、事件总线闭环，不改 ha-mcp wait_seconds）与 can_use_tool 审批门；CLAUDE.md/记忆目录按 setting_sources 加载。端到端：模拟设备客户端发起「把客厅灯做成日落自动化」类长任务（>30 s、≥3 个工具，HA 用只读或测试实体），期间第二个短问不并发、完成后收到 done；一次真实 HA 自由灯控经代理。
+      DESIGN.md M2 feat-agent-service + ADR-10/11、docs/briefs/feat-agent-service.md：独立 Python 服务（Docker，`claude-agent-sdk`，个人 ANTHROPIC_API_KEY 注入，model claude-fable-5-1 + fallback）；每个 chat 一个 SDK session（resume/fork），会话索引持久化；任务 API（POST /tasks、SSE 事件 progress|needs_input|needs_approval|done|failed|cancelled、answer/approve 回传）；连接≠任务的 job 模型，重启恢复；直接调用 ha-mcp（办公室模式与 mcp-bridge 一样加入 wg 命名空间，不设中继），暴露全部 ha-mcp 工具、不加应用层过滤（安全决策只在 ha-mcp policy）；服务内进程内适配器经 HTTP 直连 ha-mcp，实现 ADR-9 唯一契约（约 8 s 预算→pending、保持原请求、裁决走 HTTP /api/policy/approve|deny、pending 期间每 2 s 轮询 /api/policy/pending，不改 wait_seconds；启动时只拒绝能证明归属本服务的 pending 调用）；can_use_tool 只管非 HA 工具；SDK WebSearch/WebFetch 启用；dispatch_dev_job 不在本任务（feat-dev-dispatch）；密钥只来自 server/.env，服务专属 environment 只注入所需键；CLAUDE.md/记忆目录按 setting_sources 加载。首个门禁为 brief §13 S0/S1 清单；开放问题见 brief §14（Q1/Q2/Q3/Q6/Q7/Q8）。端到端：模拟设备客户端发起「把客厅灯做成日落自动化」类长任务（>30 s、≥3 个工具，HA 用只读或测试实体），期间第二个短问不并发、完成后收到 done；一次真实 HA 自由动作经适配器（测试实体与时段待 Q8）。
     depends_on: [fix-server-review-2]
     status: in_progress
     retries: 0
@@ -205,7 +205,7 @@ tasks:
     name: "xiaozhi provider type claude_agent (M2)"
     branch: feat/llm-claude-agent
     description: |
-      DESIGN.md M2 feat-llm-claude-agent：小智 LLM provider `claude_agent` 把每轮转发到 agent 服务；短问直答流式回传，长任务建 task 后立即应答并发 LAST；文本流 + 侧信道事件；长任务保活；继承自 fix-turn-isolation 的要求：ADR-11 90 s 墙钟截止并在固件 120 s 前发提示/终态、语音边界 sentence_id 过期守卫、APITimeoutError/APIConnectionError 等异常优雅处理（保留 SDK 重试，重试可见）、迟到回复不入历史。端到端：实机一轮短问 + 一轮长任务（办公室模式可用模拟设备）。
+      DESIGN.md M2 feat-llm-claude-agent：小智 LLM provider `claude_agent` 把每轮转发到 agent 服务；短问直答流式回传，长任务建 task 后立即应答并发 LAST；文本流 + 侧信道事件；长任务不依赖连接保活（5 min 无语音任务在设备断连后仍完成，结果经 WHEN_IDLE 到达）；接管后语音路径的 HA 调用改走 agent 服务，mcp-bridge 旧语音路径行为退役；继承自 fix-turn-isolation 的要求：ADR-11 90 s 墙钟截止并在固件 120 s 前发提示/终态（到期后是否继续调度动作按 brief Q2 的决定）、语音边界 sentence_id 过期守卫、APITimeoutError/APIConnectionError 等异常优雅处理（保留 SDK 重试，重试可见）、迟到回复不入历史。端到端：实机一轮短问 + 一轮长任务（办公室模式可用模拟设备）。
     depends_on: [feat-agent-service, fix-wave3-server]
     status: pending
     retries: 0
@@ -214,7 +214,7 @@ tasks:
     name: "Server→device agent message (M2)"
     branch: feat/protocol-agent-msg
     description: |
-      DESIGN.md M2 feat-protocol-agent-msg：服务器→设备 `agent` 消息 {task_id,state,summary,progress,options,scheduling}（先借 custom 通道，CONFIG_RECEIVE_CUSTOM_MESSAGE 已开）；后端通知重投队列（设备忙时回 Idle 后 10 s 内送达）；固件侧解析与状态存储，供 feat-ui-agent-states 使用。端到端：实机接收并记录 4 种状态。
+      DESIGN.md M2 feat-protocol-agent-msg：服务器→设备 `agent` 消息 {task_id,state,summary,progress,options,scheduling}（先借 custom 通道，CONFIG_RECEIVE_CUSTOM_MESSAGE 已开）；后端通知重投队列（设备忙时回 Idle 后 10 s 内送达；重启后投递确认不明时重播还是显示「投递不确定」卡按 brief Q6）；固件侧解析与状态存储，供 feat-ui-agent-states 使用。端到端：实机接收并记录 4 种状态。
     depends_on: [feat-agent-service, feat-ui-panel]
     status: pending
     retries: 0
@@ -223,7 +223,7 @@ tasks:
     name: "Agent states UI: working / needs input / needs approval / unread (M2)"
     branch: feat/ui-agent-states
     description: |
-      DESIGN.md M2 feat-ui-agent-states，按设计稿 ~/Projects/research/reports/weixue-agent-ui-v1.md（final-*.svg 为版式真值）：空闲态的四种 agent 状态表现、整屏审批卡与澄清卡（按钮 + 语音作答经 response 回传）、任务芯片与任务列表、三档投递 INTERRUPT|WHEN_IDLE|SILENT 的呈现；烧屏预算与手势不冲突。实机端到端：四态可辨、卡片按钮与语音都能应答（音频部分在家）。
+      DESIGN.md M2 feat-ui-agent-states，按设计稿 ~/Projects/research/reports/weixue-agent-ui-v1.md（final-*.svg 为版式真值）：空闲态的四种 agent 状态表现、整屏审批卡与澄清卡（按钮 + 语音作答经 response 回传；语音能否批准待 brief Q1，决定前语音只可拒绝/取消）、任务芯片；任务列表、chats 切换与 HA 状态/审批同在现有横滑的单一管理视图内（决定 27，无左滑任务列表、无上滑列表）、三档投递 INTERRUPT|WHEN_IDLE|SILENT 的呈现；烧屏预算与手势不冲突。实机端到端：四态可辨、卡片按钮与语音都能应答（音频部分在家）。
     depends_on: [feat-protocol-agent-msg, feat-ui-panel]
     status: pending
     retries: 0
@@ -232,7 +232,7 @@ tasks:
     name: "Agent backend monitor board (M2)"
     branch: feat/agent-monitor
     description: |
-      DESIGN.md M2 feat-agent-monitor：agent 服务的事件库 + 只读 Web 监控台——动作时间线（工具调用、审批裁决）、token/费用（会话/任务/天）、家庭状态快照、连接（设备 WS、bridge/endpoint/隧道健康）、MCP 状态（可达、工具数、pending、策略版本）、chats、错误。数据来自 feat-agent-service 的 SQLite（同一库，只读）与定期健康探测；不执行任何动作。曝光/鉴权按 DECISIONS-PENDING 的决定（默认 127.0.0.1）。端到端：跑一次长任务后监控台显示全部工具调用与 token；断隧道 30 s 内状态变红。
+      DESIGN.md M2 feat-agent-monitor：agent 服务的事件库 + 只读 Web 监控台——动作时间线（工具调用、审批裁决）、token/费用（会话/任务/天）、家庭状态快照、连接（设备 WS、agent 服务与 ha-mcp 直连、bridge/endpoint/隧道健康）、MCP 状态（可达、工具数、pending（含非本服务归属的）、策略版本）、chats、错误。数据来自 feat-agent-service 的 SQLite（同一库，只读）与定期健康探测；不执行任何动作。仅绑定 127.0.0.1（决定 30）；后端迁到家中 Ubuntu 后经 Tailscale 打开，不公网暴露、v1 无 basic auth。端到端：跑一次长任务后监控台显示全部工具调用与 token；断隧道 30 s 内状态变红。
     depends_on: [feat-agent-service]
     status: pending
     retries: 0
@@ -241,7 +241,7 @@ tasks:
     name: "Session switcher UI (M2)"
     branch: feat/ui-sessions
     description: |
-      DESIGN.md M2 feat-ui-sessions：设备上在多个 agent 会话（chat）间切换——chats 列表页（标题/最近活动/状态芯片/当前高亮）、点按切换、新对话入口、语音同义指令；服务端按会话 resume SDK session；列表来自 agent 服务持久化的会话索引。依赖 agent 服务的会话 API。实机端到端验收见 DESIGN 行。
+      DESIGN.md M2 feat-ui-sessions：设备上在多个 agent 会话（chat）间切换——chats 在现有横滑进入的单一管理视图内选择（决定 27，不设独立会话页）：标题/最近活动/状态芯片/当前高亮、点按切换、新对话入口、语音同义指令；服务端按会话 resume SDK session；列表来自 agent 服务持久化的会话索引。依赖 agent 服务的会话 API。实机端到端验收见 DESIGN 行。
     depends_on: [feat-ui-panel, feat-agent-service]
     status: pending
     retries: 0

@@ -30,17 +30,22 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 ## M2 agent service — decisions before implementation (brief: `docs/briefs/feat-agent-service.md`, 2026-10-07)
 15. **Anthropic model config** — accepted 2026-10-07 (Jay): `claude-fable-5-1`, fallback `claude-opus-5-5`; effort low for chat, high for tasks; runaway guards only. Jay to check 30-day retention on the personal API org.
+    - Note (2026-10-07, Wave 5 review reconciliation): the retention confirmation is still open as brief §14 Q7; S0 needs it.
 16. **Anthropic client behaviour / key source** — accepted 2026-10-07: SDK retry/timeout defaults, retries visible in logs, single key source `server/.env`.
 17. **Networking** — decided 2026-10-07 (Jay): the simple solution, no relay. agent-service calls ha-mcp directly via HA_MCP_URL; in office mode it joins the wg namespace exactly like mcp-bridge (network_mode service:wg when WG_TUNNEL=1). The backend migrates to the home Ubuntu server (LAN, reached over Tailscale), where no tunnel is needed.
+    - Note (2026-10-07, Wave 5 review reconciliation): the ADR-9 8 s pending boundary is an in-process adapter inside agent-service calling ha-mcp over HTTP directly (review Q4, orchestrator).
 18. **HA approval decision route** — decided 2026-10-07 (Jay): B. Device decisions go to ha-mcp `/api/policy/approve|deny` over the existing secret path; while anything is pending our service polls `/api/policy/pending` every 2 s. Event bus optional later for push. ADR-9 wording updated.
+    - Note (2026-10-07, Wave 5 review reconciliation): owner of this contract on the agent path is feat-agent-service; mcp-bridge keeps its current behaviour on the legacy voice path until feat-llm-claude-agent. At startup only pending calls whose ownership is provable (our correlation record) are denied; others are left and shown on the monitor (review Q5, orchestrator).
 19. **HA tool surface for the agent path** — decided 2026-10-07 (Jay): no extra filtering; the agent sees every ha-mcp tool; the security decision lives in one place, the ha-mcp policy (held/free). The xiaozhi voice filter becomes moot once the LLM path moves to the agent service.
 20. **Gate model + voice approval** — accepted 2026-10-07: single decision (ha-mcp policy decides, device panel approves, SDK gate only for non-HA tools); voice can deny/cancel, never approve in v1.
+    - Note (2026-10-07, Wave 5 review reconciliation): "never approve" conflicts with item 25's explicit phrases; open as brief §14 Q1. The build is deny-only until answered.
 21. **Memory + retention** — accepted 2026-10-07.
 22. **Scope** — decided 2026-10-07 (Jay): web tools ARE in v1 (SDK WebSearch/WebFetch enabled for the agent; weather and lookups via web allowed); dev-job dispatcher stays a separate later task; the 5-min voiceless acceptance reworded as recommended.
 
 ## Agent UI design review (artifact https://claude.ai/artifact/ExW3FbgpovZD3zk6LncHfv · report `~/Projects/research/reports/weixue-agent-ui-v1.md`, 2026-10-07)
 23. **Design direction** — approved 2026-10-07 (Jay, with the management-view amendment).  (glanceable character: eyes stay, one glyph + one line per state, amber ears = needs you, approve-left/deny-right, numbered clarification options, tasks page on swipe-up, chats page). Deviations from backend §5 are listed in report §9 (full ring stays voice-only; countdown as footer text; task list not on swipe-left).
 24. **批准超时与夜间策略** — decided 2026-10-07 (Jay): 300 s (server `timeout_s`); bedside WHEN_IDLE approvals extend to 07:30 as recommended.
+    - Note (2026-10-07, Wave 5 review reconciliation): the ha-mcp token can expire before 07:30 and a device card cannot extend it; expired-card behaviour is open as brief §14 Q3.
 25. **语音批准严格度** — decided 2026-10-07 (Jay): explicit phrases only; bare "yes" gets a repeat-back; irreversible / money actions tap-only.
 26. **D1 字体** — decided 2026-10-07 (Jay): measure the font binary first; ship if small (<1.5 MB), else English-only sublabels.
 27. 4. **任务列表手势** — decided 2026-10-07 (Jay): the existing horizontal-swipe view becomes a single management view (current chat + chats switcher, agent tasks, HA status/approvals); chats are selected inside it; no swipe-up list. Design being amended; DESIGN.md updates with feat-ui-agent-states/feat-ui-sessions.
