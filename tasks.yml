@@ -251,7 +251,7 @@ tasks:
     branch: fix/wave3-firmware
     description: 按 docs/reviews/codex-gpt6-astra-high-wave3-code-review-2026-10-07.md：C2 一口气说「Jarvis, what time is it?」丢开头（唤醒→建连→进入监听期间约 300 ms 采集缺口；当前 0/8 成功）——唤醒检测到监听之间保持连续采音并前滚缓冲，中英短命令连说与停顿后各 10 次 ≥9；C1 面朝下静音必须无条件关闭传输、作废排队回调，并在 tts start / 进入监听 / 发送麦克风数据三处强制静音不变量，测试超时后静音与迟到帧；C9 IMU 20 ms 轮询超时后重新同步、拒绝不连续样本；C8 脸的 thinking 态保持到真正开口或明确终态/错误，而非 20 s 后假装 speaking；面板（feat-ui-panel 与 Codex Wave 4 评审，P1）：设备事件发送不得阻塞应用主任务（建连期间也不得阻塞，影响唤醒与 IMU 静音），发送失败不得显示“已发送”也不得触发错误提示音（后端不可达时点卡片曾阻塞 10 s），后端状态行在长会话/取消静音后误显示 offline 要修，回复文本不得跨轮累积；床头时钟依赖启动时一次性的固定 UTC 偏移（DST 后偏 1 h、离线启动显示 --:--）——改为每次重连重同步时间或在 OTA 响应里带 POSIX TZ。实机端到端验证。 2026-10-07 手测补充（docs/logs/handson-2026-10-07.md）：唤醒后首条转写是唤醒词残片（Chavez/charis，2/2），白费第一轮——前滚缓冲必须从唤醒词结束点起算或整体丢弃唤醒词音频，验收：唤醒后首条转写不含唤醒词残片 ≥9/10；TTS 自回声疑似触发打断（设备把自己朗读的句子当作用户语音并 abort，4 次）——验收：60 s 长回答无人说话 0 次 abort；面朝下与双击 Jay 手测均有反应（次数不足 10、且发生在串口捕获窗口之外），在家带捕获重测各 10 次计数。
     depends_on: [feat-ui-ring-bedside, feat-ui-panel]
-    status: review
+    status: done
     retries: 0
     model: opus
   - id: fix-wave3-server
