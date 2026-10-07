@@ -107,7 +107,9 @@ class ASRProvider(ASRProviderBase):
     def _recognizer_path(self) -> str:
         return f"projects/{self.project_id}/locations/{self.location}/recognizers/_"
 
-    def _build_config(self, language_codes: Sequence[str]) -> cloud_speech.RecognitionConfig:
+    def _build_config(
+        self, language_codes: Sequence[str], model: Optional[str] = None
+    ) -> cloud_speech.RecognitionConfig:
         return cloud_speech.RecognitionConfig(
             explicit_decoding_config=cloud_speech.ExplicitDecodingConfig(
                 encoding=cloud_speech.ExplicitDecodingConfig.AudioEncoding.LINEAR16,
@@ -115,19 +117,23 @@ class ASRProvider(ASRProviderBase):
                 audio_channel_count=1,
             ),
             language_codes=list(language_codes),
-            model=self.model,
+            model=model or self.model,
             features=cloud_speech.RecognitionFeatures(
                 enable_automatic_punctuation=self.enable_automatic_punctuation
             ),
         )
 
     def _recognize(
-        self, pcm_bytes: bytes, language_codes: Sequence[str], timeout: float
+        self,
+        pcm_bytes: bytes,
+        language_codes: Sequence[str],
+        timeout: float,
+        model: Optional[str] = None,
     ) -> cloud_speech.RecognizeResponse:
         client = self._get_client()
         request = cloud_speech.RecognizeRequest(
             recognizer=self._recognizer_path(),
-            config=self._build_config(language_codes),
+            config=self._build_config(language_codes, model),
             content=pcm_bytes,
         )
         return client.recognize(request=request, timeout=timeout, retry=None)

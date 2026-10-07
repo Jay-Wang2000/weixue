@@ -1,0 +1,100 @@
+# feat-stt-streaming sim round 2026-10-07 (project weixue-wave3-sim, 127.0.0.1:18100/18103; sim/docker-compose.stt.yml: real Google STT, sim LLM, tone TTS)
+## sim device, English clip (tests/assets/en-US_turn_on_the_living_room_lights.wav)
+18:25:48 hello d3b496ed-e9c0-40e2-a1fd-c8206b23b568
+18:25:48 << {"type": "tts", "state": "start"} (audio frames so far 0)
+18:25:49 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+18:25:49 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+18:25:50 sending reply clip 26 frames
+18:25:52 << {"type": "stt", "text": "Turn on the living room lights"} (audio frames so far 10)
+18:25:52 << {"type": "tts", "state": "start"} (audio frames so far 10)
+18:25:52 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+18:25:52 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 10)
+18:25:52 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 14)
+18:25:54 << {"type": "tts", "state": "stop"} (audio frames so far 36)
+18:26:02 session ended: server closed audio frames 36
+## sim device, Mandarin clip (tests/assets/cmn-Hans-CN_turn_on_the_living_room_lights.wav)
+18:26:14 hello 62a1407d-9116-4321-8966-acda71cc5db4
+18:26:15 << {"type": "tts", "state": "start"} (audio frames so far 0)
+18:26:15 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+18:26:16 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+18:26:16 sending reply clip 23 frames
+18:26:19 << {"type": "stt", "text": "打开客厅的灯"} (audio frames so far 10)
+18:26:19 << {"type": "tts", "state": "start"} (audio frames so far 10)
+18:26:19 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+18:26:19 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 10)
+18:26:19 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 14)
+18:26:20 << {"type": "tts", "state": "stop"} (audio frames so far 36)
+18:26:28 session ended: server closed audio frames 36
+## server log
+onnxruntime cpuid_info warning: Unknown CPU vendor. cpuinfo_vendor value: 0
+261007 17:25:38[0.9.7_00000000000000][weixue_clock]-INFO-OTA server_time.tz: None
+261007 17:25:38[0.9.7_00000000000000][core.utils.gc_manager]-INFO-启动全局GC管理器，间隔300秒
+261007 17:25:38[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-初始化组件: llm成功 SimLLM
+261007 17:25:38[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-初始化组件: intent成功 nointent
+261007 17:25:38[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-初始化组件: memory成功 nomem
+261007 17:25:38[0.9.7_00000000000000][core.providers.vad.silero]-INFO-SileroVAD
+261007 17:25:38[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-初始化组件: vad成功 SileroVAD
+261007 17:25:38[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261007 17:25:38[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-初始化组件: asr成功 GoogleSTTStream
+261007 17:25:38[0.9.7_00000000000000][__main__]-INFO-OTA接口是		http://172.21.0.2:8003/xiaozhi/ota/
+261007 17:25:38[0.9.7_00000000000000][__main__]-INFO-视觉分析接口是	http://172.21.0.2:8003/mcp/vision/explain
+261007 17:25:38[0.9.7_00000000000000][__main__]-INFO-Websocket地址是	ws://172.21.0.2:8000/xiaozhi/v1/
+261007 17:25:38[0.9.7_00000000000000][__main__]-INFO-=======上面的地址是websocket协议地址，请勿用浏览器访问=======
+261007 17:25:38[0.9.7_00000000000000][__main__]-INFO-如想测试websocket请启动digital-human模块，打开浏览器交互测试
+261007 17:25:38[0.9.7_00000000000000][__main__]-INFO-=============================================================
+261007 17:25:48[0.9.7_00000000000000][core.connection]-INFO-172.21.0.1 conn - Headers: {'host': '127.0.0.1:18100', 'upgrade': 'websocket', 'connection': 'Upgrade', 'sec-websocket-key': 'lGD/ypWxFO15bGY9DT9tSA==', 'sec-websocket-version': '13', 'sec-websocket-extensions': 'permessage-deflate; client_max_window_bits', 'device-id': 'aa:bb:cc:dd:ee:01', 'client-id': '8b778522-fc58-4a42-95d0-2381e307b4b6', 'protocol-version': '1', 'user-agent': 'Python/3.10 websockets/14.2'}
+261007 17:25:48[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261007 17:25:48[0.9.7_00000000000000][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type": "hello", "version": 1, "features": {"mcp": true}, "transport": "websocket", "audio_params": {"format": "opus", "sample_rate": 16000, "channels": 1, "frame_duration": 60}}
+261007 17:25:48[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: Simulated-device run....
+261007 17:25:48[0.9.7_SiGoSiGononoCh][core.connection]-INFO-快速初始化组件: prompt成功 Simulated-device run....
+261007 17:25:48[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261007 17:25:48[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 17:25:48[0.9.7_SiGoSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 17:25:48[0.9.7_SiGoSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "d3b496ed-e9c0-40e2-a1fd-c8206b23b568", "type": "listen", "state": "detect", "text": "Jarvis"}
+261007 17:25:48[0.9.7_SiGoSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "d3b496ed-e9c0-40e2-a1fd-c8206b23b568", "type": "listen", "state": "start", "mode": "realtime"}
+261007 17:25:49[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Yes?
+261007 17:25:49[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Yes?
+261007 17:25:49[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Yes?
+261007 17:25:49[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261007 17:25:49[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 5980
+261007 17:25:52[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=185 model=latest_short language=en-US confidence=0.980 fallback=- streams=1 interims=16
+261007 17:25:52[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Turn on the living room lights.
+261007 17:25:52[0.9.7_SiGoSiGononoCh][core.connection]-INFO-大模型收到用户消息: Turn on the living room lights.
+261007 17:25:52[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Okay
+261007 17:25:52[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.008s: Okay
+261007 17:25:52[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Okay
+261007 17:25:52[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.018s: I will close the valve
+261007 17:25:52[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, I will close the valve
+261007 17:25:52[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261007 17:26:02[0.9.7_SiGoSiGononoCh][core.handle.receiveAudioHandle]-INFO-结束对话，无需发送结束提示语
+261007 17:26:02[0.9.7_SiGoSiGononoCh][core.connection]-INFO-超时检查任务已退出
+261007 17:26:02[0.9.7_SiGoSiGononoCh][core.connection]-INFO-连接资源已释放
+261007 17:26:02[0.9.7_SiGoSiGononoCh][core.connection]-INFO-连接资源已释放
+261007 17:26:14[0.9.7_00000000000000][core.connection]-INFO-172.21.0.1 conn - Headers: {'host': '127.0.0.1:18100', 'upgrade': 'websocket', 'connection': 'Upgrade', 'sec-websocket-key': 'UQio+uQMqlP05/ZSnaXnyA==', 'sec-websocket-version': '13', 'sec-websocket-extensions': 'permessage-deflate; client_max_window_bits', 'device-id': 'aa:bb:cc:dd:ee:01', 'client-id': 'f08accc7-0ed0-4751-a1b0-ecc1cfc83e88', 'protocol-version': '1', 'user-agent': 'Python/3.10 websockets/14.2'}
+261007 17:26:14[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261007 17:26:14[0.9.7_00000000000000][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type": "hello", "version": 1, "features": {"mcp": true}, "transport": "websocket", "audio_params": {"format": "opus", "sample_rate": 16000, "channels": 1, "frame_duration": 60}}
+261007 17:26:14[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: Simulated-device run....
+261007 17:26:14[0.9.7_SiGoSiGononoCh][core.connection]-INFO-快速初始化组件: prompt成功 Simulated-device run....
+261007 17:26:14[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261007 17:26:14[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261007 17:26:14[0.9.7_SiGoSiGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261007 17:26:14[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 5980
+261007 17:26:14[0.9.7_SiGoSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "62a1407d-9116-4321-8966-acda71cc5db4", "type": "listen", "state": "detect", "text": "Jarvis"}
+261007 17:26:14[0.9.7_SiGoSiGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id": "62a1407d-9116-4321-8966-acda71cc5db4", "type": "listen", "state": "start", "mode": "realtime"}
+261007 17:26:15[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Yes?
+261007 17:26:15[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Yes?
+261007 17:26:15[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Yes?
+261007 17:26:15[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261007 17:26:19[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=452 model=latest_short language=cmn-hans-cn confidence=0.910 fallback=- streams=1 interims=5
+261007 17:26:19[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: 打开客厅的灯。
+261007 17:26:19[0.9.7_SiGoSiGononoCh][core.connection]-INFO-大模型收到用户消息: 打开客厅的灯。
+261007 17:26:19[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Okay
+261007 17:26:19[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Okay
+261007 17:26:19[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.008s: Okay
+261007 17:26:19[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.017s: I will close the valve
+261007 17:26:19[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, I will close the valve
+261007 17:26:19[0.9.7_SiGoSiGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261007 17:26:28[0.9.7_SiGoSiGononoCh][core.handle.receiveAudioHandle]-INFO-结束对话，无需发送结束提示语
+261007 17:26:28[0.9.7_SiGoSiGononoCh][core.connection]-INFO-超时检查任务已退出
+261007 17:26:28[0.9.7_SiGoSiGononoCh][core.connection]-INFO-连接资源已释放
+261007 17:26:28[0.9.7_SiGoSiGononoCh][core.connection]-INFO-连接资源已释放

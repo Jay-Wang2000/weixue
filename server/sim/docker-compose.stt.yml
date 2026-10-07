@@ -1,0 +1,13 @@
+# Streaming STT on the sim stack: real Google STT (GOOGLE_SA_FILE from server/.env), sim LLM and tone TTS.
+#   (set -a; . ../.env; set +a; docker compose -p weixue-wave3-sim -f docker-compose.yml -f docker-compose.stt.yml up -d)
+#   ../../.venv/bin/python ../scripts/proactive_sim_device.py --base http://127.0.0.1:18103 \
+#     --ws ws://127.0.0.1:18100/xiaozhi/v1/ --device aa:bb:cc:dd:ee:01 --direct --wake Jarvis \
+#     --reply ../tests/assets/en-US_turn_on_the_living_room_lights.wav --reply-delay 0.5 --max-seconds 15
+#   docker logs weixue-wave3-sim-server 2>&1 | grep stt_final_latency_ms
+services:
+  sim-server:
+    volumes:
+      - ./stt.config.yaml:/opt/xiaozhi-esp32-server/data/.config.yaml:ro
+      - ../overlay/core/providers/asr/google_stt.py:/opt/xiaozhi-esp32-server/core/providers/asr/google_stt.py:ro
+      - ../overlay/core/providers/asr/google_stt_stream.py:/opt/xiaozhi-esp32-server/core/providers/asr/google_stt_stream.py:ro
+      - ${GOOGLE_SA_FILE:?set GOOGLE_SA_FILE}:/run/secrets/google-sa.json:ro

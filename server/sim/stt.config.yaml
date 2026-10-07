@@ -1,0 +1,48 @@
+server:
+  websocket: "ws://127.0.0.1:18100/xiaozhi/v1/"
+  auth_key: "scratch-sim-key"
+  timezone_offset: 1
+  auth:
+    enabled: true
+    allowed_devices: ["aa:bb:cc:dd:ee:01"]
+prompt: "Simulated-device run."
+close_connection_no_voice_time: 8
+enable_greeting: false
+wake_cues:
+  - {file: config/assets/wake_cues/hmm.wav, text: "Hmm?"}
+  - {file: config/assets/wake_cues/mm-hm.wav, text: "Mm-hm?"}
+  - {file: config/assets/wake_cues/yes.wav, text: "Yes?"}
+end_prompt:
+  enable: false
+wakeup_words: ["Jarvis"]
+selected_module:
+  VAD: SileroVAD
+  ASR: GoogleSTTStream
+  LLM: SimLLM
+  TTS: GoogleTTS
+  Intent: nointent
+  Memory: nomem
+ASR:
+  GoogleSTTStream:
+    type: google_stt_stream
+    credentials_file: /run/secrets/google-sa.json
+    location: us
+    model: latest_short
+    language_codes: ["en-US", "cmn-Hans-CN"]
+    interim_results: true
+    final_timeout: 2
+    fallback_model: chirp_3
+    fallback_timeout: 15
+    zh_fallback_confidence: 0.9
+    output_dir: tmp/
+LLM:
+  SimLLM:
+    type: sim_llm
+    reply: "Okay, I will close the valve."
+TTS:
+  GoogleTTS:
+    type: google_tts
+    speaker: Charon
+    default_language: en
+    speaking_rate: 1.0
+    output_dir: tmp/
