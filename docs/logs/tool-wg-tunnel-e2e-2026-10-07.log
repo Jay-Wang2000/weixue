@@ -1,0 +1,91 @@
+# tool-wg-tunnel e2e gate (tester), 2026-10-07 11:56 IST, Mac on phone hotspot (office mode, no audio, no device)
+# Redacted: endpoint, IP addresses, tokens, URL paths. wg0.conf, .env values and endpoint-url were never read.
+
+== 1 handshake (docker exec wg wg show wg0 latest-handshakes)
+handshake_age_s=76   (< 180 s: pass)
+wg0 transfer after checks: rx=1449220 tx=75804 (bytes)
+
+== 2 container health (docker inspect)
+wg          healthy  restarts=0  netmode=server_default
+mcp-bridge  healthy  restarts=0  netmode=container:<wg container id>
+secrets on disk: .secrets dir drwx------, .secrets/wg0.conf -rw-------, data/mcp-bridge/endpoint-url -rw-------; all three git-ignored
+
+== 3 logs
+docker logs wg:
+  wg: wg0 up, 1 peer(s), mtu 1420
+docker logs mcp-bridge (tail):
+  INFO weixue_bridge: ha-mcp http://<ha-host>:9584 <-> endpoint ws://mcp-endpoint-server:8004
+  INFO weixue_bridge: connected; 7 ha-mcp tools on the voice path
+
+== 4 read-only HA query through the tunnel (docker exec mcp-bridge, bridge's weixue_bridge.hamcp.HaMcpClient, HA_MCP_URL from the container env)
+initialize + notifications/initialized + tools/list: 1279 ms, 77 tools from ha-mcp (unfiltered; voice path exposes 7), ha_get_state present
+tools/call ha_list_floors_areas {} (readOnlyHint=true): 97 ms, isError=false, success=true, 1621 chars (counts and names not recorded here)
+no service call, no state-changing tool called
+route inside the namespace: 192.168.8.0/24 dev wg0 (AllowedIPs); default via eth0 (project network); no published ports on wg
+
+== 5 compose config, previous topology (docker compose config only; nothing started or restarted)
+WG_TUNNEL=''  services: mcp-bridge, mcp-endpoint-server, xiaozhi-esp32-server; mcp-bridge network_mode: none (project network), no wg
+WG_TUNNEL=1 --profile tunnel: mcp-bridge network_mode: service:wg; depends_on wg condition=service_started restart=true
+WG_TUNNEL=1 without --profile: "service mcp-bridge depends on undefined service wg: invalid compose project"
+
+== 6 pytest (branch tests/, interpreter from another worktree venv; the tool-wg-tunnel .venv has no packages)
+296 passed, 10 skipped (live/Anthropic/Google gated), 1 warning in 17.77 s
+
+== extra: restart behaviour of a shared network namespace (scratch containers on the weixue/wg:local image, removed afterwards)
+A = sleep; B = --network container:A. Before: B has lo + eth0. docker restart A -> B has lo only; A has a fresh eth0.
+
+== independent re-run (second tester, 12:0x IST; read-only, nothing started or restarted)
+1 handshake age 9 s; 2 wg healthy, mcp-bridge healthy, restarts=0, wg0.conf mounted ro from the main checkout's server/.secrets (mode 0600)
+3 bridge log: "connected; 7 ha-mcp tools on the voice path"
+4 via weixue_bridge.hamcp.HaMcpClient: initialize ok, tools/list 77 tools incl. the 7 voice-path tools, tools/call ha_get_state {entity_id: sun.sun} isError=false (read-only, no service call)
+5 WG_TUNNEL='' config: services = mcp-bridge, mcp-endpoint-server, xiaozhi-esp32-server; mcp-bridge has no network_mode and no networks key
+6 pytest in a python3.10 worktree venv, libopus via DYLD_FALLBACK_LIBRARY_PATH from another worktree venv: 296 passed, 10 skipped
+note: the bridge process never exits on connection failure (reconnect loop with backoff), so after a wg restart it stays in the stale namespace until restarted by hand
+
+# ---- independent re-run (tester, 11:52-12:00 IST) ----
+== handshake / health (live, 3 samples 20 s apart)
+handshake_age_s=43, 64, 84 (all < 180 s); wg and mcp-bridge: healthy, FailingStreak=0, restarts=0
+bridge ns: interfaces lo, eth0, wg0 (mtu 1420); wg0 transfer rx=587560 tx=34488 after the checks
+secrets: .secrets dir drwx------, wg0.conf -rw-------; WG_TUNNEL=1 present in server/.env (value not otherwise read)
+== bridge log
+INFO weixue_bridge: connected; 7 ha-mcp tools on the voice path ; 0 "ping failed"/error lines since start
+== read-only HA query via weixue_bridge.hamcp.HaMcpClient inside mcp-bridge
+initialize ok (server ha-mcp); tools/list: 77 tools
+tools/call ha_get_state {entity_id: sun.sun, fields: [state]}: isError=False, rtt 0.09 s, state=above_horizon
+no service call made
+== compose config (dummy env values, config only)
+WG_TUNNEL='' : exit 0, no network_mode line anywhere, no wg service, mcp-bridge keeps default project network
+WG_TUNNEL=1 --profile tunnel : exit 0, mcp-bridge network_mode: service:wg, wg service present
+WG_TUNNEL=1 no profile : "service mcp-bridge depends on undefined service wg: invalid compose project" (as documented)
+== pytest (uv venv py3.10 outside the repo, libopus copied in)
+296 passed, 10 skipped (live/gated), 1 warning in 27.9 s; tests/test_wg_tunnel.py included
+== branch hygiene
+1 commit ahead of merge-base (84c0593); main has since advanced 1 orchestrator bookkeeping commit (a291c09), no overlap with branch files
+diff main...HEAD: no keys, endpoint, URL paths, real IPs (only RFC5737 test addresses and the documented AllowedIPs subnet)
+
+# ---- fix pass (developer, 12:0x IST): scratch containers on weixue/wg:local, --network none, synthetic wg0.conf (no real key or endpoint), removed afterwards ----
+== wg-quick failure without NET_ADMIN: retried every 10 s, container stays up, restarts=0; docker stop exits 0 at once
+wg: wg-quick up failed, retry in 10 s: RTNETLINK answers: Operation not permitted; Unable to access interface: Operation not permitted; Cannot find device "wg0"
+== endpoint name not resolvable (NET_ADMIN, no network, WG_ENDPOINT_RESOLUTION_RETRIES=1)
+wg: wg-quick up failed, retry in 10 s: Try again: `<redacted>'. Trying again in 1.00 seconds...; Try again: `<redacted>'; Configuration parsing error
+with the default resolution retries, wg setconf itself keeps resolving for over 50 s before wg-quick returns
+== redact under busybox sed (synthetic key, IPv4, IPv6, DDNS endpoint): all four replaced by <key>/<ip>/<ip6>/<endpoint>
+
+# ---- re-gate after fix pass f29c177 (tester, 2026-10-07 ~12:20 IST), office mode, no audio, no device ----
+# Redacted. wg0.conf, .env values and endpoint-url were never read. Live stack not restarted (still the pre-fix build).
+== pytest (worktree .venv, py3.10): 312 passed, 10 skipped (live/credential gated), 1 warning
+== compose config only (dummy env): WG_TUNNEL='' (profile unset or tunnel): mcp-bridge has no network_mode, wg only with profile; WG_TUNNEL=1 + COMPOSE_PROFILES=tunnel: mcp-bridge network_mode service:wg, depends_on wg service_started restart=true; WG_TUNNEL=1 without profile: "depends on undefined service wg" (documented)
+== scratch wg sidecar (image built from the worktree under a scratch tag, --network none, synthetic conf, unresolvable endpoint, WG_ENDPOINT_RESOLUTION_RETRIES=1)
+attempts at 11:18:33 and 11:18:54 and 11:19:15 (about every 21 s = 10 s wg setconf resolution + 10 s retry sleep): one redacted line each, no "already exists" (wg-quick removes the half-created wg0 between attempts), container running, restarts=0
+line: wg: wg-quick up failed, retry in 10 s: Try again: `<redacted>'. Trying again in 1.00 seconds...; Try again: `<redacted>'; Configuration parsing error
+grep of the log for the synthetic key, endpoint host, interface and AllowedIPs addresses: 0 hits; docker stop: exit 0 in 4 s; healthcheck.sh without a handshake: rc 1
+note: the live image weixue/wg:local (built 11:46) predates the fix pass (entrypoint committed 12:13); it was not rebuilt or retagged
+== scratch namespace rejoin (alpine-based image, own scratch network): B --network container:A --restart unless-stopped exiting 1 when eth0 is gone; docker restart A -> B restarts=1 and has eth0 in the new namespace without manual action
+== setup.sh edge cases (copy with stub docker/git/curl/python3): existing profiles kept and sorted around tunnel; second run idempotent; .env without trailing newline ok; .env mode stays 0600; commented "# COMPOSE_PROFILES=tunnel" untouched
+finding: a quoted value (COMPOSE_PROFILES="console") is exported with literal quotes by setup.sh (and gets "console",tunnel when the tunnel is on); the unquoted form documented in .env.example works
+== live tunnel (read-only: docker inspect, wg latest-handshakes age only)
+handshake_age_s=105 (< 180); wg and mcp-bridge healthy, FailingStreak=0, restarts=0, both started 10:51 UTC (pre-fix build, tunnel up); bridge netns mode container:<wg id>
+bridge log: "connected; 7 ha-mcp tools on the voice path"; 0 lines matching "ping failed|bridge down|exiting"
+wg0 transfer rx=3539624 tx=225900 bytes; secrets: .secrets drwx------, wg0.conf -rw-------, data/mcp-bridge/endpoint-url -rw-------
+== hygiene
+1 commit ahead of main (merge-base a291c09 = main tip); diff scan: no key-shaped strings besides the test fixture key in tests/test_wg_tunnel.py, no endpoint, URL paths or tokens; only the documented AllowedIPs subnet and RFC5737 addresses

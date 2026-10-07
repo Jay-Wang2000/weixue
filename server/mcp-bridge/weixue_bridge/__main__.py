@@ -2,14 +2,19 @@ import asyncio
 import logging
 import sys
 
-from .bridge import run
+from .bridge import BridgeExit, run
 from .config import ConfigError, load_config
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+log = logging.getLogger("weixue_bridge")
 
 try:
     config = load_config()
 except ConfigError as e:
-    logging.getLogger("weixue_bridge").error("config: %s", e)
+    log.error("config: %s", e)
     sys.exit(2)
-asyncio.run(run(config))
+try:
+    asyncio.run(run(config))
+except BridgeExit as e:
+    log.error("exiting: %s", e)
+    sys.exit(1)

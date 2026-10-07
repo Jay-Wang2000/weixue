@@ -10,6 +10,10 @@ DEFAULT_FILTER_FILE = "/app/policy/voice_bridge.json"
 DEFAULT_HEALTH_FILE = "/tmp/mcp-bridge.healthy"
 HEARTBEAT_S = 30
 HEALTH_MAX_AGE_S = 3 * HEARTBEAT_S
+# Consecutive failed endpoint connects before the bridge exits.
+ENDPOINT_MAX_FAILURES = 12
+# Interface whose disappearance from the network namespace makes the bridge exit.
+NAMESPACE_IFACE = "eth0"
 
 
 class ConfigError(ValueError):
