@@ -33,3 +33,6 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 ## Hardware verification rule
 - Hold the device lock from flash through the end of the on-device test. Firmware branches merge serially with rebuild + on-device smoke after each rebase; after a wave, flash `main` to the board (device reconciliation).
 - Any change to firmware UI or device behaviour (face, ring, panel, gestures, wake word, audio) must be flashed to the connected 1.75C and verified end-to-end on the device during review/test, not only by build success or emulator. The tester flashes the branch build, exercises the feature, and records what was observed (photo/log excerpt) in the test result. The device is always connected to this Mac.
+
+## Office mode
+- When Jay is in the office (Mac away from the home LAN), no agent may use macOS `say` or play audio; the Mac output is muted. Device voice tests are deferred; Jay is told only when a test needs him.
