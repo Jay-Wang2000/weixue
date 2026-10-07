@@ -78,6 +78,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 43. **Fable fallback target (brief rev 4 Q10)** — resolved by the orchestrator within decision 15: Fable 5.1's server-side fallbacks can only target Opus 4.8 / Opus 5 (per the claude-api skill), not Opus 5.5; the build uses `fallbacks: "default"`; the explicit switch to claude-opus-5-5 stays for the retention-400 case. Jay may override.
 
+44. **latest_short on code-switched Mandarin** — needs Jay. On the fixed 10+10 set latest_short matched chirp_3 (0 errors) and finals arrive 0.2–0.3 s after speech end, so it is now the configured ASR. Weak spots found in extra tests: English words inside Chinese ("living room" → 李炳荣) and one rare word (雾量); confidence is a constant 0.91 for Mandarin, so no automatic signal exists. Options: A = accept (latency first), revisit with real microphone audio at the milestone E2E; B = re-recognize every Chinese turn with chirp_3 (+1.4 s on Chinese only). Recommendation: A.
+
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
 - Audio-only checks from fix-server-review-2 (barge-in / TTS cancel) and fix-wave3-server (announce playback, urgent conversation, wake cue → "Yes" for every cue, long reply with 0 self-aborts): run at home via the feat-voice-integration gate. Everything else passed in the 2026-10-07 live step.

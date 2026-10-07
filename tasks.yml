@@ -198,7 +198,7 @@ tasks:
     description: |
       决定 42 + 37：Google STT 从 chirp_3 批量识别改为 `latest_short` 流式（StreamingRecognize，interim 结果，en-US + cmn-Hans-CN），边收边传，VAD 结束即半关闭取终稿；provider 类型改为 STREAM（按小智 ASR 接口的流式契约实现，保留 chirp_3 批量 provider 作回退，配置可切）；检测到中文且 latest_short 置信度低时按决定 42 回退 chirp_3 重识别；记录每轮 STT 终稿延迟（end-of-audio→final）到日志供监控。验收：语音结束→终稿中位 ≤ 0.4 s（spike 为 0.23–0.34 s）；10 句中文固定集准确率不低于 chirp_3 批量；sim 设备跑通一轮；无实机音频（里程碑 E2E 再验）。
     depends_on: [fix-wave5-server]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: fix-hamcp-session-hygiene
