@@ -180,7 +180,7 @@ tasks:
     description: |
       Jay 2026-10-07 批准（工作 Mac 不能装 Tailscale/VPN 客户端，GL.iNet 路由器已开 WireGuard server，客户端配置已放 server/.secrets/wg0.conf，0600，AllowedIPs 已限定为 192.168.8.0/24）。在 docker-compose 增加可选 profile `tunnel`（server/.env WG_TUNNEL=1 时启用，setup.sh/render 据此选择）：`wg` sidecar（固定版本的 WireGuard 客户端镜像，NET_ADMIN，sysctl net.ipv4.conf.all.src_valid_mark=1，只读挂载 wg0.conf），mcp-bridge 在 tunnel 模式下 network_mode: service:wg，使其到 HA 的流量走隧道，其他容器与设备热点路径不变；非 tunnel 模式行为与现在完全相同。wg 容器需 healthcheck（60 s 内有 handshake）。脚本只校验 wg0.conf 存在与 0600，绝不读取、打印或提交其内容；文档 docs/server.md 加「办公室/外网模式」一节（含路由器侧 WAN 可达性前提、MTU 1420、AllowedIPs 仅家庭网段）。端到端（办公室模式，无音频）：从热点启用 tunnel，mcp-bridge healthcheck 转为 healthy，经 bridge 列出 ha-mcp 工具并做一次只读 HA 状态查询（不切换任何灯具），server 与 bridge 日志存 docs/logs/（脱敏 endpoint、IP、token）。未来工作记入 spec：proactive webhook 入站经隧道。
     depends_on: [feat-ha-mcp]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: fix-wave3-firmware
