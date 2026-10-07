@@ -51,7 +51,10 @@ Changes to upstream functions that are too small to justify overriding a whole m
 - `ConnectionHandler.just_woken_up` is a property that always reads `False`: upstream sets it on every `listen detect` and then drops the next 2 s of microphone audio.
 - `receiveAudioHandle.no_voice_close_connect`: an audio frame received while the server holds the turn (`client_is_speaking`, from the STT result or wake cue to `tts stop`) refreshes `last_activity_time`, so the idle close counts from the end of the reply (see Conversation timing).
 - `McpTextMessageHandler.handle` logs every device MCP notification whose method starts with `notifications/weixue/` as `device event <method> device=<mac> params=<json>` before upstream handles it (panel decisions, `docs/firmware.md` Monitor panel; IMU gestures).
-- `intentHandler.checkWakeupWords` is replaced: a transcript that is only a `wakeup_words` entry (case-insensitive, punctuation ignored), or only a cue word (`CUE_ECHO_WORDS` plus the `wake_cues` texts) within 5 s of a cue starting, is dropped with no reply. `enable_wakeup_words_response_cache` and the cached `wakeup_words` clips are therefore unused.
+- `intentHandler.checkWakeupWords` is replaced: a transcript that is only a `wakeup_words` entry (case-insensitive, punctuation ignored) is dropped with no reply. `enable_wakeup_words_response_cache` and the cached `wakeup_words` clips are therefore unused.
+- `sendAudioMessage` (in `core.handle.sendAudioHandle` and `core.providers.tts.base`) is wrapped to record, for the current sentence, the audio packets sent, whether its last packet went out unaborted and whether a text segment got no audio (proactive delivery outcome, `docs/proactive.md`), and each captioned reply sentence with the times of its first and latest packet (echo guard). The Google TTS provider reports a synthesis that raised to the same record.
+- `core.providers.asr.base.startToChat` is wrapped as the echo guard (see Echo guard); a transcript that passes it cancels a pending wake cue.
+- `SimpleHttpServer.__init__` is wrapped so proactive device requests use its `server.auth` (`docs/proactive.md`, Device identity).
 
 ## Conversation timing (ADR-7)
 
@@ -73,10 +76,15 @@ The device listens in realtime mode and streams microphone audio for the whole s
 - The cue is skipped when the VAD heard voice in live audio from 0.25 s after the wake's `listen start` (the user went on speaking: "Jarvis, what is the weather like in London today?").
 - Neither the detect nor the following `listen start` resets the audio state, so the wake-word audio the device sends before the detect (`CONFIG_SEND_WAKE_WORD_DATA`, 1.98 s ending at detection) reaches VAD and ASR together with the live audio after it. For 0.8 s after that `listen start` the VAD cannot end the utterance. A transcript that is only the wake word is dropped.
 - The microphone is never muted; speech during the cue reaches ASR.
+- The cue belongs to the turn that was current at the detect (`sentence_id`). Before it takes the connection, and after every await (clip load, `tts start`, decoder reset, audio), it stops once a newer turn owns the connection, live voice was heard, the server holds a turn or the connection closed. A new detect cancels a pending cue, as do a transcript that starts a turn and the end of the session.
 
 The device captures no audio between wake detection and listening start (286-330 ms measured), and live audio in the first ~0.6 s after it transcribes poorly, so a short request said in one breath with the wake word ("Jarvis, what time is it?") usually reaches the LLM clipped or not at all; longer ones lose their first words (`docs/logs/conversation-timing-onebreath-2026-10-07.log`).
 
 Re-render the clips with `server/scripts/render_wake_cues.py` (usage in its docstring; runs in the server container).
+
+### Echo guard
+
+A transcript is dropped before upstream `startToChat` (so it neither barges in nor reaches the LLM) when its utterance started while a reply sentence was playing and it matches that sentence. Wake cues are never compared: "Yes." after the "Yes?" cue is the user's answer, and an echo of a cue reaches the LLM. "Playing" is the turn's current sentence while the server held the turn (`client_is_speaking`) at the utterance start, or a sentence whose latest packet went out less than `ECHO_TAIL_S` (1 s) before it; the start is the VAD's first voiced frame of the utterance. A transcript of fewer than 6 letters must match a whole sentence (letter similarity at least 0.8); a longer one must have at least 70 % of its words, in order, inside one sentence (Chinese: characters). A short answer that is not the played sentence ("Stop." during a reply) is kept. Constants and rules: `weixue_patches.py`, Playback record and echo guard.
 
 ### Tests
 

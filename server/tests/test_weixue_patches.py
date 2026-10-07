@@ -171,6 +171,9 @@ def test_apply_patches_each_hook_once(monkeypatch):
     monkeypatch.setitem(sys.modules, "core.handle.textHandler.listenMessageHandler", listen)
     monkeypatch.setitem(sys.modules, "core.http_server", http_server)
     stub_handler_modules(monkeypatch)
+    from tests.test_conversation_timing import stub_playback_modules
+
+    stub_playback_modules(monkeypatch, http_server)
 
     weixue_patches.apply()
     weixue_patches.apply()

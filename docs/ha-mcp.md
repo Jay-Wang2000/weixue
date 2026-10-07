@@ -91,7 +91,7 @@ Applies only to the voice path; it can only narrow what ha-mcp allows.
 
 ### ha-mcp policy overlay (`server/policy/voice_policy.proposed.json`, draft, not applied)
 
-ha-mcp has one policy for every client, so this overlay changes Claude Code's gates in `~/Projects/ha-agent` as well. Rules are `require_approval`: a call is held when any rule matches. The overlay replaces the single `ha_call_service` rule `domain not_in [light, notify]` of `~/Projects/ha-agent/policy/tool_policy.json` and sets `wait_seconds`; all other rules stay.
+ha-mcp has one policy for every client, so this overlay changes Claude Code's gates in `~/Projects/ha-agent` as well. Rules are `require_approval`: a call is held when any rule matches. The overlay replaces the single `ha_call_service` rule `domain not_in [light, notify]` of `~/Projects/ha-agent/policy/tool_policy.json`; `wait_seconds` and all other rules stay as in the base (ADR-9: timeouts live in our layer).
 
 | Rule | Effect | Why |
 |---|---|---|
@@ -102,7 +102,6 @@ ha-mcp has one policy for every client, so this overlay changes Claude Code's ga
 | `climate`, `service not_in [turn_on, turn_off, set_temperature, set_hvac_mode]` | Presets, fan and swing modes held. | Bounded climate. |
 | `climate`, `data.temperature`/`target_temp_high`/`target_temp_low` `gt 26`, `lt 16`, or a string (`regex "."`) | Setpoints outside 16-26 °C held. | Bounded climate; numeric comparison skips strings, so string values are held. No climate entities exist yet. |
 | `media_player` | Free for the whole domain. | No escalation path; no media players exist yet. |
-| `wait_seconds: 8` (from 180) | Held calls return `USER_APPROVAL_REQUIRED` with a token after 8 s; `approval_ttl_minutes` stays 10. | ADR-9: the endpoint executor gives up after 30 s, so held calls take the token path. Claude Code then re-calls with the same arguments after approval instead of waiting in the call. |
 
 Held on the voice path after the overlay and the draft filter: calls inside the five voice domains that miss the free scope. The test target for `feat-approvals` is `switch.working_desk_plug` (Matter plug, reversible). By the end of phase one nothing on the voice path should be held (§11.4).
 
@@ -120,6 +119,6 @@ cd ~/Projects/weixue/server && git mv -f policy/voice_bridge.proposed.json polic
 docker compose up -d --force-recreate mcp-bridge
 ```
 
-`render_voice_policy.py` refuses an overlay whose removed rule is missing from the base or whose `wait_seconds` is outside 5-10 s. `tests/test_voice_policy.py` checks the merged rules against a model of the ha-mcp 8.6.0 evaluator.
+`render_voice_policy.py` refuses an overlay whose removed rule is missing from the base or that sets `wait_seconds`. `tests/test_voice_policy.py` checks the merged rules against a model of the ha-mcp 8.6.0 evaluator.
 
 Before applying: the live policy (v13) gates `ha_manage_blueprints`, while `~/Projects/ha-agent/policy/tool_policy.json` still lists the old `ha_import_blueprint`. `apply-policy.sh` PUTs the repo file, so applying it unchanged drops the `ha_manage_blueprints` gate. Rename that rule in the base file first.

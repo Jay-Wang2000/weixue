@@ -1,7 +1,5 @@
 {
-  "settings": {
-    "wait_seconds": 8
-  },
+  "settings": {},
   "remove_rules": [
     {
       "tool_name": "ha_call_service",

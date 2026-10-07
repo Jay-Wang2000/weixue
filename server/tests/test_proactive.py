@@ -1,5 +1,6 @@
-"""weixue_proactive: webhook auth, rate limit, dedup, queue rules, long-poll and delivery,
-with fake sessions in place of ConnectionHandler and a fake speaker in place of TTS."""
+"""weixue_proactive: webhook auth, rate limit, dedup, queue rules, device auth, long-poll
+reservations and delivery claims, with fake sessions in place of ConnectionHandler and a fake
+speaker in place of TTS."""
 import asyncio
 import threading
 import time
@@ -15,6 +16,7 @@ import weixue_proactive as wp
 TOKEN = "test-token"
 AUTH = {"Authorization": f"Bearer {TOKEN}"}
 DEVICE = "7c:0c:5f:42:4b:fc"
+OTHER = "aa:aa:aa:aa:aa:aa"
 
 
 class Clock:
@@ -34,9 +36,10 @@ class Dialogue:
 
 
 class Conn:
-    def __init__(self, device=DEVICE):
+    def __init__(self, device=DEVICE, session_id="session-1"):
         self.device_id = device
-        self.session_id = "session-1"
+        self.headers = {"device-id": device}
+        self.session_id = session_id
         self.tts = object()
         self.stop_event = threading.Event()
         self.client_is_speaking = False
@@ -69,8 +72,29 @@ class Speaker:
         return self.outcome
 
 
-def make(clock=None, speaker=None, token=TOKEN):
-    return wp.Proactive(token, clock=clock or Clock(), wall=lambda: 1_790_000_000.0, speaker=speaker or Speaker())
+def make(clock=None, speaker=None, token=TOKEN, auth=None):
+    return wp.Proactive(
+        token,
+        clock=clock or Clock(),
+        wall=lambda: 1_790_000_000.0,
+        speaker=speaker or Speaker(),
+        auth=auth or wp.DeviceAuth(True, [DEVICE]),
+    )
+
+
+class Ws:
+    """websockets.ServerConnection.ping(): answers unless dead."""
+
+    def __init__(self, dead=False):
+        self.dead = dead
+        self.pings = 0
+
+    async def ping(self):
+        self.pings += 1
+        waiter = asyncio.get_running_loop().create_future()
+        if not self.dead:
+            waiter.set_result(0.001)
+        return waiter
 
 
 def fields(key=None, **overrides):
@@ -228,26 +252,41 @@ async def test_poll_returns_when_message_arrives(monkeypatch):
     waiter = asyncio.create_task(p.poll(DEVICE))
     await asyncio.sleep(0.1)
     assert not waiter.done()
-    p.submit(fields(), "ha")
-    assert await asyncio.wait_for(waiter, 1) is True
+    _, body = p.submit(fields(), "ha")
+    item = await asyncio.wait_for(waiter, 1)
+    assert item.id == body["id"] and item.reserved_for == DEVICE
 
 
 async def test_poll_times_out_without_message(monkeypatch):
     monkeypatch.setattr(wp, "POLL_HOLD_SECONDS", 0.3)
     p = make(clock=time.monotonic)
-    assert await p.poll(DEVICE) is False
-    assert DEVICE in p.last_poll
+    assert await p.poll(DEVICE) is None
+    assert DEVICE in p.last_poll and p.polls == {}
 
 
-async def test_poll_ignores_session_older_than_poll(monkeypatch):
+async def test_poll_drops_a_session_that_does_not_answer_a_ping(monkeypatch):
     monkeypatch.setattr(wp, "POLL_HOLD_SECONDS", 0.3)
-    clock = Clock()
-    p = make(clock)
-    p.on_session_open(DEVICE, Conn())
+    monkeypatch.setattr(wp, "PROBE_TIMEOUT_SECONDS", 0.05)
+    p = make(clock=time.monotonic)
+    stale = Conn()
+    p.on_session_open(DEVICE, stale, Ws(dead=True))
     p.submit(fields(), "ha")
-    clock.t += 1
-    assert await p.poll(DEVICE) is True
+    assert await p.poll(DEVICE) is not None
     assert p.live_sessions(DEVICE) == []
+    await asyncio.sleep(0)
+    assert stale.closed
+
+
+async def test_poll_from_a_second_client_does_not_evict_a_live_session(monkeypatch):
+    monkeypatch.setattr(wp, "POLL_HOLD_SECONDS", 0.3)
+    p = make(clock=time.monotonic)
+    live, ws = Conn(), Ws()
+    p.on_session_open(DEVICE, live, ws)
+    p.submit(fields(), "ha")
+    for _ in range(3):
+        assert await p.poll(DEVICE) is None
+    assert ws.pings == 3 and p.live_sessions(DEVICE) == [live] and not live.closed
+    assert p.reason(p.queue[0]) == "busy"
 
 
 async def test_poll_holds_while_live_session_open(monkeypatch):
@@ -257,7 +296,191 @@ async def test_poll_holds_while_live_session_open(monkeypatch):
     await asyncio.sleep(0.05)
     p.on_session_open(DEVICE, Conn())
     p.submit(fields(), "ha")
-    assert await waiter is False
+    assert await waiter is None
+
+
+async def test_newer_poll_from_the_device_ends_the_older_one(monkeypatch):
+    monkeypatch.setattr(wp, "POLL_HOLD_SECONDS", 5)
+    p = make(clock=time.monotonic)
+    older = asyncio.create_task(p.poll(DEVICE))
+    await asyncio.sleep(0.05)
+    newer = asyncio.create_task(p.poll(DEVICE))
+    assert await asyncio.wait_for(older, 1) is None
+    assert not newer.done()
+    p.submit(fields(), "ha")
+    assert await asyncio.wait_for(newer, 1) is not None
+
+
+async def test_held_polls_and_known_devices_are_bounded(monkeypatch):
+    monkeypatch.setattr(wp, "POLL_HOLD_SECONDS", 5)
+    devices = [f"02:00:00:00:00:{i:02x}" for i in range(wp.MAX_DEVICES + 4)]
+    p = make(clock=time.monotonic, auth=wp.DeviceAuth(True, devices))
+    held = [asyncio.create_task(p.poll(d)) for d in devices[: wp.MAX_HELD_POLLS]]
+    await asyncio.sleep(0.05)
+    with pytest.raises(wp.RequestError) as err:
+        await p.poll(devices[wp.MAX_HELD_POLLS])
+    assert err.value.status == 429
+    for task in held:
+        task.cancel()
+    await asyncio.gather(*held, return_exceptions=True)
+    for d in devices:
+        p._seen(d)
+    assert len(p.last_poll) == wp.MAX_DEVICES and devices[-1] in p.last_poll
+
+
+# Reservations (the poll's answer names the message the invoked session delivers)
+
+def test_reservation_survives_ttl_until_it_lapses():
+    clock = Clock()
+    p = make(clock)
+    _, a = p.submit(fields(key="a", ttl=wp.MIN_TTL_SECONDS), "ha")
+    item = p.reserve(DEVICE)
+    assert item.id == a["id"]
+    clock.t += wp.MIN_TTL_SECONDS + 1
+    assert p.reserved_for(DEVICE) is item and item.status == "queued"
+    clock.t += wp.RESERVE_SECONDS
+    assert p.reserved_for(DEVICE) is None and item.status == "expired"
+
+
+async def test_invoke_delivers_the_reserved_message_with_its_urgency():
+    clock = Clock()
+    speaker = Speaker()
+    p = make(clock, speaker)
+    _, normal = p.submit(fields(key="a", ttl=wp.MIN_TTL_SECONDS), "ha")
+    polled = p.reserve(DEVICE)
+    clock.t += wp.MIN_TTL_SECONDS
+    _, urgent = p.submit(fields(key="b", urgent=True, message="Leak!"), "ha")
+    conn = Conn()
+    p.on_session_open(DEVICE, conn)
+    await p.on_invoke(conn)
+    await p._delivery
+    assert polled.urgent is False and speaker.calls == [(normal["id"], True)]
+    assert p.messages[urgent["id"]].status == "queued"
+
+
+def test_reserved_message_is_held_from_other_devices_and_in_session_delivery():
+    p = make(auth=wp.DeviceAuth(True, [DEVICE, OTHER]))
+    p.submit(fields(), "ha")
+    item = p.reserve(DEVICE)
+    assert p.next_for(OTHER) is None and p.reserve(OTHER) is None
+    assert p.next_for(DEVICE, reserved=False) is None
+    assert p.next_for(DEVICE) is item
+
+
+async def test_invoke_without_a_reservation_closes():
+    p = make()
+    p.submit(fields(), "ha")
+    conn = Conn()
+    await p.on_invoke(conn)
+    assert conn.closed and p._delivery is None and p.queue[0].status == "queued"
+
+
+async def test_invoke_while_muted_releases_a_normal_reservation():
+    p = make()
+    p.submit(fields(), "ha")
+    item = p.reserve(DEVICE)
+    p.set_mute(10)
+    conn = Conn()
+    await p.on_invoke(conn)
+    assert conn.closed and item.status == "queued" and item.reserved_for is None
+
+
+# Device identity
+
+def test_device_auth_with_allow_list_admits_listed_devices_only():
+    from core.auth import AuthManager
+
+    manager = AuthManager("secret")
+    auth = wp.DeviceAuth(True, [DEVICE], manager.verify_token)
+    assert auth.device({"device-id": DEVICE}) == DEVICE
+    assert auth.device({"device-id": DEVICE.upper()}) is None
+    assert auth.device({"device-id": OTHER}) is None
+    token = manager.generate_token("client-1", OTHER)
+    assert auth.device({"device-id": OTHER, "client-id": "client-1", "authorization": f"Bearer {token}"}) is None
+    assert auth.device({}) is None and auth.device(None) is None
+    assert wp.DeviceAuth(False, [DEVICE]).device({"device-id": DEVICE}) is None
+
+
+def test_device_auth_without_allow_list_takes_ota_tokens():
+    from core.auth import AuthManager
+
+    manager = AuthManager("secret")
+    auth = wp.DeviceAuth(True, [], manager.verify_token)
+    token = manager.generate_token("client-1", OTHER)
+    good = {"device-id": OTHER, "client-id": "client-1", "authorization": f"Bearer {token}"}
+    assert auth.device(good) == OTHER
+    assert auth.device({**good, "client-id": "client-2"}) is None
+    assert auth.device({**good, "authorization": token}) is None
+    assert auth.device({"device-id": OTHER}) is None
+
+
+def test_device_auth_from_server_config():
+    config = {"server": {"auth_key": "k", "auth": {"enabled": True, "allowed_devices": [DEVICE]}}}
+    p = make()
+    p.configure_auth(config)
+    assert p.auth.device({"device-id": DEVICE}) == DEVICE
+    assert p.auth.device({"device-id": OTHER}) is None
+    p.configure_auth({"server": {"auth": {"enabled": False}}})
+    assert p.auth.auth_enable is False
+
+
+async def test_invoke_from_an_unverified_session_consumes_nothing():
+    p = make()
+    _, body = p.submit(fields(device=DEVICE), "ha")
+    p.reserve(DEVICE)
+    spoof = Conn(device=DEVICE)
+    spoof.headers = {"device-id": OTHER}
+    await p.on_invoke(spoof)
+    assert spoof.closed and p._delivery is None
+    assert p.messages[body["id"]].status == "queued"
+
+
+# Claims (one delivery per message)
+
+async def test_overlapping_invokes_deliver_once():
+    speaker = Speaker()
+    p = make(speaker=speaker)
+    _, body = p.submit(fields(), "ha")
+    p.reserve(DEVICE)
+    first, second = Conn(session_id="s1"), Conn(session_id="s2")
+    await p.on_invoke(first)
+    await p.on_invoke(second)
+    assert p.messages[body["id"]].status == "delivering"
+    await p._delivery
+    assert speaker.calls == [(body["id"], True)] and p.messages[body["id"]].attempts == 1
+    assert second.closed
+
+
+async def test_dispatch_claims_before_the_task_runs():
+    speaker = Speaker()
+    p = make(speaker=speaker)
+    a, b = Conn(session_id="s1"), Conn(session_id="s2")
+    p.on_session_open(DEVICE, a)
+    p.on_session_open(DEVICE, b)
+    _, body = p.submit(fields(), "ha")
+    p.dispatch_once()
+    item = p.messages[body["id"]]
+    assert item.status == "delivering" and item.attempts == 1
+    p.dispatch_once()
+    await asyncio.sleep(0.05)
+    assert speaker.calls == [(body["id"], False)] and item.status == "delivered"
+
+
+async def test_a_stale_claim_does_not_finish_the_message():
+    gate = asyncio.Event()
+
+    async def slow(conn, item, close_after):
+        await gate.wait()
+        return "closed"
+
+    p = make(speaker=slow)
+    _, body = p.submit(fields(), "ha")
+    item = p.messages[body["id"]]
+    task = p.claim(Conn(), item)
+    item.claim = "newer-owner"
+    gate.set()
+    await task
+    assert item.status == "delivering" and item.attempts == 1
 
 
 # Delivery
@@ -266,6 +489,7 @@ async def test_invoked_announce_is_delivered_and_closes_session():
     speaker = Speaker()
     p = make(speaker=speaker)
     _, body = p.submit(fields(), "ha")
+    p.reserve(DEVICE)
     conn = Conn()
     p.on_session_open(DEVICE, conn)
     await p.on_invoke(conn)
@@ -292,6 +516,7 @@ async def test_invoke_does_not_block_the_session_loop():
 
     p = make(speaker=slow)
     p.submit(fields(), "ha")
+    p.reserve(DEVICE)
     await asyncio.wait_for(p.on_invoke(Conn()), 0.1)
     await asyncio.wait_for(started.wait(), 1)
     p._delivery.cancel()
@@ -303,17 +528,67 @@ async def test_failed_delivery_requeues_then_fails():
     _, body = p.submit(fields(), "ha")
     item = p.messages[body["id"]]
     for attempt in range(1, wp.MAX_ATTEMPTS):
-        await p.deliver(Conn(), item)
-        assert (item.status, item.attempts) == ("queued", attempt)
-    await p.deliver(Conn(), item)
+        await p.claim(Conn(), item)
+        assert (item.status, item.attempts, item.claim) == ("queued", attempt, None)
+    await p.claim(Conn(), item)
     assert item.status == "failed" and item.error == "closed"
     assert not p.queue
+
+
+@pytest.mark.parametrize("outcome", ["no_audio", "superseded", "no_tts", "timeout"])
+async def test_failures_before_any_audio_requeue(outcome):
+    p = make(speaker=Speaker(outcome=outcome))
+    _, body = p.submit(fields(), "ha")
+    item = p.messages[body["id"]]
+    await p.claim(Conn(), item)
+    assert (item.status, item.attempts) == ("queued", 1)
+
+
+async def test_retries_wait_for_the_backoff():
+    clock = Clock()
+    p = make(clock=clock, speaker=Speaker(outcome="no_audio"))
+    _, body = p.submit(fields(), "ha")
+    item = p.messages[body["id"]]
+    for delay in wp.RETRY_BACKOFF_SECONDS:
+        await p.claim(Conn(), item)
+        assert item.status == "queued"
+        clock.t += delay - 0.1
+        assert p.next_for(DEVICE) is None and p.reserve(DEVICE) is None
+        clock.t += 0.1
+        assert p.next_for(DEVICE) is item
+    await p.claim(Conn(), item)
+    assert (item.status, item.error, item.attempts) == ("failed", "no_audio", wp.MAX_ATTEMPTS)
+
+
+async def test_synthesis_failure_after_audio_finishes_as_partial():
+    p = make(speaker=Speaker(outcome="incomplete"))
+    _, body = p.submit(fields(), "ha")
+    item = p.messages[body["id"]]
+    await p.claim(Conn(), item)
+    assert (item.status, item.error, item.attempts) == ("partial", "synthesis failed after audio started", 1)
+    assert not p.queue
+
+
+async def test_audio_cut_off_finishes_as_partial_without_retry():
+    p = make(speaker=Speaker(outcome="partial"))
+    _, body = p.submit(fields(urgent=True), "ha")
+    item = p.messages[body["id"]]
+    await p.claim(Conn(), item)
+    assert item.status == "partial" and item.attempts == 1 and not p.queue
+
+
+async def test_interrupted_announcement_counts_as_delivered():
+    p = make(speaker=Speaker(outcome="interrupted"))
+    _, body = p.submit(fields(), "ha")
+    await p.claim(Conn(), p.messages[body["id"]])
+    assert p.messages[body["id"]].status == "delivered"
 
 
 async def test_conversation_reply_is_recorded():
     p = make()
     p.reply_window = 1
     _, body = p.submit(fields(mode="conversation", message="Shall I close the valve?"), "ha")
+    p.reserve(DEVICE)
     conn = Conn()
     p.on_session_open(DEVICE, conn)
 
@@ -335,6 +610,7 @@ async def test_conversation_without_reply_closes_invoked_session():
     p = make(speaker=speaker)
     p.reply_window = 0.3
     _, body = p.submit(fields(mode="conversation", message="Shall I close the valve?"), "ha")
+    p.reserve(DEVICE)
     conn = Conn()
     await p.on_invoke(conn)
     await p._delivery
@@ -347,6 +623,7 @@ async def test_reply_window_extends_while_user_is_speaking():
     p = make()
     p.reply_window = 0.2
     _, body = p.submit(fields(mode="conversation"), "ha")
+    p.reserve(DEVICE)
     conn = Conn()
     conn.client_have_voice = True
 
@@ -395,10 +672,9 @@ async def test_dispatch_skips_new_and_stale_sessions():
     await asyncio.sleep(0)
     assert speaker.calls == []
     p.on_session_close(DEVICE, fresh)
-    stale = Conn()
-    p.on_session_open(DEVICE, stale)
-    clock.t += 1
-    p.poll_started[DEVICE] = clock.t
+    stopped = Conn()
+    stopped.stop_event.set()
+    p.on_session_open(DEVICE, stopped)
     p.dispatch_once()
     await asyncio.sleep(0)
     assert speaker.calls == []
@@ -406,17 +682,19 @@ async def test_dispatch_skips_new_and_stale_sessions():
 
 # Upstream hooks
 
-async def test_register_sessions_tracks_open_session():
+async def test_register_sessions_tracks_verified_open_session():
     p = make()
     seen = []
 
     async def handle_connection(self, ws):
-        seen.append(list(p.sessions))
+        seen.append({d: [c._weixue_ws for c in cs] for d, cs in p.sessions.items()})
 
     wrapped = weixue_patches.register_sessions(handle_connection, p)
-    ws = types.SimpleNamespace(request=types.SimpleNamespace(headers={"device-id": "7C:0C:5F:42:4B:FC"}))
+    ws = types.SimpleNamespace(request=types.SimpleNamespace(headers={"device-id": DEVICE}))
     await wrapped(Conn(), ws)
-    assert seen == [[DEVICE]] and p.sessions == {}
+    spoof = types.SimpleNamespace(request=types.SimpleNamespace(headers={"device-id": OTHER}))
+    await wrapped(Conn(), spoof)
+    assert seen == [{DEVICE: [ws]}, {}] and p.sessions == {}
 
 
 async def test_intercept_invoke_only_for_invoke_text():
@@ -503,17 +781,32 @@ async def test_http_mute_and_status(client):
 
 
 async def test_http_poll(client):
-    assert (await client.get("/weixue/proactive/poll")).status == 400
     assert (await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE})).status == 204
-    await client.post("/weixue/proactive/messages", json={"message": "hi"}, headers=AUTH)
-    resp = await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE.upper()})
-    assert resp.status == 200 and (await resp.json()) == {"pending": True, "urgent": False}
+    created = await (await client.post("/weixue/proactive/messages", json={"message": "hi"}, headers=AUTH)).json()
+    resp = await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE})
+    assert resp.status == 200
+    assert (await resp.json()) == {"pending": True, "urgent": False, "id": created["id"]}
+    assert client.proactive.messages[created["id"]].reserved_for == DEVICE
 
 
 async def test_http_poll_reports_urgent(client):
     await client.post("/weixue/proactive/messages", json={"message": "leak", "urgent": True}, headers=AUTH)
     resp = await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE})
-    assert resp.status == 200 and (await resp.json()) == {"pending": True, "urgent": True}
+    assert resp.status == 200 and (await resp.json())["urgent"] is True
+
+
+@pytest.mark.parametrize("headers", [{}, {"Device-Id": OTHER}, {"Device-Id": " "}, AUTH])
+async def test_http_poll_refuses_unverified_devices(client, headers):
+    await client.post("/weixue/proactive/messages", json={"message": "hi"}, headers=AUTH)
+    resp = await client.get("/weixue/proactive/poll", headers=headers)
+    assert resp.status == 401
+    assert client.proactive.queue[0].reserved_for is None and OTHER not in client.proactive.last_poll
+
+
+async def test_http_poll_disabled_without_server_auth(client):
+    client.proactive.auth = wp.DeviceAuth(False, [DEVICE])
+    resp = await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE})
+    assert resp.status == 503
 
 
 async def test_speak_queues_one_assistant_turn(monkeypatch):
@@ -546,11 +839,14 @@ async def test_speak_queues_one_assistant_turn(monkeypatch):
 
     async def finish():
         await asyncio.sleep(0.2)
-        conn.client_is_speaking = False
+        record = conn.weixue_playback[conn.sentence_id]
+        record.frames = 3
+        record.done.set()
 
     asyncio.create_task(finish())
     outcome = await wp.speak(conn, p.messages[body["id"]], close_after=False)
     assert outcome == "spoken" and sent == ["start"]
+    assert conn.weixue_playback == {}
     items = []
     while not conn.tts.tts_text_queue.empty():
         items.append(conn.tts.tts_text_queue.get())

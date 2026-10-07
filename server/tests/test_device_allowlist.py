@@ -132,14 +132,14 @@ def ws(monkeypatch):
     cls = websocket_server.WebSocketServer
     upstream_auth = cls._handle_auth
 
-    def connect(headers, path="/xiaozhi/v1/", patched=True, enabled=True):
+    def connect(headers, path="/xiaozhi/v1/", patched=True, enabled=True, devices=(DEVICE,)):
         auth = weixue_patches.refuse_unlisted_websocket(upstream_auth, AuthenticationError, LOGGER)
         monkeypatch.setattr(cls, "_handle_auth", auth if patched else upstream_auth)
         server = object.__new__(cls)
         server.config, server.logger = server_config(), LOGGER
         server._vad = server._asr = server._llm = server._memory = server._intent = None
         server.auth_enable = enabled
-        server.allowed_devices = {DEVICE}
+        server.allowed_devices = set(devices)
         server.auth = AuthManager(secret_key=AUTH_KEY)
         websocket = FakeWebSocket(headers, path)
         sessions.clear()
@@ -191,3 +191,22 @@ def test_ws_without_device_id_still_gets_the_banner(ws):
 def test_ws_with_auth_disabled_is_upstream(ws):
     websocket, sessions = ws({"device-id": OTHER, "client-id": CLIENT}, enabled=False)
     assert sessions == [websocket]
+
+
+@pytest.mark.parametrize("devices", [(DEVICE,), ()])
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"device-id": DEVICE, "client-id": CLIENT},
+        {"device-id": DEVICE.upper(), "client-id": CLIENT},
+        {"device-id": OTHER, "client-id": CLIENT},
+        {"device-id": OTHER, "client-id": CLIENT, "authorization": token_for(OTHER)},
+        {"device-id": OTHER, "client-id": "client-2", "authorization": token_for(OTHER)},
+    ],
+)
+def test_proactive_device_auth_admits_what_the_websocket_admits(ws, headers, devices):
+    import weixue_proactive
+
+    _, sessions = ws(dict(headers), devices=devices)
+    auth = weixue_proactive.DeviceAuth(True, devices, AuthManager(secret_key=AUTH_KEY).verify_token)
+    assert (auth.device(Headers(headers)) is not None) == bool(sessions)

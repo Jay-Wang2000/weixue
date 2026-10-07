@@ -164,7 +164,8 @@ def test_voice_held(args):
 
 
 def test_settings_and_untouched_rules():
-    assert MERGED["wait_seconds"] == 8
+    assert MERGED["wait_seconds"] == BASE["wait_seconds"]
+    assert OVERLAY["settings"] == {}
     assert MERGED["approval_ttl_minutes"] == 10
     assert MERGED["rules"][0] == BASE["rules"][0] and MERGED["rules"][-1] == BASE["rules"][-1]
     assert BASE["rules"][1] not in MERGED["rules"]
@@ -177,9 +178,10 @@ def test_overlay_rejects_missing_rule():
         render.apply_overlay(base, OVERLAY)
 
 
-def test_overlay_rejects_long_wait():
-    with pytest.raises(ValueError, match="wait_seconds"):
-        render.apply_overlay(BASE, {**OVERLAY, "settings": {"wait_seconds": 60}})
+@pytest.mark.parametrize("wait", [8, 60, 180])
+def test_overlay_rejects_any_wait_seconds(wait):
+    with pytest.raises(ValueError, match="must not change wait_seconds"):
+        render.apply_overlay(BASE, {**OVERLAY, "settings": {"wait_seconds": wait}})
 
 
 @pytest.mark.skipif(not HA_AGENT_POLICY.exists(), reason="ha-agent checkout not present")

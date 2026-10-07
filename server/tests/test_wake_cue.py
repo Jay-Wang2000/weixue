@@ -50,7 +50,7 @@ class Upstream:
 def _wrapped(played):
     upstream = Upstream()
 
-    async def play(conn, cue):
+    async def play(conn, cue, turn=None):
         played.append(cue)
 
     wrapper = weixue_patches.acknowledge_wake(Upstream.handle, REMOVE_PUNCTUATION, play)
@@ -274,9 +274,16 @@ async def test_patched_connection_keeps_audio_after_a_detect():
     assert conn.received == [(b"frame", True)]
 
 
-def test_configured_cue_clips_are_short_mono_wavs():
+def _template():
     text = (SERVER_DIR / "config" / "config.template.yaml").read_text(encoding="utf-8")
-    template = yaml.safe_load(re.sub(r"@@[A-Z_]+(\?|\[\])?@@", "x", text))
+    return yaml.safe_load(re.sub(r"@@[A-Z_]+(\?|\[\])?@@", "x", text))
+
+
+TEMPLATE_CUES = _template()["wake_cues"]
+
+
+def test_configured_cue_clips_are_short_mono_wavs():
+    template = _template()
     cues = template["wake_cues"]
     assert len(cues) == 3
     assert template["enable_greeting"] is False
@@ -291,31 +298,108 @@ def test_configured_cue_clips_are_short_mono_wavs():
 CHECK = weixue_patches.ignore_bare_wake_word(REMOVE_PUNCTUATION, LOGGER)
 
 
-@pytest.mark.parametrize("text", ["Huh?", "Hmm?", "hm.", "Mm-hm?", "Yes?"])
-async def test_cue_echo_right_after_a_cue_is_consumed(text, log_records):
-    conn = Conn(cues=[{"file": "x.wav", "text": "Mm-hm?"}])
-    conn.weixue_cue_started = time.monotonic() - 2
-    assert await CHECK(conn, text) is True
-    assert any("wake cue echo ignored" in message for _, message in log_records)
+@pytest.mark.parametrize("cue", TEMPLATE_CUES, ids=lambda cue: cue["text"])
+@pytest.mark.parametrize("text", ["Yes.", "yes", "Hmm?", "Mm-hm.", "Yes, turn on the lights.", "What time is it?"])
+async def test_short_answers_right_after_a_cue_reach_the_llm(cue, text):
+    rec = Recorder()
+    watch = weixue_patches.watch_sent_audio(rec.send_audio_message, "FIRST", "LAST")
+    play = weixue_patches.wake_cue_player(rec.audio_to_data, rec.send_tts_message, watch, "FIRST", "LAST", LOGGER)
+    reached = []
+
+    async def start_to_chat(conn, said):
+        if not await CHECK(conn, said):
+            reached.append(said)
+
+    guard = weixue_patches.guard_playback_echo(start_to_chat, LOGGER)
+    conn = Conn(cues=TEMPLATE_CUES)
+    await play(conn, cue)
+    assert ("audio", "FIRST", [b"p1", b"p2"], cue["text"], True) == rec.events[2][:5]
+    conn.weixue_voice_onset = (time.monotonic(), conn.sentence_id, conn.client_is_speaking)
+    await guard(conn, text)
+    assert reached == [text]
 
 
-@pytest.mark.parametrize("text", ["Yes, turn on the lights.", "What time is it?", "", "?"])
-async def test_other_transcripts_after_a_cue_reach_the_llm(text):
+class LoadGate(Recorder):
+    """audio_to_data waits until released, as upstream does on a cache miss."""
+
+    def __init__(self):
+        super().__init__()
+        self.release = asyncio.Event()
+
+    async def audio_to_data(self, path):
+        self.events.append(("load", path))
+        await self.release.wait()
+        return [b"p1"]
+
+
+async def test_turn_starting_while_the_clip_loads_keeps_the_connection(log_records):
+    rec = LoadGate()
     conn = Conn()
-    conn.weixue_cue_started = time.monotonic() - 1
-    assert await CHECK(conn, text) is False
+    conn.client_abort = False
+    task = asyncio.create_task(_player(rec)(conn, CUES[0], conn.sentence_id))
+    while not rec.events:
+        await asyncio.sleep(0.01)
+    conn.sentence_id = "user-turn"
+    conn.client_abort = True
+    rec.release.set()
+    await task
+    assert rec.events == [("load", CUES[0]["file"])]
+    assert conn.sentence_id == "user-turn" and conn.client_abort is True
+    assert any("dropped after loading" in message for _, message in log_records)
 
 
-async def test_cue_words_long_after_the_cue_or_without_one_reach_the_llm():
-    conn = Conn()
-    assert await CHECK(conn, "Yes.") is False
-    conn.weixue_cue_started = time.monotonic() - weixue_patches.CUE_ECHO_S - 1
-    assert await CHECK(conn, "Yes.") is False
-
-
-async def test_player_marks_the_cue_start():
+async def test_turn_starting_during_the_decoder_reset_drops_the_cue_audio():
     rec = Recorder()
     conn = Conn()
-    before = time.monotonic()
-    await _player(rec)(conn, CUES[0])
-    assert before <= conn.weixue_cue_started <= time.monotonic()
+    task = asyncio.create_task(_player(rec)(conn, CUES[0]))
+    while not any(e[:2] == ("tts", "start") for e in rec.events):
+        await asyncio.sleep(0.01)
+    conn.sentence_id = "user-turn"
+    await task
+    assert [e[1] for e in rec.events] == [CUES[0]["file"], "start"]
+    assert conn.sentence_id == "user-turn"
+
+
+async def test_turn_scheduled_before_the_cue_was_superseded_skips_it(log_records):
+    rec = Recorder()
+    conn = Conn()
+    await _player(rec)(conn, CUES[0], "an-older-turn")
+    assert rec.events == []
+    assert conn.sentence_id == "old"
+
+
+async def test_a_new_wake_cancels_the_pending_cue():
+    started = []
+
+    async def play(conn, cue, turn):
+        started.append(turn)
+        await asyncio.sleep(10)
+
+    wrapper = weixue_patches.acknowledge_wake(Upstream.handle, REMOVE_PUNCTUATION, play)
+    conn = Conn()
+    await wrapper(Upstream(), conn, {"state": "detect", "text": "Jarvis"})
+    first = conn.weixue_wake_cue
+    await asyncio.sleep(0)
+    await wrapper(Upstream(), conn, {"state": "detect", "text": "Jarvis"})
+    await asyncio.sleep(0)
+    assert first.cancelled() and not conn.weixue_wake_cue.done()
+    assert started == ["old", "old"]
+    weixue_patches.cancel_wake_cue(conn)
+    await asyncio.sleep(0)
+    assert conn.weixue_wake_cue.cancelled()
+
+
+async def test_session_end_cancels_the_pending_cue():
+    import weixue_proactive as wp
+
+    proactive = wp.Proactive("t")
+
+    async def handle_connection(self, ws):
+        self.weixue_wake_cue = asyncio.create_task(asyncio.sleep(10))
+
+    wrapped = weixue_patches.register_sessions(handle_connection, proactive)
+    conn = Conn()
+    ws = types.SimpleNamespace(request=types.SimpleNamespace(headers={}))
+    await wrapped(conn, ws)
+    await asyncio.sleep(0)
+    assert conn.weixue_wake_cue.cancelled()

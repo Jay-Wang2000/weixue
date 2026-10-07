@@ -1,6 +1,6 @@
 """Proactive messages: an authenticated webhook queues an announcement or a conversation
 opener for a device; the device takes it over its open session or, when idle, through the
-long-poll that makes it open one (docs/proactive.md)."""
+long-poll that reserves a message and makes it open a session (docs/proactive.md)."""
 import asyncio
 import hashlib
 import hmac
@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
 
+import weixue_patches
 from config.logger import setup_logging
 
 TAG = __name__
@@ -31,12 +32,18 @@ MAX_TTL_SECONDS = 3600
 MAX_MUTE_MINUTES = 1440
 MAX_QUEUED = 20
 MAX_ATTEMPTS = 3
+# Delay before attempt n+1 after attempt n failed before any audio.
+RETRY_BACKOFF_SECONDS = (2, 5)
 KEY_RETENTION_SECONDS = 86400
 CONTENT_DEDUP_SECONDS = 60
 RATE_BURST = 5
 RATE_PER_SECOND = 0.1
 POLL_HOLD_SECONDS = 25
 POLL_SEEN_SECONDS = 60
+RESERVE_SECONDS = 15
+PROBE_TIMEOUT_SECONDS = 3
+MAX_HELD_POLLS = 8
+MAX_DEVICES = 32
 SESSION_QUIET_SECONDS = 1.5
 SESSION_SETTLE_SECONDS = 3
 TTS_READY_SECONDS = 5
@@ -46,7 +53,14 @@ REPLY_ACTIVITY_SECONDS = 4
 REPLY_MAX_SECONDS = 20
 DISPATCH_INTERVAL_SECONDS = 0.5
 
-FINAL = ("delivered", "answered", "no_reply", "expired", "failed")
+FINAL = ("delivered", "answered", "no_reply", "partial", "expired", "failed")
+# Speaker outcomes after which the message counts as heard.
+HEARD = ("spoken", "interrupted")
+# Speaker outcomes that finish the message as partial, with their error.
+PARTIAL = {
+    "partial": "session lost after audio started",
+    "incomplete": "synthesis failed after audio started",
+}
 
 
 def _iso(wall):
@@ -71,6 +85,10 @@ class Message:
     reply: Optional[str] = None
     finished_wall: Optional[float] = None
     error: str = ""
+    reserved_for: Optional[str] = None
+    reserved_until: float = 0.0
+    claim: Optional[str] = None
+    retry_at: float = 0.0
 
     def public(self, reason=""):
         out = {
@@ -193,19 +211,58 @@ def _reply_after(conn, anchor):
     return None
 
 
+class DeviceAuth:
+    """The server.auth boundary of the WebSocket server (upstream _handle_auth plus
+    weixue_patches.refuse_unlisted_websocket), for device requests: with auth enabled, a Device-Id
+    on allowed_devices; with allowed_devices empty, a Bearer token that AuthManager issued for the
+    request's Client-Id and Device-Id. With auth disabled no device is verified."""
+
+    def __init__(self, enabled, allowed_devices=(), verify_token=None):
+        self.auth_enable = bool(enabled)
+        self.allowed_devices = set(allowed_devices or ())
+        self.verify_token = verify_token
+
+    @classmethod
+    def from_config(cls, config):
+        from core.auth import AuthManager
+
+        server = config.get("server") or {}
+        auth = server.get("auth") or {}
+        manager = AuthManager(secret_key=server.get("auth_key") or "", expire_seconds=auth.get("expire_seconds"))
+        return cls(auth.get("enabled", False), auth.get("allowed_devices"), manager.verify_token)
+
+    def device(self, headers):
+        """The verified device id (normalized MAC) of request headers, else None."""
+        if not self.auth_enable or headers is None:
+            return None
+        raw = headers.get("device-id")
+        device = _norm_device(raw)
+        if device is None or weixue_patches.unlisted(self, raw):
+            return None
+        if raw in self.allowed_devices:
+            return device
+        bearer = headers.get("authorization") or ""
+        client = headers.get("client-id")
+        if bearer.startswith("Bearer ") and client and self.verify_token is not None:
+            if self.verify_token(bearer[7:], client_id=client, username=raw):
+                return device
+        return None
+
+
 class Proactive:
-    def __init__(self, token, clock=time.monotonic, wall=time.time, speaker=None):
+    def __init__(self, token, clock=time.monotonic, wall=time.time, speaker=None, auth=None):
         self.token = token or ""
         self.clock = clock
         self.wall = wall
         self.speaker = speaker or speak
+        self.auth = auth or DeviceAuth(False)
         self.logger = setup_logging()
         self.messages = {}
         self.keys = {}
         self.queue = deque()
         self.sessions = {}
         self.last_poll = {}
-        self.poll_started = {}
+        self.polls = {}
         self.muted_until = 0.0
         self.buckets = {}
         self.reply_window = REPLY_WINDOW_SECONDS
@@ -213,6 +270,9 @@ class Proactive:
         self._event = asyncio.Event()
         self._dispatcher = None
         self._delivery = None
+
+    def configure_auth(self, config):
+        self.auth = DeviceAuth.from_config(config)
 
     # Queue state
 
@@ -247,10 +307,14 @@ class Proactive:
         self.logger.bind(tag=TAG).info(f"proactive {item.id} {status}{(': ' + error) if error else ''}")
         self._notify()
 
+    def _reserved(self, item, now):
+        return item.reserved_for is not None and now < item.reserved_until
+
     def expire(self):
+        """Queued messages past their TTL expire, except while a poll's reservation holds them."""
         now = self.clock()
         for item in list(self.queue):
-            if item.status == "queued" and now >= item.expires:
+            if item.status == "queued" and now >= item.expires and not self._reserved(item, now):
                 self._finish(item, "expired")
         for mid, item in list(self.messages.items()):
             if item.status in FINAL and now - item.created > KEY_RETENTION_SECONDS:
@@ -258,22 +322,45 @@ class Proactive:
                 if item.key and self.keys.get(item.key) == mid:
                     del self.keys[item.key]
 
-    def next_for(self, device):
-        """First queued message the device may play now (mute holds all but urgent ones)."""
+    def next_for(self, device, reserved=True):
+        """First queued message the device may play now (mute holds all but urgent ones, a retry
+        waits for its backoff). A message reserved for another device is skipped, and one reserved
+        for this device only when reserved."""
         self.expire()
         muted = self.muted()
+        now = self.clock()
         for item in self.queue:
-            if item.status == "queued" and item.device in (None, device) and (item.urgent or not muted):
+            if item.status != "queued" or item.device not in (None, device) or not (item.urgent or not muted):
+                continue
+            if now < item.retry_at:
+                continue
+            if self._reserved(item, now) and (item.reserved_for != device or not reserved):
+                continue
+            return item
+        return None
+
+    def reserved_for(self, device):
+        """The queued message a poll reserved for the device, while it has not expired."""
+        self.expire()
+        for item in self.queue:
+            if item.status == "queued" and item.reserved_for == device:
                 return item
         return None
+
+    def reserve(self, device):
+        item = self.next_for(device)
+        if item is not None:
+            item.reserved_for = device
+            item.reserved_until = self.clock() + RESERVE_SECONDS
+            self.logger.bind(tag=TAG).info(f"proactive {item.id} reserved for {device} urgent={item.urgent}")
+        return item
 
     def known_devices(self):
         return set(self.sessions) | set(self.last_poll)
 
     def live_sessions(self, device):
-        """Sessions opened after the device's latest poll; the device polls only while idle, so older ones are stale."""
-        since = self.poll_started.get(device, float("-inf"))
-        return [c for c in self.sessions.get(device, []) if c._weixue_opened >= since]
+        """Registered sessions of the device whose connection has not stopped."""
+        return [c for c in self.sessions.get(device, []) if not c.stop_event.is_set()]
 
     def reachable(self, device):
         if device is None:
@@ -362,8 +449,9 @@ class Proactive:
 
     # Device side
 
-    def on_session_open(self, device, conn):
-        conn._weixue_opened = self.clock()
+    def on_session_open(self, device, conn, ws=None):
+        """Registers a session whose device identity self.auth verified."""
+        conn._weixue_ws = ws
         self.sessions.setdefault(device, []).append(conn)
         self._notify()
 
@@ -375,36 +463,92 @@ class Proactive:
             self.sessions.pop(device, None)
         self._notify()
 
-    async def poll(self, device):
-        """Long-poll: True once a message is deliverable and the device has no open session."""
-        started = self.clock()
-        self.poll_started[device] = started
-        deadline = started + POLL_HOLD_SECONDS
-        while True:
-            self.last_poll[device] = self.clock()
-            if not self.live_sessions(device) and self.next_for(device):
+    def _seen(self, device):
+        self.last_poll[device] = self.clock()
+        while len(self.last_poll) > MAX_DEVICES:
+            del self.last_poll[min(self.last_poll, key=self.last_poll.get)]
+
+    async def _probe(self, device):
+        """Pings the device's registered sessions; one that fails to answer within
+        PROBE_TIMEOUT_SECONDS is unregistered and closed."""
+
+        async def answers(conn):
+            ws = getattr(conn, "_weixue_ws", None)
+            if ws is None:
                 return True
-            remaining = deadline - self.clock()
-            if remaining <= 0:
+            try:
+                await asyncio.wait_for(await ws.ping(), PROBE_TIMEOUT_SECONDS)
+                return True
+            except Exception:
                 return False
-            await self._wait_change(min(remaining, 1.0))
+
+        conns = list(self.sessions.get(device, []))
+        for conn, alive in zip(conns, await asyncio.gather(*(answers(c) for c in conns))):
+            if not alive:
+                self.logger.bind(tag=TAG).info(f"proactive: session {conn.session_id} of {device} did not answer a ping; closed")
+                self.on_session_close(device, conn)
+                asyncio.get_running_loop().create_task(_close_quietly(conn))
+
+    async def poll(self, device):
+        """Long-poll for a verified device: the message reserved for it once one is deliverable
+        and the device has no live session, else None after POLL_HOLD_SECONDS or when a newer
+        poll from the device replaces this one."""
+        if device not in self.polls and len(self.polls) >= MAX_HELD_POLLS:
+            raise RequestError(429, "too many polls", retry_after=5)
+        ticket = object()
+        self.polls[device] = ticket
+        self._notify()
+        deadline = self.clock() + POLL_HOLD_SECONDS
+        try:
+            self._seen(device)
+            if self.sessions.get(device):
+                await self._probe(device)
+            while self.polls.get(device) is ticket:
+                self._seen(device)
+                if not self.live_sessions(device):
+                    item = self.reserve(device)
+                    if item is not None:
+                        return item
+                remaining = deadline - self.clock()
+                if remaining <= 0:
+                    return None
+                await self._wait_change(min(remaining, 1.0))
+            return None
+        finally:
+            if self.polls.get(device) is ticket:
+                del self.polls[device]
+
+    def claim(self, conn, item):
+        """Marks item as delivering for conn before its delivery task exists; only that claim
+        may finish or requeue it. Returns the task."""
+        item.status = "delivering"
+        item.attempts += 1
+        item.reserved_for = None
+        item.claim = uuid.uuid4().hex
+        conn._weixue_busy = True
+        self._delivery = asyncio.get_running_loop().create_task(self.deliver(conn, item, item.claim))
+        return self._delivery
 
     async def on_invoke(self, conn):
-        """The device opened this session because a poll answered 200. Delivery runs as a task:
-        the caller is the session's message loop, which must keep reading the device's audio."""
+        """The device opened this session because a poll answered 200: the message that poll
+        reserved for this verified device is delivered. Delivery runs as a task: the caller is
+        the session's message loop, which must keep reading the device's audio."""
         conn._weixue_invoked = True
         conn.reset_audio_states()
         conn.last_activity_time = time.time() * 1000
         if getattr(conn, "_weixue_busy", False):
             return
-        device = _norm_device(getattr(conn, "device_id", None))
-        item = self.next_for(device)
+        device = self.auth.device(getattr(conn, "headers", None))
+        item = self.reserved_for(device) if device else None
+        if item is not None and self.muted() and not item.urgent:
+            item.reserved_for = None
+            item = None
         if item is None:
-            self.logger.bind(tag=TAG).info("proactive session opened with nothing to deliver; closing")
+            why = "nothing reserved for it" if device else "unverified device"
+            self.logger.bind(tag=TAG).info(f"proactive session opened with {why}; closing")
             await conn.close()
             return
-        conn._weixue_busy = True
-        self._delivery = asyncio.get_running_loop().create_task(self.deliver(conn, item))
+        self.claim(conn, item)
 
     def quiescent(self, conn):
         if getattr(conn, "_weixue_busy", False) or conn.stop_event.is_set() or conn.tts is None:
@@ -423,10 +567,9 @@ class Proactive:
             if not conns:
                 continue
             conn = conns[-1]
-            item = self.next_for(device)
+            item = self.next_for(device, reserved=False)
             if item is not None and self.quiescent(conn):
-                conn._weixue_busy = True
-                self._delivery = asyncio.get_running_loop().create_task(self.deliver(conn, item))
+                self.claim(conn, item)
 
     async def run(self):
         while True:
@@ -440,42 +583,52 @@ class Proactive:
         if self._dispatcher is None or self._dispatcher.done():
             self._dispatcher = asyncio.get_running_loop().create_task(self.run())
 
-    async def deliver(self, conn, item):
-        item.status = "delivering"
-        item.attempts += 1
+    async def deliver(self, conn, item, claim):
+        """Speaks a claimed message. Heard (spoken, or interrupted after audio) finishes it;
+        audio cut off by a lost session or a failed synthesis finishes it as partial; a failure
+        before any audio requeues it after RETRY_BACKOFF_SECONDS (MAX_ATTEMPTS, within the TTL)."""
         invoked = getattr(conn, "_weixue_invoked", False)
         self.logger.bind(tag=TAG).info(
-            f"proactive {item.id} delivering: attempt={item.attempts} session={conn.session_id} invoked={invoked}"
+            f"proactive {item.id} delivering: attempt={item.attempts} session={conn.session_id} "
+            f"invoked={invoked} urgent={item.urgent}"
         )
         try:
             outcome = await self.speaker(conn, item, close_after=invoked and item.mode == "announce")
-            if outcome != "spoken":
+            if item.claim != claim:
+                return
+            if outcome in PARTIAL:
+                self._finish(item, "partial", PARTIAL[outcome])
+                return
+            if outcome not in HEARD:
                 if item.attempts >= MAX_ATTEMPTS:
                     self._finish(item, "failed", outcome)
                 elif self.clock() >= item.expires:
                     self._finish(item, "expired")
                 else:
+                    delay = RETRY_BACKOFF_SECONDS[min(item.attempts, len(RETRY_BACKOFF_SECONDS)) - 1]
                     item.status = "queued"
-                    self.logger.bind(tag=TAG).info(f"proactive {item.id} requeued: {outcome}")
+                    item.claim = None
+                    item.retry_at = self.clock() + delay
+                    self.logger.bind(tag=TAG).info(f"proactive {item.id} requeued: {outcome}; retry in {delay}s")
                     self._notify()
                 return
             if item.mode == "announce":
                 self._finish(item, "delivered")
                 return
-            await self._await_reply(conn, item, invoked)
+            await self._await_reply(conn, item, invoked, claim)
         except Exception as e:
             self.logger.bind(tag=TAG).error(f"proactive {item.id} delivery error: {e}")
-            if item.status == "delivering":
+            if item.claim == claim and item.status == "delivering":
                 self._finish(item, "failed", "error")
         finally:
             conn._weixue_busy = False
             self._notify()
 
-    async def _await_reply(self, conn, item, invoked):
+    async def _await_reply(self, conn, item, invoked, claim):
         """Short-reply window: the first user turn after the opener is its answer."""
         start = time.time()
         anchor = getattr(conn, "_weixue_anchor", None)
-        while True:
+        while item.claim == claim:
             reply = _reply_after(conn, anchor)
             if reply is not None:
                 item.reply = _user_text(reply.content)
@@ -495,9 +648,20 @@ class Proactive:
             await asyncio.sleep(0.1)
 
 
+async def _close_quietly(conn):
+    try:
+        await conn.close()
+    except Exception:
+        pass
+
+
 async def speak(conn, item, close_after):
-    """Plays item.text as an assistant turn (conn._weixue_anchor) after a user-role note of the event;
-    returns "spoken", "closed", "no_tts" or "timeout"."""
+    """Plays item.text as an assistant turn (conn._weixue_anchor) after a user-role note of the
+    event. The outcome comes from the sentence's own playback record (weixue_patches.track_playback):
+    with audio sent, "spoken" (its last packet went out), "incomplete" (its last packet went out but
+    a segment's synthesis failed), "interrupted" (abort or a newer turn) or "partial" (session
+    closed or SPEECH_TIMEOUT_SECONDS passed); with no audio sent, "no_audio"
+    (synthesis produced none), "superseded", "closed", "no_tts" or "timeout"."""
     from core.handle.sendAudioHandle import send_tts_message
     from core.providers.tts.dto.dto import ContentType, SentenceType, TTSMessageDTO
     from core.utils.dialogue import Message as DialogueMessage
@@ -514,27 +678,40 @@ async def speak(conn, item, close_after):
     conn._weixue_anchor = DialogueMessage(role="assistant", content=item.text)
     conn.dialogue.put(conn._weixue_anchor)
     sentence_id = uuid.uuid4().hex
-    conn.client_abort = False
-    conn.close_after_chat = close_after
-    conn.sentence_id = sentence_id
-    conn.client_is_speaking = True
-    await send_tts_message(conn, "start")
-    conn.tts.store_tts_text(sentence_id, item.text)
-    conn.tts.tts_text_queue.put(
-        TTSMessageDTO(sentence_id=sentence_id, sentence_type=SentenceType.FIRST, content_type=ContentType.ACTION)
-    )
-    conn.tts.tts_one_sentence(conn, ContentType.TEXT, content_detail=item.text, sentence_id=sentence_id)
-    conn.tts.tts_text_queue.put(
-        TTSMessageDTO(sentence_id=sentence_id, sentence_type=SentenceType.LAST, content_type=ContentType.ACTION)
-    )
-    deadline = time.time() + SPEECH_TIMEOUT_SECONDS
-    while conn.client_is_speaking:
-        if conn.stop_event.is_set():
-            return "closed"
-        if time.time() > deadline:
-            return "timeout"
-        await asyncio.sleep(0.1)
-    return "spoken"
+    playback = weixue_patches.track_playback(conn, sentence_id)
+    try:
+        conn.client_abort = False
+        conn.close_after_chat = close_after
+        conn.sentence_id = sentence_id
+        conn.client_is_speaking = True
+        await send_tts_message(conn, "start")
+        conn.tts.store_tts_text(sentence_id, item.text)
+        conn.tts.tts_text_queue.put(
+            TTSMessageDTO(sentence_id=sentence_id, sentence_type=SentenceType.FIRST, content_type=ContentType.ACTION)
+        )
+        conn.tts.tts_one_sentence(conn, ContentType.TEXT, content_detail=item.text, sentence_id=sentence_id)
+        conn.tts.tts_text_queue.put(
+            TTSMessageDTO(sentence_id=sentence_id, sentence_type=SentenceType.LAST, content_type=ContentType.ACTION)
+        )
+        deadline = time.time() + SPEECH_TIMEOUT_SECONDS
+        while True:
+            heard = playback.frames > 0
+            if playback.done.is_set():
+                if not heard:
+                    return "no_audio"
+                return "incomplete" if playback.failed else "spoken"
+            if conn.client_abort or conn.sentence_id != sentence_id:
+                return "interrupted" if heard else "superseded"
+            if conn.stop_event.is_set():
+                return "partial" if heard else "closed"
+            if time.time() > deadline:
+                return "partial" if heard else "timeout"
+            try:
+                await asyncio.wait_for(playback.done.wait(), 0.1)
+            except asyncio.TimeoutError:
+                pass
+    finally:
+        weixue_patches.untrack_playback(conn, sentence_id)
 
 
 # HTTP
@@ -595,12 +772,17 @@ def add_routes(app, proactive):
         return web.json_response(proactive.set_mute(minutes))
 
     async def poll(request):
-        device = _norm_device(request.headers.get("Device-Id"))
+        if not proactive.auth.auth_enable:
+            return web.json_response({"error": "disabled: server.auth is not enabled"}, status=503)
+        device = proactive.auth.device(request.headers)
         if device is None:
-            return web.json_response({"error": "Device-Id header required"}, status=400)
-        if await proactive.poll(device):
-            item = proactive.next_for(device)
-            return web.json_response({"pending": True, "urgent": bool(item and item.urgent)})
+            return web.json_response({"error": "unauthorized device"}, status=401)
+        try:
+            item = await proactive.poll(device)
+        except RequestError as e:
+            return web.json_response(e.body, status=e.status, headers={"Retry-After": str(e.body["retry_after"])})
+        if item is not None:
+            return web.json_response({"pending": True, "urgent": item.urgent, "id": item.id})
         return web.Response(status=204)
 
     async def start_dispatcher(_app):
