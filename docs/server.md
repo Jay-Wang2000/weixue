@@ -140,6 +140,45 @@ Optional web console (MySQL + Redis + manager-web, port 8002): set `MYSQL_ROOT_P
 - Port 8000 accepts WebSocket; a `hello` returns `session_id`; a `listen/detect` text turn returns `stt`, `tts start/sentence_start/stop` and Opus frames.
 - Not verified without hardware: ASR on live microphone audio.
 
+## Office / off-LAN mode (WireGuard tunnel)
+
+When the Mac is off the home LAN, `mcp-bridge` reaches ha-mcp through a WireGuard client sidecar, compose service `wg` (profile `tunnel`, image `weixue/wg:local` built from `server/wg/`: pinned Alpine + `wireguard-tools`, kernel WireGuard). Only the bridge shares the sidecar's network namespace (`network_mode: service:wg`); the server, `mcp-endpoint-server` and the device path are unchanged. The bridge still reaches `ws://mcp-endpoint-server:8004` by name: the sidecar sits on the project network and keeps Docker's resolver.
+
+Prerequisites:
+
+- The router's WireGuard server (GL.iNet) is reachable from the WAN on its UDP port.
+- `server/.secrets/wg0.conf` (mode 0600, directory 0700) is the router's client config with `AllowedIPs = 192.168.8.0/24` only, so nothing but home-LAN traffic enters the tunnel. MTU 1420 (the `MTU` line, or wg-quick's default on a 1500-byte path).
+- `DNS` lines in the config are ignored; `HA_MCP_URL` uses an IP address.
+
+| Item | Behaviour |
+|---|---|
+| Config | Mounted read-only at `/etc/wireguard/wg0.conf` (`create_host_path: false`: a missing file fails the start instead of creating a directory). The sidecar brings `wg0` up from a copy without `DNS` lines on a tmpfs |
+| Start | A failed `wg-quick up` (for example the endpoint name not resolving at boot) is retried every 10 s with one redacted log line per failure; the container keeps running |
+| Keepalive | Peers without `PersistentKeepalive` get 25 s, so the sidecar handshakes without bridge traffic |
+| Healthcheck | Healthy while the latest handshake is under 180 s old; 60 s start period |
+| Logs | `docker logs wg` prints one line (`wg0 up, N peer(s), mtu M`); wg-quick errors are printed with addresses, keys, endpoints and quoted values redacted |
+| Bridge | In both modes exits non-zero after `ENDPOINT_MAX_FAILURES` consecutive failed endpoint connects (`mcp-bridge/weixue_bridge/config.py`), and when its `eth0` disappears; `restart: unless-stopped` starts it again, in tunnel mode inside the sidecar's current namespace |
+
+Enable: set `WG_TUNNEL=1` in `server/.env`, then `./scripts/setup.sh`. It checks that `.secrets/wg0.conf` exists with mode 0600 (it never reads the file), adds `tunnel` to `COMPOSE_PROFILES` in `server/.env` (other profiles are kept) and recreates `wg`, `mcp-bridge` and the server. `server/.env` then holds both lines:
+
+```bash
+WG_TUNNEL=1
+COMPOSE_PROFILES=tunnel
+```
+
+so every plain `docker compose` command in `server/` includes `wg`. A `COMPOSE_PROFILES` exported in the shell overrides `.env` and must then contain `tunnel`; without it compose refuses with `depends on undefined service "wg"`. Compose treats any non-empty `WG_TUNNEL` as on; `setup.sh` rejects every value other than empty and `1`. Recreating only the tunnel path:
+
+```bash
+docker compose up -d --build wg mcp-bridge
+docker ps --filter name=wg --filter name=mcp-bridge    # both (healthy)
+```
+
+Disable: set `WG_TUNNEL=` and run `./scripts/setup.sh`, which removes `tunnel` from `COMPOSE_PROFILES`, moves the bridge back to the project network and removes the `wg` container; by hand, delete both lines, then `docker compose up -d mcp-bridge && docker rm -f wg`.
+
+Restarts: compose recreating or restarting `wg` restarts `mcp-bridge` with it. After any other `wg` restart (`docker restart wg`, a crash) the bridge loses `eth0`, exits once its endpoint connection drops and rejoins the new namespace on its own; `docker restart mcp-bridge` only skips that wait.
+
+Not covered: inbound traffic from the home LAN to the Mac, such as the proactive webhook (`docs/proactive.md`), still needs the LAN path.
+
 ## Migrate to Ubuntu
 
 1. Install Docker Engine + compose plugin; clone this repo; clone both repos from `vendor.lock` at the pinned commits into `~/Projects/weixue-vendor/`.

@@ -1,0 +1,23 @@
+# tool-wg-tunnel: standalone sidecar probe and live bridge state, 2026-10-07 (Mac on phone hotspot, office mode)
+# Redacted: addresses, endpoint, tokens, secret paths. The tunnel deploy of the live stack was not run (permission denied).
+
+== 11:44 IST  docker build -t weixue/wg:local server/wg
+wireguard-tools v1.0.20250521 (alpine 3.23.4, pinned digest)
+kernel WireGuard available in the Rancher Desktop VM (ip link add type wireguard: ok, kernel 6.6.119-0-virt)
+
+== 11:45 IST  docker run wg-probe (NET_ADMIN, src_valid_mark=1, wg0.conf ro, tmpfs /run/wireguard), not attached to the stack
+healthcheck.sh: pass after 5 s (first poll)
+docker logs wg-probe: wg: wg0 up, 1 peer(s), mtu 1420
+wg show wg0 transfer: rx=92 tx=180 (bytes, handshake only)
+latest handshake age at check: 5 s
+curl from the probe's namespace to the HA host, ha-mcp port, root path (no secret path): HTTP 404 in 0.154 s  -> HA LAN reachable through the tunnel
+probe container removed
+
+== live mcp-bridge (own network, WG_TUNNEL unset), unchanged
+mcp-bridge Up 12 hours (unhealthy)
+2026-10-07 10:46:04,531 WARNING weixue_bridge: ha-mcp ping failed: ConnectError
+2026-10-07 10:46:34,551 WARNING weixue_bridge: ha-mcp ping failed: ConnectError
+2026-10-07 10:47:04,562 WARNING weixue_bridge: ha-mcp ping failed: ConnectError
+2026-10-07 10:47:34,582 WARNING weixue_bridge: ha-mcp ping failed: ConnectError
+2026-10-07 10:48:04,594 WARNING weixue_bridge: ha-mcp ping failed: ConnectError
+2026-10-07 10:48:34,615 WARNING weixue_bridge: ha-mcp ping failed: ConnectError

@@ -3,12 +3,20 @@ import asyncio
 import json
 import logging
 import os
+import socket
 import time
-from typing import Any, Awaitable, Callable, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, Optional, Set
 
 import websockets
 
-from .config import HEARTBEAT_S, BridgeConfig, VoiceFilter, redact
+from .config import (
+    ENDPOINT_MAX_FAILURES,
+    HEARTBEAT_S,
+    NAMESPACE_IFACE,
+    BridgeConfig,
+    VoiceFilter,
+    redact,
+)
 from .hamcp import HaMcpClient, HaMcpError
 from .voice_filter import filter_tools, refusal
 
@@ -28,6 +36,10 @@ PROTOCOL_VERSION = "2024-11-05"
 
 
 TOOL_ERROR_PREFIX = "Tool error: "
+
+
+class BridgeExit(Exception):
+    """Unrecoverable in this process; __main__ exits non-zero."""
 
 
 def tool_text(request_id: Any, text: str) -> Dict[str, Any]:
@@ -172,13 +184,23 @@ async def _heartbeat(ha: HaMcpClient, health_file: str) -> None:
             _clear_health(health_file)
 
 
+def _interface_names() -> Set[str]:
+    return {name for _, name in socket.if_nameindex()}
+
+
 async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None) -> None:
+    """Keeps the endpoint connection up; raises BridgeExit after ENDPOINT_MAX_FAILURES consecutive failed
+    connects, or once NAMESPACE_IFACE, present at start, is gone."""
     ha = ha or HaMcpClient(config.ha_mcp_url)
     log.info("ha-mcp %s <-> endpoint %s", redact(config.ha_mcp_url), redact(config.endpoint_url))
+    watch_iface = NAMESPACE_IFACE in _interface_names()
     backoff = 1
+    failures = 0
     while True:
+        connected = False
         try:
             async with websockets.connect(config.endpoint_url, ping_interval=20, ping_timeout=20) as ws:
+                connected = True
                 bridge = Bridge(config.voice_filter, ha, ws.send)
                 count = await bridge.announce()
                 _mark_healthy(config.health_file)
@@ -199,5 +221,10 @@ async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None) -> None:
         except (OSError, websockets.exceptions.WebSocketException, HaMcpError) as e:
             log.warning("bridge down: %s", type(e).__name__ if not isinstance(e, HaMcpError) else e)
         _clear_health(config.health_file)
+        if watch_iface and NAMESPACE_IFACE not in _interface_names():
+            raise BridgeExit(f"{NAMESPACE_IFACE} is gone from the network namespace")
+        failures = 0 if connected else failures + 1
+        if failures >= ENDPOINT_MAX_FAILURES:
+            raise BridgeExit(f"endpoint unreachable for {failures} consecutive attempts")
         await asyncio.sleep(backoff)
         backoff = min(backoff * 2, RECONNECT_MAX_S)

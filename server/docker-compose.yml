@@ -44,6 +44,7 @@ services:
       context: ./mcp-bridge
     container_name: mcp-bridge
     restart: unless-stopped
+    network_mode: ${WG_TUNNEL:+service:wg}
     environment:
       - HA_MCP_URL=${HA_MCP_URL:?set HA_MCP_URL in server/.env}
     volumes:
@@ -57,6 +58,34 @@ services:
       retries: 3
     depends_on:
       - mcp-endpoint-server
+
+  wg:
+    profiles: [tunnel]
+    image: weixue/wg:local
+    build:
+      context: ./wg
+    container_name: wg
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    tmpfs:
+      - /run/wireguard:mode=0700
+    volumes:
+      - type: bind
+        source: ./.secrets/wg0.conf
+        target: /etc/wireguard/wg0.conf
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      start_interval: 5s
+      retries: 3
 
   xiaozhi-esp32-server-web:
     profiles: [console]

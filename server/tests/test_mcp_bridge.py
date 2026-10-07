@@ -532,3 +532,111 @@ def test_health_file_freshness(tmp_path):
     old = time.time() - 600
     os.utime(path, (old, old))
     assert not healthy(str(path), time.time())
+
+
+# --- reconnect ----------------------------------------------------------------
+
+
+class FakeWs:
+    def __init__(self):
+        self.sent = []
+
+    async def send(self, raw):
+        self.sent.append(raw)
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        raise StopAsyncIteration
+
+
+class StopLoop(Exception):
+    pass
+
+
+@pytest.fixture
+def reconnect(monkeypatch, tmp_path):
+    """Runs bridge.run against a scripted connect: each entry is an exception to raise or None to connect."""
+    state = {
+        "script": [],
+        "default": OSError("unreachable"),
+        "connects": 0,
+        "sleeps": [],
+        "sleep_limit": None,
+        "interfaces": [{"lo"}],
+        "ha": FakeHa({"tools/list": TOOLS}),
+    }
+
+    def connect(url, **kwargs):
+        state["connects"] += 1
+        step = state["script"].pop(0) if state["script"] else state["default"]
+        if step is not None:
+            raise step
+        return FakeWs()
+
+    async def sleep(seconds):
+        if state["sleep_limit"] is not None and len(state["sleeps"]) >= state["sleep_limit"]:
+            raise StopLoop
+        state["sleeps"].append(seconds)
+
+    def interfaces():
+        return state["interfaces"].pop(0) if len(state["interfaces"]) > 1 else state["interfaces"][0]
+
+    monkeypatch.setattr(bridge_mod.websockets, "connect", connect)
+    monkeypatch.setattr(bridge_mod.asyncio, "sleep", sleep)
+    monkeypatch.setattr(bridge_mod, "_interface_names", interfaces)
+    config = bridge_mod.BridgeConfig(HA_URL, ENDPOINT, VOICE, str(tmp_path / "healthy"))
+
+    async def run():
+        with pytest.raises(bridge_mod.BridgeExit) as e:
+            await bridge_mod.run(config, state["ha"])
+        return str(e.value)
+
+    state["config"] = config
+    state["run"] = run
+    return state
+
+
+async def test_bridge_exits_after_max_consecutive_endpoint_failures(reconnect):
+    message = await reconnect["run"]()
+    assert reconnect["connects"] == bridge_mod.ENDPOINT_MAX_FAILURES
+    assert message == f"endpoint unreachable for {bridge_mod.ENDPOINT_MAX_FAILURES} consecutive attempts"
+    assert len(reconnect["sleeps"]) == bridge_mod.ENDPOINT_MAX_FAILURES - 1
+    expected = sum(min(2**i, bridge_mod.RECONNECT_MAX_S) for i in range(bridge_mod.ENDPOINT_MAX_FAILURES - 1))
+    assert sum(reconnect["sleeps"]) == expected
+
+
+async def test_bridge_connect_resets_failure_count(reconnect):
+    first = bridge_mod.ENDPOINT_MAX_FAILURES - 1
+    reconnect["script"] = [OSError("unreachable")] * first + [None]
+    await reconnect["run"]()
+    assert reconnect["connects"] == first + 1 + bridge_mod.ENDPOINT_MAX_FAILURES
+
+
+async def test_bridge_exits_when_namespace_interface_is_gone(reconnect):
+    reconnect["interfaces"] = [{"lo", "eth0"}, {"lo"}]
+    assert await reconnect["run"]() == "eth0 is gone from the network namespace"
+    assert reconnect["connects"] == 1
+
+
+async def test_bridge_ignores_interface_absent_at_start(reconnect):
+    reconnect["interfaces"] = [{"lo"}, {"lo", "eth0"}, {"lo"}]
+    await reconnect["run"]()
+    assert reconnect["connects"] == bridge_mod.ENDPOINT_MAX_FAILURES
+
+
+async def test_bridge_keeps_running_while_only_ha_mcp_fails(reconnect):
+    iterations = 2 * bridge_mod.ENDPOINT_MAX_FAILURES
+    reconnect["default"] = None
+    reconnect["ha"] = FakeHa(error=HaMcpError("ConnectError"))
+    reconnect["sleep_limit"] = iterations
+    with pytest.raises(StopLoop):
+        await bridge_mod.run(reconnect["config"], reconnect["ha"])
+    assert reconnect["connects"] == iterations + 1
