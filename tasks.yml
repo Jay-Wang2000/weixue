@@ -75,7 +75,7 @@ tasks:
     branch: feat/ui-face
     description: Cozmo 式程序化眼睛，四态 + 情绪，眨眼与视线漂移，替换默认 emoji 显示。
     depends_on: [feat-firmware-base]
-    status: pending
+    status: done
     retries: 0
     model: opus
   - id: feat-ui-ring-bedside
