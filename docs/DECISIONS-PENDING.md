@@ -58,7 +58,7 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 32. **Q3 overnight card vs HA token**: no special case. The card expires with the ha-mcp token; the agent acknowledges the expiry (tells the user it lapsed, offers nothing automatic).
 33. **Q7 retention**: unknown; go with defaults. S0 spike verifies a Fable call with the personal key; on a retention 400 the service falls back to Opus and the monitor shows it; Jay checks the org setting later.
 34. **Q8 test entity**: `light.living_room_ceiling_lights` may be toggled in live tests (restore its previous state afterwards). Home audio window: still to be named.
-35. **Q2 (90 s deadline) and Q6 (delivery after restart)**: Jay asked for plain explanations; defaults proposed in chat, pending.
+35. **Q2 90 s deadline** — decided 2026-10-07 (Jay): the agent keeps working as a background task; the 90 s cap only forces a spoken final state when no speech has happened (device channel timeout ~120 s). **Q6 delivery after restart** — recommendation recorded (Jay to object if not): add a device playback ack (`played`/`cut off`) and a user ack (tap/ask clears unread) to feat-protocol-agent-msg; after a restart with no ack recorded, never repeat speech, mark the message unread with "may not have played".
 
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.

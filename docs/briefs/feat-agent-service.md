@@ -394,4 +394,5 @@ The agent service owns the single SQLite database; the monitor reads it read-onl
 - Q3: card expires with the ha-mcp token; the agent acknowledges the lapse; no renewal path.
 - Q7: defaults; S0 verifies Fable; retention 400 → fallback model + monitor entry.
 - Q8: test entity `light.living_room_ceiling_lights` (restore state after each test).
-- Q2, Q6: pending Jay (plain-language explanation requested).
+- Q2: keep working as a background task; the 90 s cap only forces a spoken final state when no speech has happened.
+- Q6: playback ack + user ack via feat-protocol-agent-msg; no replay after restart without an ack, mark unread "may not have played".
