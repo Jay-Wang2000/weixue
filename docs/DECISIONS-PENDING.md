@@ -64,6 +64,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 37. **Latency red line across the chain** — Jay 2026-10-07: minimise latency end to end with streaming at every stage — streaming STT with interim results and endpointing, streaming LLM first token, sentence-level streaming TTS; speech-end → first audible audio ≤ 1.5 s for quick asks. Barge-in: when the user speaks over a reply, stop playback immediately, `interrupt()` the in-flight turn, and fall back to the previous conversation state (the cut reply is kept only as "interrupted" context, never spoken on); the new utterance continues the same session. The spike `docs/logs/latency-spike-2026-10-07.md` measures STT/LLM/TTS and decides SDK vs hybrid.
 
+38. **E2E cadence** — decided 2026-10-07 (Jay): no per-task voice tests; one full end-to-end session per milestone. All audio items deferred so far roll into the M1 session (feat-voice-integration) when Jay is home.
+
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
 - Audio-only checks from fix-server-review-2 (barge-in / TTS cancel) and fix-wave3-server (announce playback, urgent conversation, wake cue → "Yes" for every cue, long reply with 0 self-aborts): run at home via the feat-voice-integration gate. Everything else passed in the 2026-10-07 live step.

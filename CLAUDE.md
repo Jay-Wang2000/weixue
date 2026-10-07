@@ -27,8 +27,9 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 ## External-service decisions need Jay's approval
 - Any design decision about how we integrate with or configure an external service (Home Assistant / ha-mcp policy, Google Cloud STT/TTS models, locations, retention, Anthropic models, GitHub, networking) is proposed to Jay with options and a recommendation and waits for his approval before it is implemented. Agents write `question.json`; the orchestrator does not decide these alone.
 
-## End-to-end testing rule
-- Every task gate includes an end-to-end run on the live stack, not only unit/mocked tests: wake word (macOS `say`) → device → STT → LLM (→ HA action via ha-mcp when the task touches it) → TTS → audio on the device, with serial and server logs saved under `docs/logs/`. A task whose change cannot be exercised end-to-end must say so in its spec and name the gate that will.
+## End-to-end testing rule (revised 2026-10-07)
+- Per task: host tests plus simulated-device or scratch-stack evidence; device flashing when the task changes firmware. No per-task voice/audio run.
+- Once per milestone: one full end-to-end session on the live stack and device (wake word → STT → LLM/agent → HA via ha-mcp → TTS → audio, plus barge-in and the deferred audio items), logs under `docs/logs/`. M1's is the `feat-voice-integration` gate; M2 gets its own at milestone end.
 
 ## Hardware verification rule
 - Hold the device lock from flash through the end of the on-device test. Firmware branches merge serially with rebuild + on-device smoke after each rebase; after a wave, flash `main` to the board (device reconciliation).

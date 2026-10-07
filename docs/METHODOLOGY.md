@@ -55,3 +55,4 @@ When the orchestrator and its agents cannot deploy to the live stack (permission
 - Codex external review runs once per milestone (M2 end), not after every wave; the orchestrator may request an ad-hoc Codex pass for a security-sensitive merge.
 - Spec docs stay (200-400 words); QUALITY-LOG keeps one line per gate so the lighter gate's miss rate stays visible.
 - Agent authority: task prompts state that they come from the orchestrator and are already authorized; Jay's conversational messages do not redirect a running task.
+- E2E cadence (Jay, 2026-10-07): per-task voice tests are dropped; one full end-to-end session per milestone (M1: feat-voice-integration at home; M2: a milestone-end session). Audio items deferred from individual tasks accumulate on that milestone gate.
