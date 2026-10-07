@@ -25,6 +25,9 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 ## Anthropic client settings (needs your decision)
 14. **Anthropic HTTP timeout and retries** — decided 2026-10-07 (Jay): keep the SDK retry; handle network/external-service exceptions gracefully instead (cue or final state to the device within the ADR-11 deadline, nothing stale in history, retries logged). Timeout values unchanged. Ships with `fix-turn-isolation`.
 
+## Incident 2026-10-07 (office)
+- The fix-server-review-2 gate deploy stopped the live xiaozhi server (port bind on LAN_IP fails under Rancher; branch setup.sh had no rollback on a failed `compose up`). Restore = `cd ~/Projects/weixue/server && scripts/setup.sh` on main (rebuilds main images, keeps the tunnel). Live `.env` now also carries `ALLOWED_DEVICES` and `BIND_IP=0.0.0.0` for the branch (0.0.0.0 equals today's exposure: main already publishes on all interfaces). FYI, no decision needed.
+
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
 - `fix-server-review-2`: only the barge-in / TTS-cancel audio check; the HA round and auth check gate now (tunnel).
