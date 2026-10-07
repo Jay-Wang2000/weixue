@@ -1,0 +1,233 @@
+diff --git a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
+index 046bb1e..aeb6e3c 100644
+--- a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
++++ b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
+@@ -11,6 +11,8 @@
+ #include "power_save_timer.h"
+ #include "axp2101.h"
+ #include "i2c_device.h"
++#include "imu_gestures.h"
++#include "qmi8658.h"
+ 
+ #include <esp_log.h>
+ #include <esp_lcd_panel_vendor.h>
+@@ -21,7 +23,13 @@
+ 
+ #include <esp_lcd_touch_cst9217.h>
+ #include <esp_lvgl_port.h>
++#include <esp_timer.h>
+ #include <lvgl.h>
++#include <material_symbols.h>
++
++#include <cstring>
++#include <mutex>
++#include <string>
+ 
+ #define TAG "WaveshareEsp32s3TouchAMOLED1inch75"
+ 
+@@ -124,6 +132,33 @@ public:
+         lv_obj_set_style_pad_right(status_bar_, LV_HOR_RES*  0.1, 0);
+         lv_display_add_event_cb(display_, rounder_event_cb, LV_EVENT_INVALIDATE_AREA, NULL);
+     }
++
++    // The microphone-off glyph takes the status bar mute slot while the microphone is muted.
++    void SetMicMuted(bool muted) {
++        DisplayLockGuard lock(this);
++        mic_muted_ = muted;
++        ApplyMuteGlyph();
++    }
++
++    virtual void UpdateStatusBar(bool update_all = false) override {
++        FaceDisplay::UpdateStatusBar(update_all);
++        DisplayLockGuard lock(this);
++        ApplyMuteGlyph();
++    }
++
++private:
++    bool mic_muted_ = false;
++
++    void ApplyMuteGlyph() {
++        if (mute_label_ == nullptr) {
++            return;
++        }
++        const char* glyph =
++            mic_muted_ ? MATERIAL_SYMBOLS_MIC_OFF : (muted_ ? MATERIAL_SYMBOLS_VOLUME_OFF : "");
++        if (strcmp(lv_label_get_text(mute_label_), glyph) != 0) {
++            lv_label_set_text(mute_label_, glyph);
++        }
++    }
+ };
+ 
+ class CustomBacklight : public Backlight {
+@@ -234,6 +269,147 @@ private:
+         ESP_ERROR_CHECK(esp_timer_start_periodic(screen_off_timer_, 1000000));
+     }
+ 
++    Qmi8658* imu_ = nullptr;
++
++    enum Gesture { kGesturePickUp, kGestureFaceDown, kGestureFaceUp, kGestureDoubleTap, kGestureCount };
++    static constexpr const char* kGestureNames[kGestureCount] = {"pick_up", "face_down", "face_up",
++                                                                 "double_tap"};
++    // Sign that maps the QMI8658 z axis to the screen normal (+z out of the screen).
++    static constexpr float kScreenNormalSign = 1.0f;
++
++    std::mutex gesture_mutex_;
++    uint32_t gesture_counts_[kGestureCount] = {};
++    int last_gesture_ = -1;
++    int64_t last_gesture_us_ = 0;
++    bool face_down_ = false;
++    Qmi8658::Accel last_accel_ = {};
++
++    void InitializeImu() {
++        imu_ = Qmi8658::Probe(i2c_bus_);
++        if (imu_ == nullptr) {
++            return;
++        }
++        if (imu_->Initialize() != ESP_OK) {
++            delete imu_;
++            imu_ = nullptr;
++            return;
++        }
++        xTaskCreate([](void* arg) { static_cast<WaveshareEsp32s3TouchAMOLED1inch75*>(arg)->ImuTask(); },
++                    "imu", 4096, this, 2, nullptr);
++    }
++
++    void ImuTask() {
++        ImuGestureDetector detector;
++        TickType_t last_wake = xTaskGetTickCount();
++        uint32_t errors = 0;
++        bool logged_first_sample = false;
++        while (true) {
++            vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(ImuGestureDetector::kSamplePeriodMs));
++            Qmi8658::Accel accel;
++            Qmi8658::TapStatus tap;
++            if (imu_->ReadAccel(accel) != ESP_OK || imu_->ReadTap(tap) != ESP_OK) {
++                if (errors++ % 500 == 0) {
++                    ESP_LOGW(TAG, "IMU read failed (%lu)", (unsigned long)errors);
++                }
++                continue;
++            }
++            if (!logged_first_sample) {
++                logged_first_sample = true;
++                ESP_LOGI(TAG, "IMU accel x=%.3f y=%.3f z=%.3f g", accel.x, accel.y, accel.z);
++            }
++            {
++                std::lock_guard<std::mutex> lock(gesture_mutex_);
++                last_accel_ = accel;
++            }
++            if (tap.status1 & 0x02) {
++                ESP_LOGI(TAG, "IMU tap: status1=0x%02X tap_status=0x%02X", tap.status1, tap.tap_status);
++                if (tap.count() == 2) {
++                    OnGesture(kGestureDoubleTap);
++                }
++            }
++            uint8_t events = detector.Update(accel.x, accel.y, kScreenNormalSign * accel.z);
++            if (events & ImuGestureDetector::kPickUp) {
++                OnGesture(kGesturePickUp);
++            }
++            if (events & ImuGestureDetector::kFaceDown) {
++                OnGesture(kGestureFaceDown);
++            }
++            if (events & ImuGestureDetector::kFaceUp) {
++                OnGesture(kGestureFaceUp);
++            }
++        }
++    }
++
++    void OnGesture(Gesture gesture) {
++        bool face_down;
++        {
++            std::lock_guard<std::mutex> lock(gesture_mutex_);
++            gesture_counts_[gesture]++;
++            last_gesture_ = gesture;
++            last_gesture_us_ = esp_timer_get_time();
++            if (gesture == kGestureFaceDown || gesture == kGestureFaceUp) {
++                face_down_ = gesture == kGestureFaceDown;
++            }
++            face_down = face_down_;
++            ESP_LOGI(TAG, "IMU gesture: %s (count %lu)", kGestureNames[gesture],
++                     (unsigned long)gesture_counts_[gesture]);
++        }
++
++        auto& app = Application::GetInstance();
++        app.Schedule([this, gesture, &app]() {
++            switch (gesture) {
++                case kGesturePickUp:
++                    WakeDisplay();
++                    break;
++                case kGestureFaceDown:
++                case kGestureFaceUp: {
++                    bool mute = gesture == kGestureFaceDown;
++                    if (!mute) {
++                        WakeDisplay();
++                    }
++                    app.SetMicMuted(mute);
++                    display_->SetMicMuted(mute);
++                    display_->ShowNotification(mute ? "Muted" : "Unmuted");
++                    break;
++                }
++                case kGestureDoubleTap: {
++                    auto state = app.GetDeviceState();
++                    if (state == kDeviceStateSpeaking) {
++                        app.AbortSpeaking(kAbortReasonNone);
++                    } else if (state == kDeviceStateNotifying) {
++                        app.StopListening();
++                    }
++                    break;
++                }
++                default:
++                    break;
++            }
++        });
++        app.SendMcpMessage(std::string("{\"jsonrpc\":\"2.0\",\"method\":\"notifications/weixue/imu\","
++                                       "\"params\":{\"gesture\":\"") +
++                           kGestureNames[gesture] + "\",\"face_down\":" +
++                           (face_down ? "true" : "false") + "}}");
++    }
++
++    std::string GetImuStateJson() {
++        std::lock_guard<std::mutex> lock(gesture_mutex_);
++        char buf[320];
++        int64_t age_ms = last_gesture_ < 0 ? -1 : (esp_timer_get_time() - last_gesture_us_) / 1000;
++        snprintf(buf, sizeof(buf),
++                 "{\"face_down\":%s,\"mic_muted\":%s,\"last_gesture\":\"%s\",\"last_gesture_age_ms\":%lld,"
++                 "\"counts\":{\"pick_up\":%lu,\"face_down\":%lu,\"face_up\":%lu,\"double_tap\":%lu},"
++                 "\"accel_g\":[%.2f,%.2f,%.2f]}",
++                 face_down_ ? "true" : "false",
++                 Application::GetInstance().IsMicMuted() ? "true" : "false",
++                 last_gesture_ < 0 ? "" : kGestureNames[last_gesture_], (long long)age_ms,
++                 (unsigned long)gesture_counts_[kGesturePickUp],
++                 (unsigned long)gesture_counts_[kGestureFaceDown],
++                 (unsigned long)gesture_counts_[kGestureFaceUp],
++                 (unsigned long)gesture_counts_[kGestureDoubleTap], last_accel_.x, last_accel_.y,
++                 last_accel_.z);
++        return buf;
++    }
++
+     void InitializePowerSaveTimer() {
+         const int power_off_seconds = CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS > 0
+             ? CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS : -1;
+@@ -417,6 +593,15 @@ private:
+                 EnterWifiConfigMode();
+                 return true;
+             });
++        if (imu_ != nullptr) {
++            mcp_server.AddTool("self.imu.get_state",
++                "Motion sensor state of this device: whether it lies face-down (face-down mutes the "
++                "microphone and announcements), gesture counts since boot, the last gesture "
++                "(pick_up, face_down, face_up, double_tap) and its age in milliseconds.",
++                PropertyList(), [this](const PropertyList& properties) -> ReturnValue {
++                    return GetImuStateJson();
++                });
++        }
+     }
+ 
+ public:
+@@ -431,6 +616,7 @@ public:
+         InitializeDisplay();
+         InitializeTouch();
+         InitializeScreenOffTimer();
++        InitializeImu();
+         InitializeButtons();
+         InitializeTools();
+     }

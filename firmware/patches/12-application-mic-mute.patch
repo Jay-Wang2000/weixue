@@ -1,0 +1,158 @@
+diff --git a/main/application.cc b/main/application.cc
+index dee46e9..1f152a0 100644
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -814,6 +814,11 @@ void Application::HandleToggleChatEvent() {
+     }
+ 
+     if (state == kDeviceStateIdle) {
++        if (mic_muted_) {
++            ESP_LOGW(TAG, "Microphone muted, not starting a conversation");
++            Board::GetInstance().GetDisplay()->ShowNotification("Muted");
++            return;
++        }
+         ListeningMode mode = GetDefaultListeningMode();
+         if (!protocol_->IsAudioChannelOpened()) {
+             SetDeviceState(kDeviceStateConnecting);
+@@ -874,6 +879,11 @@ void Application::HandleStartListeningEvent() {
+     }
+ 
+     if (state == kDeviceStateIdle) {
++        if (mic_muted_) {
++            ESP_LOGW(TAG, "Microphone muted, not starting a conversation");
++            Board::GetInstance().GetDisplay()->ShowNotification("Muted");
++            return;
++        }
+         if (!protocol_->IsAudioChannelOpened()) {
+             SetDeviceState(kDeviceStateConnecting);
+             // Schedule to let the state change be processed first (UI update)
+@@ -912,6 +922,11 @@ void Application::HandleWakeWordDetectedEvent() {
+     auto state = GetDeviceState();
+     auto wake_word = audio_service_.GetLastWakeWord();
+     ESP_LOGI(TAG, "Wake word detected: %s (state: %d)", wake_word.c_str(), (int)state);
++    if (mic_muted_) {
++        ESP_LOGW(TAG, "Microphone muted, ignoring wake word");
++        audio_service_.EnableWakeWordDetection(false);
++        return;
++    }
+ 
+     if (state == kDeviceStateIdle) {
+         BeginWakeWordInvoke(wake_word);
+@@ -1027,7 +1042,7 @@ void Application::HandleStateChangedEvent() {
+                     "neutral");  // Then set emotion (wechat mode checks child count)
+             }
+             audio_service_.EnableVoiceProcessing(false);
+-            audio_service_.EnableWakeWordDetection(true);
++            audio_service_.EnableWakeWordDetection(!mic_muted_);
+             break;
+         case kDeviceStateConnecting:
+             display->SetStatus(Lang::Strings::CONNECTING);
+@@ -1109,6 +1124,10 @@ void Application::ConfigureWakeWordForListening() {
+ }
+ 
+ void Application::StartNotification(std::string audio_url, std::vector<NotifySubtitle> subtitles) {
++    if (mic_muted_) {
++        ESP_LOGW(TAG, "Ignoring notify message while muted");
++        return;
++    }
+     if (GetDeviceState() != kDeviceStateIdle || notify_player_.IsBusy()) {
+         ESP_LOGW(TAG, "Ignoring notify message while device is busy");
+         return;
+@@ -1197,7 +1216,7 @@ void Application::StartProactivePoller(const std::string& ota_url) {
+ void Application::ProactivePollTask() {
+     int retry_ms = kProactiveRetryMinMs;
+     while (true) {
+-        if (GetDeviceState() != kDeviceStateIdle) {
++        if (GetDeviceState() != kDeviceStateIdle || mic_muted_) {
+             vTaskDelay(pdMS_TO_TICKS(1000));
+             continue;
+         }
+@@ -1230,7 +1249,7 @@ void Application::ProactivePollTask() {
+ }
+ 
+ void Application::ProactiveInvoke() {
+-    if (!protocol_ || GetDeviceState() != kDeviceStateIdle ||
++    if (!protocol_ || mic_muted_ || GetDeviceState() != kDeviceStateIdle ||
+         !SetDeviceState(kDeviceStateConnecting)) {
+         return;
+     }
+@@ -1265,6 +1284,35 @@ void Application::AbortSpeaking(AbortReason reason) {
+     }
+ }
+ 
++void Application::SetMicMuted(bool muted) {
++    if (mic_muted_ == muted) {
++        return;
++    }
++    mic_muted_ = muted;
++    ESP_LOGI(TAG, "Microphone %s", muted ? "muted" : "unmuted");
++    auto state = GetDeviceState();
++    if (!muted) {
++        if (state == kDeviceStateIdle) {
++            audio_service_.EnableWakeWordDetection(true);
++        }
++        return;
++    }
++    audio_service_.EnableWakeWordDetection(false);
++    audio_service_.EnableVoiceProcessing(false);
++    if (state == kDeviceStateNotifying) {
++        StopNotification();
++    }
++    if (state == kDeviceStateSpeaking) {
++        AbortSpeaking(kAbortReasonNone);
++    }
++    if (protocol_ && protocol_->IsAudioChannelOpened()) {
++        protocol_->CloseAudioChannel();
++    } else if (state == kDeviceStateConnecting || state == kDeviceStateListening ||
++               state == kDeviceStateSpeaking) {
++        SetDeviceState(kDeviceStateIdle);
++    }
++}
++
+ void Application::SetListeningMode(ListeningMode mode) {
+     listening_mode_ = mode;
+     SetDeviceState(kDeviceStateListening);
+@@ -1350,7 +1398,7 @@ bool Application::UpgradeFirmware(const std::string& url, const std::string& ver
+ }
+ 
+ void Application::WakeWordInvoke(const std::string& wake_word) {
+-    if (!protocol_) {
++    if (!protocol_ || mic_muted_) {
+         return;
+     }
+ 
+diff --git a/main/application.h b/main/application.h
+index b8ad4d3..636e4c6 100644
+--- a/main/application.h
++++ b/main/application.h
+@@ -6,6 +6,7 @@
+ #include <freertos/task.h>
+ #include <esp_timer.h>
+ 
++#include <atomic>
+ #include <string>
+ #include <mutex>
+ #include <deque>
+@@ -118,6 +119,14 @@ public:
+     AecMode GetAecMode() const { return aec_mode_; }
+     void PlaySound(const std::string_view& sound);
+     AudioService& GetAudioService() { return audio_service_; }
++
++    /**
++     * Software microphone mute (main task only). While muted, wake word detection and voice
++     * processing stay off, conversations, proactive polling and notify playback are off; muting
++     * stops a notification and closes an open audio channel.
++     */
++    void SetMicMuted(bool muted);
++    bool IsMicMuted() const { return mic_muted_; }
+     
+     /**
+      * Reset protocol resources (thread-safe)
+@@ -148,6 +157,7 @@ private:
+ 
+     bool has_server_time_ = false;
+     bool aborted_ = false;
++    std::atomic<bool> mic_muted_{false};
+     bool assets_version_checked_ = false;
+     bool play_popup_on_listening_ = false;  // Flag to play popup sound after state changes to listening
+     bool pending_listening_start_ = false;  // Waiting for playback to drain before starting listening (auto mode)
