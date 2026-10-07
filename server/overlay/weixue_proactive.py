@@ -356,7 +356,7 @@ class Proactive:
             if item.status != "queued" or item.reserved_for != device or not self._reserved(item, now):
                 continue
             if message_id is not None:
-                return item if item.id == message_id and hmac.compare_digest(item.lease or "", lease or "") else None
+                return item if item.id == message_id and hmac.compare_digest((item.lease or "").encode(), (lease or "").encode()) else None
             return item if opened is not None and item.leased_at <= opened else None
         return None
 
