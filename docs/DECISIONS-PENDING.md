@@ -43,7 +43,7 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 24. 1. **批准超时与夜间策略**：设备只显示服务端 `timeout_s`，不自定时限；后端 §5 的倒计时取 ha-mcp 策略的 5 min（ADR-9：到期时间由我们的应用记录，不改 `wait_seconds`）。默认 300 s 与后端 §5 一致，还是更短的 120 s？超时自动拒绝；说话时暂停累计上限 30 s。床头窗口内的 WHEN_IDLE 批准：延长 `timeout_s` 到 07:30，还是按原时限自动拒绝并在早上告知？（建议：延长到 07:30，INTERRUPT 不受影响。）
 25. 2. **语音批准严格度**：只接受显式动词（approve / do it / 批准 / 同意），裸 "yes" 触发复述；irreversible / spends money 只能点按。接受否？
 26. 3. **D1 字体**：随固件带 `common_20_4`（量 bin 体积，占 assets 分区），还是接受英文单语的二级标签（Approve / Deny 按钮上无 批准 / 拒绝）？（建议：先量体积，<1.5 MB 则带。）
-27. 4. **任务列表手势**：脸上上滑 + 面板任务行，取代 DESIGN.md 的「左滑任务列表」（左滑第二次给会话页）。接受这项修订并更新 DESIGN.md？
+27. 4. **任务列表手势** — decided 2026-10-07 (Jay): the existing horizontal-swipe view becomes a single management view (current chat + chats switcher, agent tasks, HA status/approvals); chats are selected inside it; no swipe-up list. Design being amended; DESIGN.md updates with feat-ui-agent-states/feat-ui-sessions.
 28. 5. **Approve 左 / Deny 右**（现有面板约定）而非手表约定的「确认在右」。保持左 / 右？
 
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
