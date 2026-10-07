@@ -174,3 +174,19 @@ tasks:
     status: done
     retries: 0
     model: opus
+  - id: fix-wave3-firmware
+    name: "Firmware fixes from Codex Wave 3 review"
+    branch: fix/wave3-firmware
+    description: 按 docs/reviews/codex-gpt6-astra-high-wave3-code-review-2026-10-07.md：C2 一口气说「Jarvis, what time is it?」丢开头（唤醒→建连→进入监听期间约 300 ms 采集缺口；当前 0/8 成功）——唤醒检测到监听之间保持连续采音并前滚缓冲，中英短命令连说与停顿后各 10 次 ≥9；C1 面朝下静音必须无条件关闭传输、作废排队回调，并在 tts start / 进入监听 / 发送麦克风数据三处强制静音不变量，测试超时后静音与迟到帧；C9 IMU 20 ms 轮询超时后重新同步、拒绝不连续样本；C8 脸的 thinking 态保持到真正开口或明确终态/错误，而非 20 s 后假装 speaking。实机端到端验证。
+    depends_on: [feat-ui-ring-bedside, feat-ui-panel]
+    status: pending
+    retries: 0
+    model: opus
+  - id: fix-wave3-server
+    name: "Server fixes from Codex Wave 3 review"
+    branch: fix/wave3-server
+    description: 按同一评审：S1 proactive 的设备轮询/消费端点必须鉴权并绑定到已验证的会话归属（未鉴权客户端不得冒充设备消费通知或作废登记）；C6 消息在创建任务前先 claim，杜绝重复投递；C7 合成失败不得报成功，按逐句合成/播放结果收尾；C4 唤醒提示音加 generation fence/取消，不得覆盖更新的一轮；C5 去掉对「Yes」等真实短回答的词法抑制；C3/R1 mcp-bridge 请求预算与服务器 30 s 执行器对齐、保留“已派发结果未知”状态、心跳仅在 RPC 成功后刷新健康并补重连测试。端到端：实机 announce + conversation + 一次 HA 控灯。
+    depends_on: [fix-server-review-2]
+    status: pending
+    retries: 0
+    model: opus
