@@ -83,7 +83,7 @@ tasks:
     branch: feat/ui-ring-bedside
     description: 贴边状态环；夜间暗红时钟页，≤15% 亮像素，像素平移。
     depends_on: [feat-ui-face]
-    status: in_progress
+    status: done
     retries: 0
     model: sonnet
   - id: feat-ui-panel
@@ -177,7 +177,7 @@ tasks:
   - id: fix-wave3-firmware
     name: "Firmware fixes from Codex Wave 3 review"
     branch: fix/wave3-firmware
-    description: 按 docs/reviews/codex-gpt6-astra-high-wave3-code-review-2026-10-07.md：C2 一口气说「Jarvis, what time is it?」丢开头（唤醒→建连→进入监听期间约 300 ms 采集缺口；当前 0/8 成功）——唤醒检测到监听之间保持连续采音并前滚缓冲，中英短命令连说与停顿后各 10 次 ≥9；C1 面朝下静音必须无条件关闭传输、作废排队回调，并在 tts start / 进入监听 / 发送麦克风数据三处强制静音不变量，测试超时后静音与迟到帧；C9 IMU 20 ms 轮询超时后重新同步、拒绝不连续样本；C8 脸的 thinking 态保持到真正开口或明确终态/错误，而非 20 s 后假装 speaking。实机端到端验证。
+    description: 按 docs/reviews/codex-gpt6-astra-high-wave3-code-review-2026-10-07.md：C2 一口气说「Jarvis, what time is it?」丢开头（唤醒→建连→进入监听期间约 300 ms 采集缺口；当前 0/8 成功）——唤醒检测到监听之间保持连续采音并前滚缓冲，中英短命令连说与停顿后各 10 次 ≥9；C1 面朝下静音必须无条件关闭传输、作废排队回调，并在 tts start / 进入监听 / 发送麦克风数据三处强制静音不变量，测试超时后静音与迟到帧；C9 IMU 20 ms 轮询超时后重新同步、拒绝不连续样本；C8 脸的 thinking 态保持到真正开口或明确终态/错误，而非 20 s 后假装 speaking；面板（feat-ui-panel 评审）：设备事件发送失败不得阻塞主任务或触发错误提示音（后端不可达时点卡片曾阻塞 10 s），后端状态行在长会话/取消静音后误显示 offline 要修，回复文本不得跨轮累积；床头时钟依赖启动时一次性的固定 UTC 偏移（DST 后偏 1 h、离线启动显示 --:--）——改为每次重连重同步时间或在 OTA 响应里带 POSIX TZ。实机端到端验证。
     depends_on: [feat-ui-ring-bedside, feat-ui-panel]
     status: pending
     retries: 0
