@@ -1,0 +1,535 @@
+# fix-wave3-firmware diag runs a-c, xiaozhi-esp32-server log (times UTC-7), 05:48:50-06:07 UTC; same overlay as the trials. The gaps are docker pause windows. Tokens redacted.
+261006 22:49:02[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: 7c:0c:5f:42:4b:fc
+261006 22:49:02[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: ad786b10-efaf-422a-ab57-40edacba9d51
+261006 22:49:02[0.9.7_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 7c:0c:5f:42:4b:fc 下发WebSocket配置
+261006 22:49:02[0.9.7_00000000000000][core.api.ota_handler]-INFO-Firmware cache refreshed: 0 models
+261006 22:49:02[0.9.7_00000000000000][core.api.ota_handler]-INFO-查找型号 esp32-s3-touch-amoled-1.75 的固件，找到 0 个候选
+261006 22:49:02[0.9.7_00000000000000][core.api.ota_handler]-INFO-设备 7c:0c:5f:42:4b:fc 固件已是最新: 2.5.1
+261006 22:49:08[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: 7c:0c:5f:42:4b:fc
+261006 22:49:08[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: ad786b10-efaf-422a-ab57-40edacba9d51
+261006 22:49:08[0.9.7_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 7c:0c:5f:42:4b:fc 下发WebSocket配置
+261006 22:49:08[0.9.7_00000000000000][core.api.ota_handler]-INFO-Firmware cache refreshed: 0 models
+261006 22:49:08[0.9.7_00000000000000][core.api.ota_handler]-INFO-查找型号 esp32-s3-touch-amoled-1.75 的固件，找到 0 个候选
+261006 22:49:08[0.9.7_00000000000000][core.api.ota_handler]-INFO-设备 7c:0c:5f:42:4b:fc 固件已是最新: 2.5.1
+261006 22:49:51[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 22:49:51[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 22:49:51[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 22:49:51[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 22:49:51[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 22:49:51[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 22:49:51[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 22:49:51[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:49:51[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 22:49:51[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"fc4278d1-5e73-45fc-8ca9-6f7adb2ee7d6","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":1}}}
+261006 22:49:51[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "approve", "event": "approval_decision", "fixture": true, "seq": 1}
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 22:49:51[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 22:49:51[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 22:49:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 22:49:51[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 22:49:59[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 22:49:59[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 22:49:59[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 22:49:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 22:49:59[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 22:49:59[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 22:49:59[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 22:49:59[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 22:49:59[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 22:49:59[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"4b4c6a46-ac51-4a2b-9400-a0eccff1975e","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"deny","fixture":true,"seq":2}}}
+261006 22:49:59[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "deny", "event": "approval_decision", "fixture": true, "seq": 2}
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 22:49:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 22:49:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 22:49:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 22:49:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 22:52:12[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 22:52:12[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 22:52:12[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 22:52:12[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 22:52:12[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 22:52:12[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 22:52:12[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 22:52:12[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:52:12[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 22:52:12[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 22:52:12[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"0f52dbb7-8938-49b7-b3c7-f90c781235ba","type":"listen","state":"detect","text":"Jarvis"}
+261006 22:52:12[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"0f52dbb7-8938-49b7-b3c7-f90c781235ba","type":"listen","state":"start","mode":"realtime"}
+261006 22:52:12[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"0f52dbb7-8938-49b7-b3c7-f90c781235ba","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261006 22:52:13[0.9.7_00000000000000][weixue_patches]-INFO-wake cue skipped: user speaking
+261006 22:52:13[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"0f52dbb7-8938-49b7-b3c7-f90c781235ba","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.system.reconfigure_wifi","description":"End this conversation and enter WiFi configuration mode.\n**CAUTION** You must ask the user to confirm this action.","inputSchema":{"type":"object","properties":{}}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}},{"name":"self.diag.simulate_face","description":"Diagnostics only: after delay_s seconds, handles a face_down (true) or face_up (false) gesture as if the motion sensor had detected it; with up_after_s > 0 a simulated face_down is followed by a face_up that many seconds later.","inputSchema":{"type":"object","properties":{"face_down":{"type":"boolean","default":true},"delay_s":{"type":"integer","default":0,"minimum":0,"maximum":600},"up_after_s":{"type":"integer","default":0,"minimum":0,"maximum":600}}}}]}}}
+261006 22:52:13[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 8
+261006 22:52:13[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'self_get_device_status', 'self_audio_speaker_set_volume', 'self_screen_set_brightness', 'self_screen_set_theme', 'self_system_reconfigure_wifi', 'self_screen_set_bedside', 'self_imu_get_state', 'self_diag_simulate_face', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 22:52:15[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.571s | 语言: en-US | 结果: Jarvis, what time is it?
+261006 22:52:15[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261006 22:52:15[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Jarvis, what time is it?
+261006 22:52:40[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 12507，输出 60，缓存读取 0；stop_reason=tool_use request_id=req_011CfnMbb9u1bsm8rCvnhrPr
+261006 22:52:40[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: It's ten fifty-two PM
+261006 22:52:40[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, It's ten fifty-two PM
+261006 22:52:40[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.269s: It's ten fifty-two PM
+261006 22:52:40[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 22:52:50[0.9.7_SiGoAnGonocaCh][core.handle.receiveAudioHandle]-INFO-结束对话，无需发送结束提示语
+261006 22:52:50[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 22:52:50[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 22:52:55[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 22:52:55[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 22:52:55[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 22:52:55[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'k6ctxU2AxclLfJd0xz3DSw==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 22:52:55[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 22:52:55[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 22:52:55[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 22:52:55[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 22:52:55[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 22:52:55[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 22:52:55[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:52:55[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 22:52:55[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 22:52:55[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"47e20a60-9c98-4519-906d-b0115568e54b","type":"listen","state":"detect","text":"Jarvis"}
+261006 22:52:55[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"47e20a60-9c98-4519-906d-b0115568e54b","type":"listen","state":"start","mode":"realtime"}
+261006 22:52:55[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"47e20a60-9c98-4519-906d-b0115568e54b","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261006 22:52:56[0.9.7_00000000000000][weixue_patches]-INFO-wake cue skipped: user speaking
+261006 22:52:56[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"47e20a60-9c98-4519-906d-b0115568e54b","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.system.reconfigure_wifi","description":"End this conversation and enter WiFi configuration mode.\n**CAUTION** You must ask the user to confirm this action.","inputSchema":{"type":"object","properties":{}}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}},{"name":"self.diag.simulate_face","description":"Diagnostics only: after delay_s seconds, handles a face_down (true) or face_up (false) gesture as if the motion sensor had detected it; with up_after_s > 0 a simulated face_down is followed by a face_up that many seconds later.","inputSchema":{"type":"object","properties":{"face_down":{"type":"boolean","default":true},"delay_s":{"type":"integer","default":0,"minimum":0,"maximum":600},"up_after_s":{"type":"integer","default":0,"minimum":0,"maximum":600}}}}]}}}
+261006 22:52:56[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 8
+261006 22:52:56[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'self_get_device_status', 'self_audio_speaker_set_volume', 'self_screen_set_brightness', 'self_screen_set_theme', 'self_system_reconfigure_wifi', 'self_screen_set_bedside', 'self_imu_get_state', 'self_diag_simulate_face', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 22:53:01[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 2.009s | 语言: en-US | 结果: Jarvis, call the diagnostic simulate face tool with face down true.
+261006 22:53:01[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis, call the diagnostic simulate face tool with face down true.
+261006 22:53:01[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Jarvis, call the diagnostic simulate face tool with face down true.
+261006 22:53:02[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 12520，输出 56，缓存读取 0；stop_reason=tool_use request_id=req_011CfnMezTSBhMk8DMpi4Aq6
+261006 22:53:02[0.9.7_00000000000000][core.providers.tools.unified_tool_manager]-INFO-执行工具: self_diag_simulate_face，参数: {'face_down': True}
+261006 22:53:02[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-发送客户端mcp工具调用请求: self.diag.simulate_face，参数: {"face_down": true}
+261006 22:53:02[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"47e20a60-9c98-4519-906d-b0115568e54b","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"true"}],"isError":false}}}
+261006 22:53:02[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端mcp工具调用 self.diag.simulate_face 成功，原始结果: {'content': [{'type': 'text', 'text': 'true'}], 'isError': False}
+261006 22:53:02[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到abort消息：{"session_id":"47e20a60-9c98-4519-906d-b0115568e54b","type":"abort"}
+261006 22:53:02[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261006 22:53:02[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261006 22:53:02[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 22:53:02[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 22:53:02[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 22:53:02[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 22:57:51[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 22:57:51[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 22:57:51[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 22:57:51[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 22:57:51[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 22:57:51[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 22:57:51[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 22:57:51[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 22:57:51[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 22:57:51[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"d24d39b2-d3cb-4cbe-89c0-f1091cebeb58","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":9}}}
+261006 22:57:51[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "approve", "event": "approval_decision", "fixture": true, "seq": 9}
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 22:57:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 22:57:52[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 22:57:52[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 22:57:52[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 22:57:52[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 22:57:59[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 22:57:59[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 22:57:59[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 22:57:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 22:57:59[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 22:57:59[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 22:57:59[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 22:57:59[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 22:57:59[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 22:57:59[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"89e410bb-e5db-4212-883e-eadb6f41e96b","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"deny","fixture":true,"seq":10}}}
+261006 22:57:59[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "deny", "event": "approval_decision", "fixture": true, "seq": 10}
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 22:57:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 22:57:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 22:57:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 22:57:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 22:58:09[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: 7c:0c:5f:42:4b:fc
+261006 22:58:09[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: ad786b10-efaf-422a-ab57-40edacba9d51
+261006 22:58:09[0.9.7_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 7c:0c:5f:42:4b:fc 下发WebSocket配置
+261006 22:58:09[0.9.7_00000000000000][core.api.ota_handler]-INFO-Firmware cache refreshed: 0 models
+261006 22:58:09[0.9.7_00000000000000][core.api.ota_handler]-INFO-查找型号 esp32-s3-touch-amoled-1.75 的固件，找到 0 个候选
+261006 22:58:09[0.9.7_00000000000000][core.api.ota_handler]-INFO-设备 7c:0c:5f:42:4b:fc 固件已是最新: 2.5.1
+261006 22:58:13[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 22:58:13[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 22:58:13[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 22:58:13[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 22:58:13[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 22:58:13[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 22:58:13[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 22:58:13[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 22:58:13[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 22:58:13[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 22:58:13[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"03107a37-5d2b-4e43-8fce-fbc66a9d191d","type":"listen","state":"detect","text":"Jarvis"}
+261006 22:58:13[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"03107a37-5d2b-4e43-8fce-fbc66a9d191d","type":"listen","state":"start","mode":"realtime"}
+261006 22:58:13[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"03107a37-5d2b-4e43-8fce-fbc66a9d191d","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261006 22:58:14[0.9.7_00000000000000][weixue_patches]-INFO-wake cue skipped: user speaking
+261006 22:58:14[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"03107a37-5d2b-4e43-8fce-fbc66a9d191d","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.system.reconfigure_wifi","description":"End this conversation and enter WiFi configuration mode.\n**CAUTION** You must ask the user to confirm this action.","inputSchema":{"type":"object","properties":{}}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}},{"name":"self.diag.simulate_face","description":"Diagnostics only: after delay_s seconds, handles a face_down (true) or face_up (false) gesture as if the motion sensor had detected it; with up_after_s > 0 a simulated face_down is followed by a face_up that many seconds later.","inputSchema":{"type":"object","properties":{"face_down":{"type":"boolean","default":true},"delay_s":{"type":"integer","default":0,"minimum":0,"maximum":600},"up_after_s":{"type":"integer","default":0,"minimum":0,"maximum":600}}}}]}}}
+261006 22:58:14[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 8
+261006 22:58:14[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'self_get_device_status', 'self_audio_speaker_set_volume', 'self_screen_set_brightness', 'self_screen_set_theme', 'self_system_reconfigure_wifi', 'self_screen_set_bedside', 'self_imu_get_state', 'self_diag_simulate_face', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 22:58:22[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 2.540s | 语言: en-US | 结果: Jarvis, call the diagnostic simulate face tool with delay 130 seconds and off after 20 seconds.
+261006 22:58:22[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis, call the diagnostic simulate face tool with delay 130 seconds and off after 20 seconds.
+261006 22:58:22[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Jarvis, call the diagnostic simulate face tool with delay 130 seconds and off after 20 seconds.
+261006 22:58:24[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 12534，输出 191，缓存读取 0；stop_reason=tool_use request_id=req_011CfnN4ez6BtXpJRqsBopPY
+261006 22:58:24[0.9.7_00000000000000][core.providers.tools.unified_tool_manager]-INFO-执行工具: self_diag_simulate_face，参数: {'delay_s': 130, 'face_down': True, 'up_after_s': 20}
+261006 22:58:24[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-发送客户端mcp工具调用请求: self.diag.simulate_face，参数: {"delay_s": 130, "face_down": true, "up_after_s": 20}
+261006 22:58:24[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"03107a37-5d2b-4e43-8fce-fbc66a9d191d","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"true"}],"isError":false}}}
+261006 22:58:24[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端mcp工具调用 self.diag.simulate_face 成功，原始结果: {'content': [{'type': 'text', 'text': 'true'}], 'isError': False}
+261006 22:58:26[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 12527，输出 55，缓存读取 0；stop_reason=end_turn request_id=req_011CfnN4r2bdjBnByRonaDQW
+261006 22:58:26[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: The simulation is set. In 130 seconds it will act as if the device was turned face-down. Twenty seconds after that
+261006 22:58:26[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, The simulation is set. In 130 seconds it will act as if the device was turned face-down. Twenty seconds after that
+261006 22:58:26[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.256s: The simulation is set. In 130 seconds it will act as if the device was turned face-down. Twenty seconds after that
+261006 22:58:27[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, it will act as if the device was turned face-up again
+261006 22:58:28[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.194s: it will act as if the device was turned face-up again
+261006 22:58:28[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 23:00:40[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接超时，准备关闭
+261006 23:00:40[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"03107a37-5d2b-4e43-8fce-fbc66a9d191d","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":1}}}
+261006 23:00:40[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "approve", "event": "approval_decision", "fixture": true, "seq": 1}
+261006 23:00:40[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"03107a37-5d2b-4e43-8fce-fbc66a9d191d","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"deny","fixture":true,"seq":2}}}
+261006 23:00:40[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "deny", "event": "approval_decision", "fixture": true, "seq": 2}
+261006 23:00:40[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 23:00:40[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 23:00:40[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接已关闭
+261006 23:00:40[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:00:40[0.9.7_SiGoAnGonocaCh][core.handle.receiveAudioHandle]-INFO-结束对话，无需发送结束提示语
+261006 23:00:40[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:00:40[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 23:00:40[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:00:40[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:00:40[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:00:40[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 23:00:40[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:00:51[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 23:00:51[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 23:00:51[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 23:00:51[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 23:00:51[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 23:00:51[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 23:00:51[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 23:00:51[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 23:00:51[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 23:00:51[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"caae7575-fd70-42c3-930c-ba959bfe0759","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":3}}}
+261006 23:00:51[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "approve", "event": "approval_decision", "fixture": true, "seq": 3}
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 23:00:51[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 23:00:51[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 23:00:51[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:00:51[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:00:59[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 23:00:59[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 23:00:59[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 23:00:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 23:00:59[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 23:00:59[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 23:00:59[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 23:00:59[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:00:59[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 23:00:59[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"338ac5c7-ccf3-4a0e-b909-67686e72062c","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"deny","fixture":true,"seq":4}}}
+261006 23:00:59[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "deny", "event": "approval_decision", "fixture": true, "seq": 4}
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 23:00:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 23:00:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 23:00:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:00:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:01:40[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Y+ycsZ4vkdOZGANPACZGEg==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 23:01:40[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 23:01:40[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 23:01:40[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 23:01:40[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 23:01:40[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 23:01:40[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 23:01:40[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 23:01:40[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 23:01:40[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:01:40[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 23:01:40[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 23:01:40[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 23:01:40[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 23:01:40[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:01:40[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 23:01:41[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 23:01:41[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 23:01:41[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 23:01:41[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 23:01:41[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"cb640750-4d47-47ec-ac54-71fe469f1301","type":"listen","state":"detect","text":"Jarvis"}
+261006 23:01:41[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"cb640750-4d47-47ec-ac54-71fe469f1301","type":"listen","state":"start","mode":"realtime"}
+261006 23:01:41[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"cb640750-4d47-47ec-ac54-71fe469f1301","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261006 23:01:41[0.9.7_00000000000000][weixue_patches]-INFO-wake cue skipped: user speaking
+261006 23:01:42[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"cb640750-4d47-47ec-ac54-71fe469f1301","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.system.reconfigure_wifi","description":"End this conversation and enter WiFi configuration mode.\n**CAUTION** You must ask the user to confirm this action.","inputSchema":{"type":"object","properties":{}}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}},{"name":"self.diag.simulate_face","description":"Diagnostics only: after delay_s seconds, handles a face_down (true) or face_up (false) gesture as if the motion sensor had detected it; with up_after_s > 0 a simulated face_down is followed by a face_up that many seconds later.","inputSchema":{"type":"object","properties":{"face_down":{"type":"boolean","default":true},"delay_s":{"type":"integer","default":0,"minimum":0,"maximum":600},"up_after_s":{"type":"integer","default":0,"minimum":0,"maximum":600}}}}]}}}
+261006 23:01:42[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 8
+261006 23:01:42[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'self_get_device_status', 'self_audio_speaker_set_volume', 'self_screen_set_brightness', 'self_screen_set_theme', 'self_system_reconfigure_wifi', 'self_screen_set_bedside', 'self_imu_get_state', 'self_diag_simulate_face', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 23:01:52[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 2.616s | 语言: en-US | 结果: Jarvis, call the diagnostic simulate face tool with delay 6 seconds and up after 15 seconds and then tell me a long story about a lighthouse.
+261006 23:01:52[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis, call the diagnostic simulate face tool with delay 6 seconds and up after 15 seconds and then tell me a long story about a lighthouse.
+261006 23:01:52[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Jarvis, call the diagnostic simulate face tool with delay 6 seconds and up after 15 seconds and then tell me a long story about a lighthouse.
+261006 23:01:54[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 12549，输出 170，缓存读取 0；stop_reason=tool_use request_id=req_011CfnNL93i4MjZ7msKiLYtD
+261006 23:01:54[0.9.7_00000000000000][core.providers.tools.unified_tool_manager]-INFO-执行工具: self_diag_simulate_face，参数: {'delay_s': 6, 'up_after_s': 15, 'face_down': True}
+261006 23:01:54[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-发送客户端mcp工具调用请求: self.diag.simulate_face，参数: {"delay_s": 6, "up_after_s": 15, "face_down": true}
+261006 23:01:54[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"cb640750-4d47-47ec-ac54-71fe469f1301","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"true"}],"isError":false}}}
+261006 23:01:54[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端mcp工具调用 self.diag.simulate_face 成功，原始结果: {'content': [{'type': 'text', 'text': 'true'}], 'isError': False}
+261006 23:01:57[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: The face-down simulation is set. It starts in six seconds and flips back up fifteen seconds after that.Now the story. On a jagged rock at the edge of the world stood a lighthouse named Old Marrow. Its keeper
+261006 23:01:57[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, The face-down simulation is set. It starts in six seconds and flips back up fifteen seconds after that.Now the story. On a jagged rock at the edge of the world stood a lighthouse named Old Marrow. Its keeper
+261006 23:01:57[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 12542，输出 223，缓存读取 0；stop_reason=end_turn request_id=req_011CfnNLJiNrQSbGyhuG4Gtm
+261006 23:01:58[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.421s: The face-down simulation is set. It starts in six seconds and flips back up fifteen seconds after that.Now the story. On a jagged rock at the edge of the world stood a lighthouse named Old Marrow. Its keeper
+261006 23:02:00[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, a quiet woman called Edda, climbed its three hundred steps every dusk and lit the lamp. She had done it for forty years without missing a night.One stormy evening, the lamp flickered and died. Edda was stunned, because the lamp had never failed. Then she heard a soft knocking from the top of the tower. Something was waiting up there, and it was glowing.Shall I keep going?
+261006 23:02:00[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到abort消息：{"session_id":"cb640750-4d47-47ec-ac54-71fe469f1301","type":"abort"}
+261006 23:02:00[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261006 23:02:00[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261006 23:02:00[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 23:02:00[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 23:02:00[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:02:00[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:02:26[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'NVd2tO4E55k6uaSxLimthA==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 23:02:26[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 23:02:26[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 23:02:26[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 23:02:26[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 23:02:26[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 23:02:26[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 23:02:26[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:02:26[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 23:02:26[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 23:02:27[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"2289eebe-0443-4539-ad37-4b66c594a705","type":"listen","state":"detect","text":"Jarvis"}
+261006 23:02:27[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"2289eebe-0443-4539-ad37-4b66c594a705","type":"listen","state":"start","mode":"realtime"}
+261006 23:02:27[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"2289eebe-0443-4539-ad37-4b66c594a705","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261006 23:02:27[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Mm-hm?
+261006 23:02:27[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Mm-hm?
+261006 23:02:27[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Mm-hm?
+261006 23:02:27[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 23:02:28[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"2289eebe-0443-4539-ad37-4b66c594a705","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.system.reconfigure_wifi","description":"End this conversation and enter WiFi configuration mode.\n**CAUTION** You must ask the user to confirm this action.","inputSchema":{"type":"object","properties":{}}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}},{"name":"self.diag.simulate_face","description":"Diagnostics only: after delay_s seconds, handles a face_down (true) or face_up (false) gesture as if the motion sensor had detected it; with up_after_s > 0 a simulated face_down is followed by a face_up that many seconds later.","inputSchema":{"type":"object","properties":{"face_down":{"type":"boolean","default":true},"delay_s":{"type":"integer","default":0,"minimum":0,"maximum":600},"up_after_s":{"type":"integer","default":0,"minimum":0,"maximum":600}}}}]}}}
+261006 23:02:28[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 8
+261006 23:02:28[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'self_get_device_status', 'self_audio_speaker_set_volume', 'self_screen_set_brightness', 'self_screen_set_theme', 'self_system_reconfigure_wifi', 'self_screen_set_bedside', 'self_imu_get_state', 'self_diag_simulate_face', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 23:02:29[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.489s | 语言: en-US | 结果: Jarvis
+261006 23:02:29[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis
+261006 23:02:29[0.9.7_00000000000000][weixue_patches]-INFO-wake word transcript ignored: Jarvis
+261006 23:02:31[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.305s | 语言: en-US | 结果: What time is it?
+261006 23:02:31[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: What time is it?
+261006 23:02:31[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: What time is it?
+261006 23:02:32[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 12501，输出 59，缓存读取 0；stop_reason=tool_use request_id=req_011CfnNP1Rf7BQ48czWW7Q6D
+261006 23:02:32[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: It's eleven oh two PM
+261006 23:02:32[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, It's eleven oh two PM
+261006 23:02:33[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.256s: It's eleven oh two PM
+261006 23:02:33[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 23:02:42[0.9.7_SiGoAnGonocaCh][core.handle.receiveAudioHandle]-INFO-结束对话，无需发送结束提示语
+261006 23:02:42[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 23:02:42[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:02:52[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 23:02:52[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 23:02:52[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 23:02:52[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 23:02:52[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 23:02:52[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 23:02:52[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 23:02:52[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 23:02:52[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 23:02:52[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"dd15ee3d-a38d-42f9-866e-a7ac221d9053","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":5}}}
+261006 23:02:52[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "approve", "event": "approval_decision", "fixture": true, "seq": 5}
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 23:02:52[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 23:02:52[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 23:02:52[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:02:52[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:02:52[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 23:02:53[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:02:53[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:02:53[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:02:59[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 23:02:59[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 23:02:59[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 23:02:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 23:02:59[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 23:02:59[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 23:02:59[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 23:02:59[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:02:59[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 23:02:59[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"a06f8b49-7fd2-42c7-9f68-07bde70cc146","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"deny","fixture":true,"seq":6}}}
+261006 23:02:59[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "deny", "event": "approval_decision", "fixture": true, "seq": 6}
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 23:02:59[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 23:03:00[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 23:03:00[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 23:03:00[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:03:00[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:03:04[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: 7c:0c:5f:42:4b:fc
+261006 23:03:04[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: ad786b10-efaf-422a-ab57-40edacba9d51
+261006 23:03:04[0.9.7_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 7c:0c:5f:42:4b:fc 下发WebSocket配置
+261006 23:03:04[0.9.7_00000000000000][core.api.ota_handler]-INFO-Firmware cache refreshed: 0 models
+261006 23:03:04[0.9.7_00000000000000][core.api.ota_handler]-INFO-查找型号 esp32-s3-touch-amoled-1.75 的固件，找到 0 个候选
+261006 23:03:04[0.9.7_00000000000000][core.api.ota_handler]-INFO-设备 7c:0c:5f:42:4b:fc 固件已是最新: 2.5.1
+261006 23:03:08[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': 'ad786b10-efaf-422a-ab57-40edacba9d51', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 23:03:08[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 23:03:08[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 23:03:08[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 23:03:08[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 23:03:08[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 23:03:08[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 23:03:08[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 23:03:08[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 23:03:08[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:03:08[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 23:03:08[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 23:03:08[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 23:03:08[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 23:03:08[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow']
+261006 23:03:08[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 23:03:09[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 23:03:09[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 23:03:09[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 23:03:09[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 23:03:09[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"94d0f21e-823d-4804-bd9a-32b1dbd3fd89","type":"listen","state":"detect","text":"Jarvis"}
+261006 23:03:09[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"94d0f21e-823d-4804-bd9a-32b1dbd3fd89","type":"listen","state":"start","mode":"realtime"}
+261006 23:03:09[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"94d0f21e-823d-4804-bd9a-32b1dbd3fd89","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261006 23:03:09[0.9.7_00000000000000][weixue_patches]-INFO-wake cue skipped: user speaking
+261006 23:03:10[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"94d0f21e-823d-4804-bd9a-32b1dbd3fd89","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.system.reconfigure_wifi","description":"End this conversation and enter WiFi configuration mode.\n**CAUTION** You must ask the user to confirm this action.","inputSchema":{"type":"object","properties":{}}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}},{"name":"self.diag.simulate_face","description":"Diagnostics only: after delay_s seconds, handles a face_down (true) or face_up (false) gesture as if the motion sensor had detected it; with up_after_s > 0 a simulated face_down is followed by a face_up that many seconds later.","inputSchema":{"type":"object","properties":{"face_down":{"type":"boolean","default":true},"delay_s":{"type":"integer","default":0,"minimum":0,"maximum":600},"up_after_s":{"type":"integer","default":0,"minimum":0,"maximum":600}}}}]}}}
+261006 23:03:10[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 8
+261006 23:03:10[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['get_weather', 'change_role', 'handle_exit_intent', 'play_music', 'web_search', 'get_lunar', 'get_news_from_newsnow', 'self_get_device_status', 'self_audio_speaker_set_volume', 'self_screen_set_brightness', 'self_screen_set_theme', 'self_system_reconfigure_wifi', 'self_screen_set_bedside', 'self_imu_get_state', 'self_diag_simulate_face', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 23:03:17[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 2.257s | 语言: en-US | 结果: Jarvis, call the diagnostic simulate face tool with delay 160 seconds and up after 15 seconds.
+261006 23:03:17[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis, call the diagnostic simulate face tool with delay 160 seconds and up after 15 seconds.
+261006 23:03:17[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Jarvis, call the diagnostic simulate face tool with delay 160 seconds and up after 15 seconds.
+261006 23:03:19[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 12534，输出 105，缓存读取 0；stop_reason=tool_use request_id=req_011CfnNSSfnbtj5FFWpaXVR7
+261006 23:03:19[0.9.7_00000000000000][core.providers.tools.unified_tool_manager]-INFO-执行工具: self_diag_simulate_face，参数: {'delay_s': 160, 'up_after_s': 15, 'face_down': True}
+261006 23:03:19[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-发送客户端mcp工具调用请求: self.diag.simulate_face，参数: {"delay_s": 160, "up_after_s": 15, "face_down": true}
+261006 23:03:19[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"94d0f21e-823d-4804-bd9a-32b1dbd3fd89","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"true"}],"isError":false}}}
+261006 23:03:19[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端mcp工具调用 self.diag.simulate_face 成功，原始结果: {'content': [{'type': 'text', 'text': 'true'}], 'isError': False}
+261006 23:03:20[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Done. In 160 seconds it will simulate a face-down
+261006 23:03:20[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Done. In 160 seconds it will simulate a face-down
+261006 23:03:20[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 12527，输出 35，缓存读取 0；stop_reason=end_turn request_id=req_011CfnNSaZ3z2xkq6iujY2zw
+261006 23:03:21[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.399s: Done. In 160 seconds it will simulate a face-down
+261006 23:03:21[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, then a face-up 15 seconds later
+261006 23:03:22[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.358s: then a face-up 15 seconds later
+261006 23:03:22[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 23:06:05[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接超时，准备关闭
+261006 23:06:05[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"94d0f21e-823d-4804-bd9a-32b1dbd3fd89","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":1}}}
+261006 23:06:05[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "approve", "event": "approval_decision", "fixture": true, "seq": 1}
+261006 23:06:05[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"94d0f21e-823d-4804-bd9a-32b1dbd3fd89","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"deny","fixture":true,"seq":2}}}
+261006 23:06:05[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={"card_id": "fixture-1", "decision": "deny", "event": "approval_decision", "fixture": true, "seq": 2}
+261006 23:06:05[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 23:06:05[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/panel
+261006 23:06:05[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接已关闭
+261006 23:06:05[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:06:05[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 23:06:05[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 23:06:05[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:06:05[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 23:06:05[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出

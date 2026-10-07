@@ -1,0 +1,56 @@
+# fix-wave3-firmware IMU sampling on the release build, 2026-10-07 (UTC). Two runs, each ~120 s idle after boot then voice queries of self.imu.get_state; the sampling counts returned to the server are on each "## run" line.
+## run 1, 06:19-06:22: first gate (fixed 20 ms timing, 6-14 counts accepted). Server tool result: "sampling":{"overruns":18,"resyncs":66,"skipped":56,"read_errors":1}. Resyncs reached 300 within 16 s of TTS playback: tick jitter (15-count gaps) restarted the series continuously; replaced.
+[06:19:21.647] ### session3 start (release build); idle 120 s, then the IMU state query
+[06:19:23.734] I (2008) StateMachine: State: unknown -> starting
+[06:19:23.734] I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.172 y=-0.575 z=0.803 g
+[06:19:23.734] I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 0 samples (1)
+[06:19:23.934] I (2148) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 30 samples (2)
+[06:19:24.145] I (2388) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 32 samples (3)
+[06:19:24.145] I (2428) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 17 samples (4)
+[06:19:24.347] I (2488) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 21 samples (5)
+[06:19:25.598] I (3848) StateMachine: State: starting -> activating
+[06:19:25.999] I (4158) StateMachine: State: activating -> idle
+[06:19:26.206] W (4428) WaveshareEsp32s3TouchAMOLED1inch75: IMU read failed (1)
+[06:21:26.958] ### play IMU get_state query
+[06:21:27.890] I (126168) StateMachine: State: idle -> connecting
+[06:21:28.510] I (126668) StateMachine: State: connecting -> listening
+[06:21:33.913] I (132138) Application: >> Jarvis, call the IMU get state tool and read me the sampling numbers
+[06:21:33.913] I (132168) StateMachine: State: listening -> speaking
+[06:21:35.368] I (133638) Application: >> % self_imu_get_state
+[06:21:36.826] I (135098) Application: << Here are the sampling numbers. There have been 18 overruns
+[06:21:39.093] I (137378) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 16 samples (100)
+[06:21:41.388] I (139598) Application: << 66 resyncs, 56 skipped samples and 1 read error.The device isn't face down and the mic is on. No gestures have been detected since boot
+[06:21:45.568] I (143878) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 15 samples (200)
+[06:21:51.630] I (149888) StateMachine: State: speaking -> listening
+[06:21:53.293] I (151588) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 15 samples (300)
+[06:21:59.730] I (157878) StateMachine: State: listening -> idle
+[06:21:59.730] ### session3 done
+## run 2, 06:31-06:35: final gate (measured spacing, 5-50 counts accepted). Server tool results: "sampling":{"overruns":19,"resyncs":2,"skipped":11,"read_errors":0} "sampling":{"overruns":24,"resyncs":2,"skipped":25,"read_errors":0} 
+[06:31:58.279] ### session3 start (release build); idle 120 s, then the IMU state query
+[06:32:00.362] I (2007) StateMachine: State: unknown -> starting
+[06:32:00.362] I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.173 y=-0.576 z=0.803 g
+[06:32:00.362] I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+[06:32:02.418] I (3937) StateMachine: State: starting -> activating
+[06:32:02.620] I (4277) StateMachine: State: activating -> idle
+[06:32:03.032] I (4507) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 206 ms without a sample (2)
+[06:34:03.572] ### play IMU get_state query
+[06:34:04.585] I (126197) StateMachine: State: idle -> connecting
+[06:34:04.994] I (126697) StateMachine: State: connecting -> listening
+[06:34:10.615] I (132157) Application: >> Jarvis, call the Imu get state tool and read me the sampling numbers
+[06:34:10.615] I (132157) StateMachine: State: listening -> speaking
+[06:34:12.481] I (134077) Application: >> % self_imu_get_state
+[06:34:13.932] I (135637) Application: << Sampling shows nineteen overruns
+[06:34:16.413] I (137937) Application: << two resyncs, eleven skipped reads, and zero read errors.For context, the device isn't face down and the mic is on. No gestures have been detected since boot
+[06:34:27.403] I (148927) StateMachine: State: speaking -> listening
+[06:34:35.308] I (156967) StateMachine: State: listening -> idle
+[06:34:38.348] ### play IMU get_state query 2
+[06:34:39.462] I (160967) StateMachine: State: idle -> connecting
+[06:34:39.666] I (161357) StateMachine: State: connecting -> listening
+[06:34:45.255] I (166917) Application: >> Jarvis, call the IMU get state tool and read me the sampling numbers
+[06:34:45.255] I (166957) StateMachine: State: listening -> speaking
+[06:34:46.501] I (168017) Application: >> % self_imu_get_state
+[06:34:47.961] I (169637) Application: << Sampling shows twenty-four overruns
+[06:34:50.627] I (172177) Application: << two resyncs, twenty-five skipped samples, and zero read errors.For context, the device isn't face down and the mic is on. No gestures have been detected since boot
+[06:35:02.015] I (183687) StateMachine: State: speaking -> listening
+[06:35:09.915] I (191617) StateMachine: State: listening -> idle
+[06:35:09.915] ### session3 done

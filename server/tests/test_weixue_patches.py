@@ -190,8 +190,8 @@ def test_apply_patches_each_hook_once(monkeypatch):
     assert isinstance(http_server.web, weixue_patches.WebWithRoutes)
     assert http_server.web._web is web
     ota = sys.modules["core.api.ota_handler"].OTAHandler
-    assert ota.handle_post.weixue_wrapped.__name__ == "handle_post"
-    assert not hasattr(ota.handle_post.weixue_wrapped, "weixue_wrapped")
+    assert ota.handle_post.weixue_allowlist.__name__ == "handle_post"
+    assert not hasattr(ota.handle_post.weixue_allowlist, "weixue_allowlist")
     ws_server = sys.modules["core.websocket_server"].WebSocketServer
     assert ws_server._handle_auth.weixue_wrapped.__name__ == "_handle_auth"
     assert not hasattr(ws_server._handle_auth.weixue_wrapped, "weixue_wrapped")

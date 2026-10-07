@@ -1,0 +1,310 @@
+diff --git a/main/application.cc b/main/application.cc
+index 162f56c..672b190 100644
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -252,6 +252,9 @@ void Application::Run() {
+         }
+ 
+         if (bits & MAIN_EVENT_SEND_AUDIO) {
++            if (wake_capture_ && GetDeviceState() == kDeviceStateConnecting) {
++                HoldWakeAudio();
++            }
+             while (auto packet = audio_service_.PopPacketFromSendQueue()) {
+                 if (protocol_ && !protocol_->SendAudio(std::move(packet))) {
+                     // Drop the remaining packets. Leaving them in the queue would
+@@ -931,19 +934,21 @@ void Application::HandleWakeWordDetectedEvent() {
+ 
+     auto state = GetDeviceState();
+     auto wake_word = audio_service_.GetLastWakeWord();
++    bool capture = audio_service_.TakeWakeCapture();
+     ESP_LOGI(TAG, "Wake word detected: %s (state: %d)", wake_word.c_str(), (int)state);
+     if (mic_muted_) {
+         ESP_LOGW(TAG, "Microphone muted, ignoring wake word");
+         audio_service_.EnableWakeWordDetection(false);
++        audio_service_.EnableVoiceProcessing(false);
+         return;
+     }
+ 
+     session_origin_ = SessionOrigin::kUser;
+     if (state == kDeviceStateIdle) {
+-        BeginWakeWordInvoke(wake_word);
++        BeginWakeWordInvoke(wake_word, capture);
+     } else if (state == kDeviceStateNotifying) {
+         StopNotification();
+-        BeginWakeWordInvoke(wake_word);
++        BeginWakeWordInvoke(wake_word, capture);
+     } else if (state == kDeviceStateSpeaking || state == kDeviceStateListening) {
+         AbortSpeaking(kAbortReasonWakeWordDetected);
+         // Clear send queue to avoid sending residues to server
+@@ -961,13 +966,18 @@ void Application::HandleWakeWordDetectedEvent() {
+             play_popup_on_listening_ = true;
+             SetListeningMode(GetDefaultListeningMode());
+         }
+-    } else if (state == kDeviceStateActivating) {
+-        // Restart the activation check if the wake word is detected during activation
+-        SetDeviceState(kDeviceStateIdle);
++    } else {
++        if (capture) {
++            audio_service_.EnableVoiceProcessing(false);
++        }
++        if (state == kDeviceStateActivating) {
++            // Restart the activation check if the wake word is detected during activation
++            SetDeviceState(kDeviceStateIdle);
++        }
+     }
+ }
+ 
+-void Application::BeginWakeWordInvoke(const std::string& wake_word) {
++void Application::BeginWakeWordInvoke(const std::string& wake_word, bool capture) {
+     // Must run in the main task with the device in idle state
+     audio_service_.EncodeWakeWord();
+ 
+@@ -975,11 +985,16 @@ void Application::BeginWakeWordInvoke(const std::string& wake_word) {
+     // already opened. ContinueWakeWordInvoke() rejects any other state, so
+     // skipping this transition would silently drop the wake word invocation.
+     if (!SetDeviceState(kDeviceStateConnecting)) {
++        if (capture) {
++            audio_service_.EnableVoiceProcessing(false);
++        }
+         // Wake word detection was stopped by the detection itself; restore it
+         // so the device does not become unresponsive to wake words.
+         audio_service_.EnableWakeWordDetection(true);
+         return;
+     }
++    EndWakeCapture();
++    wake_capture_ = capture;
+ 
+     if (!protocol_->IsAudioChannelOpened()) {
+         // Schedule to let the state change be processed first (UI update),
+@@ -1006,6 +1021,7 @@ void Application::ContinueWakeWordInvoke(const std::string& wake_word) {
+             // Return to idle so the device is not stuck in the connecting
+             // state (not every failure path reports a network error), and
+             // wake word detection is re-enabled by the idle state handler.
++            EndWakeCapture();
+             SetDeviceState(kDeviceStateIdle);
+             return;
+         }
+@@ -1017,6 +1033,14 @@ void Application::ContinueWakeWordInvoke(const std::string& wake_word) {
+     while (auto packet = audio_service_.PopWakeWordPacket()) {
+         protocol_->SendAudio(std::move(packet));
+     }
++    if (wake_capture_) {
++        // The capture after the wake word follows the wake word audio, in order.
++        HoldWakeAudio();
++        size_t held = wake_audio_.Drain([this](std::unique_ptr<AudioStreamPacket> packet) {
++            protocol_->SendAudio(std::move(packet));
++        });
++        ESP_LOGI(TAG, "Sent %u packets captured after the wake word", static_cast<unsigned>(held));
++    }
+     // Set the chat state to wake word detected
+     protocol_->SendWakeWordDetected(wake_word);
+     SetListeningMode(GetDefaultListeningMode());
+@@ -1034,6 +1058,8 @@ void Application::HandleStateChangedEvent() {
+     // Any state change invalidates a pending deferred listening start;
+     // the Listening case below re-arms it when needed.
+     pending_listening_start_ = false;
++    audio_service_.SetCaptureOnWake(new_state == kDeviceStateIdle ||
++                                    new_state == kDeviceStateNotifying);
+ 
+     auto& board = Board::GetInstance();
+     auto display = board.GetDisplay();
+@@ -1052,6 +1078,7 @@ void Application::HandleStateChangedEvent() {
+                 display->SetEmotion(
+                     "neutral");  // Then set emotion (wechat mode checks child count)
+             }
++            EndWakeCapture();
+             audio_service_.EnableVoiceProcessing(false);
+             audio_service_.EnableWakeWordDetection(!mic_muted_);
+             break;
+@@ -1065,7 +1092,8 @@ void Application::HandleStateChangedEvent() {
+             display->SetEmotion("neutral");
+ 
+             // Make sure the audio processor is running
+-            if (play_popup_on_listening_ || !audio_service_.IsAudioProcessorRunning()) {
++            if (play_popup_on_listening_ || wake_capture_ ||
++                !audio_service_.IsAudioProcessorRunning()) {
+                 // For auto mode, wait for the playback queue to drain before enabling
+                 // voice processing. This prevents audio truncation when STOP arrives
+                 // late due to network jitter. Instead of blocking the main loop here,
+@@ -1113,7 +1141,10 @@ void Application::StartListeningAudio() {
+ 
+     // Send the start listening command
+     protocol_->SendStartListening(listening_mode_);
+-    audio_service_.EnableVoiceProcessing(true);
++    if (!wake_capture_ || !audio_service_.IsAudioProcessorRunning()) {
++        audio_service_.EnableVoiceProcessing(true);
++    }
++    wake_capture_ = false;
+ 
+     ConfigureWakeWordForListening();
+ 
+@@ -1124,6 +1155,18 @@ void Application::StartListeningAudio() {
+     }
+ }
+ 
++// Moves the packets encoded since the wake word from the send queue into wake_audio_.
++void Application::HoldWakeAudio() {
++    while (auto packet = audio_service_.PopPacketFromSendQueue()) {
++        wake_audio_.Push(std::move(packet));
++    }
++}
++
++void Application::EndWakeCapture() {
++    wake_capture_ = false;
++    wake_audio_.Clear();
++}
++
+ void Application::ConfigureWakeWordForListening() {
+ #ifdef CONFIG_WAKE_WORD_DETECTION_IN_LISTENING
+     // Enable wake word detection in listening mode (configured via Kconfig)
+diff --git a/main/application.h b/main/application.h
+index 2fd9c45..6a22683 100644
+--- a/main/application.h
++++ b/main/application.h
+@@ -21,6 +21,7 @@
+ #include "device_state.h"
+ #include "device_state_machine.h"
+ #include "notify/notify_player.h"
++#include "weixue_session.h"
+ 
+ // Main event bits
+ #define MAIN_EVENT_SCHEDULE             (1 << 0)
+@@ -184,6 +185,11 @@ private:
+     std::atomic<SessionOrigin> next_session_origin_{SessionOrigin::kUser};
+     bool assets_version_checked_ = false;
+     bool play_popup_on_listening_ = false;  // Flag to play popup sound after state changes to listening
++    // Microphone capture continues from the wake word into listening; packets encoded while
++    // the channel opens are held in wake_audio_ (main task only), at most 3 s of 60 ms packets.
++    static constexpr size_t kWakeAudioMaxPackets = 50;
++    bool wake_capture_ = false;
++    weixue_session::WakeAudioHold<std::unique_ptr<AudioStreamPacket>, kWakeAudioMaxPackets> wake_audio_;
+     bool pending_listening_start_ = false;  // Waiting for playback to drain before starting listening (auto mode)
+     int clock_ticks_ = 0;
+     TaskHandle_t activation_task_handle_ = nullptr;
+@@ -206,7 +212,9 @@ private:
+     void HandleActivationDoneEvent();
+     void HandleWakeWordDetectedEvent();
+     void ContinueOpenAudioChannel(ListeningMode mode);
+-    void BeginWakeWordInvoke(const std::string& wake_word);
++    void BeginWakeWordInvoke(const std::string& wake_word, bool capture = false);
++    void HoldWakeAudio();
++    void EndWakeCapture();
+     void ContinueWakeWordInvoke(const std::string& wake_word);
+     void StartListeningAudio();
+     void ConfigureWakeWordForListening();
+diff --git a/main/audio/audio_service.cc b/main/audio/audio_service.cc
+index 26ebf15..3caa575 100644
+--- a/main/audio/audio_service.cc
++++ b/main/audio/audio_service.cc
+@@ -97,6 +97,13 @@ void AudioService::Initialize(AudioCodec* codec) {
+         }
+     });
+     audio_engine_->OnWakeWordDetected([this](const std::string& wake_word) {
++#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4 || CONFIG_IDF_TARGET_ESP32S31
++        if (static_cast<AfeAudioEngine*>(audio_engine_.get())->VoiceKeptOnWake()) {
++            // Set before clearing the wake word bit so the input task keeps feeding the engine.
++            xEventGroupSetBits(event_group_, AS_EVENT_AUDIO_PROCESSOR_RUNNING);
++            wake_capture_ = true;
++        }
++#endif
+         xEventGroupClearBits(event_group_, AS_EVENT_WAKE_WORD_RUNNING);
+         if (callbacks_.on_wake_word_detected) {
+             callbacks_.on_wake_word_detected(wake_word);
+@@ -720,6 +727,16 @@ void AudioService::EnableWakeWordDetection(bool enable) {
+     }
+ }
+ 
++void AudioService::SetCaptureOnWake(bool enable) {
++#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4 || CONFIG_IDF_TARGET_ESP32S31
++    if (audio_engine_) {
++        static_cast<AfeAudioEngine*>(audio_engine_.get())->SetVoiceOnWake(enable);
++    }
++#else
++    (void)enable;
++#endif
++}
++
+ void AudioService::ReleaseWakeWordResources() {
+ #if !(CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4 || CONFIG_IDF_TARGET_ESP32S31)
+     if (!audio_engine_initialized_) {
+@@ -752,6 +769,7 @@ void AudioService::EnableVoiceProcessing(bool enable) {
+         audio_engine_->EnableVoiceProcessing(true);
+         xEventGroupSetBits(event_group_, AS_EVENT_AUDIO_PROCESSOR_RUNNING);
+     } else {
++        wake_capture_ = false;
+         if (audio_engine_initialized_) {
+             audio_engine_->EnableVoiceProcessing(false);
+         }
+diff --git a/main/audio/audio_service.h b/main/audio/audio_service.h
+index c66bc2d..00bafb0 100644
+--- a/main/audio/audio_service.h
++++ b/main/audio/audio_service.h
+@@ -137,6 +137,10 @@ public:
+     bool IsAfeWakeWord();
+ 
+     void EnableWakeWordDetection(bool enable);
++    // While enabled, a detected wake word leaves voice processing running (see TakeWakeCapture).
++    void SetCaptureOnWake(bool enable);
++    // True once after a wake word detection that kept voice processing running.
++    bool TakeWakeCapture() { return wake_capture_.exchange(false); }
+     void ReleaseWakeWordResources();
+     void EnableVoiceProcessing(bool enable);
+     void EnableAudioTesting(bool enable);
+@@ -211,6 +215,7 @@ private:
+     std::atomic<uint8_t> output_level_{0};
+     std::atomic<int64_t> output_level_us_{0};
+     std::atomic<bool> audio_input_need_warmup_{false};
++    std::atomic<bool> wake_capture_{false};
+ 
+     esp_timer_handle_t audio_power_timer_ = nullptr;
+     std::chrono::steady_clock::time_point last_input_time_;
+diff --git a/main/audio/engines/afe_audio_engine.cc b/main/audio/engines/afe_audio_engine.cc
+index 3823d10..2ce3cc1 100644
+--- a/main/audio/engines/afe_audio_engine.cc
++++ b/main/audio/engines/afe_audio_engine.cc
+@@ -85,6 +85,7 @@ bool AfeAudioEngine::Initialize(AudioCodec* codec, int frame_duration_ms,
+         custom_wake_word_ = std::make_unique<CustomWakeWord>();
+         custom_wake_word_->OnWakeWordDetected([this](const std::string& wake_word) {
+             last_detected_wake_word_ = wake_word;
++            voice_kept_on_wake_ = false;
+             xEventGroupClearBits(event_group_, kWakeWordEnabled);
+             UpdateActiveState();
+             if (wake_word_detected_callback_) {
+@@ -461,6 +462,11 @@ void AfeAudioEngine::HandleWakeWordResult(const afe_fetch_result_t* result) {
+     }
+ 
+     last_detected_wake_word_ = wake_words_[model_index];
++    const bool keep_voice = kUseAfeForVoiceProcessing && voice_on_wake_.load();
++    voice_kept_on_wake_ = keep_voice;
++    if (keep_voice) {
++        xEventGroupSetBits(event_group_, kVoiceProcessingEnabled);
++    }
+     xEventGroupClearBits(event_group_, kWakeWordEnabled);
+     // UpdateActiveState marks the AFE controls dirty; the next loop iteration
+     // of ProcessingTask disables WakeNet via ApplyAfeControls.
+diff --git a/main/audio/engines/afe_audio_engine.h b/main/audio/engines/afe_audio_engine.h
+index 789a7e6..21fe38b 100644
+--- a/main/audio/engines/afe_audio_engine.h
++++ b/main/audio/engines/afe_audio_engine.h
+@@ -46,6 +46,12 @@ public:
+     bool GetWakeWordOpus(std::vector<uint8_t>& opus) override;
+     const std::string& GetLastDetectedWakeWord() const override { return last_detected_wake_word_; }
+ 
++    // While enabled, a WakeNet detection switches the running AFE straight to voice processing
++    // (no buffer reset), so capture continues from the frame after the wake word.
++    void SetVoiceOnWake(bool enable) { voice_on_wake_.store(enable); }
++    // True when the last detection kept voice processing on.
++    bool VoiceKeptOnWake() const { return voice_kept_on_wake_.load(); }
++
+ private:
+     enum class WakeDetector {
+         kNone,
+@@ -79,6 +85,8 @@ private:
+     // Incremented whenever an active AFE session is invalidated. ProcessingTask
+     // uses it to reject a fetch result produced before a disable/re-enable cycle.
+     std::atomic<uint32_t> control_generation_{0};
++    std::atomic<bool> voice_on_wake_{false};
++    std::atomic<bool> voice_kept_on_wake_{false};
+     WakeDetector wake_detector_ = WakeDetector::kNone;
+ 
+     std::unique_ptr<CustomWakeWord> custom_wake_word_;

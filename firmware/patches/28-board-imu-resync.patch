@@ -1,0 +1,260 @@
+diff --git a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
+index 15ed5ac..e3e9996 100644
+--- a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
++++ b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
+@@ -299,23 +299,90 @@ private:
+                     "imu", 4096, this, 2, nullptr);
+     }
+ 
++    // Sampling health since boot: missed 20 ms deadlines, detector resets after a sampling gap,
++    // samples skipped as stale or early, failed reads, and sample counter reads that a re-read
++    // did not confirm.
++    struct ImuSampling {
++        uint32_t overruns = 0;
++        uint32_t resyncs = 0;
++        uint32_t skipped = 0;
++        uint32_t read_errors = 0;
++        uint32_t torn_timestamps = 0;
++    };
++    ImuSampling imu_sampling_;
++    bool imu_logged_first_sample_ = false;
++#if WEIXUE_FACE_DIAG
++    esp_timer_handle_t diag_face_timer_ = nullptr;
++    bool diag_face_down_ = true;
++    int diag_up_after_s_ = 0;
++#endif
++#if WEIXUE_FACE_DIAG
++    // Diag build: a simulated bus stall followed by a catch-up read, and a simulated read failure.
++    static constexpr int kImuDiagStallMs = 120;
++    static constexpr int64_t kImuDiagStallPeriodUs = 30LL * 1000 * 1000;
++    static constexpr int64_t kImuDiagFailPeriodUs = 45LL * 1000 * 1000;
++#endif
++
+     void ImuTask() {
+         ImuGestureDetector detector;
++        ImuSampleGate gate;
++        const TickType_t period = pdMS_TO_TICKS(ImuGestureDetector::kSamplePeriodMs);
+         TickType_t last_wake = xTaskGetTickCount();
+-        uint32_t errors = 0;
+-        bool logged_first_sample = false;
++#if WEIXUE_FACE_DIAG
++        int64_t diag_next_stall_us = esp_timer_get_time() + kImuDiagStallPeriodUs;
++        int64_t diag_next_fail_us = esp_timer_get_time() + kImuDiagFailPeriodUs;
++#endif
+         while (true) {
+-            vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(ImuGestureDetector::kSamplePeriodMs));
+-            Qmi8658::Accel accel;
+-            Qmi8658::TapStatus tap;
+-            if (imu_->ReadAccel(accel) != ESP_OK || imu_->ReadTap(tap) != ESP_OK) {
+-                if (errors++ % 500 == 0) {
+-                    ESP_LOGW(TAG, "IMU read failed (%lu)", (unsigned long)errors);
+-                }
+-                continue;
++            if (xTaskDelayUntil(&last_wake, period) == pdFALSE) {
++                // Deadline already passed: restart the schedule instead of catching up.
++                last_wake = xTaskGetTickCount();
++                CountSampling(&ImuSampling::overruns);
++            }
++#if WEIXUE_FACE_DIAG
++            int reads = 1;
++            bool fail = false;
++            int64_t now = esp_timer_get_time();
++            if (now >= diag_next_stall_us) {
++                diag_next_stall_us = now + kImuDiagStallPeriodUs;
++                DiagLogSampling();
++                ESP_LOGI(TAG, "IMU diag: stall %d ms, then an immediate extra read", kImuDiagStallMs);
++                vTaskDelay(pdMS_TO_TICKS(kImuDiagStallMs));
++                reads = 2;
++            }
++            if (now >= diag_next_fail_us) {
++                diag_next_fail_us = now + kImuDiagFailPeriodUs;
++                DiagLogSampling();
++                ESP_LOGI(TAG, "IMU diag: simulated read failure");
++                fail = true;
+             }
+-            if (!logged_first_sample) {
+-                logged_first_sample = true;
++            for (int i = 0; i < reads; i++) {
++                ImuStep(detector, gate, fail && i == 0);
++            }
++#else
++            ImuStep(detector, gate, false);
++#endif
++        }
++    }
++
++    // One poll: the sample and tap status, then ImuPoll with the measured sample spacing.
++    void ImuStep(ImuGestureDetector& detector, ImuSampleGate& gate, bool simulate_failure) {
++        Qmi8658::Sample sample = {};
++        Qmi8658::TapStatus tap = {};
++        esp_err_t err = imu_->ReadSample(sample);
++        if (err == ESP_OK) {
++            err = imu_->ReadTap(tap);
++        }
++        const bool read_ok = err == ESP_OK && !simulate_failure;
++        const Qmi8658::Accel& accel = sample.accel;
++        if (sample.timestamp_reads > 2) {
++            uint32_t torn = CountSampling(&ImuSampling::torn_timestamps);
++            if (torn <= 5 || torn % 100 == 0) {
++                ESP_LOGI(TAG, "IMU sample counter re-read (%lu)", (unsigned long)torn);
++            }
++        }
++        if (read_ok) {
++            if (!imu_logged_first_sample_) {
++                imu_logged_first_sample_ = true;
+                 ESP_LOGI(TAG, "IMU accel x=%.3f y=%.3f z=%.3f g", accel.x, accel.y, accel.z);
+             }
+             {
+@@ -323,24 +390,68 @@ private:
+                 last_accel_ = accel;
+             }
+             if (tap.status1 & 0x02) {
+-                ESP_LOGI(TAG, "IMU tap: status1=0x%02X tap_status=0x%02X", tap.status1, tap.tap_status);
++                ESP_LOGI(TAG, "IMU tap: status1=0x%02X tap_status=0x%02X", tap.status1,
++                         tap.tap_status);
+                 if (tap.count() == 2) {
+                     OnGesture(kGestureDoubleTap);
+                 }
+             }
+-            uint8_t events = detector.Update(accel.x, accel.y, kScreenNormalSign * accel.z);
+-            if (events & ImuGestureDetector::kPickUp) {
+-                OnGesture(kGesturePickUp);
+-            }
+-            if (events & ImuGestureDetector::kFaceDown) {
+-                OnGesture(kGestureFaceDown);
++        }
++        ImuPollResult result = ImuPoll(detector, gate, read_ok, sample.timestamp, accel.x, accel.y,
++                                       kScreenNormalSign * accel.z);
++        switch (result.kind) {
++            case ImuPollResult::kReadFailed: {
++                uint32_t errors = CountSampling(&ImuSampling::read_errors);
++                if (errors % 500 == 1) {
++                    ESP_LOGW(TAG, "IMU read failed (%lu)", (unsigned long)errors);
++                }
++                return;
+             }
+-            if (events & ImuGestureDetector::kFaceUp) {
+-                OnGesture(kGestureFaceUp);
++            case ImuPollResult::kSkipped:
++                CountSampling(&ImuSampling::skipped);
++                return;
++            case ImuPollResult::kResynced: {
++                uint32_t resyncs = CountSampling(&ImuSampling::resyncs);
++                if (resyncs <= 5 || resyncs % 100 == 0) {
++                    ESP_LOGI(TAG, "IMU resync after %d ms without a sample (%lu)",
++                             result.elapsed_ms, (unsigned long)resyncs);
++                }
++                break;
+             }
++            case ImuPollResult::kAccepted:
++                break;
++        }
++        if (result.events & ImuGestureDetector::kPickUp) {
++            OnGesture(kGesturePickUp);
++        }
++        if (result.events & ImuGestureDetector::kFaceDown) {
++            OnGesture(kGestureFaceDown);
++        }
++        if (result.events & ImuGestureDetector::kFaceUp) {
++            OnGesture(kGestureFaceUp);
+         }
+     }
+ 
++#if WEIXUE_FACE_DIAG
++    void DiagLogSampling() {
++        ImuSampling s;
++        {
++            std::lock_guard<std::mutex> lock(gesture_mutex_);
++            s = imu_sampling_;
++        }
++        ESP_LOGI(TAG,
++                 "IMU diag: overruns=%lu resyncs=%lu skipped=%lu read_errors=%lu "
++                 "torn_timestamps=%lu",
++                 (unsigned long)s.overruns, (unsigned long)s.resyncs, (unsigned long)s.skipped,
++                 (unsigned long)s.read_errors, (unsigned long)s.torn_timestamps);
++    }
++#endif
++
++    uint32_t CountSampling(uint32_t ImuSampling::*field) {
++        std::lock_guard<std::mutex> lock(gesture_mutex_);
++        return ++(imu_sampling_.*field);
++    }
++
+     void OnGesture(Gesture gesture) {
+         bool face_down;
+         {
+@@ -394,12 +505,14 @@ private:
+ 
+     std::string GetImuStateJson() {
+         std::lock_guard<std::mutex> lock(gesture_mutex_);
+-        char buf[320];
++        char buf[448];
+         int64_t age_ms = last_gesture_ < 0 ? -1 : (esp_timer_get_time() - last_gesture_us_) / 1000;
+         snprintf(buf, sizeof(buf),
+                  "{\"face_down\":%s,\"mic_muted\":%s,\"last_gesture\":\"%s\",\"last_gesture_age_ms\":%lld,"
+                  "\"counts\":{\"pick_up\":%lu,\"face_down\":%lu,\"face_up\":%lu,\"double_tap\":%lu},"
+-                 "\"accel_g\":[%.2f,%.2f,%.2f]}",
++                 "\"accel_g\":[%.2f,%.2f,%.2f],"
++                 "\"sampling\":{\"overruns\":%lu,\"resyncs\":%lu,\"skipped\":%lu,\"read_errors\":%lu,"
++                 "\"torn_timestamps\":%lu}}",
+                  face_down_ ? "true" : "false",
+                  Application::GetInstance().IsMicMuted() ? "true" : "false",
+                  last_gesture_ < 0 ? "" : kGestureNames[last_gesture_], (long long)age_ms,
+@@ -407,7 +520,10 @@ private:
+                  (unsigned long)gesture_counts_[kGestureFaceDown],
+                  (unsigned long)gesture_counts_[kGestureFaceUp],
+                  (unsigned long)gesture_counts_[kGestureDoubleTap], last_accel_.x, last_accel_.y,
+-                 last_accel_.z);
++                 last_accel_.z, (unsigned long)imu_sampling_.overruns,
++                 (unsigned long)imu_sampling_.resyncs, (unsigned long)imu_sampling_.skipped,
++                 (unsigned long)imu_sampling_.read_errors,
++                 (unsigned long)imu_sampling_.torn_timestamps);
+         return buf;
+     }
+ 
+@@ -629,6 +745,45 @@ private:
+                 PropertyList(), [this](const PropertyList& properties) -> ReturnValue {
+                     return GetImuStateJson();
+                 });
++#if WEIXUE_FACE_DIAG
++            mcp_server.AddTool("self.diag.simulate_face",
++                "Diagnostics only: after delay_s seconds, handles a face_down (true) or face_up "
++                "(false) gesture as if the motion sensor had detected it; with up_after_s > 0 a "
++                "simulated face_down is followed by a face_up that many seconds later.",
++                PropertyList({Property("face_down", kPropertyTypeBoolean, true),
++                              Property("delay_s", kPropertyTypeInteger, 0, 0, 600),
++                              Property("up_after_s", kPropertyTypeInteger, 0, 0, 600)}),
++                [this](const PropertyList& properties) -> ReturnValue {
++                    diag_face_down_ = properties["face_down"].value<bool>();
++                    diag_up_after_s_ = properties["up_after_s"].value<int>();
++                    int delay_s = properties["delay_s"].value<int>();
++                    if (diag_face_timer_ == nullptr) {
++                        const esp_timer_create_args_t args = {
++                            .callback = [](void* arg) {
++                                auto* self = static_cast<WaveshareEsp32s3TouchAMOLED1inch75*>(arg);
++                                bool down = self->diag_face_down_;
++                                ESP_LOGI(TAG, "IMU diag: simulated %s", down ? "face_down" : "face_up");
++                                self->OnGesture(down ? kGestureFaceDown : kGestureFaceUp);
++                                if (down && self->diag_up_after_s_ > 0) {
++                                    self->diag_face_down_ = false;
++                                    esp_timer_start_once(self->diag_face_timer_,
++                                                         self->diag_up_after_s_ * 1000000LL);
++                                }
++                            },
++                            .arg = this,
++                            .dispatch_method = ESP_TIMER_TASK,
++                            .name = "diag_face",
++                            .skip_unhandled_events = true,
++                        };
++                        esp_timer_create(&args, &diag_face_timer_);
++                    }
++                    esp_timer_stop(diag_face_timer_);
++                    esp_timer_start_once(diag_face_timer_, delay_s * 1000000LL + 1000);
++                    ESP_LOGI(TAG, "IMU diag: %s in %d s", diag_face_down_ ? "face_down" : "face_up",
++                             delay_s);
++                    return true;
++                });
++#endif
+         }
+     }
+ 

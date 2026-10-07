@@ -32,7 +32,6 @@ constexpr uint32_t kRefreshMs = 1000;
 constexpr uint32_t kRearmMs = 4000;
 constexpr uint32_t kSlideMs = 220;
 constexpr int64_t kPollFreshMs = 90000;
-constexpr size_t kMaxReplyBytes = 240;
 
 // Row centres relative to the screen centre; the round panel narrows towards the top and bottom.
 constexpr int32_t kStatusY = -168;
@@ -87,18 +86,6 @@ void Flex(lv_obj_t* obj, lv_flex_flow_t flow, int32_t gap) {
     lv_obj_set_style_pad_row(obj, 0, 0);
 }
 
-// Truncates s to at most max bytes without splitting a UTF-8 sequence.
-void TruncateUtf8(std::string& s, size_t max) {
-    if (s.size() <= max) {
-        return;
-    }
-    size_t end = max;
-    while (end > 0 && (static_cast<uint8_t>(s[end]) & 0xC0) == 0x80) {
-        end--;
-    }
-    s.resize(end);
-}
-
 const char* BatteryIcon(int level, bool charging) {
     if (charging) {
         return MATERIAL_SYMBOLS_BATTERY_ANDROID_FRAME_BOLT;
@@ -111,6 +98,29 @@ const char* BatteryIcon(int level, bool charging) {
     };
     int i = level <= 0 ? 0 : level >= 100 ? 7 : 1 + level * 6 / 100;
     return kLevels[i];
+}
+
+// Backend row text and colour from the application's backend status.
+const char* BackendLabel(const Application::BackendStatus& backend, bool muted, uint32_t* color) {
+    switch (BackendRowFor(backend.channel_open, muted, backend.poll_status, backend.poll_age_ms,
+                          backend.polled_since_resume, kPollFreshMs)) {
+        case BackendRow::kSession:
+            *color = kOkColor;
+            return "session";
+        case BackendRow::kPaused:
+            *color = kWarnColor;
+            return "paused";
+        case BackendRow::kChecking:
+            *color = kSubColor;
+            return "checking";
+        case BackendRow::kOnline:
+            *color = kOkColor;
+            return "online";
+        case BackendRow::kOffline:
+            break;
+    }
+    *color = kBadColor;
+    return "offline";
 }
 
 }  // namespace
@@ -176,6 +186,9 @@ MonitorPanel::MonitorPanel(lv_obj_t* screen, int32_t width, int32_t height,
 
     refresh_timer_ = lv_timer_create(RefreshCb, kRefreshMs, this);
     lv_timer_pause(refresh_timer_);
+#if WEIXUE_FACE_DIAG
+    lv_timer_create(DiagBackendCb, kRefreshMs, this);
+#endif
     rearm_timer_ = lv_timer_create(RearmCb, kRearmMs, this);
     lv_timer_pause(rearm_timer_);
 }
@@ -321,20 +334,21 @@ void MonitorPanel::SetHeard(const char* text) {
         return;
     }
     SetText(heard_text_, text);
-    reply_.clear();
+    reply_.Clear();
     SetText(reply_text_, "-");
+#if WEIXUE_FACE_DIAG
+    ESP_LOGI(TAG, "diag heard=\"%s\" reply=\"\"", text);
+#endif
 }
 
-void MonitorPanel::AddReply(const char* text) {
-    if (text == nullptr || text[0] == '\0') {
+void MonitorPanel::AddReply(const char* text, uint32_t reply) {
+    if (!reply_.Add(text, reply)) {
         return;
     }
-    if (!reply_.empty()) {
-        reply_ += ' ';
-    }
-    reply_ += text;
-    TruncateUtf8(reply_, kMaxReplyBytes);
-    SetText(reply_text_, reply_.c_str());
+    SetText(reply_text_, reply_.text().c_str());
+#if WEIXUE_FACE_DIAG
+    ESP_LOGI(TAG, "diag reply=\"%s\" (reply %lu)", reply_.text().c_str(), (unsigned long)reply);
+#endif
 }
 
 void MonitorPanel::SetShift(int32_t x, int32_t y) {
@@ -374,26 +388,8 @@ void MonitorPanel::Refresh() {
     SetText(mic_icon_, muted ? MATERIAL_SYMBOLS_MIC_OFF : MATERIAL_SYMBOLS_MIC);
     lv_obj_set_style_text_color(mic_icon_, lv_color_hex(muted ? kWarnColor : kSubColor), 0);
 
-    auto backend = app.GetBackendStatus();
-    const char* text;
     uint32_t color;
-    bool reachable = backend.poll_status == 200 || backend.poll_status == 204;
-    if (backend.channel_open) {
-        text = "session";
-        color = kOkColor;
-    } else if (muted) {
-        text = "paused";
-        color = kWarnColor;
-    } else if (backend.poll_age_ms < 0) {
-        text = "checking";
-        color = kSubColor;
-    } else if (reachable && backend.poll_age_ms < kPollFreshMs) {
-        text = "online";
-        color = kOkColor;
-    } else {
-        text = "offline";
-        color = kBadColor;
-    }
+    const char* text = BackendLabel(app.GetBackendStatus(), muted, &color);
     SetText(backend_value_, text);
     lv_obj_set_style_text_color(backend_value_, lv_color_hex(color), 0);
 
@@ -410,6 +406,21 @@ void MonitorPanel::Refresh() {
     }
 #endif
 }
+
+#if WEIXUE_FACE_DIAG
+void MonitorPanel::DiagBackendCb(lv_timer_t* timer) {
+    auto* self = static_cast<MonitorPanel*>(lv_timer_get_user_data(timer));
+    auto& app = Application::GetInstance();
+    auto backend = app.GetBackendStatus();
+    uint32_t color;
+    const char* text = BackendLabel(backend, app.IsMicMuted(), &color);
+    if (text != self->diag_backend_) {
+        self->diag_backend_ = text;
+        ESP_LOGI(TAG, "diag backend=%s poll_status=%d poll_age_ms=%lld", text, backend.poll_status,
+                 (long long)backend.poll_age_ms);
+    }
+}
+#endif
 
 void MonitorPanel::SetCardState(CardState state) {
     card_state_ = state;

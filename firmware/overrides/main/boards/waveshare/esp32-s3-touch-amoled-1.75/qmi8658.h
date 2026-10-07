@@ -16,6 +16,12 @@ public:
         float z;
     };
 
+    struct Sample {
+        uint32_t timestamp;       // TIMESTAMP (0x30-0x32): 24-bit count of sensor samples
+        uint8_t timestamp_reads;  // reads until two agreed (see AgreedCounter)
+        Accel accel;
+    };
+
     struct TapStatus {
         uint8_t status1;     // STATUS1 (0x2F)
         uint8_t tap_status;  // TAP_STATUS (0x59), 0 unless STATUS1.TAP is set
@@ -29,7 +35,9 @@ public:
     uint8_t address() const { return address_; }
     // Soft reset, accelerometer ±4 g at 500 Hz, Tap engine on.
     esp_err_t Initialize();
-    esp_err_t ReadAccel(Accel& out);
+    // Sample counter and acceleration in one burst read (0x30-0x3A), the counter confirmed by
+    // re-reading TIMESTAMP; ESP_ERR_INVALID_RESPONSE when no two counter reads agree.
+    esp_err_t ReadSample(Sample& out);
     // Reads STATUS1 and, when its TAP bit is set, TAP_STATUS.
     esp_err_t ReadTap(TapStatus& out);
 

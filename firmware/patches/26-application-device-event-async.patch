@@ -1,0 +1,338 @@
+diff --git a/main/application.cc b/main/application.cc
+index 475a17d..0ed0fe7 100644
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -28,7 +28,8 @@ static constexpr const char* kProactiveWakeText = "weixue:proactive";
+ static constexpr int kProactivePollTimeoutMs = 40000;  // exceeds the server's hold time
+ static constexpr int kProactiveRetryMinMs = 5000;
+ static constexpr int kProactiveRetryMaxMs = 60000;
+-static constexpr int kDeviceEventLingerMs = 2000;
++static constexpr int kDeviceEventTimeoutMs = 4000;
++static constexpr int kDeviceEventLingerMs = 500;
+ 
+ Application::Application() : notify_player_(audio_service_) {
+     event_group_ = xEventGroupCreate();
+@@ -595,7 +596,6 @@ void Application::InitializeProtocol() {
+         channel_open_ = false;
+         board.SetPowerSaveLevel(PowerSaveLevel::LOW_POWER);
+         Schedule([this]() {
+-            event_channel_ = false;
+             auto display = Board::GetInstance().GetDisplay();
+             display->SetChatMessage("system", "");
+             SetDeviceState(kDeviceStateIdle);
+@@ -1292,9 +1292,13 @@ void Application::ProactivePollTask() {
+     int retry_ms = kProactiveRetryMinMs;
+     while (true) {
+         if (GetDeviceState() != kDeviceStateIdle || mic_muted_) {
++            poll_paused_ = true;
+             vTaskDelay(pdMS_TO_TICKS(1000));
+             continue;
+         }
++        if (poll_paused_.exchange(false)) {
++            poll_resumed_us_ = esp_timer_get_time();
++        }
+         int status = 0;
+         bool urgent = false;
+         auto http = Board::GetInstance().GetNetwork()->CreateHttp(0);
+@@ -1561,55 +1565,182 @@ void Application::SendMcpMessage(const std::string& payload) {
+ }
+ 
+ Application::BackendStatus Application::GetBackendStatus() const {
+-    int64_t done_us = poll_done_us_;
++    auto age = weixue_session::PollAgeAt(esp_timer_get_time(), poll_done_us_, poll_resumed_us_);
+     return {
+         .channel_open = channel_open_,
+         .poll_status = poll_status_,
+-        .poll_age_ms = done_us == 0 ? -1 : (esp_timer_get_time() - done_us) / 1000,
++        .poll_age_ms = age.age_ms,
++        .polled_since_resume = age.polled_since_resume,
+     };
+ }
+ 
++struct DeviceEventJob {
++    std::string payload;
++    std::string url;
++    std::string token;
++    int version = 1;
++    // 0 waiting for the server hello, 1 dispatching, 2 abandoned by the timeout
++    std::atomic<int> stage{0};
++};
++
+ void Application::SendDeviceEvent(const std::string& payload, std::function<void(bool)> done) {
+-    Schedule([this, payload, done = std::move(done)]() {
+-        bool sent = false;
+-        if (protocol_) {
+-            if (!protocol_->IsAudioChannelOpened() && GetDeviceState() == kDeviceStateIdle &&
+-                protocol_->OpenAudioChannel()) {
+-                event_channel_ = true;
+-                if (event_close_timer_ == nullptr) {
+-                    const esp_timer_create_args_t args = {
+-                        .callback = [](void* arg) {
+-                            auto* app = static_cast<Application*>(arg);
+-                            app->Schedule([app]() {
+-                                if (app->event_channel_ && app->GetDeviceState() == kDeviceStateIdle &&
+-                                    app->protocol_ && app->protocol_->IsAudioChannelOpened()) {
+-                                    ESP_LOGI(TAG, "Closing the device event channel");
+-                                    app->protocol_->CloseAudioChannel();
+-                                }
+-                            });
+-                        },
+-                        .arg = this,
+-                        .dispatch_method = ESP_TIMER_TASK,
+-                        .name = "event_close",
+-                        .skip_unhandled_events = true,
+-                    };
+-                    esp_timer_create(&args, &event_close_timer_);
+-                }
+-                esp_timer_stop(event_close_timer_);
+-                esp_timer_start_once(event_close_timer_, kDeviceEventLingerMs * 1000);
++    Schedule([this, payload, done = std::move(done)]() mutable {
++        if (protocol_ && protocol_->IsAudioChannelOpened()) {
++            bool sent = protocol_->SendMcpMessage(payload);
++            ESP_LOGI(TAG, "Device event %s (audio channel): %s", sent ? "sent" : "not sent",
++                     payload.c_str());
++            if (done) {
++                done(sent);
+             }
+-            if (protocol_->IsAudioChannelOpened()) {
+-                protocol_->SendMcpMessage(payload);
+-                sent = true;
++            return;
++        }
++        if (event_job_ || event_worker_running_) {
++            ESP_LOGW(TAG, "Device event not sent (busy): %s", payload.c_str());
++            if (done) {
++                done(false);
++            }
++            return;
++        }
++        auto job = std::make_shared<DeviceEventJob>();
++        job->payload = payload;
++        {
++            Settings settings("websocket", false);
++            job->url = settings.GetString("url");
++            job->token = settings.GetString("token");
++            int version = settings.GetInt("version");
++            if (version != 0) {
++                job->version = version;
+             }
+         }
+-        ESP_LOGI(TAG, "Device event %s: %s", sent ? "sent" : "not sent", payload.c_str());
+-        if (done) {
+-            done(sent);
++        event_job_ = job;
++        event_done_ = std::move(done);
++        if (event_timeout_timer_ == nullptr) {
++            const esp_timer_create_args_t args = {
++                .callback = [](void* arg) {
++                    auto* app = static_cast<Application*>(arg);
++                    app->Schedule([app]() {
++                        auto pending = app->event_job_;
++                        int expected = 0;
++                        if (pending && pending->stage.compare_exchange_strong(expected, 2)) {
++                            app->FinishDeviceEvent(pending, false, "timeout");
++                        }
++                    });
++                },
++                .arg = this,
++                .dispatch_method = ESP_TIMER_TASK,
++                .name = "event_timeout",
++                .skip_unhandled_events = true,
++            };
++            esp_timer_create(&args, &event_timeout_timer_);
++        }
++        esp_timer_stop(event_timeout_timer_);
++        esp_timer_start_once(event_timeout_timer_, kDeviceEventTimeoutMs * 1000);
++        event_worker_running_ = true;
++        auto* arg = new std::pair<Application*, std::shared_ptr<DeviceEventJob>>(this, job);
++        if (xTaskCreate(
++                [](void* p) {
++                    auto* a = static_cast<std::pair<Application*, std::shared_ptr<DeviceEventJob>>*>(p);
++                    a->first->DeviceEventWorker(a->second);
++                    delete a;
++                    vTaskDelete(NULL);
++                },
++                "device_event", 4096 + 2048, arg, 2, nullptr) != pdPASS) {
++            delete arg;
++            event_worker_running_ = false;
++            FinishDeviceEvent(job, false, "no task");
+         }
+     });
+ }
+ 
++// Delivers one device event over its own short WebSocket session, so a slow or unreachable
++// server never blocks the main task or raises the network error alert.
++void Application::DeviceEventWorker(std::shared_ptr<DeviceEventJob> job) {
++    constexpr EventBits_t kHelloBit = BIT0;
++    const char* result = "connect failed";
++    bool sent = false;
++    EventGroupHandle_t events = xEventGroupCreate();
++    std::string session_id;
++    auto ws = Board::GetInstance().GetNetwork()->CreateWebSocket(2);
++    if (ws && events) {
++        if (!job->token.empty()) {
++            std::string token = job->token;
++            if (token.find(' ') == std::string::npos) {
++                token = "Bearer " + token;
++            }
++            ws->SetHeader("Authorization", token.c_str());
++        }
++        ws->SetHeader("Protocol-Version", std::to_string(job->version).c_str());
++        ws->SetHeader("Device-Id", SystemInfo::GetMacAddress().c_str());
++        ws->SetHeader("Client-Id", Board::GetInstance().GetUuid().c_str());
++        ws->OnData([&session_id, events](const char* data, size_t len, bool binary) {
++            if (binary) {
++                return;
++            }
++            cJSON* root = cJSON_ParseWithLength(data, len);
++            auto type = cJSON_GetObjectItem(root, "type");
++            if (cJSON_IsString(type) && strcmp(type->valuestring, "hello") == 0) {
++                auto id = cJSON_GetObjectItem(root, "session_id");
++                if (cJSON_IsString(id)) {
++                    session_id = id->valuestring;
++                }
++                xEventGroupSetBits(events, kHelloBit);
++            }
++            cJSON_Delete(root);
++        });
++        if (ws->Connect(job->url.c_str())) {
++            char hello[192];
++            snprintf(hello, sizeof(hello),
++                     "{\"type\":\"hello\",\"version\":%d,\"features\":{\"mcp\":true},"
++                     "\"transport\":\"websocket\",\"audio_params\":{\"format\":\"opus\","
++                     "\"sample_rate\":16000,\"channels\":1,\"frame_duration\":%d}}",
++                     job->version, OPUS_FRAME_DURATION_MS);
++            result = "no server hello";
++            if (ws->Send(hello) &&
++                (xEventGroupWaitBits(events, kHelloBit, pdFALSE, pdFALSE,
++                                     pdMS_TO_TICKS(kDeviceEventTimeoutMs)) & kHelloBit)) {
++                int expected = 0;
++                if (job->stage.compare_exchange_strong(expected, 1)) {
++                    std::string message = "{\"session_id\":\"" + session_id +
++                                          "\",\"type\":\"mcp\",\"payload\":" + job->payload + "}";
++                    sent = ws->Send(message);
++                    result = sent ? "own session" : "send failed";
++                    vTaskDelay(pdMS_TO_TICKS(kDeviceEventLingerMs));
++                } else {
++                    result = "abandoned";
++                }
++            }
++        }
++    }
++    ws.reset();
++    if (events) {
++        vEventGroupDelete(events);
++    }
++    Schedule([this, job, sent, result]() { FinishDeviceEvent(job, sent, result); });
++    event_worker_running_ = false;
++}
++
++void Application::FinishDeviceEvent(const std::shared_ptr<DeviceEventJob>& job, bool sent,
++                                    const char* reason) {
++    if (job != event_job_) {
++        if (sent) {
++            ESP_LOGW(TAG, "Device event sent after its timeout: %s", job->payload.c_str());
++        }
++        return;
++    }
++    esp_timer_stop(event_timeout_timer_);
++    auto done = std::move(event_done_);
++    event_done_ = nullptr;
++    event_job_.reset();
++    if (sent) {
++        ESP_LOGI(TAG, "Device event sent (%s): %s", reason, job->payload.c_str());
++    } else {
++        ESP_LOGW(TAG, "Device event not sent (%s): %s", reason, job->payload.c_str());
++    }
++    if (done) {
++        done(sent);
++    }
++}
++
+ void Application::SetAecMode(AecMode mode) {
+     aec_mode_ = mode;
+     Schedule([this]() {
+diff --git a/main/application.h b/main/application.h
+index e360232..a2b554c 100644
+--- a/main/application.h
++++ b/main/application.h
+@@ -46,6 +46,8 @@ enum AecMode {
+     kAecOnServerSide,
+ };
+ 
++struct DeviceEventJob;
++
+ class Application {
+ public:
+     static Application& GetInstance() {
+@@ -144,15 +146,17 @@ public:
+     struct BackendStatus {
+         bool channel_open;
+         int poll_status;      // HTTP status of the last finished proactive poll, 0 = no response
+-        int64_t poll_age_ms;  // -1 before the first poll finished
++        int64_t poll_age_ms;       // see weixue_session::PollAgeAt
++        bool polled_since_resume;  // that poll finished after polling last resumed
+     };
+     /** Audio channel state and the last proactive poll result (any task). */
+     BackendStatus GetBackendStatus() const;
+ 
+     /**
+-     * Sends an MCP notification to the server (any task). While idle with no audio channel, opens
+-     * one for the message and closes it kDeviceEventLingerMs later if the device is still idle.
+-     * `done(sent)` runs on the main task.
++     * Sends an MCP notification to the server (any task): on the open audio channel, otherwise
++     * on a short WebSocket session of its own in a worker task, reported not sent after
++     * kDeviceEventTimeoutMs without the server hello. Never blocks the main task; a failure is
++     * logged only. `done(sent)` runs on the main task.
+      */
+     void SendDeviceEvent(const std::string& payload, std::function<void(bool)> done);
+     
+@@ -206,8 +210,15 @@ private:
+     std::atomic<bool> channel_open_{false};
+     std::atomic<int> poll_status_{0};
+     std::atomic<int64_t> poll_done_us_{0};
+-    esp_timer_handle_t event_close_timer_ = nullptr;
+-    bool event_channel_ = false;  // the open audio channel was opened by SendDeviceEvent
++    std::atomic<int64_t> poll_resumed_us_{0};
++    std::atomic<bool> poll_paused_{false};
++    std::shared_ptr<DeviceEventJob> event_job_;  // main task
++    std::function<void(bool)> event_done_;             // main task
++    esp_timer_handle_t event_timeout_timer_ = nullptr;
++    std::atomic<bool> event_worker_running_{false};
++    void DeviceEventWorker(std::shared_ptr<DeviceEventJob> job);
++    void FinishDeviceEvent(const std::shared_ptr<DeviceEventJob>& job, bool sent,
++                           const char* reason);
+ 
+ 
+     // Event handlers
+diff --git a/main/protocols/protocol.cc b/main/protocols/protocol.cc
+index ac591b5..9a9f9f4 100644
+--- a/main/protocols/protocol.cc
++++ b/main/protocols/protocol.cc
+@@ -99,10 +99,10 @@ void Protocol::SendStopListening() {
+     SendText(message);
+ }
+ 
+-void Protocol::SendMcpMessage(const std::string& payload) {
++bool Protocol::SendMcpMessage(const std::string& payload) {
+     std::string message =
+         "{\"session_id\":\"" + session_id_ + "\",\"type\":\"mcp\",\"payload\":" + payload + "}";
+-    SendText(message);
++    return SendText(message);
+ }
+ 
+ bool Protocol::IsTimeout() const {
+diff --git a/main/protocols/protocol.h b/main/protocols/protocol.h
+index cfa0dd2..86680f5 100644
+--- a/main/protocols/protocol.h
++++ b/main/protocols/protocol.h
+@@ -65,7 +65,8 @@ public:
+     virtual void SendStartListening(ListeningMode mode);
+     virtual void SendStopListening();
+     virtual void SendAbortSpeaking(AbortReason reason);
+-    virtual void SendMcpMessage(const std::string& message);
++    // False when the message could not be written to the transport.
++    virtual bool SendMcpMessage(const std::string& message);
+ 
+ protected:
+     std::function<void(const cJSON* root)> on_incoming_json_;

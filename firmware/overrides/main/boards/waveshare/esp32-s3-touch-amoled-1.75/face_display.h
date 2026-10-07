@@ -4,6 +4,7 @@
 #include "bedside_schedule.h"
 #include "device_state.h"
 #include "face_diag.h"
+#include "face_state.h"
 #include "lcd_display.h"
 #include "voice_ring.h"
 
@@ -76,8 +77,7 @@ private:
     Mood mood_ = Mood::kNeutral;
     Mood shown_mood_ = Mood::kNeutral;
     DeviceState last_state_ = kDeviceStateUnknown;
-    bool user_turn_ = false;
-    int64_t user_turn_us_ = 0;
+    ThinkingTurn thinking_;
 
     EyeShape cur_[2] = {};
     EyeBox box_[2] = {};
@@ -122,7 +122,7 @@ private:
     static void ClockDrawCb(lv_event_t* e);
 
     void Tick();
-    Mode ModeFromState(DeviceState state, int64_t now_us) const;
+    Mode ModeFromState(DeviceState state) const;
     void TargetShapes(EyeShape out[2], bool voice) const;
     void UpdateGaze(int64_t now_us, float dt_s);
     void UpdateBlink(int64_t now_us);

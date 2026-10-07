@@ -9,9 +9,10 @@ flags=(-std=c++17 -Wall -Wextra -Werror)
 if [ "$(uname)" = Darwin ]; then
   flags+=(-nostdinc++ -isystem "$(xcrun --show-sdk-path)/usr/include/c++/v1")
 fi
-for test in imu_gestures_test ring_bedside_test; do
+for test in imu_gestures_test ring_bedside_test clock_test session_test; do
   c++ "${flags[@]}" \
     -I "$root/firmware/overrides/main/boards/waveshare/esp32-s3-touch-amoled-1.75" \
+    -I "$root/firmware/overrides/main" \
     "$root/firmware/tests/$test.cc" -o "$out/$test"
   "$out/$test"
 done

@@ -1,0 +1,19 @@
+# fix-wave3-firmware retry: server image rebuilt from this branch, 2026-10-07 08:22 UTC. docker build of server/ (Dockerfile, overlay) tagged weixue/xiaozhi-esp32-server:fix-wave3-firmware (the live stack's :local image and containers untouched), then checks in throwaway containers of that image.
+## build
+sha256:5c1b5e352687d27ac4939e1844fe61930b55616afa7e1ad451854d74d96f7417
+exit 0
+## weixue_main.py in the image
+"""Container entrypoint: applies weixue_patches and weixue_clock, then runs upstream app.py as __main__."""
+import runpy
+
+import weixue_clock
+import weixue_patches
+
+weixue_patches.apply()
+weixue_clock.apply()
+runpy.run_path("app.py", run_name="__main__")
+## weixue_clock against the image's zoneinfo
+posix_tz() with TZ=Europe/Dublin: IST-1GMT0,M10.5.0,M3.5.0/1
+posix_tz(America/Los_Angeles): PST8PDT,M3.2.0,M11.1.0
+wrapped OTA response: {"server_time":{"timestamp":1791408605000,"timezone_offset":60,"tz":"IST-1GMT0,M10.5.0,M3.5.0/1"}}
+upstream OTAHandler.handle_post importable: True

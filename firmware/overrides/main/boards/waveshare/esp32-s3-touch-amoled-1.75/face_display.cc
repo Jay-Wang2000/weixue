@@ -45,7 +45,6 @@ constexpr int kCaptionWidth = 340;
 constexpr int kCaptionY = 128;
 constexpr float kShapeTau = 0.09f;
 constexpr float kGazeTau = 0.22f;
-constexpr int64_t kThinkTimeoutUs = 20LL * 1000 * 1000;
 constexpr int64_t kShiftPeriodUs = 60LL * 1000 * 1000;
 constexpr uint32_t kPanelReturnMs = 60000;
 constexpr int8_t kShiftPath[8][2] = {{0, 0},  {1, 0},  {1, 1},   {0, 1},
@@ -330,6 +329,7 @@ void FaceDisplay::SetStatus(const char* status) {
     if (status != nullptr && strcmp(status, Lang::Strings::ERROR) == 0) {
         DisplayLockGuard lock(this);
         error_until_us_ = esp_timer_get_time() + kErrorFlashUs;
+        thinking_.End();
     }
 }
 
@@ -416,19 +416,19 @@ void FaceDisplay::SetEmotion(const char* emotion) {
 }
 
 void FaceDisplay::SetChatMessage(const char* role, const char* content) {
-    if (role != nullptr && strcmp(role, "assistant") == 0) {
+    if (role != nullptr && strcmp(role, "assistant") == 0 && content != nullptr &&
+        content[0] != '\0') {
         DisplayLockGuard lock(this);
-        user_turn_ = false;
+        thinking_.End();
         if (panel_ != nullptr) {
-            panel_->AddReply(content);
+            panel_->AddReply(content, Application::GetInstance().GetReplyCount());
         }
     }
     if (role != nullptr && strcmp(role, "user") == 0) {
         {
             DisplayLockGuard lock(this);
             if (content != nullptr && content[0] != '\0') {
-                user_turn_ = true;
-                user_turn_us_ = esp_timer_get_time();
+                thinking_.OnTranscript(Application::GetInstance().GetTtsStopCount());
             }
             if (panel_ != nullptr) {
                 panel_->SetHeard(content);
@@ -444,9 +444,9 @@ void FaceDisplay::TickCb(lv_timer_t* timer) {
     static_cast<FaceDisplay*>(lv_timer_get_user_data(timer))->Tick();
 }
 
-// Thinking: from the user text (stt) until the first assistant sentence, in listening or speaking.
-FaceDisplay::Mode FaceDisplay::ModeFromState(DeviceState state, int64_t now_us) const {
-    bool thinking = user_turn_ && now_us - user_turn_us_ < kThinkTimeoutUs;
+// Thinking (see ThinkingTurn) shows in listening or speaking.
+FaceDisplay::Mode FaceDisplay::ModeFromState(DeviceState state) const {
+    bool thinking = thinking_.Thinking(Application::GetInstance().GetTtsStopCount());
     switch (state) {
         case kDeviceStateConnecting:
             return Mode::kListening;
@@ -470,7 +470,7 @@ void FaceDisplay::Tick() {
     DeviceState state = app.GetDeviceState();
     if (state != last_state_) {
         if (state == kDeviceStateIdle) {
-            user_turn_ = false;
+            thinking_.End();
         } else if (last_state_ == kDeviceStateIdle) {
             ShowPanel(false);
         }
@@ -483,7 +483,7 @@ void FaceDisplay::Tick() {
     UpdateClock(now);
     UpdateBedside(now, state);
 
-    Mode mode = ModeFromState(state, now);
+    Mode mode = ModeFromState(state);
     if (mode != mode_ || mood_ != shown_mood_) {
         mode_ = mode;
         shown_mood_ = mood_;

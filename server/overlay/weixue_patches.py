@@ -524,7 +524,8 @@ def unlisted(handler, device_id):
 
 def refuse_unlisted_ota(handle_post, web, logger):
     """Wraps OTAHandler.handle_post: with auth enabled and allowed_devices set, a Device-Id not on
-    the list gets 403 and no websocket section; listed devices get upstream's response."""
+    the list gets 403 and no websocket section; listed devices get upstream's response. The wrapper
+    keeps the wrapped function's markers and adds `weixue_allowlist`."""
 
     async def wrapper(self, request):
         device_id = request.headers.get("device-id", "")
@@ -535,7 +536,8 @@ def refuse_unlisted_ota(handle_post, web, logger):
             return response
         return await handle_post(self, request)
 
-    wrapper.weixue_wrapped = handle_post
+    wrapper.__dict__.update(handle_post.__dict__)
+    wrapper.weixue_allowlist = handle_post
     return wrapper
 
 
@@ -620,7 +622,7 @@ def apply():
     if getattr(mcp_handler.handle, "weixue_wrapped", None) is None:
         mcp_handler.handle = log_device_events(mcp_handler.handle, logger)
 
-    if getattr(OTAHandler.handle_post, "weixue_wrapped", None) is None:
+    if getattr(OTAHandler.handle_post, "weixue_allowlist", None) is None:
         OTAHandler.handle_post = refuse_unlisted_ota(OTAHandler.handle_post, web, logger)
     ws_server = websocket_server.WebSocketServer
     if getattr(ws_server._handle_auth, "weixue_wrapped", None) is None:

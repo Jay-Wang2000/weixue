@@ -1,0 +1,1991 @@
+# fix-wave3-firmware wake trials, device serial (release build, patches 05-28), 05:24-05:38 UTC; [UTC] host receive time, I (ms) device uptime; '###' lines are the driver's trial markers. Summary: fix-wave3-firmware-wake-trials-2026-10-07.log. SSID/BSSID redacted.
+[05:24:37.007] ESP-ROM:esp32s3-20210327
+[05:24:37.007] Build:Mar 27 2021
+[05:24:37.007] rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+[05:24:37.007] Saved PC:0x40382d5a
+[05:24:37.007] SPIWP:0xee
+[05:24:37.007] mode:DIO, clock div:1
+[05:24:37.007] load:0x3fce2820,len:0x544
+[05:24:37.007] load:0x403c8700,len:0xd14
+[05:24:37.007] load:0x403cb700,len:0x2eb4
+[05:24:37.007] entry 0x403c88f4
+[05:24:37.007] I (34) octal_psram: vendor id    : 0x0d (AP)
+[05:24:37.007] I (34) octal_psram: dev id       : 0x02 (generation 3)
+[05:24:37.007] I (34) octal_psram: density      : 0x03 (64 Mbit)
+[05:24:37.007] I (36) octal_psram: good-die     : 0x01 (Pass)
+[05:24:37.007] I (40) octal_psram: Latency      : 0x01 (Fixed)
+[05:24:37.007] I (44) octal_psram: VCC          : 0x01 (3V)
+[05:24:37.007] I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+[05:24:37.007] I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+[05:24:37.007] I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+[05:24:37.007] I (63) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+[05:24:37.008] I (68) octal_psram: DriveStrength: 0x00 (1/1)
+[05:24:37.008] I (72) MSPI Timing: Enter psram timing tuning
+[05:24:37.008] I (77) esp_psram: Found 8MB PSRAM device
+[05:24:37.008] I (79) esp_psram: Speed: 80MHz
+[05:24:37.008] I (82) cpu_start: Multicore app
+[05:24:37.008] I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+[05:24:37.008] I (97) cpu_start: Pro cpu start user code
+[05:24:37.008] I (97) cpu_start: cpu freq: 240000000 Hz
+[05:24:37.008] I (99) app_init: Application information:
+[05:24:37.008] I (102) app_init: Project name:     xiaozhi
+[05:24:37.008] I (106) app_init: App version:      2.5.1
+[05:24:37.008] I (110) app_init: Compile time:     Oct  7 2026 06:01:08
+[05:24:37.008] I (115) app_init: ELF file SHA256:  26c9656db...
+[05:24:37.008] I (119) app_init: ESP-IDF:          v6.1
+[05:24:37.008] I (123) efuse_init: Min chip rev:     v0.0
+[05:24:37.008] I (127) efuse_init: Max chip rev:     v0.99 
+[05:24:37.008] I (131) efuse_init: Chip rev:         v0.2
+[05:24:37.008] I (135) heap_init: Initializing. RAM available for dynamic allocation:
+[05:24:37.008] I (141) heap_init: At 3FCAB2D0 len 0003E440 (249 KiB): RAM
+[05:24:37.008] I (146) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+[05:24:37.008] I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+[05:24:37.008] I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+[05:24:37.008] I (162) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+[05:24:37.008] I (169) spi_flash: detected chip: gd
+[05:24:37.008] I (171) spi_flash: flash io: qio
+[05:24:37.008] I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[05:24:37.008] I (181) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[05:24:37.008] I (188) main_task: Started on CPU0
+[05:24:37.008] I (188) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+[05:24:37.209] I (198) main_task: Calling app_main()
+[05:24:37.209] I (368) Board: UUID=ad786b10-efaf-422a-ab57-40edacba9d51 SKU=esp32-s3-touch-amoled-1.75c-weixue
+[05:24:37.209] I (368) button: IoT Button Version: 4.2.1
+[05:24:37.209] I (368) PowerSaveTimer: Power save timer enabled
+[05:24:37.209] I (378) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+[05:24:37.209] I (378) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+[05:24:37.209] W (388) spi_common: GPIO 0 is conflict with others and be overwritten
+[05:24:37.414] W (398) spi_common: GPIO 0 is conflict with others and be overwritten
+[05:24:37.414] W (408) spi_common: GPIO 0 is conflict with others and be overwritten
+[05:24:37.414] I (408) co5300: version: 2.2.0
+[05:24:37.414] I (418) co5300_spi: LCD panel create success, version: 2.2.0
+[05:24:37.414] W (578) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+[05:24:38.642] I (1778) Display: Power management not supported
+[05:24:38.845] I (1858) LcdDisplay: Turning display on
+[05:24:38.845] I (1858) LcdDisplay: Initialize LVGL library
+[05:24:38.845] I (1858) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+[05:24:38.845] I (1858) LcdDisplay: Use 2MB of PSRAM for image cache
+[05:24:38.845] I (1868) LcdDisplay: Initialize LVGL port
+[05:24:38.845] I (1868) LcdDisplay: Adding LCD display
+[05:24:38.845] I (1868) LVGL: Starting LVGL task
+[05:24:38.845] I (1878) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+[05:24:38.845] I (1878) Backlight: Set brightness to 75
+[05:24:38.845] I (1888) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+[05:24:38.845] I (1958) CST9217: Checkcode: 0x204ECACA
+[05:24:38.845] I (1958) CST9217: Resolution X: 466, Y: 466
+[05:24:38.845] I (1958) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+[05:24:38.845] I (1958) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+[05:24:38.845] I (1958) Qmi8658: QMI8658 found at 0x6B
+[05:24:38.845] I (1988) Qmi8658: Reset result 0x80
+[05:24:38.845] I (2008) MCP: Add tool: self.system.reconfigure_wifi
+[05:24:38.845] I (2008) MCP: Add tool: self.screen.set_bedside
+[05:24:38.845] I (2008) MCP: Add tool: self.imu.get_state
+[05:24:38.845] I (2008) StateMachine: State: unknown -> starting
+[05:24:38.845] I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.023 y=-0.012 z=0.996 g
+[05:24:38.845] I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 0 samples (1)
+[05:24:39.045] I (2148) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 30 samples (2)
+[05:24:39.045] W (2228) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+[05:24:39.045] I (2228) BoxAudioCodec: Duplex channels created
+[05:24:39.045] I (2228) ES8311: Work in Slave mode
+[05:24:39.045] I (2238) ES7210: Work in Slave mode
+[05:24:39.246] I (2248) ES7210: Enable ES7210_INPUT_MIC1
+[05:24:39.246] I (2248) ES7210: Enable ES7210_INPUT_MIC2
+[05:24:39.246] I (2248) ES7210: Enable ES7210_INPUT_MIC3
+[05:24:39.246] I (2258) ES7210: Enable ES7210_INPUT_MIC4
+[05:24:39.246] I (2258) ES7210: Enable TDM mode
+[05:24:39.246] I (2258) BoxAudioCodec: BoxAudioDevice initialized
+[05:24:39.246] I (2268) AudioCodec: Audio codec started
+[05:24:39.246] I (2268) Application: After board/audio init
+[05:24:39.246] I (2268) SystemInfo: free sram: 189475 minimal sram: 87948
+[05:24:39.246] I (2268) MCP: Add tool: self.get_device_status
+[05:24:39.246] I (2278) MCP: Add tool: self.audio_speaker.set_volume
+[05:24:39.246] I (2278) MCP: Add tool: self.screen.set_brightness
+[05:24:39.246] I (2288) MCP: Add tool: self.screen.set_theme
+[05:24:39.246] I (2288) MCP: Add tool: self.get_system_info [user]
+[05:24:39.246] I (2288) MCP: Add tool: self.reboot [user]
+[05:24:39.246] I (2298) MCP: Add tool: self.upgrade_firmware [user]
+[05:24:39.246] I (2298) MCP: Add tool: self.screen.get_info [user]
+[05:24:39.246] I (2308) MCP: Add tool: self.screen.snapshot [user]
+[05:24:39.246] I (2308) MCP: Add tool: self.screen.preview_image [user]
+[05:24:39.246] I (2318) MCP: Add tool: self.assets.set_download_url [user]
+[05:24:39.246] I (2318) WifiManager: Initializing...
+[05:24:39.246] I (2328) pp: pp rom version: e7ae62f
+[05:24:39.246] I (2328) net80211: net80211 rom version: e7ae62f
+[05:24:39.246] I (2338) wifi:wifi driver task: 3fce34d8, prio:23, stack:6656, core=0
+[05:24:39.246] I (2338) wifi:wifi firmware version: e12a754
+[05:24:39.246] I (2338) wifi:wifi certification version: v7.0
+[05:24:39.246] I (2348) wifi:config NVS flash: disabled
+[05:24:39.246] I (2348) wifi:config nano formatting: disabled
+[05:24:39.246] I (2358) wifi:Init data frame dynamic rx buffer num: 6
+[05:24:39.246] I (2358) wifi:Init dynamic rx mgmt buffer num: 5
+[05:24:39.246] I (2358) wifi:Init management short buffer num: 32
+[05:24:39.246] I (2368) wifi:Init dynamic tx buffer num: 32
+[05:24:39.246] I (2368) wifi:Init static tx FG buffer num: 2
+[05:24:39.246] I (2378) wifi:Init static rx buffer size: 1600
+[05:24:39.246] I (2378) wifi:Init static rx buffer num: 3
+[05:24:39.246] I (2388) wifi:Init dynamic rx buffer num: 6
+[05:24:39.246] I (2388) wifi_init: rx ba win: 3
+[05:24:39.246] I (2388) wifi_init: accept mbox: 6
+[05:24:39.246] I (2398) wifi_init: tcpip mbox: 16
+[05:24:39.246] I (2398) wifi_init: udp mbox: 6
+[05:24:39.246] I (2398) wifi_init: tcp mbox: 6
+[05:24:39.246] I (2398) wifi_init: tcp tx win: 5760
+[05:24:39.246] I (2408) wifi_init: tcp rx win: 5760
+[05:24:39.246] I (2408) wifi_init: tcp mss: 1440
+[05:24:39.246] I (2408) WifiManager: Initialized
+[05:24:39.246] I (2388) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 31 samples (3)
+[05:24:39.246] I (2428) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 17 samples (4)
+[05:24:39.246] I (2428) WifiBoard: Starting WiFi connection attempt
+[05:24:39.247] I (2438) WifiManager: Starting station
+[05:24:39.452] I (2438) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+[05:24:39.452] I (2448) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+[05:24:39.452] I (2488) wifi:mode : sta (7c:0c:5f:42:4b:fc)
+[05:24:39.452] I (2488) wifi:enable tsf
+[05:24:39.452] I (2488) WifiStation: Scanning saved channel 11
+[05:24:39.452] I (2488) WifiBoard: WiFi scanning
+[05:24:39.452] I (2488) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 32 samples (5)
+[05:24:39.452] I (2608) WifiStation: No AP on saved channels, starting full scan
+[05:24:39.452] I (2608) WifiStation: Scanning all channels
+[05:24:41.893] I (5018) WifiStation: Found AP: <ssid>, BSSID: <bssid>, RSSI: -86, Channel: 11, Authmode: 3
+[05:24:41.893] I (5018) WifiBoard: WiFi connecting to <ssid>
+[05:24:41.893] W (5018) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+[05:24:42.094] I (5118) wifi:new:<11,2>, old:<1,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+[05:24:42.094] I (5118) wifi:state: init -> auth (0xb0)
+[05:24:42.094] I (5118) wifi:state: auth -> assoc (0x0)
+[05:24:42.094] I (5128) wifi:state: assoc -> run (0x10)
+[05:24:42.094] I (5238) wifi:connected with <ssid>, aid = 4, channel 11, 40D, bssid = <bssid>
+[05:24:42.094] I (5238) wifi:security: WPA2-PSK, phy: bgn, rssi: -81, cipher(pairwise:0x3, group:0x3), pmf:0
+[05:24:42.094] I (5238) wifi:pm start, type: 1
+[05:24:42.094] 
+[05:24:42.094] I (5238) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+[05:24:42.094] I (5248) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+[05:24:42.094] I (5268) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+[05:24:42.095] I (5268) wifi:<ba-add>idx:0 (ifx:0, <ssid>), tid:7, ssn:0, winSize:64
+[05:24:42.300] I (5388) wifi:<ba-add>idx:1 (ifx:0, <ssid>), tid:0, ssn:0, winSize:64
+[05:24:43.112] I (6298) esp_netif_handlers: sta ip: 192.168.8.148, mask: 255.255.255.0, gw: 192.168.8.1
+[05:24:43.112] I (6298) WifiStation: Got IP: 192.168.8.148
+[05:24:43.112] I (6298) WifiBoard: Connected to WiFi: <ssid>
+[05:24:43.112] I (6298) Application: Network connected
+[05:24:43.112] I (6298) StateMachine: State: starting -> activating
+[05:24:43.313] I (6308) Assets: The storage free size is 21632 KB
+[05:24:43.313] I (6308) Assets: The assets map size is 2944 KB (partition 16384 KB)
+[05:24:43.313] I (6488) Assets: The checksum calculation time is 172 ms
+[05:24:43.313] I (6488) MODEL_LOADER: Successfully load srmodels
+[05:24:43.314] I (6498) Assets: Refreshing display theme...
+[05:24:43.519] I (6518) Ota: Current version: 2.5.1
+[05:24:43.519] I (6518) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:24:44.544] I (7608) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=1090
+[05:24:44.949] I (7948) HttpClient: HTTP connection closed
+[05:24:44.949] I (7948) Ota: No mqtt section found !
+[05:24:44.949] I (7958) Ota: Clock: TZ PST8PDT,M3.2.0,M11.1.0, UTC offset -420 min (January -480, July -420)
+[05:24:44.949] I (7958) Ota: Current is the latest version
+[05:24:44.949] I (7958) Ota: Running partition: ota_0
+[05:24:44.950] I (7978) Application: Activation done
+[05:24:44.950] I (7978) SystemInfo: free sram: 148479 minimal sram: 39812
+[05:24:44.950] I (7978) StateMachine: State: activating -> idle
+[05:24:44.950] I (7978) Application: Proactive poller: http://192.168.8.220:8003/weixue/proactive/poll
+[05:24:44.950] I (7988) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:24:44.950] I (7988) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:24:44.950] I (7988) wifi:Set ps type: 2, coexist: 0
+[05:24:44.950] 
+[05:24:44.950] I (8008) AfeAudioEngine: Model 0: wn9_jarvis_tts
+[05:24:44.950] I (8008) WakeWordCache: Allocated 64000 bytes in PSRAM
+[05:24:44.950] I (8008) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+[05:24:44.950] I (8018) AfeAudioEngine: Before AFE create: free=137683 min=39812 largest=90112
+[05:24:44.950] MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+[05:24:44.950] I (8108) AFE: AFE Version: (1MIC_V251128)
+[05:24:44.950] I (8108) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[05:24:44.950] I (8118) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+[05:24:44.950] I (8128) AFE: AFE Version: (1MIC_V251128)
+[05:24:44.950] I (8138) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[05:24:45.154] I (8138) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+[05:24:45.154] I (8148) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+[05:24:45.154] I (8158) AfeAudioEngine: After AFE create: free=117471 min=33468 largest=73728
+[05:24:45.154] I (8168) I2S_IF: Paired data: 0x3fcd45ec, current mode: playback, paired in_enable: 0, paired out_enable: 0
+[05:24:45.154] I (8178) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+[05:24:45.154] I (8178) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[05:24:45.154] I (8208) Adev_Codec: Open codec device OK
+[05:24:45.154] I (8208) AudioCodec: Set output enable to true
+[05:24:45.154] I (8208) I2S_IF: Peer mode playback need extend bits 32 to 64
+[05:24:45.154] I (8208) AudioService: Resampling audio from 16000 to 24000
+[05:24:45.154] I (8208) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+[05:24:45.154] I (8218) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[05:24:45.154] I (8228) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+[05:24:45.154] I (8238) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[05:24:45.154] I (8248) ES7210: Bits 16
+[05:24:45.154] I (8258) ES7210: Enable ES7210_INPUT_MIC1
+[05:24:45.154] I (8258) ES7210: Enable ES7210_INPUT_MIC2
+[05:24:45.154] I (8258) ES7210: Enable ES7210_INPUT_MIC3
+[05:24:45.154] I (8258) ES7210: Enable ES7210_INPUT_MIC4
+[05:24:45.154] I (8268) ES7210: Enable TDM mode
+[05:24:45.154] I (8278) ES7210: Unmuted
+[05:24:45.154] I (8278) Adev_Codec: Open codec device OK
+[05:24:45.154] I (8278) AudioCodec: Set input enable to true
+[05:24:45.154] I (8328) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=340
+[05:24:48.026] ### trial en_onebreath 1 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_onebreath.wav
+[05:24:49.255] I (12298) Application: Wake word detected: Jarvis (state: 3)
+[05:24:49.256] I (12298) StateMachine: State: idle -> connecting
+[05:24:49.256] I (12298) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:24:49.256] I (12298) wifi:Set ps type: 0, coexist: 0
+[05:24:49.256] 
+[05:24:49.256] I (12308) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:24:49.256] I (12318) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:24:49.459] I (12458) WebSocket: WebSocket handshake done, cost=140 tcp=10 handshake=130
+[05:24:49.459] I (12558) FaceDisplay: mode=listening mood=neutral
+[05:24:49.459] I (12558) FaceDisplay: ring=pulse bedside=0
+[05:24:49.459] I (12588) WS: Session ID: e20e547c-bf65-4574-a05a-bf18f079ae11
+[05:24:49.459] I (12588) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:24:49.459] I (12588) wifi:Set ps type: 0, coexist: 0
+[05:24:49.459] 
+[05:24:49.459] W (12588) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:24:49.459] I (12598) Application: Wake word detected: Jarvis
+[05:24:49.459] I (12628) AfeAudioEngine: Encoded wake word into 33 packets in 334 ms
+[05:24:49.459] I (12628) Application: Sent 4 packets captured after the wake word
+[05:24:49.459] I (12638) StateMachine: State: connecting -> listening
+[05:24:51.907] I (15078) Application: >> Jarvis, what time is it?
+[05:24:51.907] I (15088) StateMachine: State: listening -> speaking
+[05:24:51.907] I (15098) FaceDisplay: mode=thinking mood=neutral
+[05:24:51.907] I (15098) FaceDisplay: ring=spin bedside=0
+[05:24:53.534] I (16528) Application: << It's ten twenty-four PM
+[05:24:53.535] I (16548) FaceDisplay: mode=speaking mood=neutral
+[05:24:53.535] I (16548) FaceDisplay: ring=level bedside=0
+[05:24:55.785] I (18778) StateMachine: State: speaking -> listening
+[05:24:55.785] I (18828) FaceDisplay: mode=listening mood=neutral
+[05:24:55.785] I (18828) FaceDisplay: ring=pulse bedside=0
+[05:24:56.596] I (19668) Application: >> It's 10:24
+[05:24:56.597] I (19668) StateMachine: State: listening -> speaking
+[05:24:56.597] I (19698) FaceDisplay: mode=thinking mood=neutral
+[05:24:56.597] I (19698) FaceDisplay: ring=spin bedside=0
+[05:24:57.824] I (20858) Application: << Yep
+[05:24:57.824] I (20888) FaceDisplay: mode=speaking mood=neutral
+[05:24:57.824] I (20888) FaceDisplay: ring=level bedside=0
+[05:24:58.230] I (21418) Application: << ten twenty-four. Getting late, isnt it?
+[05:25:01.494] I (24648) StateMachine: State: speaking -> listening
+[05:25:01.495] I (24658) FaceDisplay: mode=listening mood=neutral
+[05:25:01.495] I (24658) FaceDisplay: ring=pulse bedside=0
+[05:25:09.663] I (32678) WS: Websocket disconnected
+[05:25:09.663] I (32678) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:25:09.663] I (32678) wifi:Set ps type: 2, coexist: 0
+[05:25:09.663] 
+[05:25:09.663] I (32708) StateMachine: State: listening -> idle
+[05:25:09.663] I (32718) FaceDisplay: mode=idle mood=neutral
+[05:25:09.663] I (32718) FaceDisplay: ring=off bedside=0
+[05:25:11.718] I (34738) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:25:11.718] I (34748) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+[05:25:12.700] ### trial zh_onebreath 1 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_onebreath.wav
+[05:25:13.957] I (36988) Application: Wake word detected: Jarvis (state: 3)
+[05:25:13.958] I (36988) StateMachine: State: idle -> connecting
+[05:25:13.959] I (36988) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:25:13.959] I (36988) wifi:Set ps type: 0, coexist: 0
+[05:25:13.959] 
+[05:25:13.959] E (36998) EspTcp: TCP receive failed: -1
+[05:25:13.959] I (36998) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:25:13.959] I (37008) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:25:13.959] I (37128) FaceDisplay: mode=listening mood=neutral
+[05:25:13.959] I (37128) FaceDisplay: ring=pulse bedside=0
+[05:25:13.959] I (37148) WebSocket: WebSocket handshake done, cost=140 tcp=80 handshake=60
+[05:25:14.162] I (37178) WS: Session ID: a52904f3-493a-4697-950a-1f0496f5212b
+[05:25:14.162] I (37178) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:25:14.162] I (37178) wifi:Set ps type: 0, coexist: 0
+[05:25:14.162] 
+[05:25:14.162] W (37188) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:25:14.162] I (37198) Application: Wake word detected: Jarvis
+[05:25:14.375] I (37398) AfeAudioEngine: Encoded wake word into 33 packets in 410 ms
+[05:25:14.375] I (37398) Application: Sent 6 packets captured after the wake word
+[05:25:14.375] I (37398) StateMachine: State: connecting -> listening
+[05:25:17.221] I (40248) Application: >> Jarvis, 现在几点 ?
+[05:25:17.221] I (40258) StateMachine: State: listening -> speaking
+[05:25:17.221] I (40268) FaceDisplay: mode=thinking mood=neutral
+[05:25:17.221] I (40268) FaceDisplay: ring=spin bedside=0
+[05:25:19.060] I (42158) FaceDisplay: mode=thinking mood=happy
+[05:25:19.671] I (42738) Application: << 现在是晚上十点二十五分
+[05:25:19.671] I (42778) FaceDisplay: mode=speaking mood=happy
+[05:25:19.671] I (42778) FaceDisplay: ring=level bedside=0
+[05:25:23.143] I (46288) StateMachine: State: speaking -> listening
+[05:25:23.143] I (46298) FaceDisplay: mode=listening mood=neutral
+[05:25:23.143] I (46308) FaceDisplay: ring=pulse bedside=0
+[05:25:31.111] I (54268) WS: Websocket disconnected
+[05:25:31.111] I (54268) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:25:31.111] I (54268) wifi:Set ps type: 2, coexist: 0
+[05:25:31.111] 
+[05:25:31.111] I (54278) StateMachine: State: listening -> idle
+[05:25:31.111] I (54288) FaceDisplay: mode=idle mood=neutral
+[05:25:31.111] I (54288) FaceDisplay: ring=off bedside=0
+[05:25:34.123] ### trial en_paused 1 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_paused.wav
+[05:25:35.193] I (58368) Application: Wake word detected: Jarvis (state: 3)
+[05:25:35.193] I (58368) StateMachine: State: idle -> connecting
+[05:25:35.193] I (58368) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:25:35.193] I (58368) wifi:Set ps type: 0, coexist: 0
+[05:25:35.193] 
+[05:25:35.193] E (58378) EspTcp: TCP receive failed: -1
+[05:25:35.193] I (58378) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:25:35.397] I (58388) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:25:35.397] I (58458) WebSocket: WebSocket handshake done, cost=70 tcp=30 handshake=40
+[05:25:35.397] I (58478) FaceDisplay: mode=listening mood=neutral
+[05:25:35.397] I (58478) FaceDisplay: ring=pulse bedside=0
+[05:25:35.399] I (58488) WS: Session ID: 33c5520a-ce13-45f9-9183-0ffd4cea546f
+[05:25:35.399] I (58488) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:25:35.400] I (58488) wifi:Set ps type: 0, coexist: 0
+[05:25:35.400] 
+[05:25:35.400] W (58498) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:25:35.400] I (58508) Application: Wake word detected: Jarvis
+[05:25:35.603] I (58778) AfeAudioEngine: Encoded wake word into 33 packets in 409 ms
+[05:25:35.603] I (58778) Application: Sent 6 packets captured after the wake word
+[05:25:35.603] I (58778) StateMachine: State: connecting -> listening
+[05:25:36.214] I (59408) StateMachine: State: listening -> speaking
+[05:25:36.419] I (59438) FaceDisplay: mode=speaking mood=neutral
+[05:25:36.419] I (59438) FaceDisplay: ring=level bedside=0
+[05:25:36.619] I (59638) Application: << Mm-hm?
+[05:25:37.024] I (60178) StateMachine: State: speaking -> listening
+[05:25:37.024] I (60198) FaceDisplay: mode=listening mood=neutral
+[05:25:37.024] I (60198) FaceDisplay: ring=pulse bedside=0
+[05:25:39.678] I (62818) Application: >> What time is it?
+[05:25:39.678] I (62818) StateMachine: State: listening -> speaking
+[05:25:39.678] I (62818) FaceDisplay: mode=thinking mood=neutral
+[05:25:39.679] I (62828) FaceDisplay: ring=spin bedside=0
+[05:25:41.523] I (64518) Application: << It's ten twenty-five at night
+[05:25:41.523] I (64538) FaceDisplay: mode=speaking mood=neutral
+[05:25:41.523] I (64538) FaceDisplay: ring=level bedside=0
+[05:25:43.768] I (66778) StateMachine: State: speaking -> listening
+[05:25:43.768] I (66798) FaceDisplay: mode=listening mood=neutral
+[05:25:43.769] I (66798) FaceDisplay: ring=pulse bedside=0
+[05:25:51.731] I (74848) WS: Websocket disconnected
+[05:25:51.731] I (74848) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:25:51.731] I (74848) wifi:Set ps type: 2, coexist: 0
+[05:25:51.731] 
+[05:25:51.731] I (74848) StateMachine: State: listening -> idle
+[05:25:51.731] I (74848) FaceDisplay: mode=idle mood=neutral
+[05:25:51.731] I (74858) FaceDisplay: ring=off bedside=0
+[05:25:52.754] I (75778) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:25:52.754] I (75778) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+[05:25:54.183] I (77218) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 1)
+[05:25:54.744] ### trial zh_paused 1 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_paused.wav
+[05:25:56.025] I (79048) Application: Wake word detected: Jarvis (state: 3)
+[05:25:56.025] I (79048) StateMachine: State: idle -> connecting
+[05:25:56.025] I (79048) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:25:56.025] I (79048) wifi:Set ps type: 0, coexist: 0
+[05:25:56.025] 
+[05:25:56.025] E (79058) EspTcp: TCP receive failed: -1
+[05:25:56.025] I (79058) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:25:56.025] I (79068) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:25:56.025] I (79148) WebSocket: WebSocket handshake done, cost=80 tcp=10 handshake=70
+[05:25:56.025] I (79158) WS: Session ID: 8d1c747a-baa8-4cb1-88f2-f171aaa2c8a1
+[05:25:56.025] I (79158) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:25:56.025] I (79158) wifi:Set ps type: 0, coexist: 0
+[05:25:56.025] 
+[05:25:56.025] W (79168) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:25:56.025] I (79178) Application: Wake word detected: Jarvis
+[05:25:56.230] I (79258) FaceDisplay: mode=listening mood=neutral
+[05:25:56.230] I (79258) FaceDisplay: ring=pulse bedside=0
+[05:25:56.432] I (79468) AfeAudioEngine: Encoded wake word into 33 packets in 425 ms
+[05:25:56.432] I (79478) Application: Sent 6 packets captured after the wake word
+[05:25:56.432] I (79478) StateMachine: State: connecting -> listening
+[05:25:57.045] I (80188) StateMachine: State: listening -> speaking
+[05:25:57.045] I (80228) FaceDisplay: mode=speaking mood=neutral
+[05:25:57.045] I (80228) FaceDisplay: ring=level bedside=0
+[05:25:57.249] I (80388) Application: << Hmm?
+[05:25:57.857] I (80928) StateMachine: State: speaking -> listening
+[05:25:57.857] I (80948) FaceDisplay: mode=listening mood=neutral
+[05:25:57.857] I (80948) FaceDisplay: ring=pulse bedside=0
+[05:26:00.908] I (83988) Application: >> 现在几点 ?
+[05:26:00.908] I (83998) StateMachine: State: listening -> speaking
+[05:26:00.908] I (84008) FaceDisplay: mode=thinking mood=neutral
+[05:26:00.908] I (84008) FaceDisplay: ring=spin bedside=0
+[05:26:02.535] I (85558) Application: << 现在是晚上十点二十六分
+[05:26:02.536] I (85588) FaceDisplay: mode=speaking mood=neutral
+[05:26:02.536] I (85588) FaceDisplay: ring=level bedside=0
+[05:26:05.590] I (88728) StateMachine: State: speaking -> listening
+[05:26:05.590] I (88758) FaceDisplay: mode=listening mood=neutral
+[05:26:05.590] I (88758) FaceDisplay: ring=pulse bedside=0
+[05:26:07.020] I (90148) MonitorPanel: page=panel
+[05:26:07.428] W (90418) AudioService: Encode queue is full, dropping oldest frame (dropped 1 so far)
+[05:26:11.504] I (94658) MonitorPanel: card fixture-1 approve (seq 1)
+[05:26:11.505] I (94658) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":1}}
+[05:26:12.729] I (95888) MonitorPanel: card fixture-1 approve (seq 2)
+[05:26:12.729] I (95888) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":2}}
+[05:26:13.542] I (96678) WS: Websocket disconnected
+[05:26:13.543] I (96678) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:26:13.543] I (96678) wifi:Set ps type: 2, coexist: 0
+[05:26:13.543] 
+[05:26:13.543] I (96698) StateMachine: State: listening -> idle
+[05:26:13.543] I (96708) FaceDisplay: mode=idle mood=neutral
+[05:26:13.543] I (96708) FaceDisplay: ring=off bedside=0
+[05:26:16.002] I (99118) MonitorPanel: card fixture-1 approve (seq 3)
+[05:26:16.002] I (99118) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:26:16.002] I (99168) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+[05:26:16.569] ### trial en_onebreath 2 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_onebreath.wav
+[05:26:16.618] E (99678) EspTcp: TCP receive failed: -1
+[05:26:16.618] I (99678) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":3}}
+[05:26:17.233] I (100288) MonitorPanel: card fixture-1 approve (seq 4)
+[05:26:17.233] I (100288) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:26:17.233] I (100338) WebSocket: WebSocket handshake done, cost=50 tcp=20 handshake=30
+[05:26:17.643] I (100788) Application: Wake word detected: Jarvis (state: 3)
+[05:26:17.643] I (100788) StateMachine: State: idle -> connecting
+[05:26:17.643] I (100788) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:26:17.643] I (100788) wifi:Set ps type: 0, coexist: 0
+[05:26:17.643] 
+[05:26:17.643] E (100798) EspTcp: TCP receive failed: -1
+[05:26:17.643] I (100798) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:26:17.643] I (100808) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:26:17.848] E (100858) EspTcp: TCP receive failed: -1
+[05:26:17.848] I (100918) MonitorPanel: page=face
+[05:26:17.848] I (100918) FaceDisplay: mode=listening mood=neutral
+[05:26:17.848] I (100928) WebSocket: WebSocket handshake done, cost=120 tcp=10 handshake=110
+[05:26:17.848] I (100958) WS: Session ID: bf0cb626-3db3-4b60-a256-2c83d460b96b
+[05:26:17.848] I (100958) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:26:17.848] I (100958) wifi:Set ps type: 0, coexist: 0
+[05:26:17.848] 
+[05:26:17.848] W (100958) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:26:17.848] I (100968) Application: Wake word detected: Jarvis
+[05:26:17.848] I (101018) FaceDisplay: ring=pulse bedside=0
+[05:26:18.053] I (101168) AfeAudioEngine: Encoded wake word into 33 packets in 384 ms
+[05:26:18.053] I (101178) Application: Sent 5 packets captured after the wake word
+[05:26:18.053] I (101178) StateMachine: State: connecting -> listening
+[05:26:18.258] I (101298) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":4}}
+[05:26:18.258] W (101298) AudioService: Encode queue is full, dropping oldest frame (dropped 2 so far)
+[05:26:20.507] I (103598) Application: >> Jarvis, what time is it?
+[05:26:20.507] I (103608) StateMachine: State: listening -> speaking
+[05:26:20.507] I (103618) FaceDisplay: mode=thinking mood=neutral
+[05:26:20.508] I (103618) FaceDisplay: ring=spin bedside=0
+[05:26:22.138] I (105278) Application: << It's twenty-two twenty-six
+[05:26:22.138] I (105288) FaceDisplay: mode=speaking mood=neutral
+[05:26:22.138] I (105288) FaceDisplay: ring=level bedside=0
+[05:26:24.177] I (107188) Application: << so about 10:26 at night
+[05:26:25.405] I (108508) MonitorPanel: page=panel
+[05:26:26.838] I (110018) StateMachine: State: speaking -> listening
+[05:26:26.838] I (110018) FaceDisplay: mode=listening mood=neutral
+[05:26:26.838] I (110018) FaceDisplay: ring=pulse bedside=0
+[05:26:27.245] I (110378) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 2)
+[05:26:32.571] I (115638) MonitorPanel: card fixture-1 approve (seq 5)
+[05:26:32.571] I (115638) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":5}}
+[05:26:33.592] I (116608) MonitorPanel: card fixture-1 approve (seq 6)
+[05:26:33.592] I (116608) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve","fixture":true,"seq":6}}
+[05:26:35.022] I (118048) WS: Websocket disconnected
+[05:26:35.022] I (118048) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:26:35.022] I (118048) wifi:Set ps type: 2, coexist: 0
+[05:26:35.022] 
+[05:26:35.022] I (118068) StateMachine: State: listening -> idle
+[05:26:35.022] I (118098) FaceDisplay: mode=idle mood=neutral
+[05:26:35.022] I (118098) FaceDisplay: ring=off bedside=0
+[05:26:35.432] I (118478) MonitorPanel: page=face
+[05:26:35.843] I (118888) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:26:35.844] I (118898) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+[05:26:37.070] I (120238) MonitorPanel: page=panel
+[05:26:37.679] I (120858) MonitorPanel: page=face
+[05:26:38.044] ### trial zh_onebreath 2 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_onebreath.wav
+[05:26:39.114] I (122248) Application: Wake word detected: Jarvis (state: 3)
+[05:26:39.115] I (122248) StateMachine: State: idle -> connecting
+[05:26:39.115] I (122248) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:26:39.115] I (122248) wifi:Set ps type: 0, coexist: 0
+[05:26:39.115] 
+[05:26:39.115] E (122258) EspTcp: TCP receive failed: -1
+[05:26:39.115] I (122258) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:26:39.115] I (122268) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:26:39.319] I (122348) WebSocket: WebSocket handshake done, cost=80 tcp=20 handshake=60
+[05:26:39.319] I (122388) WS: Session ID: 72f423d5-68fa-44ab-9109-65a960c076e3
+[05:26:39.319] I (122388) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:26:39.319] I (122388) wifi:Set ps type: 0, coexist: 0
+[05:26:39.319] 
+[05:26:39.319] W (122388) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:26:39.319] I (122398) Application: Wake word detected: Jarvis
+[05:26:39.519] I (122518) FaceDisplay: mode=listening mood=neutral
+[05:26:39.519] I (122518) FaceDisplay: ring=pulse bedside=0
+[05:26:39.519] I (122638) AfeAudioEngine: Encoded wake word into 33 packets in 388 ms
+[05:26:39.519] I (122638) Application: Sent 5 packets captured after the wake word
+[05:26:39.519] I (122638) StateMachine: State: connecting -> listening
+[05:26:42.377] I (125398) Application: >> Jarvis, 现在几点 ?
+[05:26:42.378] I (125408) StateMachine: State: listening -> speaking
+[05:26:42.378] I (125418) FaceDisplay: mode=thinking mood=neutral
+[05:26:42.378] I (125418) FaceDisplay: ring=spin bedside=0
+[05:26:44.412] I (127608) Application: << 现在是晚上十点二十六分
+[05:26:44.612] I (127648) FaceDisplay: mode=speaking mood=neutral
+[05:26:44.612] I (127648) FaceDisplay: ring=level bedside=0
+[05:26:47.875] I (130948) StateMachine: State: speaking -> listening
+[05:26:47.875] I (130988) FaceDisplay: mode=listening mood=neutral
+[05:26:47.875] I (130998) FaceDisplay: ring=pulse bedside=0
+[05:26:50.119] I (133298) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: face_down (count 1)
+[05:26:50.119] I (133298) Application: Microphone muted
+[05:26:50.120] I (133298) Application: Closing the audio channel transport (opened=1)
+[05:26:50.120] E (133308) EspTcp: TCP receive failed: -1
+[05:26:50.120] I (133308) WS: Websocket disconnected
+[05:26:50.120] I (133308) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:26:50.323] I (133318) wifi:Set ps type: 2, coexist: 0
+[05:26:50.323] 
+[05:26:50.323] I (133318) StateMachine: State: listening -> idle
+[05:26:50.323] I (133338) FaceDisplay: mode=idle mood=neutral
+[05:26:50.323] I (133338) FaceDisplay: ring=off bedside=0
+[05:26:50.734] I (133878) MonitorPanel: page=panel
+[05:26:51.143] I (134298) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: face_up (count 1)
+[05:26:51.144] I (134298) Application: Microphone unmuted
+[05:26:53.342] ### trial en_paused 2 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_paused.wav
+[05:26:54.408] I (137568) Application: Wake word detected: Jarvis (state: 3)
+[05:26:54.408] I (137568) StateMachine: State: idle -> connecting
+[05:26:54.408] I (137568) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:26:54.408] I (137578) wifi:Set ps type: 0, coexist: 0
+[05:26:54.408] 
+[05:26:54.408] I (137578) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:26:54.408] I (137588) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:26:54.613] I (137638) MonitorPanel: page=face
+[05:26:54.614] I (137638) FaceDisplay: mode=listening mood=neutral
+[05:26:54.614] I (137648) FaceDisplay: ring=pulse bedside=0
+[05:26:54.614] I (137658) WebSocket: WebSocket handshake done, cost=70 tcp=10 handshake=60
+[05:26:54.614] I (137668) WS: Session ID: 92515d49-714c-404f-a922-3a4bca23279d
+[05:26:54.614] I (137668) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:26:54.614] I (137668) wifi:Set ps type: 0, coexist: 0
+[05:26:54.614] 
+[05:26:54.614] W (137678) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:26:54.614] I (137688) Application: Wake word detected: Jarvis
+[05:26:54.819] I (137978) AfeAudioEngine: Encoded wake word into 33 packets in 412 ms
+[05:26:54.819] I (137988) Application: Sent 6 packets captured after the wake word
+[05:26:54.819] I (137988) StateMachine: State: connecting -> listening
+[05:26:55.420] I (138618) StateMachine: State: listening -> speaking
+[05:26:55.621] I (138648) FaceDisplay: mode=speaking mood=neutral
+[05:26:55.621] I (138648) FaceDisplay: ring=level bedside=0
+[05:26:55.621] I (138818) Application: << Yes?
+[05:26:56.438] I (139488) StateMachine: State: speaking -> listening
+[05:26:56.438] I (139538) FaceDisplay: mode=listening mood=neutral
+[05:26:56.438] I (139538) FaceDisplay: ring=pulse bedside=0
+[05:26:59.089] I (142148) Application: >> What time is it?
+[05:26:59.089] I (142148) StateMachine: State: listening -> speaking
+[05:26:59.089] I (142168) FaceDisplay: mode=thinking mood=neutral
+[05:26:59.089] I (142168) FaceDisplay: ring=spin bedside=0
+[05:27:00.913] I (144068) Application: << It's twenty-six past ten at night
+[05:27:00.913] I (144078) FaceDisplay: mode=speaking mood=neutral
+[05:27:00.913] I (144078) FaceDisplay: ring=level bedside=0
+[05:27:03.563] I (146698) StateMachine: State: speaking -> listening
+[05:27:03.767] I (146768) FaceDisplay: mode=listening mood=neutral
+[05:27:03.768] I (146768) FaceDisplay: ring=pulse bedside=0
+[05:27:05.197] I (148208) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: face_down (count 2)
+[05:27:05.197] I (148208) Application: Microphone muted
+[05:27:05.197] I (148208) Application: Closing the audio channel transport (opened=1)
+[05:27:05.197] E (148208) EspTcp: TCP receive failed: -1
+[05:27:05.197] I (148218) WS: Websocket disconnected
+[05:27:05.197] I (148218) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:27:05.197] I (148228) wifi:Set ps type: 2, coexist: 0
+[05:27:05.197] 
+[05:27:05.197] I (148228) StateMachine: State: listening -> idle
+[05:27:05.197] I (148258) FaceDisplay: mode=idle mood=neutral
+[05:27:05.198] I (148258) FaceDisplay: ring=off bedside=0
+[05:27:06.622] I (149768) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: face_up (count 2)
+[05:27:06.622] I (149768) Application: Microphone unmuted
+[05:27:06.827] I (149938) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:27:06.827] I (149938) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+[05:27:08.229] ### trial zh_paused 2 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_paused.wav
+[05:27:09.469] I (152548) Application: Wake word detected: Jarvis (state: 3)
+[05:27:09.470] I (152548) StateMachine: State: idle -> connecting
+[05:27:09.470] I (152548) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:27:09.470] I (152548) wifi:Set ps type: 0, coexist: 0
+[05:27:09.470] 
+[05:27:09.470] I (152558) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:27:09.470] I (152568) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:27:09.470] I (152608) WebSocket: WebSocket handshake done, cost=40 tcp=10 handshake=30
+[05:27:09.470] I (152638) WS: Session ID: 1e2b091d-975c-46b7-842e-784e9d46b9a3
+[05:27:09.470] I (152648) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:27:09.470] I (152648) wifi:Set ps type: 0, coexist: 0
+[05:27:09.470] 
+[05:27:09.471] W (152648) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:27:09.471] I (152658) Application: Wake word detected: Jarvis
+[05:27:09.676] I (152808) FaceDisplay: mode=listening mood=neutral
+[05:27:09.676] I (152818) FaceDisplay: ring=pulse bedside=0
+[05:27:09.881] I (152938) AfeAudioEngine: Encoded wake word into 33 packets in 390 ms
+[05:27:09.881] I (152938) Application: Sent 5 packets captured after the wake word
+[05:27:09.881] I (152938) StateMachine: State: connecting -> listening
+[05:27:10.490] I (153588) StateMachine: State: listening -> speaking
+[05:27:10.490] I (153598) FaceDisplay: mode=speaking mood=neutral
+[05:27:10.490] I (153598) FaceDisplay: ring=level bedside=0
+[05:27:10.695] I (153788) Application: << Yes?
+[05:27:11.502] I (154538) StateMachine: State: speaking -> listening
+[05:27:11.502] I (154608) FaceDisplay: mode=listening mood=neutral
+[05:27:11.502] I (154608) FaceDisplay: ring=pulse bedside=0
+[05:27:12.521] I (155608) Application: >> Ja, das
+[05:27:12.521] I (155608) FaceDisplay: mode=thinking mood=neutral
+[05:27:12.521] I (155608) FaceDisplay: ring=spin bedside=0
+[05:27:12.521] I (155618) StateMachine: State: listening -> speaking
+[05:27:14.358] I (157358) FaceDisplay: mode=thinking mood=happy
+[05:27:14.358] I (157388) StateMachine: State: speaking -> listening
+[05:27:14.358] I (157388) Application: >> 现在几点 ?
+[05:27:14.358] I (157398) StateMachine: State: listening -> speaking
+[05:27:14.358] I (157398) FaceDisplay: mode=thinking mood=neutral
+[05:27:17.820] I (160868) Application: << 现在是晚上十点二十七分
+[05:27:17.820] I (160898) FaceDisplay: mode=speaking mood=neutral
+[05:27:17.820] I (160898) FaceDisplay: ring=level bedside=0
+[05:27:21.086] I (164158) StateMachine: State: speaking -> listening
+[05:27:21.086] I (164228) FaceDisplay: mode=listening mood=neutral
+[05:27:21.086] I (164228) FaceDisplay: ring=pulse bedside=0
+[05:27:23.525] I (166728) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 3)
+[05:27:29.038] I (172088) WS: Websocket disconnected
+[05:27:29.038] I (172088) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:27:29.038] I (172088) wifi:Set ps type: 2, coexist: 0
+[05:27:29.039] 
+[05:27:29.039] I (172098) StateMachine: State: listening -> idle
+[05:27:29.039] I (172128) FaceDisplay: mode=idle mood=neutral
+[05:27:29.039] I (172128) FaceDisplay: ring=off bedside=0
+[05:27:32.065] ### trial en_onebreath 3 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_onebreath.wav
+[05:27:33.324] I (176328) Application: Wake word detected: Jarvis (state: 3)
+[05:27:33.324] I (176328) StateMachine: State: idle -> connecting
+[05:27:33.324] I (176328) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:27:33.324] I (176328) wifi:Set ps type: 0, coexist: 0
+[05:27:33.324] 
+[05:27:33.324] E (176338) EspTcp: TCP receive failed: -1
+[05:27:33.324] I (176338) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:27:33.324] I (176348) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:27:33.324] I (176418) WebSocket: WebSocket handshake done, cost=70 tcp=10 handshake=60
+[05:27:33.324] I (176428) FaceDisplay: mode=listening mood=neutral
+[05:27:33.324] I (176428) FaceDisplay: ring=pulse bedside=0
+[05:27:33.324] I (176458) WS: Session ID: a52f1a49-22e3-4a6c-b018-afb6633b1550
+[05:27:33.324] I (176458) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:27:33.324] I (176458) wifi:Set ps type: 0, coexist: 0
+[05:27:33.324] 
+[05:27:33.324] W (176468) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:27:33.324] I (176478) Application: Wake word detected: Jarvis
+[05:27:33.526] I (176628) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 19 samples (100)
+[05:27:33.729] I (176738) AfeAudioEngine: Encoded wake word into 33 packets in 416 ms
+[05:27:33.729] I (176748) Application: Sent 6 packets captured after the wake word
+[05:27:33.729] I (176748) StateMachine: State: connecting -> listening
+[05:27:36.166] I (179208) Application: >> Jarvis, what time is it?
+[05:27:36.166] I (179228) StateMachine: State: listening -> speaking
+[05:27:36.166] I (179228) FaceDisplay: mode=thinking mood=neutral
+[05:27:36.166] I (179228) FaceDisplay: ring=spin bedside=0
+[05:27:38.008] I (181088) Application: << It's twenty-two twenty-seven
+[05:27:38.008] I (181088) FaceDisplay: mode=speaking mood=neutral
+[05:27:38.008] I (181088) FaceDisplay: ring=level bedside=0
+[05:27:39.429] I (182628) Application: << so about 10:27 at night
+[05:27:41.873] I (185028) StateMachine: State: speaking -> listening
+[05:27:41.874] I (185068) FaceDisplay: mode=listening mood=neutral
+[05:27:41.874] I (185068) FaceDisplay: ring=pulse bedside=0
+[05:27:50.045] I (193048) WS: Websocket disconnected
+[05:27:50.045] I (193048) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:27:50.045] I (193048) wifi:Set ps type: 2, coexist: 0
+[05:27:50.045] 
+[05:27:50.045] I (193068) StateMachine: State: listening -> idle
+[05:27:50.045] I (193088) FaceDisplay: mode=idle mood=neutral
+[05:27:50.045] I (193088) FaceDisplay: ring=off bedside=0
+[05:27:50.250] I (193368) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:27:50.250] I (193378) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+[05:27:53.075] ### trial zh_onebreath 3 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_onebreath.wav
+[05:27:54.338] I (197338) Application: Wake word detected: Jarvis (state: 3)
+[05:27:54.338] I (197338) StateMachine: State: idle -> connecting
+[05:27:54.338] I (197338) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:27:54.338] I (197338) wifi:Set ps type: 0, coexist: 0
+[05:27:54.338] 
+[05:27:54.338] E (197348) EspTcp: TCP receive failed: -1
+[05:27:54.338] I (197348) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:27:54.338] I (197358) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:27:54.338] I (197398) WebSocket: WebSocket handshake done, cost=40 tcp=10 handshake=30
+[05:27:54.338] I (197438) WS: Session ID: e70fadf2-bf7a-45b9-8912-d57b36a3762d
+[05:27:54.338] I (197438) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:27:54.338] I (197438) wifi:Set ps type: 0, coexist: 0
+[05:27:54.338] 
+[05:27:54.338] W (197438) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:27:54.338] I (197448) Application: Wake word detected: Jarvis
+[05:27:54.339] I (197518) FaceDisplay: mode=listening mood=neutral
+[05:27:54.339] I (197518) FaceDisplay: ring=pulse bedside=0
+[05:27:54.746] I (197768) AfeAudioEngine: Encoded wake word into 33 packets in 426 ms
+[05:27:54.746] I (197768) Application: Sent 6 packets captured after the wake word
+[05:27:54.746] I (197768) StateMachine: State: connecting -> listening
+[05:27:57.395] I (200548) Application: >> Jarvis, 现在几点 ?
+[05:27:57.395] I (200558) StateMachine: State: listening -> speaking
+[05:27:57.396] I (200568) FaceDisplay: mode=thinking mood=neutral
+[05:27:57.396] I (200568) FaceDisplay: ring=spin bedside=0
+[05:28:00.047] I (203198) Application: << 现在是晚上十点二十七分
+[05:28:00.047] I (203228) FaceDisplay: mode=speaking mood=neutral
+[05:28:00.047] I (203238) FaceDisplay: ring=level bedside=0
+[05:28:03.713] I (206808) StateMachine: State: speaking -> listening
+[05:28:03.713] I (206848) FaceDisplay: mode=listening mood=neutral
+[05:28:03.713] I (206848) FaceDisplay: ring=pulse bedside=0
+[05:28:11.676] I (214848) WS: Websocket disconnected
+[05:28:11.676] I (214848) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:28:11.676] I (214848) wifi:Set ps type: 2, coexist: 0
+[05:28:11.676] 
+[05:28:11.676] I (214878) StateMachine: State: listening -> idle
+[05:28:11.881] I (214888) FaceDisplay: mode=idle mood=neutral
+[05:28:11.881] I (214888) FaceDisplay: ring=off bedside=0
+[05:28:14.693] ### trial en_paused 3 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_paused.wav
+[05:28:15.761] I (218958) Application: Wake word detected: Jarvis (state: 3)
+[05:28:15.761] I (218958) StateMachine: State: idle -> connecting
+[05:28:15.964] I (218958) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:28:15.964] I (218958) wifi:Set ps type: 0, coexist: 0
+[05:28:15.964] 
+[05:28:15.964] E (218988) EspTcp: TCP receive failed: -1
+[05:28:15.964] I (218988) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:28:15.964] I (218998) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:28:15.965] I (219028) FaceDisplay: mode=listening mood=neutral
+[05:28:15.965] I (219028) FaceDisplay: ring=pulse bedside=0
+[05:28:15.965] I (219098) WebSocket: WebSocket handshake done, cost=100 tcp=40 handshake=60
+[05:28:15.965] I (219128) WS: Session ID: 6b2c4315-6176-4b78-be5c-78c55cb20de5
+[05:28:15.965] I (219128) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:28:15.965] I (219128) wifi:Set ps type: 0, coexist: 0
+[05:28:15.965] 
+[05:28:15.965] W (219128) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:28:15.965] I (219138) Application: Wake word detected: Jarvis
+[05:28:16.165] I (219368) AfeAudioEngine: Encoded wake word into 33 packets in 408 ms
+[05:28:16.365] I (219368) Application: Sent 6 packets captured after the wake word
+[05:28:16.365] I (219368) StateMachine: State: connecting -> listening
+[05:28:16.971] I (220078) StateMachine: State: listening -> speaking
+[05:28:16.971] I (220098) FaceDisplay: mode=speaking mood=neutral
+[05:28:16.971] I (220098) FaceDisplay: ring=level bedside=0
+[05:28:17.176] I (220198) Application: << Mm-hm?
+[05:28:17.585] I (220748) StateMachine: State: speaking -> listening
+[05:28:17.585] I (220788) FaceDisplay: mode=listening mood=neutral
+[05:28:17.786] I (220788) FaceDisplay: ring=pulse bedside=0
+[05:28:20.218] I (223418) Application: >> What time is it?
+[05:28:20.421] I (223458) StateMachine: State: listening -> speaking
+[05:28:20.421] I (223468) FaceDisplay: mode=thinking mood=neutral
+[05:28:20.421] I (223478) FaceDisplay: ring=spin bedside=0
+[05:28:21.234] I (224338) FaceDisplay: mode=thinking mood=happy
+[05:28:21.845] I (224938) Application: << It's ten twenty-eight at night
+[05:28:21.845] I (224948) FaceDisplay: mode=speaking mood=happy
+[05:28:21.845] I (224948) FaceDisplay: ring=level bedside=0
+[05:28:24.297] I (227478) StateMachine: State: speaking -> listening
+[05:28:24.502] I (227508) FaceDisplay: mode=listening mood=neutral
+[05:28:24.502] I (227508) FaceDisplay: ring=pulse bedside=0
+[05:28:32.471] I (235498) WS: Websocket disconnected
+[05:28:32.471] I (235498) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:28:32.471] I (235498) wifi:Set ps type: 2, coexist: 0
+[05:28:32.471] 
+[05:28:32.471] I (235498) StateMachine: State: listening -> idle
+[05:28:32.471] I (235508) FaceDisplay: mode=idle mood=neutral
+[05:28:32.471] I (235508) FaceDisplay: ring=off bedside=0
+[05:28:32.879] I (236058) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:28:32.879] I (236068) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+[05:28:35.481] ### trial zh_paused 3 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_paused.wav
+[05:28:36.562] I (239728) Application: Wake word detected: Jarvis (state: 3)
+[05:28:36.562] I (239728) StateMachine: State: idle -> connecting
+[05:28:36.562] I (239728) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:28:36.562] I (239728) wifi:Set ps type: 0, coexist: 0
+[05:28:36.562] 
+[05:28:36.562] E (239738) EspTcp: TCP receive failed: -1
+[05:28:36.562] I (239738) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:28:36.562] I (239748) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:28:36.763] I (239818) WebSocket: WebSocket handshake done, cost=70 tcp=20 handshake=50
+[05:28:36.763] I (239858) WS: Session ID: 1c478ed0-d2b4-4053-813f-cf89fef8441a
+[05:28:36.763] I (239868) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:28:36.763] I (239868) wifi:Set ps type: 0, coexist: 0
+[05:28:36.764] 
+[05:28:36.764] W (239868) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:28:36.764] I (239878) Application: Wake word detected: Jarvis
+[05:28:36.764] I (239958) FaceDisplay: mode=listening mood=neutral
+[05:28:36.764] I (239958) FaceDisplay: ring=pulse bedside=0
+[05:28:36.968] I (240138) AfeAudioEngine: Encoded wake word into 33 packets in 410 ms
+[05:28:36.968] I (240138) Application: Sent 6 packets captured after the wake word
+[05:28:36.968] I (240138) StateMachine: State: connecting -> listening
+[05:28:37.581] I (240758) StateMachine: State: listening -> speaking
+[05:28:37.786] I (240808) FaceDisplay: mode=speaking mood=neutral
+[05:28:37.786] I (240808) FaceDisplay: ring=level bedside=0
+[05:28:37.991] I (241058) Application: << Mm-hm?
+[05:28:38.394] I (241578) StateMachine: State: speaking -> listening
+[05:28:38.601] I (241618) FaceDisplay: mode=listening mood=neutral
+[05:28:38.601] I (241628) FaceDisplay: ring=pulse bedside=0
+[05:28:41.451] I (244558) Application: >> 现在几点 ?
+[05:28:41.451] I (244578) StateMachine: State: listening -> speaking
+[05:28:41.451] I (244588) FaceDisplay: mode=thinking mood=neutral
+[05:28:41.452] I (244598) FaceDisplay: ring=spin bedside=0
+[05:28:43.282] I (246318) Application: << 现在是晚上十点二十八分
+[05:28:43.282] I (246318) FaceDisplay: mode=speaking mood=neutral
+[05:28:43.282] I (246318) FaceDisplay: ring=level bedside=0
+[05:28:46.957] I (249968) StateMachine: State: speaking -> listening
+[05:28:46.957] I (250038) FaceDisplay: mode=listening mood=neutral
+[05:28:46.957] I (250038) FaceDisplay: ring=pulse bedside=0
+[05:28:54.721] I (257848) WS: Websocket disconnected
+[05:28:54.721] I (257848) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:28:54.721] I (257848) wifi:Set ps type: 2, coexist: 0
+[05:28:54.721] 
+[05:28:54.721] I (257858) StateMachine: State: listening -> idle
+[05:28:54.721] I (257868) FaceDisplay: mode=idle mood=neutral
+[05:28:54.721] I (257868) FaceDisplay: ring=off bedside=0
+[05:28:57.725] ### trial en_onebreath 4 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_onebreath.wav
+[05:28:58.802] I (261998) Application: Wake word detected: Jarvis (state: 3)
+[05:28:58.802] I (261998) StateMachine: State: idle -> connecting
+[05:28:59.004] I (262008) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:28:59.004] I (262008) wifi:Set ps type: 0, coexist: 0
+[05:28:59.004] 
+[05:28:59.004] E (262018) EspTcp: TCP receive failed: -1
+[05:28:59.004] I (262018) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:28:59.004] I (262018) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:28:59.004] I (262078) FaceDisplay: mode=listening mood=neutral
+[05:28:59.004] I (262078) FaceDisplay: ring=pulse bedside=0
+[05:28:59.004] I (262098) WebSocket: WebSocket handshake done, cost=80 tcp=30 handshake=50
+[05:28:59.004] I (262128) WS: Session ID: 87daf511-d846-44db-a09e-09ff82c555b2
+[05:28:59.004] I (262128) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:28:59.004] I (262128) wifi:Set ps type: 0, coexist: 0
+[05:28:59.004] 
+[05:28:59.004] W (262138) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:28:59.004] I (262148) Application: Wake word detected: Jarvis
+[05:28:59.412] I (262438) AfeAudioEngine: Encoded wake word into 33 packets in 432 ms
+[05:28:59.412] I (262438) Application: Sent 6 packets captured after the wake word
+[05:28:59.412] I (262438) StateMachine: State: connecting -> listening
+[05:29:01.648] I (264768) Application: >> Jarvis, what time is it?
+[05:29:01.649] I (264768) StateMachine: State: listening -> speaking
+[05:29:01.649] I (264778) FaceDisplay: mode=thinking mood=neutral
+[05:29:01.649] I (264778) FaceDisplay: ring=spin bedside=0
+[05:29:03.478] I (266628) Application: << It's twenty-two twenty-nine
+[05:29:03.478] I (266658) FaceDisplay: mode=speaking mood=neutral
+[05:29:03.478] I (266658) FaceDisplay: ring=level bedside=0
+[05:29:06.134] I (269168) Application: << so about 10:29 PM
+[05:29:08.584] I (271688) StateMachine: State: speaking -> listening
+[05:29:08.584] I (271698) FaceDisplay: mode=listening mood=neutral
+[05:29:08.584] I (271698) FaceDisplay: ring=pulse bedside=0
+[05:29:16.537] I (279688) WS: Websocket disconnected
+[05:29:16.537] I (279688) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:29:16.538] I (279688) wifi:Set ps type: 2, coexist: 0
+[05:29:16.538] 
+[05:29:16.538] I (279688) StateMachine: State: listening -> idle
+[05:29:16.538] I (279688) FaceDisplay: mode=idle mood=neutral
+[05:29:16.538] I (279698) FaceDisplay: ring=off bedside=0
+[05:29:16.944] I (280018) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:29:16.944] I (280028) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+[05:29:19.573] ### trial zh_onebreath 4 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_onebreath.wav
+[05:29:20.619] I (283798) Application: Wake word detected: Jarvis (state: 3)
+[05:29:20.619] I (283798) StateMachine: State: idle -> connecting
+[05:29:20.619] I (283798) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:29:20.619] I (283798) wifi:Set ps type: 0, coexist: 0
+[05:29:20.619] 
+[05:29:20.619] E (283808) EspTcp: TCP receive failed: -1
+[05:29:20.619] I (283808) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:29:20.824] I (283818) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:29:20.825] I (283858) WebSocket: WebSocket handshake done, cost=40 tcp=10 handshake=30
+[05:29:20.825] I (283888) WS: Session ID: 41a614f2-f8e8-429f-9568-ec462036bc1e
+[05:29:20.825] I (283888) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:29:20.825] I (283898) wifi:Set ps type: 0, coexist: 0
+[05:29:20.825] 
+[05:29:20.825] W (283898) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:29:20.825] I (283908) Application: Wake word detected: Jarvis
+[05:29:20.825] I (283998) FaceDisplay: mode=listening mood=neutral
+[05:29:20.825] I (283998) FaceDisplay: ring=pulse bedside=0
+[05:29:21.030] I (284188) AfeAudioEngine: Encoded wake word into 33 packets in 395 ms
+[05:29:21.030] I (284198) Application: Sent 5 packets captured after the wake word
+[05:29:21.030] I (284198) StateMachine: State: connecting -> listening
+[05:29:23.894] I (287088) Application: >> Jarvis, 现在几点 ?
+[05:29:24.097] I (287108) StateMachine: State: listening -> speaking
+[05:29:24.097] I (287128) FaceDisplay: mode=thinking mood=neutral
+[05:29:24.097] I (287128) FaceDisplay: ring=spin bedside=0
+[05:29:25.725] I (288878) Application: << 现在是晚上十点二十九分
+[05:29:25.725] I (288888) FaceDisplay: mode=speaking mood=neutral
+[05:29:25.725] I (288888) FaceDisplay: ring=level bedside=0
+[05:29:28.980] I (292038) StateMachine: State: speaking -> listening
+[05:29:28.980] I (292068) FaceDisplay: mode=listening mood=neutral
+[05:29:28.980] I (292068) FaceDisplay: ring=pulse bedside=0
+[05:29:36.932] I (300048) WS: Websocket disconnected
+[05:29:36.932] I (300048) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:29:36.932] I (300048) wifi:Set ps type: 2, coexist: 0
+[05:29:36.932] 
+[05:29:36.932] I (300048) StateMachine: State: listening -> idle
+[05:29:36.932] I (300118) FaceDisplay: mode=idle mood=neutral
+[05:29:36.932] I (300118) FaceDisplay: ring=off bedside=0
+[05:29:39.961] ### trial en_paused 4 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_paused.wav
+[05:29:41.219] I (304228) Application: Wake word detected: Jarvis (state: 3)
+[05:29:41.220] I (304228) StateMachine: State: idle -> connecting
+[05:29:41.220] I (304278) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:29:41.220] I (304278) wifi:Set ps type: 0, coexist: 0
+[05:29:41.220] 
+[05:29:41.220] E (304278) EspTcp: TCP receive failed: -1
+[05:29:41.220] I (304278) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:29:41.220] I (304288) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:29:41.220] I (304338) FaceDisplay: mode=listening mood=neutral
+[05:29:41.220] I (304338) FaceDisplay: ring=pulse bedside=0
+[05:29:41.220] I (304338) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+[05:29:41.220] I (304368) WS: Session ID: 3b0f2a5b-979f-40db-bc5f-80f0b81fcc76
+[05:29:41.220] I (304368) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:29:41.220] I (304368) wifi:Set ps type: 0, coexist: 0
+[05:29:41.220] 
+[05:29:41.220] W (304368) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:29:41.220] I (304378) Application: Wake word detected: Jarvis
+[05:29:41.420] I (304618) AfeAudioEngine: Encoded wake word into 33 packets in 395 ms
+[05:29:41.629] I (304628) Application: Sent 5 packets captured after the wake word
+[05:29:41.630] I (304628) StateMachine: State: connecting -> listening
+[05:29:42.243] I (305248) StateMachine: State: listening -> speaking
+[05:29:42.243] I (305288) FaceDisplay: mode=speaking mood=neutral
+[05:29:42.243] I (305288) FaceDisplay: ring=level bedside=0
+[05:29:42.447] I (305458) Application: << Yes?
+[05:29:43.057] I (306118) StateMachine: State: speaking -> listening
+[05:29:43.057] I (306158) FaceDisplay: mode=listening mood=neutral
+[05:29:43.057] I (306158) FaceDisplay: ring=pulse bedside=0
+[05:29:45.698] I (308798) Application: >> What time is it?
+[05:29:45.698] I (308798) StateMachine: State: listening -> speaking
+[05:29:45.698] I (308818) FaceDisplay: mode=thinking mood=neutral
+[05:29:45.698] I (308818) FaceDisplay: ring=spin bedside=0
+[05:29:47.340] I (310438) Application: << It's ten twenty-nine PM
+[05:29:47.340] I (310468) FaceDisplay: mode=speaking mood=neutral
+[05:29:47.340] I (310478) FaceDisplay: ring=level bedside=0
+[05:29:49.381] I (312428) StateMachine: State: speaking -> listening
+[05:29:49.381] I (312468) FaceDisplay: mode=listening mood=neutral
+[05:29:49.381] I (312468) FaceDisplay: ring=pulse bedside=0
+[05:29:57.346] I (320488) WS: Websocket disconnected
+[05:29:57.347] I (320488) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:29:57.347] I (320488) wifi:Set ps type: 2, coexist: 0
+[05:29:57.347] 
+[05:29:57.347] I (320498) StateMachine: State: listening -> idle
+[05:29:57.347] I (320498) FaceDisplay: mode=idle mood=neutral
+[05:29:57.347] I (320498) FaceDisplay: ring=off bedside=0
+[05:29:57.960] I (321058) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:29:57.962] I (321058) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+[05:30:00.378] ### trial zh_paused 4 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_paused.wav
+[05:30:01.433] I (324598) Application: Wake word detected: Jarvis (state: 3)
+[05:30:01.434] I (324598) StateMachine: State: idle -> connecting
+[05:30:01.434] I (324598) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:30:01.434] I (324598) wifi:Set ps type: 0, coexist: 0
+[05:30:01.434] 
+[05:30:01.434] E (324608) EspTcp: TCP receive failed: -1
+[05:30:01.434] I (324618) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:30:01.434] I (324618) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:30:01.639] I (324728) FaceDisplay: mode=listening mood=neutral
+[05:30:01.639] I (324738) FaceDisplay: ring=pulse bedside=0
+[05:30:01.639] I (324738) WebSocket: WebSocket handshake done, cost=120 tcp=20 handshake=100
+[05:30:01.639] I (324768) WS: Session ID: 974fe1bc-f50c-4658-9068-fbf796ef90b9
+[05:30:01.639] I (324768) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:30:01.639] I (324768) wifi:Set ps type: 0, coexist: 0
+[05:30:01.639] 
+[05:30:01.640] W (324768) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:30:01.640] I (324778) Application: Wake word detected: Jarvis
+[05:30:01.845] I (324958) AfeAudioEngine: Encoded wake word into 33 packets in 362 ms
+[05:30:01.846] I (324958) Application: Sent 5 packets captured after the wake word
+[05:30:01.846] I (324958) StateMachine: State: connecting -> listening
+[05:30:02.455] I (325588) StateMachine: State: listening -> speaking
+[05:30:02.455] I (325618) FaceDisplay: mode=speaking mood=neutral
+[05:30:02.455] I (325628) FaceDisplay: ring=level bedside=0
+[05:30:02.659] I (325808) Application: << Hmm?
+[05:30:03.271] I (326348) StateMachine: State: speaking -> listening
+[05:30:03.271] I (326358) FaceDisplay: mode=listening mood=neutral
+[05:30:03.271] I (326368) FaceDisplay: ring=pulse bedside=0
+[05:30:06.328] I (329378) Application: >> 现在几点 ?
+[05:30:06.328] I (329378) StateMachine: State: listening -> speaking
+[05:30:06.328] I (329388) FaceDisplay: mode=thinking mood=neutral
+[05:30:06.328] I (329388) FaceDisplay: ring=spin bedside=0
+[05:30:07.755] I (330898) Application: << 现在是晚上十点半
+[05:30:07.755] I (330918) FaceDisplay: mode=speaking mood=neutral
+[05:30:07.755] I (330918) FaceDisplay: ring=level bedside=0
+[05:30:10.426] I (333488) StateMachine: State: speaking -> listening
+[05:30:10.427] I (333538) FaceDisplay: mode=listening mood=neutral
+[05:30:10.427] I (333538) FaceDisplay: ring=pulse bedside=0
+[05:30:18.386] I (341478) WS: Websocket disconnected
+[05:30:18.386] I (341478) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:30:18.386] I (341478) wifi:Set ps type: 2, coexist: 0
+[05:30:18.386] 
+[05:30:18.386] I (341478) StateMachine: State: listening -> idle
+[05:30:18.386] I (341488) FaceDisplay: mode=idle mood=neutral
+[05:30:18.386] I (341488) FaceDisplay: ring=off bedside=0
+[05:30:21.409] ### trial en_onebreath 5 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_onebreath.wav
+[05:30:22.468] I (345618) Application: Wake word detected: Jarvis (state: 3)
+[05:30:22.469] I (345618) StateMachine: State: idle -> connecting
+[05:30:22.469] I (345618) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:30:22.469] I (345618) wifi:Set ps type: 0, coexist: 0
+[05:30:22.469] 
+[05:30:22.469] E (345628) EspTcp: TCP receive failed: -1
+[05:30:22.469] I (345628) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:30:22.469] I (345638) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:30:22.671] I (345728) FaceDisplay: mode=listening mood=neutral
+[05:30:22.671] I (345738) FaceDisplay: ring=pulse bedside=0
+[05:30:22.671] I (345748) WebSocket: WebSocket handshake done, cost=110 tcp=20 handshake=90
+[05:30:22.671] I (345788) WS: Session ID: 7107b888-7334-4e86-a7ea-ef944580e530
+[05:30:22.671] I (345788) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:30:22.671] I (345788) wifi:Set ps type: 0, coexist: 0
+[05:30:22.671] 
+[05:30:22.671] W (345788) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:30:22.671] I (345798) Application: Wake word detected: Jarvis
+[05:30:22.874] I (345978) AfeAudioEngine: Encoded wake word into 33 packets in 362 ms
+[05:30:22.874] I (345978) Application: Sent 5 packets captured after the wake word
+[05:30:22.874] I (345978) StateMachine: State: connecting -> listening
+[05:30:25.519] I (348548) Application: >> Jarvis, what time is it?
+[05:30:25.519] I (348548) StateMachine: State: listening -> speaking
+[05:30:25.519] I (348568) FaceDisplay: mode=thinking mood=neutral
+[05:30:25.519] I (348578) FaceDisplay: ring=spin bedside=0
+[05:30:27.152] I (350268) Application: << It's ten thirty at night
+[05:30:27.152] I (350268) FaceDisplay: mode=speaking mood=neutral
+[05:30:27.152] I (350268) FaceDisplay: ring=level bedside=0
+[05:30:28.993] I (352028) StateMachine: State: speaking -> listening
+[05:30:28.993] I (352058) FaceDisplay: mode=listening mood=neutral
+[05:30:28.993] I (352058) FaceDisplay: ring=pulse bedside=0
+[05:30:36.944] I (360088) WS: Websocket disconnected
+[05:30:36.944] I (360088) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:30:36.944] I (360098) wifi:Set ps type: 2, coexist: 0
+[05:30:36.944] 
+[05:30:36.944] I (360098) StateMachine: State: listening -> idle
+[05:30:36.944] I (360108) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:30:36.944] I (360108) FaceDisplay: mode=idle mood=neutral
+[05:30:36.944] I (360108) FaceDisplay: ring=off bedside=0
+[05:30:36.944] I (360108) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+[05:30:39.970] ### trial zh_onebreath 5 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_onebreath.wav
+[05:30:41.033] I (364188) Application: Wake word detected: Jarvis (state: 3)
+[05:30:41.034] I (364188) StateMachine: State: idle -> connecting
+[05:30:41.034] I (364188) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:30:41.034] I (364198) wifi:Set ps type: 0, coexist: 0
+[05:30:41.034] 
+[05:30:41.034] E (364198) EspTcp: TCP receive failed: -1
+[05:30:41.034] I (364198) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:30:41.034] I (364208) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:30:41.239] I (364308) WebSocket: WebSocket handshake done, cost=100 tcp=70 handshake=30
+[05:30:41.239] I (364328) FaceDisplay: mode=listening mood=neutral
+[05:30:41.239] I (364328) FaceDisplay: ring=pulse bedside=0
+[05:30:41.239] I (364348) WS: Session ID: 7f8b7938-98e5-418c-a379-0650e9d9f776
+[05:30:41.239] I (364348) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:30:41.239] I (364358) wifi:Set ps type: 0, coexist: 0
+[05:30:41.239] 
+[05:30:41.239] W (364358) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:30:41.239] I (364368) Application: Wake word detected: Jarvis
+[05:30:41.444] I (364588) AfeAudioEngine: Encoded wake word into 33 packets in 396 ms
+[05:30:41.444] I (364588) Application: Sent 5 packets captured after the wake word
+[05:30:41.444] I (364588) StateMachine: State: connecting -> listening
+[05:30:44.302] I (367458) Application: >> Jarvis, 现在几点 ?
+[05:30:44.303] I (367468) StateMachine: State: listening -> speaking
+[05:30:44.303] I (367468) FaceDisplay: mode=thinking mood=neutral
+[05:30:44.303] I (367468) FaceDisplay: ring=spin bedside=0
+[05:30:46.753] I (369958) Application: << 现在是晚上十点半
+[05:30:46.959] I (370008) FaceDisplay: mode=speaking mood=neutral
+[05:30:46.959] I (370008) FaceDisplay: ring=level bedside=0
+[05:30:49.604] I (372668) StateMachine: State: speaking -> listening
+[05:30:49.604] I (372738) FaceDisplay: mode=listening mood=neutral
+[05:30:49.604] I (372738) FaceDisplay: ring=pulse bedside=0
+[05:30:57.556] I (380588) WS: Websocket disconnected
+[05:30:57.556] I (380588) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:30:57.556] I (380588) wifi:Set ps type: 2, coexist: 0
+[05:30:57.556] 
+[05:30:57.556] I (380588) StateMachine: State: listening -> idle
+[05:30:57.556] I (380588) FaceDisplay: mode=idle mood=neutral
+[05:30:57.556] I (380598) FaceDisplay: ring=off bedside=0
+[05:31:00.572] ### trial en_paused 5 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_paused.wav
+[05:31:01.622] I (384788) Application: Wake word detected: Jarvis (state: 3)
+[05:31:01.622] I (384788) StateMachine: State: idle -> connecting
+[05:31:01.622] I (384788) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:31:01.622] I (384788) wifi:Set ps type: 0, coexist: 0
+[05:31:01.622] 
+[05:31:01.622] E (384798) EspTcp: TCP receive failed: -1
+[05:31:01.622] I (384798) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:31:01.622] I (384808) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:31:01.831] I (384838) WebSocket: WebSocket handshake done, cost=30 tcp=10 handshake=20
+[05:31:01.831] I (384858) WS: Session ID: 57d87db2-723b-435a-ad1a-606b945b77e2
+[05:31:01.831] I (384868) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:31:01.831] I (384868) wifi:Set ps type: 0, coexist: 0
+[05:31:01.831] 
+[05:31:01.831] W (384868) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:31:01.831] I (384878) Application: Wake word detected: Jarvis
+[05:31:02.034] I (385198) AfeAudioEngine: Encoded wake word into 33 packets in 410 ms
+[05:31:02.035] I (385198) Application: Sent 6 packets captured after the wake word
+[05:31:02.035] I (385198) StateMachine: State: connecting -> listening
+[05:31:02.035] I (385208) FaceDisplay: mode=listening mood=neutral
+[05:31:02.035] I (385208) FaceDisplay: ring=pulse bedside=0
+[05:31:02.852] I (385858) StateMachine: State: listening -> speaking
+[05:31:02.854] I (385898) FaceDisplay: mode=speaking mood=neutral
+[05:31:02.855] I (385898) FaceDisplay: ring=level bedside=0
+[05:31:03.060] I (386068) Application: << Hmm?
+[05:31:03.464] I (386618) StateMachine: State: speaking -> listening
+[05:31:03.464] I (386648) FaceDisplay: mode=listening mood=neutral
+[05:31:03.464] I (386648) FaceDisplay: ring=pulse bedside=0
+[05:31:06.319] I (389318) Application: >> What time is this?
+[05:31:06.319] I (389328) StateMachine: State: listening -> speaking
+[05:31:06.319] I (389348) FaceDisplay: mode=thinking mood=neutral
+[05:31:06.319] I (389348) FaceDisplay: ring=spin bedside=0
+[05:31:07.956] I (391018) Application: << It's ten thirty-one at night
+[05:31:07.956] I (391068) FaceDisplay: mode=speaking mood=neutral
+[05:31:07.956] I (391068) FaceDisplay: ring=level bedside=0
+[05:31:09.792] I (392968) StateMachine: State: speaking -> listening
+[05:31:09.998] I (393028) FaceDisplay: mode=listening mood=neutral
+[05:31:09.999] I (393028) FaceDisplay: ring=pulse bedside=0
+[05:31:17.947] I (400988) WS: Websocket disconnected
+[05:31:17.947] I (400988) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:31:17.947] I (400988) wifi:Set ps type: 2, coexist: 0
+[05:31:17.947] 
+[05:31:17.947] I (401058) StateMachine: State: listening -> idle
+[05:31:17.947] I (401068) FaceDisplay: mode=idle mood=neutral
+[05:31:17.947] I (401068) FaceDisplay: ring=off bedside=0
+[05:31:17.947] I (401148) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:31:18.150] I (401158) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+[05:31:20.961] ### trial zh_paused 5 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_paused.wav
+[05:31:22.036] I (405238) Application: Wake word detected: Jarvis (state: 3)
+[05:31:22.038] I (405238) StateMachine: State: idle -> connecting
+[05:31:22.241] I (405238) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:31:22.241] I (405238) wifi:Set ps type: 0, coexist: 0
+[05:31:22.241] 
+[05:31:22.241] E (405248) EspTcp: TCP receive failed: -1
+[05:31:22.241] I (405248) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:31:22.241] I (405258) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:31:22.241] I (405288) FaceDisplay: mode=listening mood=neutral
+[05:31:22.241] I (405298) FaceDisplay: ring=pulse bedside=0
+[05:31:22.241] I (405308) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+[05:31:22.241] I (405338) WS: Session ID: 3794a542-ac3e-4035-9fe7-d8b38f73ce1d
+[05:31:22.241] I (405338) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:31:22.241] I (405348) wifi:Set ps type: 0, coexist: 0
+[05:31:22.241] 
+[05:31:22.241] W (405348) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:31:22.242] I (405358) Application: Wake word detected: Jarvis
+[05:31:22.446] I (405618) AfeAudioEngine: Encoded wake word into 33 packets in 379 ms
+[05:31:22.446] I (405618) Application: Sent 5 packets captured after the wake word
+[05:31:22.446] I (405618) StateMachine: State: connecting -> listening
+[05:31:23.265] I (406328) StateMachine: State: listening -> speaking
+[05:31:23.265] I (406338) FaceDisplay: mode=speaking mood=neutral
+[05:31:23.265] I (406338) FaceDisplay: ring=level bedside=0
+[05:31:23.472] I (406518) Application: << Mm-hm?
+[05:31:23.876] I (407058) StateMachine: State: speaking -> listening
+[05:31:23.877] I (407068) FaceDisplay: mode=listening mood=neutral
+[05:31:23.877] I (407078) FaceDisplay: ring=pulse bedside=0
+[05:31:26.933] I (410068) Application: >> 现在几点 ?
+[05:31:26.934] I (410068) StateMachine: State: listening -> speaking
+[05:31:26.934] I (410108) FaceDisplay: mode=thinking mood=neutral
+[05:31:26.934] I (410118) FaceDisplay: ring=spin bedside=0
+[05:31:28.978] I (412048) Application: << 现在是晚上十点三十一分
+[05:31:28.979] I (412088) FaceDisplay: mode=speaking mood=neutral
+[05:31:28.979] I (412098) FaceDisplay: ring=level bedside=0
+[05:31:32.650] I (415828) StateMachine: State: speaking -> listening
+[05:31:32.853] I (415878) FaceDisplay: mode=listening mood=neutral
+[05:31:32.853] I (415878) FaceDisplay: ring=pulse bedside=0
+[05:31:40.804] I (423828) WS: Websocket disconnected
+[05:31:40.804] I (423828) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:31:40.805] I (423828) wifi:Set ps type: 2, coexist: 0
+[05:31:40.805] 
+[05:31:40.805] I (423828) StateMachine: State: listening -> idle
+[05:31:40.805] I (423838) FaceDisplay: mode=idle mood=neutral
+[05:31:40.805] I (423838) FaceDisplay: ring=off bedside=0
+[05:31:43.835] ### trial en_onebreath 6 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_onebreath.wav
+[05:31:44.883] I (428078) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:31:44.883] I (428088) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+[05:31:45.083] I (428108) Application: Wake word detected: Jarvis (state: 3)
+[05:31:45.083] I (428108) StateMachine: State: idle -> connecting
+[05:31:45.083] I (428108) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:31:45.083] I (428108) wifi:Set ps type: 0, coexist: 0
+[05:31:45.083] 
+[05:31:45.083] E (428118) EspTcp: TCP receive failed: -1
+[05:31:45.083] I (428118) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:31:45.083] I (428128) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:31:45.083] I (428178) FaceDisplay: mode=listening mood=neutral
+[05:31:45.083] I (428178) FaceDisplay: ring=pulse bedside=0
+[05:31:45.083] I (428238) WebSocket: WebSocket handshake done, cost=110 tcp=20 handshake=90
+[05:31:45.083] I (428268) WS: Session ID: 7fdd8805-0659-4016-a2d1-3fe397822c07
+[05:31:45.083] I (428268) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:31:45.083] I (428278) wifi:Set ps type: 0, coexist: 0
+[05:31:45.083] 
+[05:31:45.083] W (428278) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:31:45.285] I (428288) Application: Wake word detected: Jarvis
+[05:31:45.486] I (428518) AfeAudioEngine: Encoded wake word into 33 packets in 409 ms
+[05:31:45.486] I (428518) Application: Sent 6 packets captured after the wake word
+[05:31:45.486] I (428518) StateMachine: State: connecting -> listening
+[05:31:47.937] I (430968) Application: >> Jarvis, what time is it?
+[05:31:47.938] I (431008) StateMachine: State: listening -> speaking
+[05:31:47.938] I (431018) FaceDisplay: mode=thinking mood=neutral
+[05:31:47.938] I (431028) FaceDisplay: ring=spin bedside=0
+[05:31:49.778] I (432848) Application: << It's 10:31 in the evening
+[05:31:49.779] I (432888) FaceDisplay: mode=speaking mood=neutral
+[05:31:49.779] I (432888) FaceDisplay: ring=level bedside=0
+[05:31:52.426] I (435568) StateMachine: State: speaking -> listening
+[05:31:52.426] I (435588) FaceDisplay: mode=listening mood=neutral
+[05:31:52.426] I (435588) FaceDisplay: ring=pulse bedside=0
+[05:32:00.381] I (443498) WS: Websocket disconnected
+[05:32:00.381] I (443498) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:32:00.381] I (443498) wifi:Set ps type: 2, coexist: 0
+[05:32:00.381] 
+[05:32:00.381] I (443548) StateMachine: State: listening -> idle
+[05:32:00.381] I (443558) FaceDisplay: mode=idle mood=neutral
+[05:32:00.381] I (443568) FaceDisplay: ring=off bedside=0
+[05:32:03.396] ### trial zh_onebreath 6 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_onebreath.wav
+[05:32:04.672] I (447688) Application: Wake word detected: Jarvis (state: 3)
+[05:32:04.672] I (447688) StateMachine: State: idle -> connecting
+[05:32:04.672] I (447688) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:32:04.672] I (447688) wifi:Set ps type: 0, coexist: 0
+[05:32:04.672] 
+[05:32:04.672] E (447698) EspTcp: TCP receive failed: -1
+[05:32:04.672] I (447698) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:32:04.672] I (447708) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:32:04.672] I (447788) WebSocket: WebSocket handshake done, cost=80 tcp=10 handshake=70
+[05:32:04.672] I (447818) WS: Session ID: c156e89a-f604-4767-acbf-86f24ec90d34
+[05:32:04.672] I (447818) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:32:04.672] I (447828) wifi:Set ps type: 0, coexist: 0
+[05:32:04.672] 
+[05:32:04.672] W (447828) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:32:04.672] I (447838) Application: Wake word detected: Jarvis
+[05:32:04.890] I (447898) FaceDisplay: mode=listening mood=neutral
+[05:32:04.890] I (447898) FaceDisplay: ring=pulse bedside=0
+[05:32:05.094] I (448088) AfeAudioEngine: Encoded wake word into 33 packets in 404 ms
+[05:32:05.094] I (448088) Application: Sent 5 packets captured after the wake word
+[05:32:05.094] I (448098) StateMachine: State: connecting -> listening
+[05:32:07.755] I (450818) Application: >> Jarvis, 现在几点 ?
+[05:32:07.755] I (450838) StateMachine: State: listening -> speaking
+[05:32:07.756] I (450848) FaceDisplay: mode=thinking mood=neutral
+[05:32:07.756] I (450848) FaceDisplay: ring=spin bedside=0
+[05:32:08.975] I (452008) FaceDisplay: mode=thinking mood=happy
+[05:32:09.588] I (452598) Application: << 现在是晚上十点三十二分
+[05:32:09.588] I (452628) FaceDisplay: mode=speaking mood=happy
+[05:32:09.588] I (452628) FaceDisplay: ring=level bedside=0
+[05:32:12.852] I (455918) StateMachine: State: speaking -> listening
+[05:32:12.852] I (455928) FaceDisplay: mode=listening mood=neutral
+[05:32:12.852] I (455928) FaceDisplay: ring=pulse bedside=0
+[05:32:20.839] I (463908) WS: Websocket disconnected
+[05:32:20.839] I (463908) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:32:20.839] I (463908) wifi:Set ps type: 2, coexist: 0
+[05:32:20.840] 
+[05:32:20.840] I (463908) StateMachine: State: listening -> idle
+[05:32:20.840] I (463918) FaceDisplay: mode=idle mood=neutral
+[05:32:20.840] I (463918) FaceDisplay: ring=off bedside=0
+[05:32:21.042] I (464128) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:32:21.042] I (464128) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+[05:32:23.846] ### trial en_paused 6 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_paused.wav
+[05:32:24.940] I (468148) Application: Wake word detected: Jarvis (state: 3)
+[05:32:24.940] I (468148) StateMachine: State: idle -> connecting
+[05:32:25.141] I (468148) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:32:25.141] I (468148) wifi:Set ps type: 0, coexist: 0
+[05:32:25.141] 
+[05:32:25.141] E (468158) EspTcp: TCP receive failed: -1
+[05:32:25.141] I (468158) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:32:25.141] I (468168) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:32:25.141] I (468198) FaceDisplay: mode=listening mood=neutral
+[05:32:25.141] I (468198) FaceDisplay: ring=pulse bedside=0
+[05:32:25.141] I (468238) WebSocket: WebSocket handshake done, cost=70 tcp=20 handshake=50
+[05:32:25.141] I (468278) WS: Session ID: 9bc763f2-a2ca-46d5-b63e-0d8f3062cc0c
+[05:32:25.141] I (468278) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:32:25.141] I (468278) wifi:Set ps type: 0, coexist: 0
+[05:32:25.141] 
+[05:32:25.141] W (468288) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:32:25.141] I (468298) Application: Wake word detected: Jarvis
+[05:32:25.141] I (468348) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 41 samples (200)
+[05:32:25.548] I (468578) AfeAudioEngine: Encoded wake word into 33 packets in 430 ms
+[05:32:25.548] I (468578) Application: Sent 6 packets captured after the wake word
+[05:32:25.548] I (468578) StateMachine: State: connecting -> listening
+[05:32:26.180] I (469228) StateMachine: State: listening -> speaking
+[05:32:26.180] I (469228) FaceDisplay: mode=speaking mood=neutral
+[05:32:26.180] I (469228) FaceDisplay: ring=level bedside=0
+[05:32:26.390] I (469428) Application: << Mm-hm?
+[05:32:26.808] I (469978) StateMachine: State: speaking -> listening
+[05:32:26.809] I (469988) FaceDisplay: mode=listening mood=neutral
+[05:32:26.809] I (469988) FaceDisplay: ring=pulse bedside=0
+[05:32:29.701] I (472898) Application: >> What time is it?
+[05:32:29.701] I (472908) StateMachine: State: listening -> speaking
+[05:32:29.701] I (472908) FaceDisplay: mode=thinking mood=neutral
+[05:32:29.701] I (472908) FaceDisplay: ring=spin bedside=0
+[05:32:31.573] I (474608) Application: << It's ten thirty-two PM
+[05:32:31.573] I (474628) FaceDisplay: mode=speaking mood=neutral
+[05:32:31.573] I (474628) FaceDisplay: ring=level bedside=0
+[05:32:34.271] I (477318) StateMachine: State: speaking -> listening
+[05:32:34.271] I (477358) FaceDisplay: mode=listening mood=neutral
+[05:32:34.271] I (477358) FaceDisplay: ring=pulse bedside=0
+[05:32:42.158] I (485228) WS: Websocket disconnected
+[05:32:42.158] I (485228) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:32:42.158] I (485228) wifi:Set ps type: 2, coexist: 0
+[05:32:42.158] 
+[05:32:42.159] I (485228) StateMachine: State: listening -> idle
+[05:32:42.159] I (485238) FaceDisplay: mode=idle mood=neutral
+[05:32:42.159] I (485238) FaceDisplay: ring=off bedside=0
+[05:32:45.268] ### trial zh_paused 6 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_paused.wav
+[05:32:46.523] I (489558) Application: Wake word detected: Jarvis (state: 3)
+[05:32:46.523] I (489558) StateMachine: State: idle -> connecting
+[05:32:46.523] I (489558) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:32:46.523] I (489558) wifi:Set ps type: 0, coexist: 0
+[05:32:46.523] 
+[05:32:46.523] E (489568) EspTcp: TCP receive failed: -1
+[05:32:46.523] I (489568) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:32:46.523] I (489578) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:32:46.524] I (489628) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+[05:32:46.524] I (489658) WS: Session ID: f36b3650-3a51-45b8-99ba-f4f4fd88f1bf
+[05:32:46.524] I (489658) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:32:46.524] I (489658) wifi:Set ps type: 0, coexist: 0
+[05:32:46.524] 
+[05:32:46.524] W (489668) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:32:46.524] I (489678) Application: Wake word detected: Jarvis
+[05:32:46.732] I (489768) FaceDisplay: mode=listening mood=neutral
+[05:32:46.732] I (489778) FaceDisplay: ring=pulse bedside=0
+[05:32:46.942] I (489988) AfeAudioEngine: Encoded wake word into 33 packets in 430 ms
+[05:32:46.943] I (489988) Application: Sent 6 packets captured after the wake word
+[05:32:46.943] I (489988) StateMachine: State: connecting -> listening
+[05:32:47.569] I (490638) StateMachine: State: listening -> speaking
+[05:32:47.569] I (490668) FaceDisplay: mode=speaking mood=neutral
+[05:32:47.569] I (490668) FaceDisplay: ring=level bedside=0
+[05:32:47.778] I (490828) Application: << Mm-hm?
+[05:32:48.193] I (491378) StateMachine: State: speaking -> listening
+[05:32:48.403] I (491448) FaceDisplay: mode=listening mood=neutral
+[05:32:48.403] I (491448) FaceDisplay: ring=pulse bedside=0
+[05:32:51.725] I (494728) Application: >> 现在几点 ?
+[05:32:51.725] I (494728) StateMachine: State: listening -> speaking
+[05:32:51.725] I (494738) FaceDisplay: mode=thinking mood=neutral
+[05:32:51.725] I (494738) FaceDisplay: ring=spin bedside=0
+[05:32:53.391] I (496408) Application: << 现在是晚上十点三十二分
+[05:32:53.391] I (496448) FaceDisplay: mode=speaking mood=neutral
+[05:32:53.391] I (496448) FaceDisplay: ring=level bedside=0
+[05:32:56.722] I (499848) StateMachine: State: speaking -> listening
+[05:32:56.722] I (499868) FaceDisplay: mode=listening mood=neutral
+[05:32:56.722] I (499868) FaceDisplay: ring=pulse bedside=0
+[05:33:04.807] I (507818) WS: Websocket disconnected
+[05:33:04.808] I (507818) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:33:04.808] I (507818) wifi:Set ps type: 2, coexist: 0
+[05:33:04.808] 
+[05:33:04.808] I (507828) StateMachine: State: listening -> idle
+[05:33:04.808] I (507848) FaceDisplay: mode=idle mood=neutral
+[05:33:04.808] I (507848) FaceDisplay: ring=off bedside=0
+[05:33:05.213] I (508338) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:33:05.214] I (508348) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+[05:33:07.918] ### trial en_onebreath 7 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_onebreath.wav
+[05:33:09.129] I (512208) Application: Wake word detected: Jarvis (state: 3)
+[05:33:09.130] I (512208) StateMachine: State: idle -> connecting
+[05:33:09.130] I (512208) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:33:09.130] I (512208) wifi:Set ps type: 0, coexist: 0
+[05:33:09.130] 
+[05:33:09.130] E (512218) EspTcp: TCP receive failed: -1
+[05:33:09.130] I (512218) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:33:09.130] I (512228) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:33:09.130] I (512278) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+[05:33:09.130] I (512308) WS: Session ID: b0479e3b-d9f2-494f-ac16-f8fcd65a7f6b
+[05:33:09.130] I (512308) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:33:09.130] I (512318) wifi:Set ps type: 0, coexist: 0
+[05:33:09.130] 
+[05:33:09.130] W (512318) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:33:09.130] I (512328) Application: Wake word detected: Jarvis
+[05:33:09.338] I (512448) FaceDisplay: mode=listening mood=neutral
+[05:33:09.339] I (512458) FaceDisplay: ring=pulse bedside=0
+[05:33:09.547] I (512628) AfeAudioEngine: Encoded wake word into 33 packets in 423 ms
+[05:33:09.548] I (512638) Application: Sent 6 packets captured after the wake word
+[05:33:09.548] I (512638) StateMachine: State: connecting -> listening
+[05:33:11.408] I (514618) Application: >> Jarvis, what time is it?
+[05:33:11.618] I (514658) StateMachine: State: listening -> speaking
+[05:33:11.619] I (514668) FaceDisplay: mode=thinking mood=neutral
+[05:33:11.619] I (514668) FaceDisplay: ring=spin bedside=0
+[05:33:13.077] I (516178) Application: << It's ten thirty-three PM
+[05:33:13.077] I (516188) FaceDisplay: mode=speaking mood=neutral
+[05:33:13.077] I (516188) FaceDisplay: ring=level bedside=0
+[05:33:15.564] I (518728) StateMachine: State: speaking -> listening
+[05:33:15.565] I (518738) FaceDisplay: mode=listening mood=neutral
+[05:33:15.565] I (518738) FaceDisplay: ring=pulse bedside=0
+[05:33:23.643] I (526688) WS: Websocket disconnected
+[05:33:23.647] I (526688) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:33:23.647] I (526698) wifi:Set ps type: 2, coexist: 0
+[05:33:23.647] 
+[05:33:23.648] I (526698) StateMachine: State: listening -> idle
+[05:33:23.648] I (526698) FaceDisplay: mode=idle mood=neutral
+[05:33:23.648] I (526708) FaceDisplay: ring=off bedside=0
+[05:33:26.664] ### trial zh_onebreath 7 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_onebreath.wav
+[05:33:27.811] I (530888) Application: Wake word detected: Jarvis (state: 3)
+[05:33:27.811] I (530888) StateMachine: State: idle -> connecting
+[05:33:27.811] I (530888) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:33:27.811] I (530888) wifi:Set ps type: 0, coexist: 0
+[05:33:27.811] 
+[05:33:27.811] E (530898) EspTcp: TCP receive failed: -1
+[05:33:27.811] I (530898) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:33:27.811] I (530908) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:33:28.021] I (531048) WebSocket: WebSocket handshake done, cost=140 tcp=110 handshake=30
+[05:33:28.021] I (531058) WS: Session ID: 510ea951-798b-4cf4-9800-6d8261664de8
+[05:33:28.021] I (531058) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:33:28.021] I (531058) wifi:Set ps type: 0, coexist: 0
+[05:33:28.021] 
+[05:33:28.021] W (531068) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:33:28.021] I (531078) Application: Wake word detected: Jarvis
+[05:33:28.021] I (531188) FaceDisplay: mode=listening mood=neutral
+[05:33:28.021] I (531188) FaceDisplay: ring=pulse bedside=0
+[05:33:28.223] I (531268) AfeAudioEngine: Encoded wake word into 33 packets in 385 ms
+[05:33:28.223] I (531278) Application: Sent 5 packets captured after the wake word
+[05:33:28.223] I (531278) StateMachine: State: connecting -> listening
+[05:33:30.900] I (534028) Application: >> Jarvis, 现在几点 ?
+[05:33:30.901] I (534028) StateMachine: State: listening -> speaking
+[05:33:30.901] I (534038) FaceDisplay: mode=thinking mood=neutral
+[05:33:30.901] I (534038) FaceDisplay: ring=spin bedside=0
+[05:33:32.347] I (535538) Application: << 现在是晚上十点三十三分
+[05:33:32.348] I (535558) FaceDisplay: mode=speaking mood=neutral
+[05:33:32.348] I (535558) FaceDisplay: ring=level bedside=0
+[05:33:36.500] I (539678) StateMachine: State: speaking -> listening
+[05:33:36.500] I (539708) FaceDisplay: mode=listening mood=neutral
+[05:33:36.710] I (539708) FaceDisplay: ring=pulse bedside=0
+[05:33:44.819] I (547828) WS: Websocket disconnected
+[05:33:44.820] I (547828) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:33:44.820] I (547828) wifi:Set ps type: 2, coexist: 0
+[05:33:44.820] 
+[05:33:44.820] I (547888) StateMachine: State: listening -> idle
+[05:33:44.820] I (547898) FaceDisplay: mode=idle mood=neutral
+[05:33:44.820] I (547898) FaceDisplay: ring=off bedside=0
+[05:33:45.224] I (548388) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:33:45.225] I (548388) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+[05:33:47.839] ### trial en_paused 7 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_paused.wav
+[05:33:48.960] I (552058) Application: Wake word detected: Jarvis (state: 3)
+[05:33:48.960] I (552058) StateMachine: State: idle -> connecting
+[05:33:48.960] I (552058) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:33:48.960] I (552058) wifi:Set ps type: 0, coexist: 0
+[05:33:48.960] 
+[05:33:48.960] E (552068) EspTcp: TCP receive failed: -1
+[05:33:48.960] I (552068) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:33:48.960] I (552078) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:33:48.960] I (552158) WebSocket: WebSocket handshake done, cost=80 tcp=10 handshake=70
+[05:33:49.163] I (552178) FaceDisplay: mode=listening mood=neutral
+[05:33:49.163] I (552178) FaceDisplay: ring=pulse bedside=0
+[05:33:49.163] I (552188) WS: Session ID: 3b03b4f5-dafe-4943-822b-12afe4040aac
+[05:33:49.163] I (552188) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:33:49.163] I (552198) wifi:Set ps type: 0, coexist: 0
+[05:33:49.163] 
+[05:33:49.163] W (552198) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:33:49.163] I (552208) Application: Wake word detected: Jarvis
+[05:33:49.363] I (552458) AfeAudioEngine: Encoded wake word into 33 packets in 400 ms
+[05:33:49.364] I (552458) Application: Sent 5 packets captured after the wake word
+[05:33:49.364] I (552458) StateMachine: State: connecting -> listening
+[05:33:49.985] I (553118) StateMachine: State: listening -> speaking
+[05:33:49.985] I (553148) FaceDisplay: mode=speaking mood=neutral
+[05:33:49.985] I (553148) FaceDisplay: ring=level bedside=0
+[05:33:50.195] I (553328) Application: << Yes?
+[05:33:51.030] I (554068) StateMachine: State: speaking -> listening
+[05:33:51.031] I (554098) FaceDisplay: mode=listening mood=neutral
+[05:33:51.031] I (554098) FaceDisplay: ring=pulse bedside=0
+[05:33:53.529] I (556568) Application: >> What time is it?
+[05:33:53.531] I (556618) StateMachine: State: listening -> speaking
+[05:33:53.531] I (556628) FaceDisplay: mode=thinking mood=neutral
+[05:33:53.531] I (556628) FaceDisplay: ring=spin bedside=0
+[05:33:54.987] I (558168) Application: << It's ten thirty-three at night
+[05:33:55.195] I (558198) FaceDisplay: mode=speaking mood=neutral
+[05:33:55.196] I (558198) FaceDisplay: ring=level bedside=0
+[05:33:57.273] I (560368) StateMachine: State: speaking -> listening
+[05:33:57.273] I (560368) FaceDisplay: mode=listening mood=neutral
+[05:33:57.273] I (560368) FaceDisplay: ring=pulse bedside=0
+[05:34:05.171] I (568238) WS: Websocket disconnected
+[05:34:05.171] I (568248) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:34:05.171] I (568248) wifi:Set ps type: 2, coexist: 0
+[05:34:05.171] 
+[05:34:05.171] I (568298) StateMachine: State: listening -> idle
+[05:34:05.171] I (568308) FaceDisplay: mode=idle mood=neutral
+[05:34:05.171] I (568308) FaceDisplay: ring=off bedside=0
+[05:34:08.188] ### trial zh_paused 7 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_paused.wav
+[05:34:09.351] I (572478) Application: Wake word detected: Jarvis (state: 3)
+[05:34:09.352] I (572478) StateMachine: State: idle -> connecting
+[05:34:09.352] I (572478) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:34:09.352] I (572478) wifi:Set ps type: 0, coexist: 0
+[05:34:09.352] 
+[05:34:09.352] E (572488) EspTcp: TCP receive failed: -1
+[05:34:09.352] I (572488) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:34:09.352] I (572498) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:34:09.352] I (572528) FaceDisplay: mode=listening mood=neutral
+[05:34:09.352] I (572538) FaceDisplay: ring=pulse bedside=0
+[05:34:09.558] I (572578) WebSocket: WebSocket handshake done, cost=80 tcp=20 handshake=60
+[05:34:09.558] I (572618) WS: Session ID: f00caf57-6c9f-4071-9c36-622e753da2da
+[05:34:09.558] I (572618) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:34:09.558] I (572618) wifi:Set ps type: 0, coexist: 0
+[05:34:09.558] 
+[05:34:09.558] W (572618) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:34:09.558] I (572628) Application: Wake word detected: Jarvis
+[05:34:09.761] I (572908) AfeAudioEngine: Encoded wake word into 33 packets in 429 ms
+[05:34:09.761] I (572908) Application: Sent 6 packets captured after the wake word
+[05:34:09.761] I (572908) StateMachine: State: connecting -> listening
+[05:34:10.373] I (573578) StateMachine: State: listening -> speaking
+[05:34:10.577] I (573588) FaceDisplay: mode=speaking mood=neutral
+[05:34:10.578] I (573588) FaceDisplay: ring=level bedside=0
+[05:34:10.578] I (573778) Application: << Mm-hm?
+[05:34:11.192] I (574328) StateMachine: State: speaking -> listening
+[05:34:11.192] I (574348) FaceDisplay: mode=listening mood=neutral
+[05:34:11.192] I (574348) FaceDisplay: ring=pulse bedside=0
+[05:34:14.496] I (577678) Application: >> 现在几点 ?
+[05:34:14.497] I (577678) StateMachine: State: listening -> speaking
+[05:34:14.497] I (577698) FaceDisplay: mode=thinking mood=neutral
+[05:34:14.497] I (577698) FaceDisplay: ring=spin bedside=0
+[05:34:15.949] I (579118) Application: << 现在是晚上十点三十四分
+[05:34:15.949] I (579158) FaceDisplay: mode=speaking mood=neutral
+[05:34:16.149] I (579158) FaceDisplay: ring=level bedside=0
+[05:34:19.443] I (582458) StateMachine: State: speaking -> listening
+[05:34:19.443] I (582478) FaceDisplay: mode=listening mood=neutral
+[05:34:19.443] I (582478) FaceDisplay: ring=pulse bedside=0
+[05:34:27.335] I (590458) WS: Websocket disconnected
+[05:34:27.335] I (590458) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:34:27.335] I (590458) wifi:Set ps type: 2, coexist: 0
+[05:34:27.335] 
+[05:34:27.335] I (590458) StateMachine: State: listening -> idle
+[05:34:27.335] I (590468) FaceDisplay: mode=idle mood=neutral
+[05:34:27.335] I (590468) FaceDisplay: ring=off bedside=0
+[05:34:27.335] I (590478) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:34:27.335] I (590478) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+[05:34:30.344] ### trial en_onebreath 8 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_onebreath.wav
+[05:34:31.462] I (594628) Application: Wake word detected: Jarvis (state: 3)
+[05:34:31.462] I (594628) StateMachine: State: idle -> connecting
+[05:34:31.462] I (594628) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:34:31.462] I (594628) wifi:Set ps type: 0, coexist: 0
+[05:34:31.462] 
+[05:34:31.462] E (594638) EspTcp: TCP receive failed: -1
+[05:34:31.462] I (594638) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:34:31.462] I (594648) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:34:31.672] I (594688) FaceDisplay: mode=listening mood=neutral
+[05:34:31.672] I (594688) FaceDisplay: ring=pulse bedside=0
+[05:34:31.672] I (594708) WebSocket: WebSocket handshake done, cost=60 tcp=10 handshake=50
+[05:34:31.672] I (594728) WS: Session ID: b0271357-1b83-4b8f-a694-2ead123157b5
+[05:34:31.672] I (594728) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:34:31.672] I (594728) wifi:Set ps type: 0, coexist: 0
+[05:34:31.672] 
+[05:34:31.672] W (594738) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:34:31.673] I (594748) Application: Wake word detected: Jarvis
+[05:34:31.881] I (595028) AfeAudioEngine: Encoded wake word into 33 packets in 405 ms
+[05:34:31.881] I (595038) Application: Sent 5 packets captured after the wake word
+[05:34:31.881] I (595038) StateMachine: State: connecting -> listening
+[05:34:34.989] I (598128) Application: >> Jarvis, what time is it?
+[05:34:34.989] I (598128) StateMachine: State: listening -> speaking
+[05:34:34.990] I (598138) FaceDisplay: mode=thinking mood=neutral
+[05:34:34.990] I (598138) FaceDisplay: ring=spin bedside=0
+[05:34:36.642] I (599708) Application: << It's ten thirty-four in the evening
+[05:34:36.642] I (599728) FaceDisplay: mode=speaking mood=neutral
+[05:34:36.643] I (599728) FaceDisplay: ring=level bedside=0
+[05:34:39.134] I (602338) StateMachine: State: speaking -> listening
+[05:34:39.344] I (602358) FaceDisplay: mode=listening mood=neutral
+[05:34:39.344] I (602358) FaceDisplay: ring=pulse bedside=0
+[05:34:47.244] I (610408) WS: Websocket disconnected
+[05:34:47.245] I (610408) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:34:47.245] I (610408) wifi:Set ps type: 2, coexist: 0
+[05:34:47.245] 
+[05:34:47.245] I (610428) StateMachine: State: listening -> idle
+[05:34:47.245] I (610438) FaceDisplay: mode=idle mood=neutral
+[05:34:47.245] I (610438) FaceDisplay: ring=off bedside=0
+[05:34:50.286] ### trial zh_onebreath 8 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_onebreath.wav
+[05:34:51.392] I (614568) Application: Wake word detected: Jarvis (state: 3)
+[05:34:51.393] I (614568) StateMachine: State: idle -> connecting
+[05:34:51.393] I (614568) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:34:51.393] I (614578) wifi:Set ps type: 0, coexist: 0
+[05:34:51.393] 
+[05:34:51.393] E (614578) EspTcp: TCP receive failed: -1
+[05:34:51.393] I (614578) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:34:51.393] I (614588) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:34:51.598] I (614638) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+[05:34:51.599] I (614648) WS: Session ID: 7b575967-bc10-4e5e-a505-dba3cf2cf9b8
+[05:34:51.599] I (614648) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:34:51.599] I (614648) wifi:Set ps type: 0, coexist: 0
+[05:34:51.599] 
+[05:34:51.599] W (614658) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:34:51.599] I (614668) Application: Wake word detected: Jarvis
+[05:34:51.599] I (614738) FaceDisplay: mode=listening mood=neutral
+[05:34:51.599] I (614738) FaceDisplay: ring=pulse bedside=0
+[05:34:51.802] I (614988) AfeAudioEngine: Encoded wake word into 33 packets in 422 ms
+[05:34:51.802] I (614998) Application: Sent 6 packets captured after the wake word
+[05:34:51.802] I (614998) StateMachine: State: connecting -> listening
+[05:34:54.709] I (617808) Application: >> Jarvis, 现在几点 ?
+[05:34:54.709] I (617868) StateMachine: State: listening -> speaking
+[05:34:54.709] I (617878) FaceDisplay: mode=thinking mood=neutral
+[05:34:54.709] I (617878) FaceDisplay: ring=spin bedside=0
+[05:34:56.164] I (619198) FaceDisplay: mode=thinking mood=happy
+[05:34:56.574] I (619758) Application: << 现在是晚上十点三十四分
+[05:34:56.574] I (619788) FaceDisplay: mode=speaking mood=happy
+[05:34:56.783] I (619788) FaceDisplay: ring=level bedside=0
+[05:35:00.095] I (623298) StateMachine: State: speaking -> listening
+[05:35:00.095] I (623298) FaceDisplay: mode=listening mood=neutral
+[05:35:00.095] I (623308) FaceDisplay: ring=pulse bedside=0
+[05:35:07.987] I (631158) WS: Websocket disconnected
+[05:35:07.987] I (631158) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:35:07.987] I (631158) wifi:Set ps type: 2, coexist: 0
+[05:35:07.987] 
+[05:35:07.987] I (631158) StateMachine: State: listening -> idle
+[05:35:07.988] I (631198) FaceDisplay: mode=idle mood=neutral
+[05:35:08.197] I (631198) FaceDisplay: ring=off bedside=0
+[05:35:08.405] I (631568) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:35:08.405] I (631578) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+[05:35:11.016] ### trial en_paused 8 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_paused.wav
+[05:35:12.120] I (635248) Application: Wake word detected: Jarvis (state: 3)
+[05:35:12.120] I (635248) StateMachine: State: idle -> connecting
+[05:35:12.120] I (635248) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:35:12.120] I (635248) wifi:Set ps type: 0, coexist: 0
+[05:35:12.120] 
+[05:35:12.120] E (635258) EspTcp: TCP receive failed: -1
+[05:35:12.120] I (635258) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:35:12.120] I (635268) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:35:12.323] I (635378) FaceDisplay: mode=listening mood=neutral
+[05:35:12.324] I (635388) FaceDisplay: ring=pulse bedside=0
+[05:35:12.324] I (635388) WebSocket: WebSocket handshake done, cost=120 tcp=80 handshake=40
+[05:35:12.324] I (635418) WS: Session ID: fc09cb01-26e7-4b6a-9539-c53ddb6d68e6
+[05:35:12.324] I (635418) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:35:12.324] I (635418) wifi:Set ps type: 0, coexist: 0
+[05:35:12.324] 
+[05:35:12.324] W (635428) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:35:12.324] I (635438) Application: Wake word detected: Jarvis
+[05:35:12.527] I (635638) AfeAudioEngine: Encoded wake word into 33 packets in 390 ms
+[05:35:12.527] I (635638) Application: Sent 5 packets captured after the wake word
+[05:35:12.527] I (635638) StateMachine: State: connecting -> listening
+[05:35:13.152] I (636268) StateMachine: State: listening -> speaking
+[05:35:13.152] I (636298) FaceDisplay: mode=speaking mood=neutral
+[05:35:13.152] I (636298) FaceDisplay: ring=level bedside=0
+[05:35:13.360] I (636478) Application: << Mm-hm?
+[05:35:13.970] I (637028) StateMachine: State: speaking -> listening
+[05:35:13.970] I (637058) FaceDisplay: mode=listening mood=neutral
+[05:35:13.970] I (637058) FaceDisplay: ring=pulse bedside=0
+[05:35:16.675] I (639778) Application: >> What time is it?
+[05:35:16.676] I (639778) StateMachine: State: listening -> speaking
+[05:35:16.676] I (639798) FaceDisplay: mode=thinking mood=neutral
+[05:35:16.676] I (639798) FaceDisplay: ring=spin bedside=0
+[05:35:18.350] I (641458) Application: << It's ten thirty-five at night
+[05:35:18.350] I (641478) FaceDisplay: mode=speaking mood=neutral
+[05:35:18.350] I (641478) FaceDisplay: ring=level bedside=0
+[05:35:20.428] I (643568) StateMachine: State: speaking -> listening
+[05:35:20.428] I (643588) FaceDisplay: mode=listening mood=neutral
+[05:35:20.428] I (643588) FaceDisplay: ring=pulse bedside=0
+[05:35:28.531] I (651608) WS: Websocket disconnected
+[05:35:28.531] I (651608) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:35:28.531] I (651608) wifi:Set ps type: 2, coexist: 0
+[05:35:28.531] 
+[05:35:28.531] I (651638) StateMachine: State: listening -> idle
+[05:35:28.531] I (651648) FaceDisplay: mode=idle mood=neutral
+[05:35:28.532] I (651648) FaceDisplay: ring=off bedside=0
+[05:35:31.553] ### trial zh_paused 8 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_paused.wav
+[05:35:32.685] I (655808) Application: Wake word detected: Jarvis (state: 3)
+[05:35:32.686] I (655808) StateMachine: State: idle -> connecting
+[05:35:32.686] I (655808) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:35:32.686] I (655808) wifi:Set ps type: 0, coexist: 0
+[05:35:32.686] 
+[05:35:32.686] E (655818) EspTcp: TCP receive failed: -1
+[05:35:32.686] I (655818) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:35:32.686] I (655828) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:35:32.686] I (655878) WebSocket: WebSocket handshake done, cost=50 tcp=20 handshake=30
+[05:35:32.896] I (655908) WS: Session ID: e51a1c97-39b0-419a-8e44-136c3c570d7a
+[05:35:32.896] I (655908) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:35:32.896] I (655918) wifi:Set ps type: 0, coexist: 0
+[05:35:32.896] 
+[05:35:32.896] W (655918) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:35:32.896] I (655928) Application: Wake word detected: Jarvis
+[05:35:32.896] I (655978) FaceDisplay: mode=listening mood=neutral
+[05:35:32.896] I (655978) FaceDisplay: ring=pulse bedside=0
+[05:35:33.098] I (656218) AfeAudioEngine: Encoded wake word into 33 packets in 407 ms
+[05:35:33.098] I (656218) Application: Sent 5 packets captured after the wake word
+[05:35:33.098] I (656218) StateMachine: State: connecting -> listening
+[05:35:33.710] I (656918) StateMachine: State: listening -> speaking
+[05:35:33.917] I (656928) FaceDisplay: mode=speaking mood=neutral
+[05:35:33.917] I (656928) FaceDisplay: ring=level bedside=0
+[05:35:33.917] I (657128) Application: << Yes?
+[05:35:34.743] I (657898) StateMachine: State: speaking -> listening
+[05:35:34.744] I (657898) FaceDisplay: mode=listening mood=neutral
+[05:35:34.744] I (657898) FaceDisplay: ring=pulse bedside=0
+[05:35:37.440] I (660558) Application: >> 现在几点 ?
+[05:35:37.440] I (660558) StateMachine: State: listening -> speaking
+[05:35:37.440] I (660588) FaceDisplay: mode=thinking mood=neutral
+[05:35:37.441] I (660588) FaceDisplay: ring=spin bedside=0
+[05:35:39.100] I (662118) Application: << 现在是晚上十点三十五分
+[05:35:39.100] I (662158) FaceDisplay: mode=speaking mood=neutral
+[05:35:39.100] I (662158) FaceDisplay: ring=level bedside=0
+[05:35:42.422] I (665558) StateMachine: State: speaking -> listening
+[05:35:42.422] I (665568) FaceDisplay: mode=listening mood=neutral
+[05:35:42.422] I (665568) FaceDisplay: ring=pulse bedside=0
+[05:35:50.525] I (673618) WS: Websocket disconnected
+[05:35:50.526] I (673618) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:35:50.526] I (673618) wifi:Set ps type: 2, coexist: 0
+[05:35:50.526] 
+[05:35:50.526] I (673638) StateMachine: State: listening -> idle
+[05:35:50.526] I (673648) FaceDisplay: mode=idle mood=neutral
+[05:35:50.526] I (673648) FaceDisplay: ring=off bedside=0
+[05:35:50.526] I (673698) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:35:50.526] I (673698) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+[05:35:53.539] ### trial en_onebreath 9 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_onebreath.wav
+[05:35:54.670] I (677768) Application: Wake word detected: Jarvis (state: 3)
+[05:35:54.670] I (677768) StateMachine: State: idle -> connecting
+[05:35:54.671] I (677768) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:35:54.671] I (677768) wifi:Set ps type: 0, coexist: 0
+[05:35:54.671] 
+[05:35:54.671] E (677778) EspTcp: TCP receive failed: -1
+[05:35:54.671] I (677778) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:35:54.671] I (677788) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:35:54.671] I (677868) WebSocket: WebSocket handshake done, cost=80 tcp=30 handshake=50
+[05:35:54.671] I (677878) FaceDisplay: mode=listening mood=neutral
+[05:35:54.671] I (677878) FaceDisplay: ring=pulse bedside=0
+[05:35:54.881] I (677898) WS: Session ID: ca705e17-e1c1-4b40-8855-dd5c7eb79ac6
+[05:35:54.881] I (677898) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:35:54.881] I (677908) wifi:Set ps type: 0, coexist: 0
+[05:35:54.881] 
+[05:35:54.881] W (677908) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:35:54.881] I (677918) Application: Wake word detected: Jarvis
+[05:35:55.091] I (678168) AfeAudioEngine: Encoded wake word into 33 packets in 402 ms
+[05:35:55.091] I (678168) Application: Sent 5 packets captured after the wake word
+[05:35:55.091] I (678168) StateMachine: State: connecting -> listening
+[05:35:57.387] I (680558) Application: >> Jarvis, what time is it?
+[05:35:57.387] I (680558) StateMachine: State: listening -> speaking
+[05:35:57.387] I (680558) FaceDisplay: mode=thinking mood=neutral
+[05:35:57.387] I (680568) FaceDisplay: ring=spin bedside=0
+[05:35:59.041] I (682188) Application: << It's ten thirty-five in the evening
+[05:35:59.041] I (682198) FaceDisplay: mode=speaking mood=neutral
+[05:35:59.041] I (682198) FaceDisplay: ring=level bedside=0
+[05:36:01.529] I (684658) StateMachine: State: speaking -> listening
+[05:36:01.737] I (684738) FaceDisplay: mode=listening mood=neutral
+[05:36:01.737] I (684748) FaceDisplay: ring=pulse bedside=0
+[05:36:09.605] I (692678) WS: Websocket disconnected
+[05:36:09.606] I (692678) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:36:09.606] I (692678) wifi:Set ps type: 2, coexist: 0
+[05:36:09.606] 
+[05:36:09.606] I (692698) StateMachine: State: listening -> idle
+[05:36:09.606] I (692708) FaceDisplay: mode=idle mood=neutral
+[05:36:09.607] I (692708) FaceDisplay: ring=off bedside=0
+[05:36:12.632] ### trial zh_onebreath 9 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_onebreath.wav
+[05:36:13.761] I (696868) Application: Wake word detected: Jarvis (state: 3)
+[05:36:13.761] I (696868) StateMachine: State: idle -> connecting
+[05:36:13.761] I (696868) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:36:13.761] I (696868) wifi:Set ps type: 0, coexist: 0
+[05:36:13.761] 
+[05:36:13.761] E (696878) EspTcp: TCP receive failed: -1
+[05:36:13.761] I (696878) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:36:13.761] I (696888) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:36:13.761] I (696938) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+[05:36:13.761] I (696968) WS: Session ID: 6bb6dbff-3832-435d-b87b-c9305a3e6c02
+[05:36:13.761] I (696968) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:36:13.972] I (696978) wifi:Set ps type: 0, coexist: 0
+[05:36:13.972] 
+[05:36:13.973] W (696978) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:36:13.973] I (696988) Application: Wake word detected: Jarvis
+[05:36:13.973] I (697138) FaceDisplay: mode=listening mood=neutral
+[05:36:13.973] I (697138) FaceDisplay: ring=pulse bedside=0
+[05:36:14.174] I (697238) AfeAudioEngine: Encoded wake word into 33 packets in 374 ms
+[05:36:14.174] I (697248) Application: Sent 5 packets captured after the wake word
+[05:36:14.174] I (697248) StateMachine: State: connecting -> listening
+[05:36:17.059] I (700118) Application: >> Jarvis, 现在几点 ?
+[05:36:17.059] I (700118) StateMachine: State: listening -> speaking
+[05:36:17.059] I (700168) FaceDisplay: mode=thinking mood=neutral
+[05:36:17.059] I (700168) FaceDisplay: ring=spin bedside=0
+[05:36:19.549] I (702718) Application: << 现在是晚上十点三十六分
+[05:36:19.549] I (702748) FaceDisplay: mode=speaking mood=neutral
+[05:36:19.549] I (702748) FaceDisplay: ring=level bedside=0
+[05:36:22.845] I (706018) StateMachine: State: speaking -> listening
+[05:36:23.050] I (706088) FaceDisplay: mode=listening mood=neutral
+[05:36:23.051] I (706088) FaceDisplay: ring=pulse bedside=0
+[05:36:30.961] I (713998) WS: Websocket disconnected
+[05:36:30.961] I (713998) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:36:30.961] I (713998) wifi:Set ps type: 2, coexist: 0
+[05:36:30.961] 
+[05:36:30.961] I (714008) StateMachine: State: listening -> idle
+[05:36:30.961] I (714018) FaceDisplay: mode=idle mood=neutral
+[05:36:30.961] I (714018) FaceDisplay: ring=off bedside=0
+[05:36:31.584] I (714788) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:36:31.794] I (714828) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=40
+[05:36:34.053] ### trial en_paused 9 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_paused.wav
+[05:36:35.330] I (718338) Application: Wake word detected: Jarvis (state: 3)
+[05:36:35.330] I (718338) StateMachine: State: idle -> connecting
+[05:36:35.330] I (718338) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:36:35.330] I (718338) wifi:Set ps type: 0, coexist: 0
+[05:36:35.330] 
+[05:36:35.330] E (718348) EspTcp: TCP receive failed: -1
+[05:36:35.330] I (718348) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:36:35.330] I (718358) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:36:35.330] I (718388) FaceDisplay: mode=listening mood=neutral
+[05:36:35.330] I (718398) FaceDisplay: ring=pulse bedside=0
+[05:36:35.330] I (718408) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+[05:36:35.330] I (718438) WS: Session ID: 203008ed-0657-423f-9a0d-d862c371a3bf
+[05:36:35.330] I (718438) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:36:35.330] I (718448) wifi:Set ps type: 0, coexist: 0
+[05:36:35.330] 
+[05:36:35.330] W (718448) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:36:35.330] I (718458) Application: Wake word detected: Jarvis
+[05:36:35.537] I (718748) AfeAudioEngine: Encoded wake word into 33 packets in 413 ms
+[05:36:35.740] I (718748) Application: Sent 6 packets captured after the wake word
+[05:36:35.740] I (718748) StateMachine: State: connecting -> listening
+[05:36:36.369] I (719378) StateMachine: State: listening -> speaking
+[05:36:36.369] I (719408) FaceDisplay: mode=speaking mood=neutral
+[05:36:36.369] I (719408) FaceDisplay: ring=level bedside=0
+[05:36:36.576] I (719588) Application: << Yes?
+[05:36:37.197] I (720278) StateMachine: State: speaking -> listening
+[05:36:37.197] I (720348) FaceDisplay: mode=listening mood=neutral
+[05:36:37.197] I (720348) FaceDisplay: ring=pulse bedside=0
+[05:36:40.095] I (723268) Application: >> What time is it?
+[05:36:40.095] I (723308) StateMachine: State: listening -> speaking
+[05:36:40.095] I (723308) FaceDisplay: mode=thinking mood=neutral
+[05:36:40.298] I (723308) FaceDisplay: ring=spin bedside=0
+[05:36:41.963] I (725008) Application: << It's ten thirty-six in the evening
+[05:36:41.963] I (725038) FaceDisplay: mode=speaking mood=neutral
+[05:36:41.963] I (725038) FaceDisplay: ring=level bedside=0
+[05:36:44.462] I (727618) StateMachine: State: speaking -> listening
+[05:36:44.462] I (727628) FaceDisplay: mode=listening mood=neutral
+[05:36:44.462] I (727628) FaceDisplay: ring=pulse bedside=0
+[05:36:52.340] I (735498) WS: Websocket disconnected
+[05:36:52.341] I (735498) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:36:52.341] I (735498) wifi:Set ps type: 2, coexist: 0
+[05:36:52.341] 
+[05:36:52.341] I (735498) StateMachine: State: listening -> idle
+[05:36:52.341] I (735528) FaceDisplay: mode=idle mood=neutral
+[05:36:52.341] I (735528) FaceDisplay: ring=off bedside=0
+[05:36:55.373] ### trial zh_paused 9 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_paused.wav
+[05:36:56.504] I (739678) Application: Wake word detected: Jarvis (state: 3)
+[05:36:56.504] I (739678) StateMachine: State: idle -> connecting
+[05:36:56.504] I (739678) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:36:56.504] I (739678) wifi:Set ps type: 0, coexist: 0
+[05:36:56.504] 
+[05:36:56.504] E (739688) EspTcp: TCP receive failed: -1
+[05:36:56.504] I (739688) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:36:56.504] I (739698) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:36:56.705] I (739748) WebSocket: WebSocket handshake done, cost=50 tcp=20 handshake=30
+[05:36:56.705] I (739778) WS: Session ID: ac2de89d-f215-4f62-a080-6e0e85c2cd77
+[05:36:56.705] I (739778) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:36:56.705] I (739788) wifi:Set ps type: 0, coexist: 0
+[05:36:56.705] 
+[05:36:56.705] W (739788) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:36:56.705] I (739798) Application: Wake word detected: Jarvis
+[05:36:56.705] I (739888) FaceDisplay: mode=listening mood=neutral
+[05:36:56.705] I (739898) FaceDisplay: ring=pulse bedside=0
+[05:36:56.914] I (740088) AfeAudioEngine: Encoded wake word into 33 packets in 406 ms
+[05:36:56.914] I (740088) Application: Sent 5 packets captured after the wake word
+[05:36:56.914] I (740088) StateMachine: State: connecting -> listening
+[05:36:57.539] I (740728) StateMachine: State: listening -> speaking
+[05:36:57.744] I (740778) FaceDisplay: mode=speaking mood=neutral
+[05:36:57.744] I (740778) FaceDisplay: ring=level bedside=0
+[05:36:57.744] I (740928) Application: << Hmm?
+[05:36:58.352] I (741468) StateMachine: State: speaking -> listening
+[05:36:58.352] I (741498) FaceDisplay: mode=listening mood=neutral
+[05:36:58.352] I (741498) FaceDisplay: ring=pulse bedside=0
+[05:37:01.462] I (744468) Application: >> 现在几点 ?
+[05:37:01.462] I (744468) StateMachine: State: listening -> speaking
+[05:37:01.462] I (744468) FaceDisplay: mode=thinking mood=neutral
+[05:37:01.462] I (744468) FaceDisplay: ring=spin bedside=0
+[05:37:02.921] I (746078) Application: << 现在是晚上十点三十七分
+[05:37:02.921] I (746098) FaceDisplay: mode=speaking mood=neutral
+[05:37:02.921] I (746098) FaceDisplay: ring=level bedside=0
+[05:37:06.258] I (749348) StateMachine: State: speaking -> listening
+[05:37:06.259] I (749358) FaceDisplay: mode=listening mood=neutral
+[05:37:06.259] I (749358) FaceDisplay: ring=pulse bedside=0
+[05:37:14.185] I (757368) WS: Websocket disconnected
+[05:37:14.185] I (757368) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:37:14.185] I (757368) wifi:Set ps type: 2, coexist: 0
+[05:37:14.185] 
+[05:37:14.185] I (757368) StateMachine: State: listening -> idle
+[05:37:14.185] I (757378) FaceDisplay: mode=idle mood=neutral
+[05:37:14.186] I (757378) FaceDisplay: ring=off bedside=0
+[05:37:14.816] I (757918) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:37:15.438] I (758448) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=530
+[05:37:17.203] ### trial en_onebreath 10 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_onebreath.wav
+[05:37:18.353] I (761508) Application: Wake word detected: Jarvis (state: 3)
+[05:37:18.354] I (761508) StateMachine: State: idle -> connecting
+[05:37:18.354] I (761508) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:37:18.354] I (761508) wifi:Set ps type: 0, coexist: 0
+[05:37:18.354] 
+[05:37:18.354] E (761518) EspTcp: TCP receive failed: -1
+[05:37:18.354] I (761518) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:37:18.354] I (761528) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:37:18.557] I (761588) FaceDisplay: mode=listening mood=neutral
+[05:37:18.557] I (761588) FaceDisplay: ring=pulse bedside=0
+[05:37:18.557] I (761608) WebSocket: WebSocket handshake done, cost=80 tcp=10 handshake=70
+[05:37:18.557] I (761738) WS: Session ID: b4a81497-95bc-48f4-9b7b-0c33b767e3e8
+[05:37:18.557] I (761738) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:37:18.557] I (761748) wifi:Set ps type: 0, coexist: 0
+[05:37:18.557] 
+[05:37:18.557] W (761748) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:37:18.557] I (761758) Application: Wake word detected: Jarvis
+[05:37:18.767] I (761908) AfeAudioEngine: Encoded wake word into 33 packets in 397 ms
+[05:37:18.767] I (761908) Application: Sent 6 packets captured after the wake word
+[05:37:18.768] I (761908) StateMachine: State: connecting -> listening
+[05:37:21.261] I (764328) Application: >> Jarvis, what time is it?
+[05:37:21.262] I (764328) StateMachine: State: listening -> speaking
+[05:37:21.262] I (764358) FaceDisplay: mode=thinking mood=neutral
+[05:37:21.262] I (764368) FaceDisplay: ring=spin bedside=0
+[05:37:22.924] I (766038) Application: << It's 10:37 PM
+[05:37:22.924] I (766078) FaceDisplay: mode=speaking mood=neutral
+[05:37:22.924] I (766078) FaceDisplay: ring=level bedside=0
+[05:37:25.223] I (768378) StateMachine: State: speaking -> listening
+[05:37:25.223] I (768408) FaceDisplay: mode=listening mood=neutral
+[05:37:25.223] I (768408) FaceDisplay: ring=pulse bedside=0
+[05:37:33.341] I (776388) WS: Websocket disconnected
+[05:37:33.341] I (776388) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:37:33.341] I (776388) wifi:Set ps type: 2, coexist: 0
+[05:37:33.341] 
+[05:37:33.341] I (776388) StateMachine: State: listening -> idle
+[05:37:33.341] I (776398) FaceDisplay: mode=idle mood=neutral
+[05:37:33.341] I (776398) FaceDisplay: ring=off bedside=0
+[05:37:36.363] ### trial zh_onebreath 10 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_onebreath.wav
+[05:37:37.513] I (780588) Application: Wake word detected: Jarvis (state: 3)
+[05:37:37.513] I (780588) StateMachine: State: idle -> connecting
+[05:37:37.513] I (780588) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:37:37.513] I (780588) wifi:Set ps type: 0, coexist: 0
+[05:37:37.513] 
+[05:37:37.513] E (780598) EspTcp: TCP receive failed: -1
+[05:37:37.513] I (780598) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:37:37.514] I (780608) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:37:37.514] I (780658) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+[05:37:37.514] I (780688) WS: Session ID: f3a0825f-f6ac-4b44-ba2a-5603c8458ef7
+[05:37:37.514] I (780698) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:37:37.514] I (780698) wifi:Set ps type: 0, coexist: 0
+[05:37:37.514] 
+[05:37:37.514] W (780698) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:37:37.514] I (780708) Application: Wake word detected: Jarvis
+[05:37:37.725] I (780798) FaceDisplay: mode=listening mood=neutral
+[05:37:37.725] I (780808) FaceDisplay: ring=pulse bedside=0
+[05:37:37.726] I (780908) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after a gap of 16 samples (300)
+[05:37:37.936] I (781008) AfeAudioEngine: Encoded wake word into 33 packets in 418 ms
+[05:37:37.936] I (781008) Application: Sent 6 packets captured after the wake word
+[05:37:37.936] I (781008) StateMachine: State: connecting -> listening
+[05:37:40.616] I (783818) Application: >> Jarvis, 现在几点 ?
+[05:37:40.616] I (783828) StateMachine: State: listening -> speaking
+[05:37:40.823] I (783838) FaceDisplay: mode=thinking mood=neutral
+[05:37:40.823] I (783838) FaceDisplay: ring=spin bedside=0
+[05:37:42.468] I (785578) Application: << 现在是晚上十点三十七分
+[05:37:42.469] I (785588) FaceDisplay: mode=speaking mood=neutral
+[05:37:42.469] I (785588) FaceDisplay: ring=level bedside=0
+[05:37:45.798] I (788958) StateMachine: State: speaking -> listening
+[05:37:46.006] I (789018) FaceDisplay: mode=listening mood=neutral
+[05:37:46.006] I (789018) FaceDisplay: ring=pulse bedside=0
+[05:37:53.880] I (796898) WS: Websocket disconnected
+[05:37:53.881] I (796898) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:37:53.881] I (796898) wifi:Set ps type: 2, coexist: 0
+[05:37:53.881] 
+[05:37:53.882] I (796908) StateMachine: State: listening -> idle
+[05:37:53.882] I (796908) FaceDisplay: mode=idle mood=neutral
+[05:37:53.882] I (796918) FaceDisplay: ring=off bedside=0
+[05:37:54.289] I (797468) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:37:54.289] I (797468) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+[05:37:56.902] ### trial en_paused 10 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_en_paused.wav
+[05:37:58.000] I (801198) Application: Wake word detected: Jarvis (state: 3)
+[05:37:58.001] I (801198) StateMachine: State: idle -> connecting
+[05:37:58.001] I (801198) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:37:58.001] I (801198) wifi:Set ps type: 0, coexist: 0
+[05:37:58.001] 
+[05:37:58.001] E (801208) EspTcp: TCP receive failed: -1
+[05:37:58.203] I (801208) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:37:58.203] I (801218) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:37:58.203] I (801258) WebSocket: WebSocket handshake done, cost=40 tcp=20 handshake=20
+[05:37:58.203] I (801288) WS: Session ID: 0d1a37d6-3e90-456c-9b03-d6927e4c1eee
+[05:37:58.203] I (801288) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:37:58.203] I (801298) wifi:Set ps type: 0, coexist: 0
+[05:37:58.203] 
+[05:37:58.203] W (801298) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:37:58.203] I (801308) Application: Wake word detected: Jarvis
+[05:37:58.203] I (801368) FaceDisplay: mode=listening mood=neutral
+[05:37:58.203] I (801368) FaceDisplay: ring=pulse bedside=0
+[05:37:58.413] I (801588) AfeAudioEngine: Encoded wake word into 33 packets in 395 ms
+[05:37:58.413] I (801598) Application: Sent 6 packets captured after the wake word
+[05:37:58.413] I (801598) StateMachine: State: connecting -> listening
+[05:37:59.020] I (802218) StateMachine: State: listening -> speaking
+[05:37:59.222] I (802248) FaceDisplay: mode=speaking mood=neutral
+[05:37:59.222] I (802248) FaceDisplay: ring=level bedside=0
+[05:37:59.222] I (802428) Application: << Mm-hm?
+[05:37:59.849] I (802988) StateMachine: State: speaking -> listening
+[05:37:59.849] I (803028) FaceDisplay: mode=listening mood=neutral
+[05:37:59.849] I (803028) FaceDisplay: ring=pulse bedside=0
+[05:38:02.567] I (805748) Application: >> What time is it?
+[05:38:02.568] I (805748) StateMachine: State: listening -> speaking
+[05:38:02.568] I (805778) FaceDisplay: mode=thinking mood=neutral
+[05:38:02.778] I (805778) FaceDisplay: ring=spin bedside=0
+[05:38:04.231] I (807408) Application: << It's ten thirty-eight in the evening
+[05:38:04.232] I (807448) FaceDisplay: mode=speaking mood=neutral
+[05:38:04.436] I (807448) FaceDisplay: ring=level bedside=0
+[05:38:06.535] I (809668) StateMachine: State: speaking -> listening
+[05:38:06.536] I (809688) FaceDisplay: mode=listening mood=neutral
+[05:38:06.536] I (809688) FaceDisplay: ring=pulse bedside=0
+[05:38:14.615] I (817658) WS: Websocket disconnected
+[05:38:14.615] I (817658) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:38:14.615] I (817658) wifi:Set ps type: 2, coexist: 0
+[05:38:14.615] 
+[05:38:14.615] I (817668) StateMachine: State: listening -> idle
+[05:38:14.615] I (817678) FaceDisplay: mode=idle mood=neutral
+[05:38:14.615] I (817678) FaceDisplay: ring=off bedside=0
+[05:38:17.658] ### trial zh_paused 10 play /private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/w3fw/audio/t_zh_paused.wav
+[05:38:18.764] I (821938) Application: Wake word detected: Jarvis (state: 3)
+[05:38:18.764] I (821938) StateMachine: State: idle -> connecting
+[05:38:18.764] I (821938) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:38:18.764] I (821938) wifi:Set ps type: 0, coexist: 0
+[05:38:18.764] 
+[05:38:18.764] E (821948) EspTcp: TCP receive failed: -1
+[05:38:18.764] I (821948) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+[05:38:18.764] I (821958) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+[05:38:18.974] I (822028) FaceDisplay: mode=listening mood=neutral
+[05:38:18.974] I (822028) FaceDisplay: ring=pulse bedside=0
+[05:38:18.974] I (822038) WebSocket: WebSocket handshake done, cost=80 tcp=30 handshake=50
+[05:38:18.974] I (822068) WS: Session ID: 31b3c434-de79-4c8d-a6e0-42e6f3fff2fc
+[05:38:18.975] I (822068) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[05:38:18.975] I (822078) wifi:Set ps type: 0, coexist: 0
+[05:38:18.975] 
+[05:38:18.975] W (822078) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[05:38:18.975] I (822088) Application: Wake word detected: Jarvis
+[05:38:19.175] I (822358) AfeAudioEngine: Encoded wake word into 33 packets in 420 ms
+[05:38:19.175] I (822358) Application: Sent 6 packets captured after the wake word
+[05:38:19.175] I (822358) StateMachine: State: connecting -> listening
+[05:38:20.014] I (823038) StateMachine: State: listening -> speaking
+[05:38:20.016] I (823068) FaceDisplay: mode=speaking mood=neutral
+[05:38:20.016] I (823068) FaceDisplay: ring=level bedside=0
+[05:38:20.225] I (823238) Application: << Hmm?
+[05:38:20.632] I (823798) StateMachine: State: speaking -> listening
+[05:38:20.633] I (823838) FaceDisplay: mode=listening mood=neutral
+[05:38:20.633] I (823838) FaceDisplay: ring=pulse bedside=0
+[05:38:23.743] I (826788) Application: >> 现在几点 ?
+[05:38:23.744] I (826788) StateMachine: State: listening -> speaking
+[05:38:23.744] I (826828) FaceDisplay: mode=thinking mood=neutral
+[05:38:23.744] I (826828) FaceDisplay: ring=spin bedside=0
+[05:38:25.185] I (828288) Application: << 现在是晚上十点三十八分
+[05:38:25.186] I (828298) FaceDisplay: mode=speaking mood=neutral
+[05:38:25.186] I (828298) FaceDisplay: ring=level bedside=0
+[05:38:28.519] I (831618) StateMachine: State: speaking -> listening
+[05:38:28.519] I (831638) FaceDisplay: mode=listening mood=neutral
+[05:38:28.519] I (831638) FaceDisplay: ring=pulse bedside=0
+[05:38:36.417] I (839628) WS: Websocket disconnected
+[05:38:36.417] I (839628) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[05:38:36.417] I (839628) wifi:Set ps type: 2, coexist: 0
+[05:38:36.417] 
+[05:38:36.627] I (839658) StateMachine: State: listening -> idle
+[05:38:36.627] I (839668) FaceDisplay: mode=idle mood=neutral
+[05:38:36.627] I (839668) FaceDisplay: ring=off bedside=0
+[05:38:36.628] ### trials done

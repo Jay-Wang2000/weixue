@@ -1,0 +1,171 @@
+# fix-wave3-firmware wake trials, 2026-10-07 05:24-05:38 UTC, release build of patches 05-28 (wake capture patch 23).
+# Mac say (default voice for Jarvis and English, Tingting for Chinese) at output volume 55, played with afplay; live backend (main overlay + weixue_clock).
+# Kinds, played round robin: en_onebreath = say "Jarvis, what time is it?"; zh_onebreath = "Jarvis" + 0.12 s + "现在几点？";
+#   en_paused / zh_paused = "Jarvis" + 2.0 s + the request (the wake cue plays in the pause).
+# Columns: UTC start | kind | round | device transcripts (>>) | first << line (wake cue caption or reply). preserved = the request words are in a transcript ("What time is this?" counts as LOST).
+05:24:48.026 | en_onebreath |  1 | Jarvis, what time is it? / It's 10:24 | It's ten twenty-four PM | preserved
+05:25:12.700 | zh_onebreath |  1 | Jarvis, 现在几点 ? | 现在是晚上十点二十五分 | preserved
+05:25:34.123 | en_paused    |  1 | What time is it? | Mm-hm? | preserved
+05:25:54.744 | zh_paused    |  1 | 现在几点 ? | Hmm? | preserved
+05:26:16.569 | en_onebreath |  2 | Jarvis, what time is it? | It's twenty-two twenty-six | preserved
+05:26:38.044 | zh_onebreath |  2 | Jarvis, 现在几点 ? | 现在是晚上十点二十六分 | preserved
+05:26:53.342 | en_paused    |  2 | What time is it? | Yes? | preserved
+05:27:08.229 | zh_paused    |  2 | Ja, das / 现在几点 ? | Yes? | preserved
+05:27:32.065 | en_onebreath |  3 | Jarvis, what time is it? | It's twenty-two twenty-seven | preserved
+05:27:53.075 | zh_onebreath |  3 | Jarvis, 现在几点 ? | 现在是晚上十点二十七分 | preserved
+05:28:14.693 | en_paused    |  3 | What time is it? | Mm-hm? | preserved
+05:28:35.481 | zh_paused    |  3 | 现在几点 ? | Mm-hm? | preserved
+05:28:57.725 | en_onebreath |  4 | Jarvis, what time is it? | It's twenty-two twenty-nine | preserved
+05:29:19.573 | zh_onebreath |  4 | Jarvis, 现在几点 ? | 现在是晚上十点二十九分 | preserved
+05:29:39.961 | en_paused    |  4 | What time is it? | Yes? | preserved
+05:30:00.377 | zh_paused    |  4 | 现在几点 ? | Hmm? | preserved
+05:30:21.409 | en_onebreath |  5 | Jarvis, what time is it? | It's ten thirty at night | preserved
+05:30:39.970 | zh_onebreath |  5 | Jarvis, 现在几点 ? | 现在是晚上十点半 | preserved
+05:31:00.572 | en_paused    |  5 | What time is this? | Hmm? | LOST
+05:31:20.961 | zh_paused    |  5 | 现在几点 ? | Mm-hm? | preserved
+05:31:43.835 | en_onebreath |  6 | Jarvis, what time is it? | It's 10:31 in the evening | preserved
+05:32:03.395 | zh_onebreath |  6 | Jarvis, 现在几点 ? | 现在是晚上十点三十二分 | preserved
+05:32:23.846 | en_paused    |  6 | What time is it? | Mm-hm? | preserved
+05:32:45.268 | zh_paused    |  6 | 现在几点 ? | Mm-hm? | preserved
+05:33:07.918 | en_onebreath |  7 | Jarvis, what time is it? | It's ten thirty-three PM | preserved
+05:33:26.664 | zh_onebreath |  7 | Jarvis, 现在几点 ? | 现在是晚上十点三十三分 | preserved
+05:33:47.839 | en_paused    |  7 | What time is it? | Yes? | preserved
+05:34:08.188 | zh_paused    |  7 | 现在几点 ? | Mm-hm? | preserved
+05:34:30.344 | en_onebreath |  8 | Jarvis, what time is it? | It's ten thirty-four in the evening | preserved
+05:34:50.286 | zh_onebreath |  8 | Jarvis, 现在几点 ? | 现在是晚上十点三十四分 | preserved
+05:35:11.016 | en_paused    |  8 | What time is it? | Mm-hm? | preserved
+05:35:31.553 | zh_paused    |  8 | 现在几点 ? | Yes? | preserved
+05:35:53.538 | en_onebreath |  9 | Jarvis, what time is it? | It's ten thirty-five in the evening | preserved
+05:36:12.632 | zh_onebreath |  9 | Jarvis, 现在几点 ? | 现在是晚上十点三十六分 | preserved
+05:36:34.053 | en_paused    |  9 | What time is it? | Yes? | preserved
+05:36:55.373 | zh_paused    |  9 | 现在几点 ? | Hmm? | preserved
+05:37:17.203 | en_onebreath | 10 | Jarvis, what time is it? | It's 10:37 PM | preserved
+05:37:36.363 | zh_onebreath | 10 | Jarvis, 现在几点 ? | 现在是晚上十点三十七分 | preserved
+05:37:56.902 | en_paused    | 10 | What time is it? | Mm-hm? | preserved
+05:38:17.658 | zh_paused    | 10 | 现在几点 ? | Hmm? | preserved
+#
+# Totals: en_onebreath 10/10, zh_onebreath 10/10, en_paused 9/10, zh_paused 10/10
+# Device: every trial logged 'Wake word detected', 'Encoded wake word into 33 packets' and 'Sent N packets captured after the wake word' (N below).
+#   N per trial: 4 6 6 6 5 5 6 5 6 6 6 6 6 5 5 5 5 5 6 5 6 5 6 6 6 5 5 6 5 6 5 5 5 5 6 5 6 6 6 6
+# Server (UTC-7) ASR results and wake cue decisions, in order:
+  261006 22:24:50[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:24:51[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.542s | 语言: en-US | 结果: Jarvis, what time is it?
+  261006 22:24:56[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.386s | 语言: en-US | 结果: It's 10:24.
+  261006 22:25:14[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:25:16[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.574s | 语言: cmn-Hans-CN | 结果: Jarvis, 现在几点 ?
+  261006 22:25:36[weixue_patches]-INFO-wake cue: Mm-hm?
+  261006 22:25:37[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.395s | 语言: en-US | 结果: Jarvis
+  261006 22:25:37[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:25:39[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.288s | 语言: en-US | 结果: What time is it?
+  261006 22:25:57[weixue_patches]-INFO-wake cue: Hmm?
+  261006 22:25:58[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.457s | 语言: en-US | 结果: Jarvis
+  261006 22:25:58[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:26:00[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.487s | 语言: cmn-Hans-CN | 结果: 现在几点 ?
+  261006 22:26:18[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:26:20[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.466s | 语言: en-US | 结果: Jarvis, what time is it?
+  261006 22:26:40[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:26:42[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.500s | 语言: cmn-Hans-CN | 结果: Jarvis, 现在几点 ?
+  261006 22:26:55[weixue_patches]-INFO-wake cue: Yes?
+  261006 22:26:56[core.providers.asr.google_stt]-INFO-语音识别耗时: 0.881s | 语言: en-US | 结果: Jarvis
+  261006 22:26:56[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:26:58[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.358s | 语言: en-US | 结果: What time is it?
+  261006 22:27:10[weixue_patches]-INFO-wake cue: Yes?
+  261006 22:27:12[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.751s | 语言: None | 结果: Ja, das.
+  261006 22:27:14[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.406s | 语言: cmn-Hans-CN | 结果: 现在几点 ?
+  261006 22:27:15[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.322s | 语言: None | 结果: 
+  261006 22:27:34[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:27:35[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.576s | 语言: en-US | 结果: Jarvis, what time is it?
+  261006 22:27:55[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:27:57[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.609s | 语言: cmn-Hans-CN | 结果: Jarvis, 现在几点 ?
+  261006 22:28:16[weixue_patches]-INFO-wake cue: Mm-hm?
+  261006 22:28:18[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.423s | 语言: en-US | 结果: Jarvis
+  261006 22:28:18[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:28:20[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.231s | 语言: en-US | 结果: What time is it?
+  261006 22:28:37[weixue_patches]-INFO-wake cue: Mm-hm?
+  261006 22:28:39[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.461s | 语言: en-US | 结果: Jarvis
+  261006 22:28:39[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:28:41[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.380s | 语言: cmn-Hans-CN | 结果: 现在几点 ?
+  261006 22:28:59[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:29:01[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.451s | 语言: en-US | 结果: Jarvis, what time is it?
+  261006 22:29:21[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:29:23[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.632s | 语言: cmn-Hans-CN | 结果: Jarvis, 现在几点 ?
+  261006 22:29:42[weixue_patches]-INFO-wake cue: Yes?
+  261006 22:29:43[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.420s | 语言: en-US | 结果: Jarvis
+  261006 22:29:43[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:29:45[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.409s | 语言: en-US | 结果: What time is it?
+  261006 22:30:02[weixue_patches]-INFO-wake cue: Hmm?
+  261006 22:30:04[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.524s | 语言: en-US | 结果: Jarvis
+  261006 22:30:04[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:30:06[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.274s | 语言: cmn-Hans-CN | 结果: 现在几点 ?
+  261006 22:30:23[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:30:25[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.691s | 语言: en-US | 结果: Jarvis, what time is it?
+  261006 22:30:41[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:30:44[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.608s | 语言: cmn-Hans-CN | 结果: Jarvis, 现在几点 ?
+  261006 22:31:02[weixue_patches]-INFO-wake cue: Hmm?
+  261006 22:31:04[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.629s | 语言: en-US | 结果: Jarvis
+  261006 22:31:04[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:31:06[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.314s | 语言: en-US | 结果: What time is this?
+  261006 22:31:23[weixue_patches]-INFO-wake cue: Mm-hm?
+  261006 22:31:24[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.658s | 语言: en-US | 结果: Jarvis
+  261006 22:31:24[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:31:26[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.386s | 语言: cmn-Hans-CN | 结果: 现在几点 ?
+  261006 22:31:45[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:31:47[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.554s | 语言: en-US | 结果: Jarvis, what time is it?
+  261006 22:32:05[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:32:07[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.478s | 语言: cmn-Hans-CN | 结果: Jarvis, 现在几点 ?
+  261006 22:32:26[weixue_patches]-INFO-wake cue: Mm-hm?
+  261006 22:32:27[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.746s | 语言: en-US | 结果: Jarvis
+  261006 22:32:27[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:32:29[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.403s | 语言: en-US | 结果: What time is it?
+  261006 22:32:47[weixue_patches]-INFO-wake cue: Mm-hm?
+  261006 22:32:49[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.421s | 语言: en-US | 结果: Jarvis
+  261006 22:32:49[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:32:51[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.716s | 语言: cmn-Hans-CN | 结果: 现在几点 ?
+  261006 22:33:10[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:33:11[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.074s | 语言: en-US | 结果: Jarvis, what time is it?
+  261006 22:33:28[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:33:30[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.554s | 语言: cmn-Hans-CN | 结果: Jarvis, 现在几点 ?
+  261006 22:33:50[weixue_patches]-INFO-wake cue: Yes?
+  261006 22:33:51[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.524s | 语言: en-US | 结果: Jarvis
+  261006 22:33:51[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:33:53[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.330s | 语言: en-US | 结果: What time is it?
+  261006 22:34:10[weixue_patches]-INFO-wake cue: Mm-hm?
+  261006 22:34:11[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.409s | 语言: en-US | 结果: Jarvis
+  261006 22:34:11[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:34:14[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.822s | 语言: cmn-Hans-CN | 结果: 现在几点 ?
+  261006 22:34:32[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:34:34[core.providers.asr.google_stt]-INFO-语音识别耗时: 2.198s | 语言: en-US | 结果: Jarvis, what time is it?
+  261006 22:34:52[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:34:54[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.645s | 语言: cmn-Hans-CN | 结果: Jarvis, 现在几点 ?
+  261006 22:35:13[weixue_patches]-INFO-wake cue: Mm-hm?
+  261006 22:35:14[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.642s | 语言: en-US | 结果: Jarvis
+  261006 22:35:14[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:35:16[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.279s | 语言: en-US | 结果: What time is it?
+  261006 22:35:33[weixue_patches]-INFO-wake cue: Yes?
+  261006 22:35:35[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.557s | 语言: en-US | 结果: Jarvis
+  261006 22:35:35[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:35:37[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.301s | 语言: cmn-Hans-CN | 结果: 现在几点 ?
+  261006 22:35:55[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:35:57[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.493s | 语言: en-US | 结果: Jarvis, what time is it?
+  261006 22:36:14[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:36:16[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.603s | 语言: cmn-Hans-CN | 结果: Jarvis, 现在几点 ?
+  261006 22:36:36[weixue_patches]-INFO-wake cue: Yes?
+  261006 22:36:38[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.945s | 语言: en-US | 结果: Jarvis
+  261006 22:36:38[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:36:39[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.400s | 语言: en-US | 结果: What time is it?
+  261006 22:36:57[weixue_patches]-INFO-wake cue: Hmm?
+  261006 22:36:59[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.500s | 语言: en-US | 结果: Jarvis
+  261006 22:36:59[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:37:01[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.337s | 语言: cmn-Hans-CN | 结果: 现在几点 ?
+  261006 22:37:19[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:37:21[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.576s | 语言: en-US | 结果: Jarvis, what time is it?
+  261006 22:37:38[weixue_patches]-INFO-wake cue skipped: user speaking
+  261006 22:37:40[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.572s | 语言: cmn-Hans-CN | 结果: Jarvis, 现在几点 ?
+  261006 22:37:59[weixue_patches]-INFO-wake cue: Mm-hm?
+  261006 22:38:00[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.539s | 语言: en-US | 结果: Jarvis
+  261006 22:38:00[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:38:02[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.327s | 语言: en-US | 结果: What time is it?
+  261006 22:38:19[weixue_patches]-INFO-wake cue: Hmm?
+  261006 22:38:21[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.485s | 语言: en-US | 结果: Jarvis
+  261006 22:38:21[weixue_patches]-INFO-wake word transcript ignored: Jarvis
+  261006 22:38:23[core.providers.asr.google_stt]-INFO-语音识别耗时: 1.407s | 语言: cmn-Hans-CN | 结果: 现在几点 ?

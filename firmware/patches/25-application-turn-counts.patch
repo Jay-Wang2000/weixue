@@ -1,0 +1,52 @@
+diff --git a/main/application.cc b/main/application.cc
+index 231420e..475a17d 100644
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -655,6 +655,7 @@ void Application::InitializeProtocol() {
+                         return;
+                     }
+                     aborted_ = false;
++                    ++reply_count_;
+                     SetDeviceState(kDeviceStateSpeaking);
+                 });
+             } else if (strcmp(state->valuestring, "stop") == 0) {
+@@ -662,6 +663,7 @@ void Application::InitializeProtocol() {
+                     if (!mute_fence_.AcceptTtsStop(generation)) {
+                         return;
+                     }
++                    ++tts_stop_count_;
+                     if (GetDeviceState() == kDeviceStateSpeaking) {
+                         if (listening_mode_ == kListeningModeManualStop) {
+                             SetDeviceState(kDeviceStateIdle);
+@@ -1220,6 +1222,7 @@ void Application::StartNotification(std::string audio_url, std::vector<NotifySub
+     }
+ 
+     audio_service_.ResetDecoder();
++    ++reply_count_;
+     uint32_t playback_id = ++notification_playback_id_;
+     if (playback_id == 0) {
+         playback_id = ++notification_playback_id_;
+diff --git a/main/application.h b/main/application.h
+index 7888281..e360232 100644
+--- a/main/application.h
++++ b/main/application.h
+@@ -85,6 +85,10 @@ public:
+      * state is visible; a wake word or a user transcript (stt) in the session sets kUser.
+      */
+     SessionOrigin GetSessionOrigin() const { return session_origin_; }
++    // Accepted `tts start` messages and notification starts: each begins a new reply.
++    uint32_t GetReplyCount() const { return reply_count_; }
++    // Accepted `tts stop` messages: each ends the turn it belongs to.
++    uint32_t GetTtsStopCount() const { return tts_stop_count_; }
+ 
+     /**
+      * Schedule a callback to be executed in the main task
+@@ -185,6 +189,8 @@ private:
+     weixue_session::MuteFence mute_fence_;
+     std::atomic<SessionOrigin> session_origin_{SessionOrigin::kUser};
+     std::atomic<SessionOrigin> next_session_origin_{SessionOrigin::kUser};
++    std::atomic<uint32_t> reply_count_{0};
++    std::atomic<uint32_t> tts_stop_count_{0};
+     bool assets_version_checked_ = false;
+     bool play_popup_on_listening_ = false;  // Flag to play popup sound after state changes to listening
+     // Microphone capture continues from the wake word into listening; packets encoded while
