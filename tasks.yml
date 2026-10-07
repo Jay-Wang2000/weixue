@@ -145,7 +145,7 @@ tasks:
   - id: fix-turn-isolation
     name: "Turn identity, cancellation and ADR-11 deadline"
     branch: fix/turn-isolation
-    description: Codex C2/patch 3：在 overlay 中给每个对话轮不可变 turn id 与取消状态；工具 future 等待、结果处理、历史写入、递归 LLM 调用前检查 turn id，旧轮结果不得进入新轮或借新轮 sentence_id 播报；已派发动作标记“结果未知”而非自动重试；实现 ADR-11 的 90 s 单调截止（重试/回退/工具轮共用），到期前向设备发终态。测试：模拟慢工具期间插话；端到端：实机慢工具（延时 MCP）+ 打断。与 M2 agent 服务的 job 模型兼容。 2026-10-07 手测异常（docs/logs/handson-2026-10-07.md 异常 1）：「Tell me a story」的 LLM 轮以 tool_use 结束后挂起约 57 s 直到设备 abort；期间 10:40:40 一条被 USB 复位切断的旧连接完成 teardown 并打印「工具处理器清理完成」。假设：旧连接清理动了共享的工具/MCP 端点状态，吞掉了活跃轮的工具结果。复现：轮中有工具调用时让另一条旧连接断开；要求连接级工具状态隔离，且工具等待受 ADR-11 截止约束而非挂到 abort。
+    description: Codex C2/patch 3：在 overlay 中给每个对话轮不可变 turn id 与取消状态；工具 future 等待、结果处理、历史写入、递归 LLM 调用前检查 turn id，旧轮结果不得进入新轮或借新轮 sentence_id 播报；已派发动作标记“结果未知”而非自动重试；实现 ADR-11 的 90 s 单调截止（重试/回退/工具轮共用），到期前向设备发终态。测试：模拟慢工具期间插话；端到端：实机慢工具（延时 MCP）+ 打断。与 M2 agent 服务的 job 模型兼容。 2026-10-07 手测异常根因（docs/logs/handson-2026-10-07-stall-rca.md）：「Tell me a story」卡在 Anthropic HTTP 调用首字节约 60 s（client timeout），SDK 静默重试一次，迟到的 direct_answer 被 TTS 因 sentence_id 过期丢弃却仍写入历史；旧连接 teardown 与 abort 均已排除。修复归此任务：(a) turn-id 守卫——sentence_id 不匹配时丢弃事件且不写历史；(b) 在生成器外强制 ADR-11 90 s 墙钟截止，SDK max_retries=0、overlay 内按预算重试、到期向设备发终态；(c) anthropic/httpx 日志桥到 loguru 的 INFO。配套配置变更（Anthropic 超时拆为 connect 5 s / read ~20 s）需 Jay 批准，见 DECISIONS-PENDING 14。回归：首次 stream 阻塞后成功、阻塞期间第二轮不污染历史；端到端在家：人为延迟 api.anthropic.com 约 70 s 说「Tell me a story」，预算内收到超时提示且历史无过期故事。
     depends_on: [fix-server-review-2]
     status: pending
     retries: 0
