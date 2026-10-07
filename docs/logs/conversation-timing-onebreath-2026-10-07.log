@@ -1,0 +1,37 @@
+# One-breath wake ("Jarvis, <request>" said with macOS say, Mac volume 55), 2026-10-07, live server on fix/conversation-timing.
+# Device: wake detection to listening start 286-330 ms ("Encoded wake word into 33 packets", conversation-timing-device-2026-10-07.log);
+# no microphone audio is captured in that gap. The 33 pre-roll packets (1.98 s ending at detection) are sent before `listen detect`.
+#
+# Google STT result per trial (server log), by server build:
+#   reset on detect/start (previous silent-wake design + audible cue): none
+#   pre-roll kept, cue always: "Jarvis message"; "Jarvis" (ignored) x2; "Jarvis, who is it?" x2; "Jarvis, weather like in London today?"
+#   pre-roll kept, 0.5 s silent clip as cue: "Jarvis, who is it?"; "Jarvis, what is it?"; "Jarvis, weather like in London today?"
+#   final (pre-roll kept, 0.8 s VAD hold, cue skipped on live voice), "what time is it?" x8: "Jarvis" (ignored) x6, "Jarvis, who is it?", "Jarvis, answer";
+#     "what is the weather like in London today?" x2: "Jarvis, weather like in London today?" x2
+#
+# ASR segment energy (debug run, RMS per 50 ms, delete_audio false), "Jarvis, what time is it?":
+#   1.80 s |         .:**=. .    --. .          |
+#   1.86 s |          .=#+- .    .- .             |
+#   "Jarvis, what is the weather like in London today?":
+#   2.94 s |         ..=*+=...     .*+-:=:--. ....:....    .           |
+#
+# VAD trace of one final-build trial (temporary debug log; since = s after the wake's listen start, n = ASR frames buffered).
+# Frames 18-26 are live audio with VAD voice; the segment (pre-roll + live) went to STT as one and came back "Jarvis".
+DBGVAD since=0.001 voice=True stop=False hv=True n=14
+DBGVAD since=0.002 voice=True stop=False hv=True n=15
+DBGVAD since=0.002 voice=True stop=False hv=True n=16
+DBGVAD since=0.003 voice=True stop=False hv=True n=17
+DBGVAD since=0.126 voice=True stop=False hv=True n=18
+DBGVAD since=0.189 voice=True stop=False hv=True n=19
+DBGVAD since=0.261 voice=True stop=False hv=True n=20
+DBGVAD since=0.318 voice=True stop=False hv=True n=21
+DBGVAD since=0.381 voice=True stop=False hv=True n=22
+DBGVAD since=0.517 voice=True stop=False hv=True n=23
+DBGVAD since=0.519 voice=True stop=False hv=True n=24
+DBGVAD since=0.540 voice=True stop=False hv=True n=25
+DBGVAD since=0.616 voice=True stop=False hv=True n=26
+DBGVAD since=0.672 voice=False stop=False hv=True n=27
+DBGVAD since=0.742 voice=False stop=False hv=True n=28
+DBGVAD since=0.802 voice=False stop=False hv=True n=29
+DBGVAD since=0.865 voice=False stop=False hv=True n=30
+DBGVAD since=0.934 voice=False stop=True hv=True n=31

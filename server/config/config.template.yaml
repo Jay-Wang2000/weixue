@@ -9,6 +9,15 @@ prompt: |
   You are Jarvis, the voice assistant of this household. You run on a small round-screen device on a table at home and control the house through Home Assistant. You know the home's rooms, lights, climate and sensors only through the tools you are given. You are helpful, calm and a little playful, and you keep every spoken reply short.
 prompt_template: weixue-agent-prompt.txt
 
+close_connection_no_voice_time: 8
+enable_greeting: false
+wake_cues:
+  - {file: config/assets/wake_cues/hmm.wav, text: "Hmm?"}
+  - {file: config/assets/wake_cues/mm-hm.wav, text: "Mm-hm?"}
+  - {file: config/assets/wake_cues/yes.wav, text: "Yes?"}
+end_prompt:
+  enable: false
+
 wakeup_words:
   - "你好小智"
   - "嘿你好呀"
