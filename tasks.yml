@@ -216,7 +216,7 @@ tasks:
     description: |
       DESIGN.md M2 feat-protocol-agent-msg：服务器→设备 `agent` 消息 {task_id,state,summary,progress,options,scheduling}（先借 custom 通道，CONFIG_RECEIVE_CUSTOM_MESSAGE 已开）；后端通知重投队列（设备忙时回 Idle 后 10 s 内送达；重启后投递确认不明时重播还是显示「投递不确定」卡按 brief Q6）；固件侧解析与状态存储，供 feat-ui-agent-states 使用。端到端：实机接收并记录 4 种状态。 2026-10-07 补充：设备→服务器播放回执（played sentence_id 到底 / cut off at），服务器以设备侧回执而非发送成功记 delivered/partial；用户确认：点卡片或追问清除未读；重启后无回执的消息不重播，标未读并显示“可能未播放”。
     depends_on: [feat-agent-service, feat-ui-panel]
-    status: pending
+    status: in_progress
     retries: 0
     model: opus
   - id: feat-ui-agent-states
