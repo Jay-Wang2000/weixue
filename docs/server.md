@@ -148,3 +148,7 @@ Optional web console (MySQL + Redis + manager-web, port 8002): set `MYSQL_ROOT_P
 4. Set `LAN_IP` in `.env` to the Ubuntu host's address and run `./scripts/setup.sh`.
 5. Re-point the firmware `OTA_URL` to the new address, or give the host the old IP / a DNS name. MCP clients on other hosts need an SSH tunnel or a changed 8004 binding.
 6. Open TCP 8000 and 8003 on the host firewall.
+
+## Timezone
+
+The server is configured for `Europe/Dublin` (`TZ`/`TZ_OFFSET` in `server/.env`). `TZ_OFFSET` is a fixed integer that the device receives once at boot via OTA; it must be changed to `0` when DST ends (2026-10-25) and back to `1` on 2027-03-28 until `fix-wave3-firmware` lands time resync with a POSIX TZ string.
