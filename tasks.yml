@@ -139,7 +139,7 @@ tasks:
     branch: fix/server-review-2
     description: 按 docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md 修复：C1 Anthropic 流式工具索引仅在发出时分配、direct_answer 复用索引，三种丢弃场景回归测试跑在真实上游 merger 上；C3 Google TTS 取消独立于响应到达（首响应预取期间也可取消；abort/close 时 cancel RPC；区分主动中止与 Cancelled 错误）；C4 TTS 分片 UTF-8 字节硬上限 5000 + 英文句号分句（有界缓冲，处理小数/缩写）；C5 whitespace 修复改为 framing-aware 的 direct_answer 增量解码，不再按块判断引号/括号；C6 STT 仅在明确的语言组合错误时回退 ["auto"]，接收缓冲有界，拒绝提示语双语；C8 setup.sh 渲染到 0600 临时文件、校验 YAML、构建成功后原子发布、保留回滚与就绪检查；patch 11 锁定传递依赖并在镜像构建跑 pip check；patch 4 网络边界（用户已选方案 C）：weixue_patches 内严格白名单——OTA 不向未列入 allowed_devices 的 Device-Id 下发 token，WS 拒绝未列入的 id；Mac 上 Rancher Desktop 无法绑定指定 IP，BIND_IP=0.0.0.0 并记录；方案 D（设备凭据/TLS/WireGuard）随 Ubuntu 迁移，docs 不再声称 firmware-base 已启用。每项附测试；端到端：实机一轮 + 打断一轮。 2026-10-07 门禁拆分（办公室模式，HA 经 WireGuard 隧道可达）：现在验证 HA 一次自由灯控 + 鉴权边界 C + 全部主机测试；barge-in/TTS 取消的实机音频验证明确推迟到 feat-voice-integration 的门禁，spec 必须写明。
     depends_on: [fix-conversation-timing, feat-proactive]
-    status: review
+    status: done
     retries: 0
     model: opus
   - id: fix-turn-isolation
