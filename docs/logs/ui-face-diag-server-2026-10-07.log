@@ -1,0 +1,85 @@
+# feat-ui-face diag run, xiaozhi-esp32-server container log (UTC-7).
+261006 17:07:50[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: 7c:0c:5f:42:4b:fc
+261006 17:07:50[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: <redacted>
+261006 17:07:50[0.9.7_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 7c:0c:5f:42:4b:fc 下发WebSocket配置
+261006 17:07:50[0.9.7_00000000000000][core.api.ota_handler]-INFO-Firmware cache refreshed: 0 models
+261006 17:07:50[0.9.7_00000000000000][core.api.ota_handler]-INFO-查找型号 esp32-s3-touch-amoled-1.75 的固件，找到 0 个候选
+261006 17:07:50[0.9.7_00000000000000][core.api.ota_handler]-INFO-设备 7c:0c:5f:42:4b:fc 固件已是最新: 2.5.1
+261006 17:07:57[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: 7c:0c:5f:42:4b:fc
+261006 17:07:57[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: <redacted>
+261006 17:07:57[0.9.7_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 7c:0c:5f:42:4b:fc 下发WebSocket配置
+261006 17:07:57[0.9.7_00000000000000][core.api.ota_handler]-INFO-Firmware cache refreshed: 0 models
+261006 17:07:57[0.9.7_00000000000000][core.api.ota_handler]-INFO-查找型号 esp32-s3-touch-amoled-1.75 的固件，找到 0 个候选
+261006 17:07:57[0.9.7_00000000000000][core.api.ota_handler]-INFO-设备 7c:0c:5f:42:4b:fc 固件已是最新: 2.5.1
+261006 17:09:25[0.9.7_00000000000000][core.connection]-INFO-172.19.0.1 conn - Headers: {'host': '192.168.8.220', 'client-id': '<redacted>', 'connection': 'Upgrade', 'device-id': '7c:0c:5f:42:4b:fc', 'protocol-version': '1', 'sec-websocket-key': '<redacted>', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261006 17:09:25[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261006 17:09:25[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261006 17:09:25[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261006 17:09:25[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261006 17:09:25[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261006 17:09:25[0.9.7_SiGoAnGonocaCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261006 17:09:25[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.server_mcp.mcp_manager]-WARNING-请检查mcp服务配置文件：data/.mcp_server_settings.json
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['web_search', 'change_role', 'get_weather', 'play_music', 'get_news_from_newsnow', 'get_lunar', 'handle_exit_intent']
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-正在初始化MCP接入点: ws://mcp-endpoint-server:8004/mcp_endpoint/call/?token=<redacted>
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-发送MCP接入点初始化消息
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点连接成功
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-MCP接入点初始化成功
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['web_search', 'change_role', 'get_weather', 'play_music', 'get_news_from_newsnow', 'get_lunar', 'handle_exit_intent']
+261006 17:09:25[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261006 17:09:25[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"31f316ab-05d6-4558-97b2-bd56b0135bbe","type":"listen","state":"detect","text":"Jarvis"}
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点支持的工具数量: 7
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-所有MCP接入点工具已获取，客户端准备就绪
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['web_search', 'change_role', 'get_weather', 'play_music', 'get_news_from_newsnow', 'get_lunar', 'handle_exit_intent', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 17:09:25[0.9.7_00000000000000][core.providers.tools.mcp_endpoint.mcp_endpoint_handler]-INFO-MCP接入点工具获取完成，共 7 个工具
+261006 17:09:25[0.9.7_SiGoAnGonocaCh][core.handle.helloHandle]-INFO-播放唤醒词回复: 您请说，我正听着。
+261006 17:09:25[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: 您请说，我正听着。
+261006 17:09:25[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, 您请说，我正听着。
+261006 17:09:25[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 17:09:27[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"31f316ab-05d6-4558-97b2-bd56b0135bbe","type":"listen","state":"start","mode":"realtime"}
+261006 17:09:27[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"31f316ab-05d6-4558-97b2-bd56b0135bbe","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261006 17:09:28[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"31f316ab-05d6-4558-97b2-bd56b0135bbe","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.system.reconfigure_wifi","description":"End this conversation and enter WiFi configuration mode.\n**CAUTION** You must ask the user to confirm this action.","inputSchema":{"type":"object","properties":{}}}]}}}
+261006 17:09:28[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 5
+261006 17:09:29[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-当前支持的函数列表: ['web_search', 'change_role', 'get_weather', 'play_music', 'get_news_from_newsnow', 'get_lunar', 'handle_exit_intent', 'self_get_device_status', 'self_audio_speaker_set_volume', 'self_screen_set_brightness', 'self_screen_set_theme', 'self_system_reconfigure_wifi', 'ha_list_floors_areas', 'ha_config_get_calendar_events', 'ha_get_history', 'ha_get_state', 'ha_search', 'ha_call_service', 'ha_get_todo']
+261006 17:09:33[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.374s | 语言: en-US | 结果: What is the
+261006 17:09:33[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: What is the
+261006 17:09:33[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: What is the
+261006 17:09:35[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.296s | 语言: en-US | 结果: of France
+261006 17:09:35[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: of France
+261006 17:09:35[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261006 17:09:35[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261006 17:09:35[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: of France
+261006 17:09:35[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 11876，输出 55，缓存读取 0；stop_reason=end_turn request_id=req_011CfmuTvVjdzuS3MmMLMPmH
+261006 17:09:37[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 11878，输出 96，缓存读取 0；stop_reason=tool_use request_id=req_011CfmuU3Py9fGDY8np7nTbv
+261006 17:09:37[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: The capital of France is Paris
+261006 17:09:37[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, The capital of France is Paris
+261006 17:09:37[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.263s: The capital of France is Paris
+261006 17:09:37[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 17:10:02[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 0.953s | 语言: en-US | 结果: Tell me something that will make me happy.
+261006 17:10:02[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Tell me something that will make me happy.
+261006 17:10:02[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Tell me something that will make me happy.
+261006 17:10:04[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Heres one: octopuses have three hearts
+261006 17:10:04[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Heres one: octopuses have three hearts
+261006 17:10:04[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.243s: Heres one: octopuses have three hearts
+261006 17:10:04[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 11926，输出 103，缓存读取 0；stop_reason=tool_use request_id=req_011CfmuW53EgunB5DJhTgAe7
+261006 17:10:04[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, and when they swim, one of them takes a break. Even an octopus knows when to rest. Hope that made you smile
+261006 17:10:05[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.301s: and when they swim, one of them takes a break. Even an octopus knows when to rest. Hope that made you smile
+261006 17:10:06[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 17:10:39[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.258s | 语言: en-US | 结果: Goodbye.
+261006 17:10:39[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Goodbye.
+261006 17:10:39[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Goodbye.
+261006 17:10:41[0.9.7_00000000000000][core.providers.llm.anthropic.anthropic]-INFO-Token 消耗：输入 11991，输出 67，缓存读取 0；stop_reason=tool_use request_id=req_011CfmuYnEY7e8tPZNDTxhjW
+261006 17:10:41[0.9.7_00000000000000][core.providers.tools.unified_tool_manager]-INFO-执行工具: handle_exit_intent，参数: {'say_goodbye': 'Goodbye, talk soon!'}
+261006 17:10:41[0.9.7_00000000000000][plugins_func.functions.handle_exit_intent]-INFO-退出意图已处理:Goodbye, talk soon!
+261006 17:10:41[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Goodbye
+261006 17:10:41[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Goodbye
+261006 17:10:41[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.240s: Goodbye
+261006 17:10:41[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, talk soon
+261006 17:10:41[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.266s: talk soon
+261006 17:10:42[0.9.7_SiGoAnGonocaCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261006 17:10:44[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-超时检查任务已退出
+261006 17:10:44[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 17:10:54[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-客户端断开连接
+261006 17:10:54[0.9.7_00000000000000][core.providers.tools.unified_tool_handler]-INFO-工具处理器清理完成
+261006 17:10:54[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放
+261006 17:10:54[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-连接资源已释放

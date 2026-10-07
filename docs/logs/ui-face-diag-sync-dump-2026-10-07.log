@@ -1,0 +1,86 @@
+# feat-ui-face first diag run (FACEDUMP printed synchronously from the LVGL timer under the display lock): excerpt 92-100 s uptime; FACEDUMP data lines collapsed to counts. The question said at ~95 s was not recognised.
+I (92177) Application: Wake word detected: Jarvis (state: 3)
+I (92177) StateMachine: State: idle -> connecting
+I (92187) PowerSaveTimer: Exiting power save mode
+I (92187) Backlight: Set brightness to 75
+I (92187) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (92197) wifi:Set ps type: 0, coexist: 0
+I (92197) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+I (92207) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (92317) FaceDisplay: mode=listening mood=neutral
+I (92317) FaceDisplay: diag gaze=-1,-1 mode=listening
+I (92357) WebSocket: WebSocket handshake done, cost=150 tcp=100 handshake=50
+I (92387) WS: Session ID: 450aa66d-9b95-40c7-9c41-dc2a0a7a02e8
+I (92387) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (92387) wifi:Set ps type: 0, coexist: 0
+W (92397) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (92407) Application: Wake word detected: Jarvis
+I (92457) AfeAudioEngine: Encoded wake word into 33 packets in 276 ms
+I (92457) StateMachine: State: connecting -> listening
+I (92477) StateMachine: State: listening -> speaking
+I (92487) Application: << 您请说，我正听着。
+I (92507) FaceDisplay: mode=speaking mood=neutral
+I (92507) FaceDisplay: diag gaze=4,-3 mode=speaking
+I (92727) FaceDisplay: diag blink double=0 mode=speaking
+I (92777) FaceDisplay: diag fps=3.6 frame_ms_avg=16.1 frame_ms_max=34.8 mode=speaking mood=neutral
+I (93377) FaceDisplay: diag lit=13.15% screen 16.74% circle mode=speaking mood=neutral dump=3
+W (95427) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 22 FACEDUMP data lines ...]
+W (95657) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (95687) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (95717) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 1 FACEDUMP data lines ...]
+W (95437) AudioService: Encode queue is full, dropping oldest frame (dropped 1 so far)
+I (95737) StateMachine: State: speaking -> listening
+I (95777) FaceDisplay: mode=listening mood=neutral
+I (95777) FaceDisplay: diag gaze=-3,0 mode=listening
+I (96727) FaceDisplay: diag lit=18.01% screen 22.94% circle mode=listening mood=neutral dump=4
+W (98437) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 23 FACEDUMP data lines ...]
+W (98667) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (98697) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (98727) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (98757) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (98787) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 3 FACEDUMP data lines ...]
+W (98827) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (98857) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (98887) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (98917) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (98947) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 3 FACEDUMP data lines ...]
+W (98987) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (99017) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (99047) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (99077) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 3 FACEDUMP data lines ...]
+W (99107) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 3 FACEDUMP data lines ...]
+W (99147) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (99177) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (99207) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (99237) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 2 FACEDUMP data lines ...]
+W (99267) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+[... 3 FACEDUMP data lines ...]
+W (99307) AFE: Ringbuffer of AFE(FEED) is full, Please use fetch() to read data to avoid data loss or overwriting
+W (98437) AudioService: Encode queue is full, dropping oldest frame (dropped 22 so far)
+I (99367) FaceDisplay: diag gaze=3,-2 mode=listening
+I (99367) FaceDisplay: diag blink double=0 mode=listening
+I (99367) FaceDisplay: diag fps=3.9 frame_ms_avg=14.7 frame_ms_max=30.6 mode=listening mood=neutral
