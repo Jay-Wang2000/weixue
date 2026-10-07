@@ -11,6 +11,7 @@ xiaozhi-esp32 2.5.1 (vendored clone pinned in `vendor.lock`) built for the Waves
 | `firmware/patches/*.patch` | Source changes to upstream files, applied to the scratch copy on every build (see Source patches) |
 | `firmware/overrides/main/boards/waveshare/esp32-s3-touch-amoled-1.75/face_display.{h,cc}`, `firmware/patches/11-face-display.patch` | Procedural eyes face (see Face) |
 | `voice_ring.h`, `bedside_schedule.h` (same directory), `firmware/patches/21-ring-bedside.patch` | Voice-state ring and bedside page (see Ring and bedside page) |
+| `firmware/overrides/main/boards/waveshare/esp32-s3-touch-amoled-1.75/monitor_panel.{h,cc}`, `firmware/patches/22-application-device-event.patch` | Swipe-left monitor panel (see Monitor panel) |
 | `firmware/tests/run.sh` | Host build and run of the tests for `firmware/overrides` sources (`imu_gestures_test.cc`, `ring_bedside_test.cc`) |
 | `firmware/tools/imu_gesture_test.py` | On-device IMU gesture check over the serial console (see IMU gestures) |
 | `firmware/flash.sh` | Checks port, the scratch copy against `weixue-build.sha256`, that it matches `config.weixue.json` (file and `CONFIG_OTA_URL`), `esptool flash-id` (32 MB), and a sha256-verified full 32 MB backup of this device's MAC, then `esptool write-flash @build/flash_args` |
@@ -94,6 +95,24 @@ Bedside page: a seven-segment `HH:MM` clock (`#701000`, 60x112 px digits) 26 px 
 - Screen-off: unchanged (ADR-12): the 60 s dim and the 300 s panel off apply to the page as to the face.
 - Server control: device MCP tool `self.screen.set_bedside` with `mode` `night|day|auto|status` and optional `start`/`end` (`HH:MM`, both together, stored in NVS namespace `bedside` over the Kconfig defaults); it returns `{"night":..,"showing":..,"hint":..,"window":"HH:MM-HH:MM"|"off","local_time":..}` (`off`: equal, empty or malformed hours) (`night`: bedside mode is on; `showing`: the page is on screen now). The LLM calls it for requests such as "switch the screen to bedside mode".
 - Diag build: the first bedside page and the first error flash each get a screen dump like a new pose, and the 60 s idle dumps cover the page.
+
+## Monitor panel
+
+`MonitorPanel` (`monitor_panel.{h,cc}`, created by `FaceDisplay::SetupUI`) is a full-screen black page above the face. A left swipe on the CST9217 (LVGL `LV_EVENT_GESTURE` on the screen) slides it in over 220 ms and then hides the eyes; a right swipe slides it out. It also closes when the device leaves idle (wake word, button, proactive session) and after 60 s without touch. Serial: `MonitorPanel: page=panel|face`.
+
+| Row | Content | Source |
+|---|---|---|
+| Status | Wi-Fi glyph and RSSI, battery glyph, level and `USB`/`BAT`, microphone glyph (`mic_off` in amber while muted) | `WifiManager::GetRssi`, `Board::GetBatteryLevel` (`BAT` while the AXP2101 reports discharging), `Application::IsMicMuted` |
+| 后端 Backend | `session` (audio channel open), `online` (last proactive poll answered 200/204 within 90 s), `offline`, `paused` (muted, poller stopped), `checking` (no poll finished yet) | `Application::GetBackendStatus` |
+| 听到 Heard / 回复 Reply | Last STT text; the sentences of the reply that followed it, joined; one line, cut with `...` | `FaceDisplay::SetChatMessage` (`user` / `assistant`) |
+| 任务 Tasks | Fixture chips `日落 Sunset 2/3`, `+1` | none yet |
+| 待批 Approval card | Fixture `开客厅灯 Living room on`, buttons 批准 Approve / 拒绝 Deny (132x68 px) | none yet |
+
+Values refresh every second while the page is shown. Chinese labels use the theme text font (assets `font_noto_sans_common_30_4`), English labels and values the built-in `font_noto_sans_basic_20_4` (adds about 130 KB to the app). Colours are dim (`#4E6268`-`#9FB4BC`, accents `#22B5C4`, `#C8963C`, `#C05A50`); nothing is lit beyond 225 px from the centre; the page follows the face's 60 s pixel shift.
+
+A tap on Approve or Deny sends the device MCP notification `{"jsonrpc":"2.0","method":"notifications/weixue/panel","params":{"event":"approval_decision","card_id":"fixture-1","decision":"approve|deny","fixture":true,"seq":N}}` through `Application::SendDeviceEvent` and the card shows `sending`, then `<decision> sent` or `<decision> not sent` for 4 s. With no audio channel open and the device idle, `SendDeviceEvent` opens one for the message (`hello` only, no `listen`) and closes it 2 s later (`Closing the device event channel`) unless a session started meanwhile. The server logs `weixue_patches ... device event notifications/weixue/panel device=<mac> params={...}` (`docs/server.md`). A tap is ignored when the press became a swipe.
+
+Diag build (`WEIXUE_FACE_DIAG=1`): a virtual LVGL pointer replays swipe left, Approve, Deny and swipe right 40 s after boot and every 120 s; `MonitorPanel: diag values wifi=... battery=... mic=... backend=...` on change (at most every 5 s); a screen dump 0.8 s after the panel opens, with mode `panel`.
 
 ## Device behaviour
 
@@ -248,3 +267,19 @@ USB power, live backend with the branch `weixue_proactive.py` copied into the se
 | Disabled window (D) | "Set the bedside hours to start at 07:00 and end at 07:00" -> tool result `"window":"off"`, `night:false`; hours restored to 22:00-07:00 by voice |
 | Release smoke | no `diag`/`FACEDUMP` lines; wake, "What is two plus two?" -> "Four", `Goodbye` -> idle, ring states logged (C) |
 | Not run | touch on the panel and IMU pick-up/face-up relight at night (need a person); `custom`-message night hint (the hint uses the MCP tool) |
+
+## Monitor panel on-device results (feat-ui-panel, 2026-10-07)
+
+USB power, live backend with the branch server image, Mac `say` at volume 55, diag touch replay (no finger on the panel). Logs: `docs/logs/ui-panel-build-2026-10-07.log`, `ui-panel-flash-2026-10-07.log` (release), `ui-panel-diag-final-{device,server}-2026-10-07.log` (final commit, diag), `ui-panel-diag-{device,server}-2026-10-07.log` (earlier diag run, card 4 px shorter, with a voice round), `ui-panel-release-{device,server}-2026-10-07.log` and `ui-panel-release-final-{device,server}-2026-10-07.log` (release smoke); screen dumps `docs/logs/ui-panel-png/`.
+
+| Check | Result |
+|---|---|
+| Build | release 123 s, patches 05, 10, 11, 12, 20, 22 apply; xiaozhi.bin 3,030,672 B (main: 2,901,872 B) |
+| Swipe | replay swipe left -> `page=panel` at 42.1 s, swipe right -> `page=face` at 62.7 s, in each of the 3 replays in the logs |
+| Live values | `diag values wifi=-71 dBm battery=100% USB mic=on backend=online`, `backend=session` while the event channel was open, back to `online` 5 s later; RSSI -70..-72 and battery 100%->99% changes logged |
+| Heard / Reply | after "What is the capital of Italy?" the panel shows `What is the capit...` / `The capital of Ital...` (`ui-panel-png/panel-after-round-run2.png`) |
+| Card tap | 6 Approve/Deny taps in the logs: device `Device event sent` 80-980 ms after the tap (includes opening the channel), server `device event notifications/weixue/panel device=7c:0c:5f:42:4b:fc params={... "decision": "approve"|"deny" ... "seq": N}` and upstream `收到MCP客户端请求: notifications/weixue/panel`; channel closed 2.0 s after each send |
+| Lit pixels, panel idle | 8.47% screen / 10.79% circle (empty transcript), 10.28% / 13.09% with transcript and reply; 0 lit pixels beyond 225 px from the centre |
+| Voice with the panel build | wake -> STT -> Anthropic -> TTS played: "The capital of Italy is Rome", "It's eight oh one in the evening"; `Goodbye` -> `handle_exit_intent` -> idle; the panel closes on wake |
+| Finger swipe and tap on the CST9217 | Not run (no person at the panel) |
+| After the rebase onto patch 21 (`ui-panel-rebase-smoke-2026-10-07.log`) | patches 05-22 apply; release xiaozhi.bin 3,040,608 B. Diag: replay `page=panel` at 42.2 s and 162.2 s, `page=face` at 62.7 s and 182.8 s, 4 card taps each `Device event sent` and channel closed 2.0 s later; "What time is it?" -> "It's nine thirty-two in the evening" with `ring=pulse`, `ring=spin`, `ring=level`, `ring=off`; `Goodbye` -> `handle_exit_intent` -> idle; no `bedside=on` at 21:30-21:34 local. Release boot: no `diag` lines |
