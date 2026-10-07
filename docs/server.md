@@ -114,7 +114,28 @@ The live tests take `ANTHROPIC_API_KEY` and `GOOGLE_SA_FILE` from `server/.env`,
 
 `GOOGLE_SA_FILE` in `server/.env` is the host path of the service-account JSON; compose mounts it read-only at `/run/secrets/google-sa.json`, the `credentials_file` of both Google providers. The key's project needs the Speech-to-Text and Text-to-Speech APIs enabled.
 
-## Google Cloud STT (`ASR.GoogleSTT`, `type: google_stt`)
+## Google Cloud STT streaming (`ASR.GoogleSTTStream`, `type: google_stt_stream`, selected)
+
+`server/overlay/core/providers/asr/google_stt_stream.py`: Speech-to-Text v2 `StreamingRecognize`, model `latest_short`, location `us`, `language_codes: ["en-US", "cmn-Hans-CN"]`, interim results on, upstream `InterfaceType.STREAM`. It subclasses the batch provider below (credentials, client, recognizer, the 59 s limit and `too_long_reply` are shared).
+
+- A stream opens on the first frame the VAD hears as voice and receives the buffered pre-roll (upstream keeps the last 10 frames, 0.6 s, while idle), then every frame as it arrives. The stream is half-closed when the VAD declares the end of the utterance (`client_voice_stop`; in `manual` listen mode on `listen stop`), and the transcript is the final results of the stream. Utterances of 15 frames or fewer are dropped, as upstream does.
+- `latest_short` ends a stream at its own end of utterance (`END_OF_SINGLE_UTTERANCE`). When that happens while the VAD still hears the utterance, the next voiced frame opens a follow-on stream that first resends the last 2 frames received before the end was noticed; the finals of all streams are joined.
+- An audio-state reset during the utterance (`reset_audio_states`) cancels the open stream. Past 59 s of buffered audio the stream is cancelled and the voice stop speaks `too_long_reply`.
+- After the half-close the provider waits up to `final_timeout` for the stream to end. A stream error, a stream that could not open, or a timeout re-recognizes the buffered utterance with `fallback_model` batch `Recognize` (within `fallback_timeout`); so does a final detected as Chinese (`cmn`/`zh`/`yue` language code, or Han characters) whose confidence is below `zh_fallback_confidence`. A Chinese re-recognition that fails or returns nothing keeps the streamed text. `fallback_model: ""` disables the fallback.
+- Every recognized utterance logs `stt_final_latency_ms=<ms> model=<model> language=<code> confidence=<lowest final> fallback=<-|zh_low_confidence|stream_error|no_stream|timeout> streams=<n> interims=<n>`; the latency runs from the VAD's end of utterance to the final text, fallback included.
+
+| Key | Value | Notes |
+|---|---|---|
+| `model` | `latest_short` | |
+| `interim_results` | true | |
+| `final_timeout` | 2 s | Wait for the stream end after the half-close |
+| `fallback_model` | `chirp_3` | Empty disables the fallback |
+| `fallback_timeout` | 15 s | Batch `Recognize` deadline |
+| `zh_fallback_confidence` | 0.9 | `latest_short` reported 0.91 on every Mandarin final, right or wrong (`docs/logs/feat-stt-streaming-accuracy-2026-10-07.md`), so 0.9 never re-recognizes and any value above 0.91 re-recognizes every Chinese utterance |
+
+Switch back to batch recognition with `selected_module.ASR: GoogleSTT` in `config/config.template.yaml`. The accuracy check `server/scripts/stt_accuracy.py` (usage in its docstring) synthesizes 10 English and 10 Mandarin sentences and compares `latest_short` streaming with `chirp_3` batch. The live tests (`-k live`) stream the two clips in `tests/assets/` in real time.
+
+## Google Cloud STT batch (`ASR.GoogleSTT`, `type: google_stt`)
 
 `server/overlay/core/providers/asr/google_stt.py`: Speech-to-Text v2, model `chirp_3`, location `us`, synchronous `Recognize` on the 16 kHz mono PCM the server already produces, `language_codes: ["en-US", "cmn-Hans-CN"]`. Only an `InvalidArgument` that rejects the language list (a `language_codes` field violation, "Bad language code", or "The language … is not supported by the model") is retried once with `["auto"]`, within what is left of the same `timeout`; any other error ends the turn with no transcript. An utterance over 59 s (`Recognize` accepts at most 60 s) is not sent or trimmed: the receive buffer stops growing one frame past the limit, the provider logs a warning, skips the LLM turn and the device speaks `too_long_reply` (default, English then Mandarin: "Sorry, that was too long for me. Please say it again, a bit shorter." / "抱歉，这段话太长了，请说短一点再试一次。"). The live test sends the two 16 kHz clips in `tests/assets/` and expects "turn on the living room lights" in English and Mandarin.
 
@@ -166,7 +187,7 @@ After all four pass it copies `.env` to `.env.deployed` (0600). If the recreate 
 
 The endpoint key (`data/mcp-endpoint/.mcp-endpoint-server.cfg`), the URL derived from it and its two consumers (`mcp_endpoint` in `data/.config.yaml` and `data/mcp-bridge/endpoint-url`) are one deployment unit: `setup.sh` copies the key file and the URL file to `.rollback` (0600) before it starts `mcp-endpoint-server`; a rollback restores both with the config and, when the key changed during the attempt, recreates `mcp-endpoint-server` with the restored key. A successful run removes those two copies. If that second recreate also fails, the stack is down: it prints a `manual restore:` block (retag each `:rollback` image to `:local`, then `docker compose [--profile …] up -d --force-recreate …` from `server/`) and exits 1. `docker-compose.yml` is not rolled back; without `.env.deployed` (first run) neither is `.env`. Logs: `docker logs -f xiaozhi-esp32-server`.
 
-Providers: VAD SileroVAD, ASR `GoogleSTT`, LLM `AnthropicLLM`, TTS `GoogleTTS`. Upstream `FunASR` (SenseVoiceSmall, local), `EdgeTTS` and the OpenAI-compatible `StopgapLLM` (Groq, `LLM_*` in `.env`) stay configured and are selected by editing `selected_module`. `wakeup_words` adds `Jarvis` to the upstream list.
+Providers: VAD SileroVAD, ASR `GoogleSTTStream` (batch `GoogleSTT` stays configured), LLM `AnthropicLLM`, TTS `GoogleTTS`. Upstream `FunASR` (SenseVoiceSmall, local), `EdgeTTS` and the OpenAI-compatible `StopgapLLM` (Groq, `LLM_*` in `.env`) stay configured and are selected by editing `selected_module`. `wakeup_words` adds `Jarvis` to the upstream list.
 
 Optional web console (MySQL + Redis + manager-web, port 8002): set `MYSQL_ROOT_PASSWORD` in `.env`, then `docker compose --profile console up -d`. Not validated.
 

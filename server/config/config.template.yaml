@@ -35,7 +35,7 @@ wakeup_words:
 
 selected_module:
   VAD: SileroVAD
-  ASR: GoogleSTT
+  ASR: GoogleSTTStream
   LLM: AnthropicLLM
   TTS: GoogleTTS
   Intent: function_call
@@ -58,6 +58,21 @@ LLM:
     max_retries: 1
 
 ASR:
+  GoogleSTTStream:
+    type: google_stt_stream
+    credentials_file: /run/secrets/google-sa.json
+    use_adc: false
+    project_id: ""
+    location: us
+    model: latest_short
+    language_codes: ["en-US", "cmn-Hans-CN"]
+    enable_automatic_punctuation: true
+    interim_results: true
+    final_timeout: 2
+    fallback_model: chirp_3
+    fallback_timeout: 15
+    zh_fallback_confidence: 0.9
+    output_dir: tmp/
   GoogleSTT:
     type: google_stt
     credentials_file: /run/secrets/google-sa.json
