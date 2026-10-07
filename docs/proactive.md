@@ -18,7 +18,7 @@ HA automation --POST /weixue/proactive/messages--> xiaozhi-esp32-server (8003)
 | Device long-poll and session open | `firmware/patches/10-proactive-poll.patch` |
 | Tests | `server/tests/test_proactive.py`, `server/tests/test_weixue_patches.py` |
 
-The device keeps no WebSocket open while idle, so the server cannot push to it. The firmware patch adds a task that, only while the device is idle, holds `GET http://<OTA host>/weixue/proactive/poll` (header `Device-Id`). The server answers `204` after 25 s with nothing to deliver and `200` as soon as a message is deliverable. On `200` the device opens a session as for a wake word, sending `listen detect` with the text `weixue:proactive` instead of "Jarvis"; the server answers it with the queued message instead of the LLM. Failed polls back off from 5 s to 60 s.
+The device keeps no WebSocket open while idle, so the server cannot push to it. The firmware patch adds a task that, only while the device is idle, holds `GET http://<OTA host>/weixue/proactive/poll` (header `Device-Id`). The server answers `204` after 25 s with nothing to deliver and `200` with `{"pending": true, "urgent": <bool>}` (the `urgent` field of the next message) as soon as a message is deliverable. On `200` the device opens a session as for a wake word, sending `listen detect` with the text `weixue:proactive` instead of "Jarvis"; the server answers it with the queued message instead of the LLM. Failed polls back off from 5 s to 60 s.
 
 ## Setup
 
@@ -46,7 +46,7 @@ Request body:
 | `mode` | `announce` | `announce` or `conversation` |
 | `context` | `""` | Up to 1000 characters for the LLM (what the event is, what to do on yes/no); not spoken |
 | `ttl` | 600 | 10-3600 s; undelivered messages then become `expired` |
-| `urgent` | `false` | Delivered while muted |
+| `urgent` | `false` | Delivered while muted; lights the device's bedside page fully (`docs/firmware.md`, Bedside page) |
 | `device` | any | Device MAC; unset means the first device that can take it |
 | `id` | none | Idempotency key; the `Idempotency-Key` header takes precedence |
 
