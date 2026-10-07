@@ -57,7 +57,7 @@ tasks:
   - id: feat-ha-mcp
     name: "Connect MCP endpoint to ha-mcp; voice policy"
     branch: feat/ha-mcp
-    description: 后端 MCP 接入点连 ha-mcp；为语音路径调策略（日常域免审批、不可逆禁用）；轮换 secret path；把策略 wait_seconds 设为 5–10 s 并实现 token 式异步审批（DESIGN ADR-9 修订）。策略改动需用户确认。
+    description: 后端 MCP 接入点连 ha-mcp；为语音路径调策略（日常域免审批、不可逆禁用）；轮换 secret path；按 ADR-9（2026-10-07 修订）实现：bridge 自设 ~8 s 调用预算 + 事件总线闭环，不改 ha-mcp 的 wait_seconds。策略改动需用户确认。
     depends_on: [feat-server, feat-llm]
     status: done
     retries: 0
@@ -137,7 +137,7 @@ tasks:
   - id: fix-server-review-2
     name: "Server fixes from Codex Wave 2 code review"
     branch: fix/server-review-2
-    description: 按 docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md 修复：C1 Anthropic 流式工具索引仅在发出时分配、direct_answer 复用索引，三种丢弃场景回归测试跑在真实上游 merger 上；C3 Google TTS 取消独立于响应到达（首响应预取期间也可取消；abort/close 时 cancel RPC；区分主动中止与 Cancelled 错误）；C4 TTS 分片 UTF-8 字节硬上限 5000 + 英文句号分句（有界缓冲，处理小数/缩写）；C5 whitespace 修复改为 framing-aware 的 direct_answer 增量解码，不再按块判断引号/括号；C6 STT 仅在明确的语言组合错误时回退 ["auto"]，接收缓冲有界，拒绝提示语双语；C8 setup.sh 渲染到 0600 临时文件、校验 YAML、构建成功后原子发布、保留回滚与就绪检查；patch 11 锁定传递依赖并在镜像构建跑 pip check；patch 4 网络边界：server.auth.enabled + allowed_devices（设备 MAC 7c:0c:5f:42:4b:fc），OTA/WS 只绑定需要的接口，docs 不再声称 firmware-base 已启用。每项附测试；端到端：实机一轮 + 打断一轮。
+    description: 按 docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md 修复：C1 Anthropic 流式工具索引仅在发出时分配、direct_answer 复用索引，三种丢弃场景回归测试跑在真实上游 merger 上；C3 Google TTS 取消独立于响应到达（首响应预取期间也可取消；abort/close 时 cancel RPC；区分主动中止与 Cancelled 错误）；C4 TTS 分片 UTF-8 字节硬上限 5000 + 英文句号分句（有界缓冲，处理小数/缩写）；C5 whitespace 修复改为 framing-aware 的 direct_answer 增量解码，不再按块判断引号/括号；C6 STT 仅在明确的语言组合错误时回退 ["auto"]，接收缓冲有界，拒绝提示语双语；C8 setup.sh 渲染到 0600 临时文件、校验 YAML、构建成功后原子发布、保留回滚与就绪检查；patch 11 锁定传递依赖并在镜像构建跑 pip check；patch 4 网络边界（用户已选方案 C）：weixue_patches 内严格白名单——OTA 不向未列入 allowed_devices 的 Device-Id 下发 token，WS 拒绝未列入的 id；Mac 上 Rancher Desktop 无法绑定指定 IP，BIND_IP=0.0.0.0 并记录；方案 D（设备凭据/TLS/WireGuard）随 Ubuntu 迁移，docs 不再声称 firmware-base 已启用。每项附测试；端到端：实机一轮 + 打断一轮。
     depends_on: [fix-conversation-timing, feat-proactive]
     status: review
     retries: 0
@@ -185,7 +185,7 @@ tasks:
   - id: fix-wave3-server
     name: "Server fixes from Codex Wave 3 review"
     branch: fix/wave3-server
-    description: 按同一评审：S1 proactive 的设备轮询/消费端点必须鉴权并绑定到已验证的会话归属（未鉴权客户端不得冒充设备消费通知或作废登记）；C6 消息在创建任务前先 claim，杜绝重复投递；C7 合成失败不得报成功，按逐句合成/播放结果收尾；C4 唤醒提示音加 generation fence/取消，不得覆盖更新的一轮；C5 去掉对「Yes」等真实短回答的词法抑制；Wave 4 评审：轮询广告的 urgent 标志可能属于另一条通知而非最终投递的那条——urgency 必须随被 claim 的那条消息返回；C3/R1 mcp-bridge 请求预算与服务器 30 s 执行器对齐、保留“已派发结果未知”状态、心跳仅在 RPC 成功后刷新健康并补重连测试。端到端：实机 announce + conversation + 一次 HA 控灯。
+    description: 按同一评审：S1 proactive 的设备轮询/消费端点必须鉴权并绑定到已验证的会话归属（未鉴权客户端不得冒充设备消费通知或作废登记）；C6 消息在创建任务前先 claim，杜绝重复投递；C7 合成失败不得报成功，按逐句合成/播放结果收尾；C4 唤醒提示音加 generation fence/取消，不得覆盖更新的一轮；C5 去掉对「Yes」等真实短回答的词法抑制；Wave 4 评审：轮询广告的 urgent 标志可能属于另一条通知而非最终投递的那条——urgency 必须随被 claim 的那条消息返回；C3/R1 mcp-bridge 实现 ADR-9 修订版：每个 HA 调用约 8 s 预算，超时返回「待批准/结果待定」并保持原请求直至完成或策略 wait_seconds 到期，经事件总线闭环；请求预算与服务器 30 s 执行器对齐、保留“已派发结果未知”状态、心跳仅在 RPC 成功后刷新健康并补重连测试。端到端：实机 announce + conversation + 一次 HA 控灯。
     depends_on: [fix-server-review-2]
     status: pending
     retries: 0

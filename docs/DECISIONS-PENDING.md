@@ -1,5 +1,8 @@
 # Decisions pending Jay's approval
 
+**2026-10-07 approvals (Jay: "decision looks good to me")**: items 1–4 confirmed as live; item 5 voice policy diff approved in principle (apply at home, after the drift fix); 5b drift fix approved (file edited locally in ha-agent, apply at home); 13 boundary = option C now, D with Ubuntu; ADR-9 reworked so the timeout lives in our bridge, no `wait_seconds` change (item 5's `wait_seconds` line is dropped). Still to do at home: apply policy, rotate secret path, enable event decisions + PIN in the HA-MCP panel (item 7), run the deferred device tests.
+
+
 Items here are external-service or user-only decisions (CLAUDE.md). Work continues on everything else. Reply inline or in chat; the orchestrator clears items as they are answered.
 
 ## Retroactive confirmations (already live since Wave 2)
