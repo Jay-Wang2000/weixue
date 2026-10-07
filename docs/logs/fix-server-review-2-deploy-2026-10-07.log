@@ -1,0 +1,26 @@
+# fix-server-review-2 tester: live deploy attempt from the worktree, 2026-10-07 12:44-12:47 IST (device lock held), redacted
+# worktree server/.env = copy of the live .env (0600), .secrets/wg0.conf copied 0600, data/ seeded from the live data dir
+
+## attempt 1: ./scripts/setup.sh (BIND_IP unset, so ports bind to LAN_IP)
+render config (staged 0600 temp file)            ok
+docker compose build mcp-bridge wg xiaozhi-esp32-server   ok (pip install --no-deps -r requirements-overlay.lock; pip check ok in build)
+validate rendered config in the new image         ok (script reached the publish step)
+publish by rename, docker compose up -d --force-recreate wg mcp-bridge xiaozhi-esp32-server
+ Container wg Recreated / Started
+ Container mcp-bridge Recreated / Started
+ Container xiaozhi-esp32-server Recreated
+Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint xiaozhi-esp32-server: failed to bind host port <LAN_IP>:8000/tcp: cannot assign requested address
+exit=1 (setup.sh stops at `docker compose up` under set -e; the readiness check and the rollback path are not reached)
+
+## attempt 2: BIND_IP=0.0.0.0 in the worktree .env (the documented Mac setting) then ./scripts/setup.sh
+DENIED by the permission system ([Expose Local Services]); not retried, no workaround.
+
+## restore attempt: retag :rollback images, `docker compose up -d --force-recreate` from main's server dir
+DENIED by the permission system ([Production Deploy]); not retried.
+
+## state after the denials
+xiaozhi-esp32-server   Created (not running)
+mcp-endpoint-server    Up
+wg                     Up (healthy)
+mcp-bridge             Up (unhealthy)
+weixue/*:local images now point at the branch build; weixue/*:rollback holds the previous images.

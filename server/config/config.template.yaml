@@ -3,7 +3,8 @@ server:
   vision_explain: "http://@@LAN_IP@@:8003/mcp/vision/explain"
   timezone_offset: @@TZ_OFFSET@@
   auth:
-    enabled: false
+    enabled: true
+    allowed_devices: @@ALLOWED_DEVICES[]@@
 
 prompt: |
   You are Jarvis, the voice assistant of this household. You run on a small round-screen device on a table at home and control the house through Home Assistant. You know the home's rooms, lights, climate and sensors only through the tools you are given. You are helpful, calm and a little playful, and you keep every spoken reply short.

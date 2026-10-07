@@ -2,6 +2,7 @@ import os
 import re
 import time
 import queue
+import threading
 import traceback
 
 from google.cloud import texttospeech
@@ -19,9 +20,97 @@ logger = setup_logging()
 
 _CJK = re.compile(r"[一-鿿㐀-䶿　-〿＀-￯]")
 _LATIN = re.compile(r"[A-Za-z]")
-# Google Text-to-Speech caps one request at 5,000 bytes of input.
-_MAX_REQUEST_BYTES = 4500
-_SPLIT_PUNCT = re.compile(r"(?<=[。？！；：?!;:,，])")
+# Google Text-to-Speech accepts at most 5,000 bytes of input per request.
+_MAX_REQUEST_BYTES = 5000
+_REQUEST_BREAKS = (
+    re.compile(r"[。？！；?!;\n]|[.…](?=\s)"),
+    re.compile(r"[，,、：:]"),
+    re.compile(r"\s"),
+)
+# Streamed text with no sentence end is sent once it exceeds this many characters.
+_MAX_PENDING_CHARS = 250
+_ENGLISH_SENTENCE_END = re.compile(r"[.…]+[\"'”’)\]]*(?=\s)")
+_LAST_WORD = re.compile(r"(\S+)$")
+_ABBREVIATIONS = frozenset(
+    "mr mrs ms dr prof sr jr st mt ft vs etc approx e.g i.e a.m p.m u.s u.k inc ltd "
+    "jan feb mar apr jun jul aug sep sept oct nov dec fig".split()
+)
+_CANCEL_POLL_S = 0.05
+
+
+def _english_sentence_end(text):
+    """Index just past the last English sentence end in text that is followed by whitespace,
+    skipping abbreviations and single-letter initials; 0 when there is none."""
+    end = 0
+    for match in _ENGLISH_SENTENCE_END.finditer(text):
+        word = _LAST_WORD.search(text[: match.start()])
+        token = word.group(1).lstrip("([\"'“‘").lower() if word else ""
+        if token in _ABBREVIATIONS or (len(token) == 1 and token.isalpha()):
+            continue
+        end = match.end()
+    return end
+
+
+def _word_cut(text, limit):
+    """Index at which to cut text of more than limit characters: after the last whitespace
+    within the first limit characters, else at limit."""
+    space = max(text.rfind(" ", 0, limit), text.rfind("\n", 0, limit))
+    return space + 1 if space > 0 else limit
+
+
+def _request_cut(text, limit):
+    """Index of the longest prefix of text within limit UTF-8 bytes that ends at the latest
+    sentence end, else clause mark, else whitespace, else at a character boundary."""
+    fit = len(text.encode("utf-8")[:limit].decode("utf-8", "ignore"))
+    head = text[:fit]
+    for pattern in _REQUEST_BREAKS:
+        ends = [m.end() for m in pattern.finditer(head)]
+        if ends and ends[-1] > 0:
+            return ends[-1]
+    return fit
+
+
+def _no_first_response_prefetch(client):
+    """Makes client.streaming_synthesize() return its call before the first response arrives,
+    so the call can be cancelled while it waits."""
+    stub = getattr(getattr(client, "transport", None), "streaming_synthesize", None)
+    if stub is not None and getattr(stub, "_prefetch_first_result_", True):
+        stub._prefetch_first_result_ = False
+
+
+class _CancelWatch:
+    """Cancels a streaming call from a helper thread as soon as stale() holds, whether or not
+    a response is pending; cancelled records that the cancellation was ours."""
+
+    def __init__(self, call, stale, interval=_CANCEL_POLL_S):
+        self._call = call
+        self._stale = stale
+        self._interval = interval
+        self._done = threading.Event()
+        self._lock = threading.Lock()
+        self.cancelled = False
+        threading.Thread(target=self._run, name="google-tts-cancel", daemon=True).start()
+
+    def _run(self):
+        while not self._done.wait(self._interval):
+            if self._stale():
+                self.cancel()
+                return
+
+    def cancel(self):
+        with self._lock:
+            if self._done.is_set():
+                return
+            self.cancelled = True
+            self._done.set()
+        try:
+            self._call.cancel()
+        except Exception as e:
+            logger.bind(tag=TAG).warning(f"Google TTS cancel failed: {type(e).__name__}: {e}")
+
+    def stop(self):
+        with self._lock:
+            self._done.set()
 
 
 class TTSProvider(TTSProviderBase):
@@ -47,7 +136,7 @@ class TTSProvider(TTSProviderBase):
         self.credentials_file = config.get("credentials_file")
         self._client = None
         self.pcm_buffer = bytearray()
-        self._active_call = None
+        self._active_watch = None
         self.last_first_audio_latency = None
 
     @property
@@ -84,6 +173,9 @@ class TTSProvider(TTSProviderBase):
         self.sample_rate = conn.sample_rate
 
     async def close(self):
+        watch = self._active_watch
+        if watch is not None:
+            watch.cancel()
         await super().close()
         encoder = getattr(self, "opus_encoder", None)
         if encoder is not None and hasattr(encoder, "close"):
@@ -147,6 +239,20 @@ class TTSProvider(TTSProviderBase):
         if is_last:
             self._process_before_stop_play_files()
 
+    def _get_segment_text(self):
+        segment = super()._get_segment_text()
+        if segment is not None:
+            return segment
+        current = "".join(self.tts_text_buff)[self.processed_chars :]
+        cut = _english_sentence_end(current)
+        if not cut and len(current) > _MAX_PENDING_CHARS:
+            cut = _word_cut(current, _MAX_PENDING_CHARS)
+        if not cut:
+            return None
+        self.processed_chars += cut
+        self.is_first_sentence = False
+        return textUtils.get_string_no_punctuation_or_emoji(current[:cut])
+
     def to_tts_single_stream(self, text, is_last=False):
         original_text = text
         try:
@@ -169,17 +275,14 @@ class TTSProvider(TTSProviderBase):
 
     @staticmethod
     def _split_request(text):
-        if len(text.encode("utf-8")) <= _MAX_REQUEST_BYTES:
-            return [text] if text else []
-        chunks, current = [], ""
-        for piece in _SPLIT_PUNCT.split(text):
-            if current and len((current + piece).encode("utf-8")) > _MAX_REQUEST_BYTES:
-                chunks.append(current)
-                current = ""
-            current += piece
-        if current:
-            chunks.append(current)
-        return [c for c in chunks if c]
+        chunks = []
+        while len(text.encode("utf-8")) > _MAX_REQUEST_BYTES:
+            cut = _request_cut(text, _MAX_REQUEST_BYTES)
+            chunks.append(text[:cut])
+            text = text[cut:]
+        if text:
+            chunks.append(text)
+        return chunks
 
     def _streaming_requests(self, text):
         yield texttospeech.StreamingSynthesizeRequest(
@@ -196,8 +299,13 @@ class TTSProvider(TTSProviderBase):
             input=texttospeech.StreamingSynthesisInput(text=text)
         )
 
+    def _start_stream(self, text):
+        client = self.client
+        _no_first_response_prefetch(client)
+        return client.streaming_synthesize(self._streaming_requests(text), timeout=self.tts_timeout)
+
     def _stream_segment(self, text, is_last, emit_first=True):
-        """Stream one request; returns False when the sentence went stale."""
+        """Stream one request; returns False when the sentence went stale (abort or newer turn)."""
         encoder = self.opus_encoder
         frame_bytes = encoder.sample_rate * encoder.channels * encoder.frame_size_ms // 1000 * 2
         sid = self.current_sentence_id
@@ -219,14 +327,14 @@ class TTSProvider(TTSProviderBase):
         self.pcm_buffer.clear()
         if emit_first:
             self.tts_audio_queue.put((SentenceType.FIRST, [], text, sid))
+        watch = None
         try:
-            call = self.client.streaming_synthesize(
-                self._streaming_requests(text), timeout=self.tts_timeout
-            )
-            self._active_call = call
+            call = self._start_stream(text)
+            watch = self._active_watch = _CancelWatch(call, stale)
             for response in call:
                 if stale():
-                    call.cancel()
+                    watch.cancel()
+                    logger.bind(tag=TAG).info(f"Google TTS stream cancelled (abort or newer turn): {text}")
                     return False
                 self.pcm_buffer.extend(response.audio_content)
                 while len(self.pcm_buffer) >= frame_bytes:
@@ -247,8 +355,11 @@ class TTSProvider(TTSProviderBase):
             if is_last:
                 self._process_before_stop_play_files()
             return True
-        except gexc.Cancelled:
-            return False
+        except gexc.Cancelled as e:
+            if (watch is not None and watch.cancelled) or stale():
+                logger.bind(tag=TAG).info(f"Google TTS stream cancelled (abort or newer turn): {text}")
+                return False
+            logger.bind(tag=TAG).error(f"Google TTS stream cancelled by the service: {e}")
         except gexc.InvalidArgument as e:
             logger.bind(tag=TAG).error(
                 f"Google TTS rejected request (voice/sample_rate_hertz): {e}"
@@ -256,7 +367,9 @@ class TTSProvider(TTSProviderBase):
         except Exception as e:
             logger.bind(tag=TAG).error(f"Google TTS stream failed: {type(e).__name__}: {e}")
         finally:
-            self._active_call = None
+            if watch is not None:
+                watch.stop()
+            self._active_watch = None
             self.pcm_buffer.clear()
         if is_last:
             self.tts_audio_queue.put((SentenceType.LAST, [], None, sid))

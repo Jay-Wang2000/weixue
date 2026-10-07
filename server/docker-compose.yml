@@ -16,8 +16,8 @@ services:
       - TZ=${TZ:-UTC}
       - WEIXUE_PROACTIVE_TOKEN=${WEIXUE_PROACTIVE_TOKEN:-}
     ports:
-      - "8000:8000"
-      - "8003:8003"
+      - "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8000:8000"
+      - "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8003:8003"
     volumes:
       - ./data:/opt/xiaozhi-esp32-server/data
       - ./data/models/SenseVoiceSmall/model.pt:/opt/xiaozhi-esp32-server/models/SenseVoiceSmall/model.pt

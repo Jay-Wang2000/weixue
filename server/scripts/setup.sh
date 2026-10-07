@@ -1,13 +1,39 @@
 #!/usr/bin/env bash
-# Idempotent bootstrap: model download, config render, build, start stack.
+# Idempotent bootstrap: pre-flight, model download, config render, image build, validation, atomic
+# publish, start, readiness check; a failed start or check restores the previous config and images.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.rd/bin:$PATH"
 
 [ -f .env ] || { echo "missing server/.env (copy .env.example)"; exit 1; }
 set -a; . ./.env; set +a
-: "${LAN_IP:?}" "${TZ_OFFSET:?}" "${ANTHROPIC_API_KEY:?}" "${GOOGLE_SA_FILE:?}" "${HA_MCP_URL:?}"
+# Pre-flight: every key server/.env must set; nothing is built, published or started before it passes.
+REQUIRED_KEYS=(LAN_IP BIND_IP ALLOWED_DEVICES TZ_OFFSET ANTHROPIC_API_KEY GOOGLE_SA_FILE HA_MCP_URL)
+MISSING=()
+for key in "${REQUIRED_KEYS[@]}"; do [ -n "${!key:-}" ] || MISSING+=("$key"); done
+if [ ${#MISSING[@]} -gt 0 ]; then
+  echo "server/.env must set ${MISSING[*]} (required: ${REQUIRED_KEYS[*]}; see .env.example and docs/server.md)"
+  exit 1
+fi
 [ -f "$GOOGLE_SA_FILE" ] || { echo "GOOGLE_SA_FILE does not exist"; exit 1; }
+# BIND_IP: 0.0.0.0 or 127.0.0.1; on Linux also an IPv4 address on a local interface.
+case "$BIND_IP" in
+  0.0.0.0 | 127.0.0.1) ;;
+  *)
+    if [ "$(uname -s)" = Darwin ]; then
+      echo "BIND_IP=$BIND_IP: on macOS use 0.0.0.0 or 127.0.0.1 in server/.env (docs/server.md)"
+      exit 1
+    fi
+    LOCAL_IPV4=$(ip -o -4 addr 2>/dev/null | awk '{ split($4, a, "/"); print a[1] }' || true)
+    case $'\n'"$LOCAL_IPV4"$'\n' in
+      *$'\n'"$BIND_IP"$'\n'*) ;;
+      *)
+        echo "BIND_IP=$BIND_IP is not 0.0.0.0, 127.0.0.1 or an IPv4 address on a local interface (docs/server.md)"
+        exit 1
+        ;;
+    esac
+    ;;
+esac
 
 # WG_TUNNEL=1 runs mcp-bridge in the wg sidecar's network namespace (docs/server.md, Office / off-LAN mode).
 # wg0.conf is checked by existence and mode only; its contents are never read here.
@@ -52,6 +78,16 @@ export UPSTREAM_COMMIT
 
 docker info >/dev/null 2>&1 || { echo "docker daemon is not running"; exit 1; }
 
+CONFIG=data/.config.yaml
+SERVICES=($TUNNEL_SERVICES mcp-bridge xiaozhi-esp32-server)
+IMAGES=(weixue/mcp-bridge:local weixue/xiaozhi-esp32-server:local)
+[ -z "$TUNNEL_SERVICES" ] || IMAGES+=(weixue/wg:local)
+ready_host() { if [ "$BIND_IP" = 0.0.0.0 ]; then echo 127.0.0.1; else echo "$BIND_IP"; fi; }
+
+umask 077
+STAGED=$(mktemp "$CONFIG.XXXXXX")
+trap 'rm -f "$STAGED"' EXIT
+
 docker compose up -d mcp-endpoint-server
 MCP=""
 for _ in $(seq 1 30); do
@@ -61,14 +97,91 @@ done
 [ -n "$MCP" ] || { echo "mcp endpoint URL not found in logs"; exit 1; }
 chmod 600 data/mcp-endpoint/.mcp-endpoint-server.cfg
 MCP_ENDPOINT_INTERNAL=$(echo "$MCP" | sed -E 's#^ws://[^/]+#ws://mcp-endpoint-server:8004#')
-(umask 077; printf '%s\n' "$MCP_ENDPOINT_INTERNAL" > data/mcp-bridge/endpoint-url)
-chmod 600 data/mcp-bridge/endpoint-url
 
-MCP_ENDPOINT=$MCP_ENDPOINT_INTERNAL \
-  python3 scripts/render_config.py config/config.template.yaml > data/.config.yaml
-chmod 600 data/.config.yaml
+MCP_ENDPOINT=$MCP_ENDPOINT_INTERNAL python3 scripts/render_config.py config/config.template.yaml > "$STAGED"
 
-docker compose up -d --build --force-recreate $TUNNEL_SERVICES mcp-bridge xiaozhi-esp32-server
+for image in "${IMAGES[@]}"; do
+  if docker image inspect "$image" >/dev/null 2>&1; then
+    docker tag "$image" "${image%:*}:rollback"
+  fi
+done
+
+restore_images() {
+  local rc=0
+  for image in "${IMAGES[@]}"; do
+    if docker image inspect "${image%:*}:rollback" >/dev/null 2>&1; then
+      docker tag "${image%:*}:rollback" "$image" || rc=1
+    fi
+  done
+  return $rc
+}
+
+# .env of the last successful run (0600); rollback restores it and keeps the attempted one as .env.failed.
+ENV_DEPLOYED=.env.deployed
+
+manual_restore() {
+  local profiles=${COMPOSE_PROFILES:-} flags=""
+  for profile in ${profiles//,/ }; do flags+=" --profile $profile"; done
+  echo "rollback failed: the stack is down; manual restore:"
+  echo "  cd $PWD"
+  for image in "${IMAGES[@]}"; do
+    if docker image inspect "${image%:*}:rollback" >/dev/null 2>&1; then
+      echo "  docker tag ${image%:*}:rollback $image"
+    fi
+  done
+  echo "  docker compose$flags up -d --force-recreate $*"
+  echo "docker-compose.yml is not rolled back; if that up fails the same way, correct it and server/.env first."
+}
+
+# Restores the previous config, .env and images and recreates the containers; always exits 1.
+rollback() {
+  echo "$1; rolling back"
+  if [ -f "$CONFIG.rollback" ]; then mv -f "$CONFIG.rollback" "$CONFIG"; fi
+  if [ -f "$ENV_DEPLOYED" ]; then
+    cp -p .env .env.failed
+    chmod 600 .env.failed
+    for key in $(sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' .env); do unset "$key"; done
+    unset COMPOSE_PROFILES
+    cp -p "$ENV_DEPLOYED" .env
+    set -a; . ./.env; set +a
+    echo "server/.env restored from the last successful run; the attempted one is server/.env.failed"
+  fi
+  local services=(mcp-bridge xiaozhi-esp32-server)
+  [ "${WG_TUNNEL:-}" != 1 ] || services=(wg "${services[@]}")
+  if restore_images && docker compose up -d --force-recreate "${services[@]}"; then
+    [ "${WG_TUNNEL:-}" = 1 ] || docker rm -f wg >/dev/null 2>&1 || true
+    python3 scripts/check_ready.py "$(ready_host)" || echo "previous version is not ready either"
+  else
+    manual_restore "${services[@]}"
+  fi
+  exit 1
+}
+
+if ! docker compose build "${SERVICES[@]}"; then
+  restore_images
+  echo "image build failed; $CONFIG and the images are unchanged"
+  exit 1
+fi
+if ! docker run --rm --entrypoint python \
+    -v "$PWD/$STAGED:/tmp/config.yaml:ro" \
+    -v "$PWD/scripts/validate_config.py:/tmp/validate_config.py:ro" \
+    weixue/xiaozhi-esp32-server:local /tmp/validate_config.py /tmp/config.yaml; then
+  restore_images
+  echo "rendered config is invalid; $CONFIG and the images are unchanged"
+  exit 1
+fi
+
+ENDPOINT_FILE=$(mktemp data/mcp-bridge/endpoint-url.XXXXXX)
+printf '%s\n' "$MCP_ENDPOINT_INTERNAL" > "$ENDPOINT_FILE"
+mv -f "$ENDPOINT_FILE" data/mcp-bridge/endpoint-url
+if [ -f "$CONFIG" ]; then cp -p "$CONFIG" "$CONFIG.rollback"; fi
+mv -f "$STAGED" "$CONFIG"
+
+docker compose up -d --force-recreate "${SERVICES[@]}" || rollback "docker compose up failed"
 [ -n "$TUNNEL_SERVICES" ] || docker rm -f wg >/dev/null 2>&1 || true
+python3 scripts/check_ready.py "$(ready_host)" || rollback "new version is not ready"
+cp .env "$ENV_DEPLOYED"
+chmod 600 "$ENV_DEPLOYED"
+rm -f .env.failed
 echo "OTA: http://$LAN_IP:8003/xiaozhi/ota/"
 echo "WS:  ws://$LAN_IP:8000/xiaozhi/v1/"

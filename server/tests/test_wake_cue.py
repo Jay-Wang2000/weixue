@@ -276,7 +276,7 @@ async def test_patched_connection_keeps_audio_after_a_detect():
 
 def test_configured_cue_clips_are_short_mono_wavs():
     text = (SERVER_DIR / "config" / "config.template.yaml").read_text(encoding="utf-8")
-    template = yaml.safe_load(re.sub(r"@@[A-Z_?]+@@", "x", text))
+    template = yaml.safe_load(re.sub(r"@@[A-Z_]+(\?|\[\])?@@", "x", text))
     cues = template["wake_cues"]
     assert len(cues) == 3
     assert template["enable_greeting"] is False

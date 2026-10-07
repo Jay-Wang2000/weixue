@@ -7,25 +7,77 @@ import re
 import time
 import uuid
 
-_CJK = re.compile(r"[　-〿一-鿿＀-￯]")
+_RESPONSE_VALUE = re.compile(r'"response"\s*:\s*"')
+_JSON_ESCAPES = {'"': '"', "\\": "\\", "/": "/", "b": "\b", "f": "\f", "n": "\n", "r": "\r", "t": "\t"}
 
 
-def keep_trailing_whitespace(clean):
-    """Wraps upstream ConnectionHandler._clean_response_garbage, which strips trailing
-    whitespace from every streamed chunk. The chunk's trailing whitespace is restored when
-    no closing garbage was removed from its end and its last kept character is not CJK."""
+def _hex4(text, i):
+    digits = text[i : i + 4]
+    if len(digits) < 4:
+        return None
+    try:
+        return int(digits, 16)
+    except ValueError:
+        return -1
 
-    def wrapper(text):
-        cleaned = clean(text)
-        if not cleaned:
-            return cleaned
-        body = text.rstrip()
-        if body and cleaned[-1] == body[-1] and not _CJK.match(cleaned[-1]):
-            return cleaned + text[len(body):]
-        return cleaned
 
-    wrapper.weixue_wrapped = clean
-    return wrapper
+def decode_direct_answer(arguments):
+    """Replacement for ConnectionHandler._extract_direct_answer_response: the decoded `response`
+    string of direct_answer arguments; for incomplete streamed arguments, the longest prefix
+    decodable so far (no quotes, braces or partial escapes), so each call extends the last."""
+    if not arguments:
+        return ""
+    try:
+        data = json.loads(arguments)
+    except (ValueError, TypeError):
+        data = None
+    if isinstance(data, dict):
+        value = data.get("response")
+        return value if isinstance(value, str) else ""
+    match = _RESPONSE_VALUE.search(arguments)
+    if match is None:
+        return ""
+    out, i, n = [], match.end(), len(arguments)
+    while i < n:
+        c = arguments[i]
+        if c == '"':
+            break
+        if c != "\\":
+            out.append(c)
+            i += 1
+            continue
+        if i + 1 >= n:
+            break
+        if arguments[i + 1] != "u":
+            out.append(_JSON_ESCAPES.get(arguments[i + 1], arguments[i + 1]))
+            i += 2
+            continue
+        code = _hex4(arguments, i + 2)
+        if code is None:
+            break
+        if 0xD800 <= code < 0xDC00:
+            if i + 12 > n:
+                break
+            low = _hex4(arguments, i + 8) if arguments[i + 6 : i + 8] == "\\u" else -1
+            if 0xDC00 <= low < 0xE000:
+                out.append(chr(0x10000 + ((code - 0xD800) << 10) + (low - 0xDC00)))
+                i += 12
+                continue
+        out.append(chr(code) if 0 <= code and not 0xD800 <= code < 0xE000 else "\ufffd")
+        i += 6
+    return "".join(out)
+
+
+decode_direct_answer.weixue_replacement = True
+
+
+def keep_decoded_text(text):
+    """Replacement for ConnectionHandler._clean_response_garbage: decode_direct_answer output
+    carries no JSON framing, so streamed text is passed on unchanged."""
+    return text
+
+
+keep_decoded_text.weixue_replacement = True
 
 
 def register_sessions(handle_connection, proactive):
@@ -253,14 +305,54 @@ def log_device_events(handle, logger):
     return wrapper
 
 
+def _strict(handler):
+    return bool(handler.auth_enable and handler.allowed_devices)
+
+
+def refuse_unlisted_ota(handle_post, web, logger):
+    """Wraps OTAHandler.handle_post: with auth enabled and allowed_devices set, a Device-Id not on
+    the list gets 403 and no websocket section; listed devices get upstream's response."""
+
+    async def wrapper(self, request):
+        device_id = request.headers.get("device-id", "")
+        if _strict(self) and device_id not in self.allowed_devices:
+            logger.bind(tag=__name__).warning(f"OTA refused: device {device_id!r} is not in allowed_devices")
+            response = web.json_response({"success": False, "message": "device not allowed"}, status=403)
+            self._add_cors_headers(response)
+            return response
+        return await handle_post(self, request)
+
+    wrapper.weixue_wrapped = handle_post
+    return wrapper
+
+
+def refuse_unlisted_websocket(handle_auth, authentication_error, logger):
+    """Wraps WebSocketServer._handle_auth: with auth enabled and allowed_devices set, a Device-Id
+    not on the list is refused whatever token it presents."""
+
+    async def wrapper(self, websocket):
+        device_id = websocket.request.headers.get("device-id")
+        if _strict(self) and device_id not in self.allowed_devices:
+            logger.bind(tag=__name__).warning(f"WebSocket refused: device {device_id!r} is not in allowed_devices")
+            raise authentication_error("device not in allowed_devices")
+        return await handle_auth(self, websocket)
+
+    wrapper.weixue_wrapped = handle_auth
+    return wrapper
+
+
 def apply():
+    from aiohttp import web
     from config.logger import setup_logging
+    from core.api.ota_handler import OTAHandler
+    from core.auth import AuthenticationError
     from core.connection import ConnectionHandler
     from core.handle.textHandler.listenMessageHandler import ListenTextMessageHandler
     from core.utils.util import audio_to_data, remove_punctuation_and_length
     import core.http_server as http_server
     import weixue_proactive
 
+    websocket_server = importlib.import_module("core.websocket_server")
     intentHandler = importlib.import_module("core.handle.intentHandler")
     mcpMessageHandler = importlib.import_module("core.handle.textHandler.mcpMessageHandler")
     receiveAudioHandle = importlib.import_module("core.handle.receiveAudioHandle")
@@ -268,9 +360,12 @@ def apply():
     silero = importlib.import_module("core.providers.vad.silero")
     logger = setup_logging()
 
-    clean = ConnectionHandler.__dict__["_clean_response_garbage"].__func__
-    if getattr(clean, "weixue_wrapped", None) is None:
-        ConnectionHandler._clean_response_garbage = staticmethod(keep_trailing_whitespace(clean))
+    for name, replacement in (
+        ("_extract_direct_answer_response", decode_direct_answer),
+        ("_clean_response_garbage", keep_decoded_text),
+    ):
+        if not getattr(ConnectionHandler.__dict__[name].__func__, "weixue_replacement", False):
+            setattr(ConnectionHandler, name, staticmethod(replacement))
 
     if not isinstance(ConnectionHandler.__dict__.get("just_woken_up"), property):
         ConnectionHandler.just_woken_up = property(never_just_woken_up, lambda _conn, _value: None)
@@ -310,3 +405,9 @@ def apply():
     mcp_handler = mcpMessageHandler.McpTextMessageHandler
     if getattr(mcp_handler.handle, "weixue_wrapped", None) is None:
         mcp_handler.handle = log_device_events(mcp_handler.handle, logger)
+
+    if getattr(OTAHandler.handle_post, "weixue_wrapped", None) is None:
+        OTAHandler.handle_post = refuse_unlisted_ota(OTAHandler.handle_post, web, logger)
+    ws_server = websocket_server.WebSocketServer
+    if getattr(ws_server._handle_auth, "weixue_wrapped", None) is None:
+        ws_server._handle_auth = refuse_unlisted_websocket(ws_server._handle_auth, AuthenticationError, logger)

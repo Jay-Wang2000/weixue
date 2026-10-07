@@ -1,0 +1,36 @@
+# fix-server-review-2 gate 2 (re-gate after fix pass 27a1745), tester, 2026-10-07, redacted
+# Office/VPN mode: no docker compose up/restart/rm/stop, no deploy, no device, no say. server/.env never read.
+
+## git
+base main 0793875 (bookkeeping only since 8625b52); branch fix/server-review-2 = 27a1745, exactly 1 commit ahead, 1 behind (bookkeeping: DESIGN.md/tasks.yml/METHODOLOGY.md, not touched by the branch commit)
+git merge-tree main HEAD: clean merge (rc 0)
+
+## pytest (worktree .venv, server/)
+452 passed, 10 skipped, 1 warning in 52.5 s  (skips: RUN_LIVE_TESTS / GOOGLE_SA_FILE live tests)
+
+## docker compose config --quiet (dummy env file, no daemon access)
+WG_TUNNEL=1 COMPOSE_PROFILES=tunnel : rc=0, services: mcp-endpoint-server wg xiaozhi-esp32-server mcp-bridge
+WG_TUNNEL and COMPOSE_PROFILES unset: rc=0, services: mcp-endpoint-server mcp-bridge xiaozhi-esp32-server
+ports with BIND_IP=0.0.0.0: 8000 and 8003 host_ip 0.0.0.0, 8004 host_ip 127.0.0.1
+LAN_IP and BIND_IP both unset: interpolation error "set LAN_IP in server/.env" (expected)
+
+## setup.sh pre-flight negative path (scratch copy of scripts/, dummy .env, fake docker and curl on PATH logging every call)
+BIND_IP missing          rc=1 "server/.env must set BIND_IP (...)"                          .env unchanged, 0 docker/curl calls
+BIND_IP empty            rc=1 same                                                          .env unchanged, 0 calls
+BIND_IP=203.0.113.9      rc=1 "BIND_IP=... is not 0.0.0.0, 127.0.0.1 or an IPv4 address on a local interface"  0 calls
+BIND_IP=0.0.0 (prefix)   rc=1 same                                                          0 calls
+BIND_IP=::1              rc=1 same (IPv6 rejected)                                          0 calls
+ALLOWED_DEVICES empty    rc=1 "server/.env must set ALLOWED_DEVICES (...)"                  0 calls
+GOOGLE_SA_FILE missing   rc=1 "GOOGLE_SA_FILE does not exist"                               0 calls
+BIND_IP="127.0.0.1 x"    rc=127 from `. ./.env` (unquoted value with a space), before pre-flight, 0 calls (pre-existing sourcing behaviour)
+
+## Linux branch (fake uname=Linux and fake `ip -o -4 addr` with lo, eth0, eth0:1 secondary alias, wg0 point-to-point)
+192.168.1.5 accepted; 192.168.1.50 (alias) accepted; 10.8.0.2 (local end of peer line) accepted;
+10.8.0.1 (peer end) rejected; 192.168.1.5/24 rejected; 192.168.1 rejected.   $4 field parsing is correct for these formats.
+
+## Review notes
+- Darwin: pre-flight accepts any IPv4 on an interface (ifconfig), including LAN_IP. Rancher Desktop cannot bind that (gate-1 failure), so BIND_IP=<LAN_IP> on the Mac passes pre-flight, `up` fails, and the rollback `up` reuses the same BIND_IP and fails too: stack down + manual restore block.
+- Secrets: no sk-ant / private key / token= / secret-path patterns in `git diff main...HEAD`, spec.md or the gate-1 deploy log; .env.example holds placeholders only; server/.env (copy of live, 0600) is gitignored.
+
+## Deferred (live deploy deferred: corporate VPN / office mode)
+option C OTA/WS probes (unlisted id: OTA 403, WS auth refusal), device reconnect, HA round through the tunnel, live setup.sh success path and rollback on the real daemon: skip.
