@@ -241,6 +241,6 @@ tasks:
     branch: fix/wave3-server
     description: 按同一评审：S1 proactive 的设备轮询/消费端点必须鉴权并绑定到已验证的会话归属（未鉴权客户端不得冒充设备消费通知或作废登记）；C6 消息在创建任务前先 claim，杜绝重复投递；C7 合成失败不得报成功，按逐句合成/播放结果收尾；C4 唤醒提示音加 generation fence/取消，不得覆盖更新的一轮；C5 去掉对「Yes」等真实短回答的词法抑制；Wave 4 评审：轮询广告的 urgent 标志可能属于另一条通知而非最终投递的那条——urgency 必须随被 claim 的那条消息返回；【2026-10-07 裁剪】C3/R1 的 bridge 侧 ADR-9 预算/pending 逻辑移出本任务，改在 feat-agent-service 中作为 SDK agent 的 HA MCP 代理一次做对（小智 30 s 工具超时随 M2 消失）；本任务只做网关侧项。端到端：实机 announce + conversation + 一次 HA 控灯。 2026-10-07 手测补充：服务端回声护栏——TTS 播放期间收到的转写若与最近合成文本模糊匹配则丢弃不计为打断（与 C5 同处，仅在播放窗口内生效）。 2026-10-07 补充：server/policy/voice_policy.proposed.json 的 settings 不得再改 wait_seconds（ADR-9 修订版：超时在 bridge），render_voice_policy.py 去掉 5–10 s 校验、改为拒绝任何改动 wait_seconds 的 overlay，tests/test_voice_policy.py 同步；policy 的实际应用仍由 Jay 确认后执行。
     depends_on: [fix-server-review-2]
-    status: pending
+    status: review
     retries: 0
     model: opus
