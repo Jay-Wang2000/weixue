@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds and runs the host tests for firmware/overrides sources.
+# Builds and runs the host tests for firmware/overrides sources and firmware/tools/usb_provision.py.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 out="$(mktemp -d)"
@@ -15,3 +15,6 @@ for test in imu_gestures_test ring_bedside_test; do
     "$root/firmware/tests/$test.cc" -o "$out/$test"
   "$out/$test"
 done
+py="$root/.venv/bin/python"
+[ -x "$py" ] || py=python3
+"$py" -m unittest discover -s "$root/firmware/tests" -p 'test_*.py'

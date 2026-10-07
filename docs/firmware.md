@@ -19,6 +19,7 @@ xiaozhi-esp32 2.5.1 (vendored clone pinned in `vendor.lock`) built for the Waves
 | `firmware/custom-msg-probe.sh`, `firmware/tools/custom_msg_probe.py` | Test proxy for the on-device `custom` message check (see below) |
 | `firmware/tools/serial_log.py` | Captures the serial console to a file for N seconds (`--reset` pulses RTS first); run with `.venv/bin/python` |
 | `firmware/tools/face_dump.py` | Decodes the `FACEDUMP` screen dumps of a diag build's serial log into PNGs |
+| `firmware/tools/usb_provision.py`, `firmware/tests/test_usb_provision.py` | Wi-Fi credentials and OTA URL override written into the `nvs` partition over USB (see Provisioning over USB) |
 
 ## Build
 
@@ -54,6 +55,35 @@ idf.py -C ~/Projects/weixue-vendor/fw-work/<checkout dir name> -p <port> monitor
 ```
 
 `flash.sh` refuses to flash unless `shasum -a 256 -c weixue-build.sha256` passes in the scratch copy, so it writes exactly the image `build.sh` verified and never rebuilds; it writes bootloader (0x0), partition table (0x8000), otadata (0x10d000), app (0x200000) and assets (0xa00000) at 460800 baud. NVS (0x9000 `nvsfactory`, 0x3b000 `nvs`) keeps the same offsets as the stock 32 MB layout and is not erased, so stored Wi-Fi credentials survive. `backup_flash.sh` stores the device MAC (`flash-<timestamp>.mac`) and the backup's sha256 (`flash-<timestamp>.sha256`) next to each backup; `flash.sh` prefers a backup tagged with the connected device's MAC, warns when only untagged backups exist, and stops when the selected backup has no `.sha256` or fails `shasum -a 256 -c` (`backup/flash-20261006-163547.bin` predates both). `idf.py -C <work> -p <port> erase-flash` resets everything; restore the stock image with `.venv/bin/esptool --chip esp32s3 --port <port> write-flash 0 backup/flash-<timestamp>.bin` after `shasum -a 256 -c` of its `.sha256`.
+
+## Provisioning over USB
+
+`firmware/tools/usb_provision.py` sets the Wi-Fi network and the backend address without the portal and without a rebuild. It writes only the `nvs` partition (0x3b000, 0xd2000 on the 32 MB layout); app, assets and `nvsfactory` are untouched.
+
+```bash
+ipconfig getifaddr en0                       # the Mac's current address (Wi-Fi); LAN_IP in server/.env must match
+read -r WIFI_SSID; read -rs WIFI_PASSWORD; export WIFI_SSID WIFI_PASSWORD
+export OTA_URL="http://$(ipconfig getifaddr en0):8003/xiaozhi/ota/"
+.venv/bin/python firmware/tools/usb_provision.py --dry-run   # backup + new image, no write
+.venv/bin/python firmware/tools/usb_provision.py             # write, reset, boot-log check
+```
+
+| Input | NVS (namespace `wifi`) | Notes |
+|---|---|---|
+| `WIFI_SSID`, `WIFI_PASSWORD` | `ssid`/`password`/`channel`, `ssid1`..`ssid9` (esp-wifi-connect 3.3.1 `SsidManager`, at most 10) | New SSID at index 0 with `channel` 0 (scan all channels); other saved SSIDs follow in order, an existing entry for the same SSID is replaced. SSID 1-32 bytes, password at most 64 bytes, empty for an open network. 2.4 GHz (ESP32-S3), WPA2/WPA3-Personal or open: esp-wifi-connect has no Enterprise (802.1X) code and no captive-portal login |
+| `OTA_URL` | `ota_url` (`Ota::GetCheckVersionUrl`) | Unset: stored value kept. Empty: override cleared, the device uses `CONFIG_OTA_URL`. Otherwise http(s), 10-255 bytes |
+
+Steps (dry runs on this device: `docs/logs/usb-provision-dryrun-2026-10-07.log`): `esptool flash-id` (MAC), partition table read from 0x8000 (`--partition-table <csv|bin>` must agree with it), NVS read to `backup/nvs-<timestamp>.bin` with `.sha256` and `.mac` sidecars (0600), decode of every live entry, new image from an `nvs_partition_gen` CSV (ESP-IDF python env), decode of the new image compared with the intended entries, image kept as `backup/nvs-<timestamp>.new.bin` (0600). Without `--dry-run`: `esptool write-flash <nvs offset>` (hash-verified), RTS reset, boot log printed until `WifiBoard: Connected to WiFi: <ssid>` and an OTA reply (`Activation done` / version check) after `Established new connection to <OTA host:port>`, or `--tail-seconds` (60). Exit 0 when both are seen, 3 otherwise, 2 on an error (nothing is written when the error comes before `write-flash`). Run it with no inputs and `--dry-run` to back up and check the decode of the current NVS only.
+
+Output never contains the input values: SSID, password, OTA URL and its host are printed as `<WIFI_SSID>`, `<WIFI_PASSWORD>`, `<OTA_URL>`, `<OTA_HOST>`, BSSIDs as `<bssid>`; NVS entries are listed by key, type and size. The backups and `.new.bin` hold the credentials in plain text (NVS is not encrypted on this build: `CONFIG_NVS_ENCRYPTION` unset); `backup/` is gitignored.
+
+Kept and lost entries: every other namespace and key is rewritten with its type and value (on this device: `board/uuid`, `phy` calibration, `storage`, `audio`, `websocket/url`, `display`, `bedside`, the rest of `wifi`). The Wi-Fi driver namespace `nvs.net80211` is dropped: `nvs_partition_gen` injects extra entries for its `sta.*`/`ap.*` keys, and this firmware runs the driver with NVS storage off (boot log `wifi:config NVS flash: disabled`). Entries with a bad CRC, incomplete blobs and non-UTF-8 strings are reported as warnings and dropped; an `nvs_keys` partition or an encrypted `nvs` stops the tool. Restore: the printed `write-flash 0x<offset> backup/nvs-<timestamp>.bin` after `(cd backup && shasum -a 256 -c nvs-<timestamp>.sha256)`.
+
+Backend side: the OTA reply carries `websocket.url` built from `LAN_IP` in `server/.env`, so after a Mac address change set `LAN_IP`, re-run `server/scripts/setup.sh` and check `curl http://<LAN_IP>:8003/xiaozhi/ota/` before provisioning. The device and the Mac must be on the same network and that network must let clients reach each other (many office and guest networks isolate clients).
+
+Internet Sharing alternative (network with client isolation or 802.1X): System Settings > General > Sharing > Internet Sharing, share the Mac's uplink (Ethernet, USB adapter or iPhone USB) to devices using Wi-Fi, set the shared network's name and WPA2 password, and provision those as `WIFI_SSID`/`WIFI_PASSWORD`. The Mac is then `192.168.2.1` on `bridge100` (`ipconfig getifaddr bridge100`): set `LAN_IP=192.168.2.1`, re-run `setup.sh`, `OTA_URL=http://192.168.2.1:8003/xiaozhi/ota/`. Wi-Fi cannot be shared while the Mac uses Wi-Fi as its own uplink, and managed Macs can have Internet Sharing disabled. A phone hotspot that both the Mac and the device join works the same way, with `LAN_IP` set to the Mac's address on it (`ipconfig getifaddr en0`); an iPhone hotspot needs Maximize Compatibility on for 2.4 GHz.
+
+Tests: `.venv/bin/python -m unittest discover -s firmware/tests -p 'test_*.py'` (also run by `firmware/tests/run.sh`); the image round-trip and partition-table cases need the vendored ESP-IDF and are skipped without it.
 
 ## Face
 
@@ -118,7 +148,7 @@ Diag build (`WEIXUE_FACE_DIAG=1`): a virtual LVGL pointer replays swipe left, Ap
 
 - OTA: POST `CONFIG_OTA_URL` (NVS `wifi/ota_url` overrides it when non-empty; the Wi-Fi portal's Advanced tab sets it, an empty submit writes `""` and restores the default). The response's `websocket.url` is where the device streams audio. While the server is unreachable the device retries 10 times with doubling delays (about 85 min).
 - Wake word: the ESP-SR model `wn9_jarvis_tts` detects "Jarvis" and sends `{"type":"listen","state":"detect","text":"Jarvis"}`. Exactly one `AfeAudioEngine: Model 0: wn9_jarvis_tts` line appears at boot.
-- Wi-Fi provisioning (no stored SSID): join the `Xiaozhi-XXXX` hotspot and follow the on-screen portal URL.
+- Wi-Fi provisioning (no stored SSID): join the `Xiaozhi-XXXX` hotspot and follow the on-screen portal URL, or write the credentials over USB (see Provisioning over USB).
 - Power (ADR-12, `firmware/patches/05-board-power-usb.patch`): after 60 s idle the screen dims to 20 %. After `CONFIG_WEIXUE_SCREEN_OFF_SECONDS` idle (default 300, `0` = never), on USB and battery, the panel turns off (CO5300 DISPOFF, brightness 0) and logs `Panel off after 300 s idle (VBUS present|absent)`; MCU, Wi-Fi and wake word detection keep running. Wake word, touch (LVGL `LV_EVENT_PRESSED`), IMU pick-up or face-up (see IMU gestures), any `SetPowerSaveLevel` above low power (session start, notification, upgrade) or the device leaving idle (checked every second) turns it back on (`Panel on`) and restores the dim. Idle PMIC power-off happens only while the AXP2101 reports no VBUS, after `CONFIG_WEIXUE_BATTERY_IDLE_POWER_OFF_SECONDS` (default 300, `0` = never); set either in `config.weixue.json` `sdkconfig_append`. On USB the board logs `Idle power-off skipped: VBUS present` once per idle period; unplugging USB during that period wakes the screen and restarts the battery countdown. Boot logs `VBUS present|absent, battery present|absent, idle power-off on battery after N s, panel off after N s`. USB idle check: `docs/logs/fix-power-usb-idle-usb-2026-10-06.log` (300 s) and `docs/logs/fix-power-usb-idle-usb-test90-2026-10-06.log` (test build with 90 s). Panel-off check: `docs/logs/fix-screen-off-device-2026-10-06.log` (see Panel off below).
 - Device AEC is on; listening mode is realtime (barge-in). BOOT double-click toggles AEC until reboot.
 - Proactive poll (`firmware/patches/10-proactive-poll.patch`): while idle the device long-polls `/weixue/proactive/poll` on the OTA host and, on `200`, opens a session with `listen detect` text `weixue:proactive` (`docs/proactive.md`).

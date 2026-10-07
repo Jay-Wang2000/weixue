@@ -1,0 +1,50 @@
+# firmware/tools/usb_provision.py on the device (7c:0c:5f:42:4b:fc), 2026-10-07 09:38 IST, under the device lock.
+# Run 1: no inputs, --dry-run --partition-table <vendor>/partitions/v2/32m.csv
+port: /dev/cu.usbmodem2101
+mac: 7c:0c:5f:42:4b:fc
+partition 'nvs': offset 0x3b000 size 0xd2000 (device partition table)
+partition 'nvs': matches /Users/jwang14/Projects/weixue-vendor/xiaozhi-esp32/partitions/v2/32m.csv
+backup: /Users/jwang14/Projects/weixue/backup/nvs-20261007-093827.bin (860160 B, 7.1 s) sha256 dceaad392bbcccfb243ce00805e48bb3c02494ed0e3a7822d807e116ccd721a8
+restore: .venv/bin/esptool --chip esp32s3 --port /dev/cu.usbmodem2101 write-flash 0x3b000 /Users/jwang14/Projects/weixue/backup/nvs-20261007-093827.bin
+current entries: 39; saved SSIDs: 1
+  nvs.net80211: ap.sndchan(u8) opmode(u8) sta.ssid(blob,36B) bssid.set(u8) sta.lis_intval(u16) sta.scan_method(u8) sta.sort_method(u8) sta.minrssi(i8) sta.minauth(u8) sta.apsw(blob,2B) sta.pmf_e(u8) sta.pmf_r(u8) sta.rrm_e(u8) sta.btm_e(u8) sta.mbo_e(u8) sta.ft(u8) sta.owe(u8) sta.bss_retry(u8) sta.trans_d(u8) sta.sae_h2e(u8) sta.sae_pk_mode(u8) sta.sae_h2e_id(blob,32B) sta.pswd(blob,65B) sta.chan(u8) sta.apinfo(blob,700B) sta.pwr_reset(u8)
+  board: uuid(string,36B)
+  phy: cal_mac(blob,6B) cal_version(u32) cal_data(blob,1904B)
+  storage: wifi_en(i32)
+  wifi: ssid(string,7B) password(string,10B) channel(u8)
+  audio: output_volume(i32)
+  websocket: url(string,35B)
+  display: theme(string,4B)
+  bedside: start(string,5B) end(string,5B)
+dropped (Wi-Fi driver cache): 26 entries in nvs.net80211
+wifi/ota_url: kept
+new image: /Users/jwang14/Projects/weixue/backup/nvs-20261007-093827.new.bin sha256 1bebeb302bbce8805e0821a3e733fe2b731102caf9ea0b09fdf229f0900d7663; decodes to 13 entries as intended
+dry run: device not written
+exit 0
+
+# Run 2: placeholder WIFI_SSID/WIFI_PASSWORD, OTA_URL=http://<en0>:8003/xiaozhi/ota/, --dry-run (entry listing identical to run 1, omitted)
+port: /dev/cu.usbmodem2101
+mac: 7c:0c:5f:42:4b:fc
+partition 'nvs': offset 0x3b000 size 0xd2000 (device partition table)
+backup: /Users/jwang14/Projects/weixue/backup/nvs-20261007-093844.bin (860160 B, 7.1 s) sha256 dceaad392bbcccfb243ce00805e48bb3c02494ed0e3a7822d807e116ccd721a8
+current entries: 39; saved SSIDs: 1
+dropped (Wi-Fi driver cache): 26 entries in nvs.net80211
+wifi list: new SSID at index 0, 2 saved SSIDs
+wifi/ota_url: set
+new image: /Users/jwang14/Projects/weixue/backup/nvs-20261007-093844.new.bin sha256 d34067b96d64a115e29230d19981f6aa6a695317af2528837affc6339700187d; decodes to 17 entries as intended
+dry run: device not written
+exit 0
+
+# Independent check of the run 2 image: <IDF>/components/nvs_flash/nvs_partition_tool/nvs_tool.py -i -d none
+Page no. 0 	CRC32: OK
+# (cd backup && shasum -a 256 -c nvs-20261007-093844.sha256 nvs-20261007-093844.new.sha256)
+nvs-20261007-093844.bin: OK
+nvs-20261007-093844.new.bin: OK
+
+# Boot-log path (tail_boot_log, 30 s, no write; the stored SSID is out of range here): returned (False, False)
+  | I (2347) wifi:config NVS flash: disabled
+  | I (2417) WifiBoard: Starting WiFi connection attempt
+  | I (2467) WifiStation: Scanning saved channel 11
+  | I (2587) WifiStation: No AP on saved channels, starting full scan
+  | I (4997) WifiStation: No AP found, next scan in 10 seconds
+  | I (17417) WifiStation: No AP found, next scan in 20 seconds
