@@ -21,4 +21,5 @@ services:
       - ../overlay/weixue_patches.py:/opt/xiaozhi-esp32-server/weixue_patches.py:ro
       - ../overlay/weixue_proactive.py:/opt/xiaozhi-esp32-server/weixue_proactive.py:ro
       - ../overlay/weixue_main.py:/opt/xiaozhi-esp32-server/weixue_main.py:ro
+      - ../overlay/weixue_clock.py:/opt/xiaozhi-esp32-server/weixue_clock.py:ro
       - ../overlay/core/providers/tts/google_tts.py:/opt/xiaozhi-esp32-server/core/providers/tts/google_tts.py:ro

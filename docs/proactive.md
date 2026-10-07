@@ -18,7 +18,9 @@ HA automation --POST /weixue/proactive/messages--> xiaozhi-esp32-server (8003)
 | Device long-poll and session open | `firmware/patches/10-proactive-poll.patch` |
 | Tests | `server/tests/test_proactive.py`, `server/tests/test_weixue_patches.py` |
 
-The device keeps no WebSocket open while idle, so the server cannot push to it. The firmware patch adds a task that, only while the device is idle, holds `GET http://<OTA host>/weixue/proactive/poll` (header `Device-Id`). The server answers `204` after 25 s with nothing to deliver and `200` with `{"pending": true, "urgent": <bool>, "id": "<message id>"}` as soon as a message is deliverable; that message is reserved for the device and `urgent` is its own flag. On `200` the device opens a session as for a wake word, sending `listen detect` with the text `weixue:proactive` instead of "Jarvis"; the server answers it with the reserved message instead of the LLM. Failed polls back off from 5 s to 60 s.
+The device keeps no WebSocket open while idle, so the server cannot push to it. The firmware patch adds a task that, only while the device is idle, holds `GET http://<OTA host>/weixue/proactive/poll` (header `Device-Id`). The server answers `204` after 25 s with nothing to deliver and `200` with `{"pending": true, "urgent": <bool>, "id": "<message id>", "lease": "<nonce>"}` as soon as a message is deliverable; that message is leased to the device and `urgent` is its own flag. On `200` the device opens a session as for a wake word, sending `listen detect` with the text `weixue:proactive` instead of "Jarvis"; the server answers it with the leased message instead of the LLM. Failed polls back off from 5 s to 60 s.
+
+The invocation text may name its lease: `weixue:proactive:<id>:<lease>` delivers only that message under that lease. The current firmware sends the bare `weixue:proactive`, which delivers the device's lease only when it was issued before the session opened. Either way an expired or replaced lease, or a lease for another message, closes the session and consumes nothing (Delivery rules).
 
 ## Device identity
 
@@ -42,7 +44,7 @@ All routes except `/poll` need `Authorization: Bearer <WEIXUE_PROACTIVE_TOKEN>`;
 | `GET /weixue/proactive/messages/{id}` | Status of one message |
 | `GET /weixue/proactive` | Devices (session open, last poll, reachable), mute state, queued messages |
 | `PUT /weixue/proactive/mute` | `{"minutes": 0-1440}`; `0` unmutes |
-| `GET /weixue/proactive/poll` | Device long-poll (Device identity): `200` with the reserved message's `id` and `urgent`, `204`, `401` unverified, `429` too many polls, `503` `server.auth` disabled |
+| `GET /weixue/proactive/poll` | Device long-poll (Device identity): `200` with the leased message's `id`, `urgent` and `lease`, `204`, `401` unverified, `429` too many polls, `503` `server.auth` disabled |
 
 Request body:
 
@@ -65,19 +67,19 @@ Response and status record: `id`, `mode`, `status`, `reason` (while queued), `at
 | `delivered` | Announcement's audio sent to the end, or interrupted by the user after its audio started |
 | `answered` | Conversation answered; `reply` is the transcript |
 | `no_reply` | Conversation spoken, nothing said within the reply window |
-| `partial` | Session lost, playback timed out, or synthesis failed for part of the text after some of the audio was sent; not retried |
+| `partial` | After some of the audio was written: session lost, a write failed, playback timed out, synthesis failed for part of the text, or an error (`error after audio started`); not retried |
 | `expired` | TTL passed before delivery |
-| `failed` | 3 attempts failed before any audio was sent (`error`: `no_audio` when synthesis produced none, `closed`, `superseded`, `no_tts`, `timeout`) |
+| `failed` | 3 attempts failed before any audio was written (`error`: `no_audio` when synthesis produced none, `send_failed` when a write to the device failed, `closed`, `superseded`, `no_tts`, `timeout`, `error`) |
 
 ## Delivery rules
 
-- **Idle device**: the held poll reserves the first deliverable message for the device and returns `200` with its `id` and `urgent`; the device opens a session and that message plays within the poll round trip plus session setup. A reservation holds the message for 15 s (its TTL does not expire it meanwhile, other devices and in-session delivery skip it); an invocation delivers only the message reserved for its device and closes the session when there is none, or when the reserved message is not urgent and mute started since.
+- **Idle device**: the held poll leases the first deliverable message to the device and returns `200` with its `id`, `urgent` and `lease`; the device opens a session and that message plays within the poll round trip plus session setup. A lease holds the message for 15 s (its TTL does not expire it meanwhile, other devices and in-session delivery skip it); a device holds one lease at a time, so a newer poll's lease replaces the older one. An invocation delivers only a current lease of its device: the one it names, or for the bare `weixue:proactive` the one issued before its session opened. It closes the session, consuming nothing, when there is none (an expired or replaced lease, a lease issued after the session opened, a wrong id or nonce), or when the leased message is not urgent and mute started since.
 - **Busy device** (a session is open): the message waits until the session is quiet (not speaking, no user voice and no audio for 1.5 s, session older than 3 s), then plays inside that session. That session is not closed afterwards.
 - **Offline device** (no session and no poll in the last 60 s): queued until the device polls or opens a session, or until the TTL.
 - **Muted**: everything except `urgent` waits until the mute ends or the TTL passes.
 - **One delivery**: a message is claimed (status `delivering`, attempt counted) before its delivery task starts; only that claim finishes or requeues it.
-- **Outcome**: taken from the message's own sentence: the audio packets sent for it, whether its last packet went out unaborted, and whether any part failed (a synthesis request raised, or a text segment got no audio). Heard (all audio sent, or interrupted after audio started) finishes it; audio cut off by a lost session or the 90 s playback limit, or a part that failed after audio started, finishes it as `partial` (`error` names which).
-- **Retry**: a failure before any audio was sent (synthesis produced no audio, session closed, a newer turn took over, TTS not ready, timeout) puts the message back in the queue (3 attempts, within the TTL); the second attempt waits 2 s, the third 5 s.
+- **Outcome**: taken from the message's own sentence (`docs/server.md`, patch list): the audio packets the transport actually wrote for it, whether its LAST completed with every packet written while it still owned the session, and whether any part failed (a synthesis request raised, a text segment got no audio, a write raised or was cancelled). Heard (completed, or interrupted after audio was written) finishes it; audio cut off by a lost session, a failed write or the 90 s playback limit, or a part that failed after audio was written, finishes it as `partial` (`error` names which).
+- **Retry**: a failure or an error before any audio was written (synthesis produced no audio, a write failed, session closed, a newer turn took over, TTS not ready, timeout, an exception) puts the message back in the queue (3 attempts, within the TTL); the second attempt waits 2 s, the third 5 s.
 - **Order**: first in, first out, one at a time per session.
 - **Dedup**: a repeated idempotency key returns the original record (keys kept 24 h); without a key, an identical request within 60 s is a duplicate.
 - **Rate limit**: 5 new messages in a burst, then one per 10 s per client address; duplicates are not counted. At most 20 messages queued.
@@ -153,7 +155,7 @@ DYLD_FALLBACK_LIBRARY_PATH=.venv/lib .venv/bin/python server/scripts/proactive_s
   --base http://<LAN_IP>:8003 --ws ws://<LAN_IP>:8000/xiaozhi/v1/ --device <MAC> --reply yes.wav   # then POST a message
 ```
 
-`server/sim/` runs the same flows without credentials or the live stack: a compose project `weixue-wave3-sim` (container `weixue-wave3-sim-server`, `127.0.0.1:18100/18103`) from the built server image with the working tree's overlay mounted, a local tone generator in place of the Google TTS client, scripted ASR and a one-line LLM; `server/sim/scenarios.sh` runs the checks (usage in its header).
+`server/sim/` runs the same flows without credentials or the live stack: a compose project `weixue-wave3-sim` (container `weixue-wave3-sim-server`, `127.0.0.1:18100/18103`) from the built server image with the working tree's overlay mounted, a local tone generator in place of the Google TTS client, scripted ASR and a one-line LLM. `server/sim/scenarios.sh` is a pass/fail gate (usage in its header): each scenario asserts HTTP statuses, terminal outcomes, attempts and server log lines with idempotency keys unique to the run, every wake cue is covered, and the script exits 1 on any failed check; the raw sim-device and server output goes to a separate transcript file. `proactive_sim_device.py --bind` sends the lease-naming invocation, `--invoke-delay` delays the session, `--abort-after` sends an abort after the detect.
 
 Server log lines: `proactive <id> queued`, `delivering: attempt=1 session=<id> invoked=True`, then `delivered`, `answered`, `no_reply`, `expired` or `failed`. Device serial: `Proactive message pending`, `Proactive session opened`, `<< <message>`.
 
@@ -207,3 +209,19 @@ Log: `docs/logs/fix-wave3-server-sim-2026-10-07.log` (`server/sim`, office mode:
 | Wake, cue ("Mm-hm?", "Hmm?", "Yes?"), then "Yes." | each cue: `stt Yes`, LLM reply played, no `playback echo ignored` |
 
 Not run: the device itself, a real Google TTS failure, HA calling the webhook.
+
+### Leases, delivery outcomes, echo guard and wake cue fence (2026-10-07)
+
+Log: `docs/logs/fix-wave5-server-sim-2026-10-07.log` (`server/sim` gate, 46 checks, all passed; office mode: no device, no audio, live stack untouched).
+
+| Check | Result |
+|---|---|
+| Poll answer | `200` with `id`, `urgent` and a 32-hex `lease` |
+| Lease expired before the session opened (session 16 s after the poll) | session closed (`no current lease`), message `queued`, `attempts` 0; the next poll's lease-naming invocation delivers it on attempt 1 |
+| Echo of the sentence that is playing | `playback echo ignored`, no abort, `answered` with the later "Yes." |
+| "Do not turn on the living room light." / "Turn off the living room light." while "I will turn on the living room light now" plays | not taken for echo, barge-in (`Abort message received`), the correction is the `reply` |
+| Abort 0.2 s after the wake detect | `wake cue skipped`, no cue caption |
+| Each cue ("Hmm?", "Mm-hm?", "Yes?") followed by "Yes." | `stt Yes`, LLM reply played, for all three |
+| Synthesis fails before audio / after the first chunk | `failed` after 3 attempts (`no_audio`) / `partial` on attempt 1 |
+
+Not run: the device itself (firmware still sends the bare invocation), a real transport failure on the live stack.

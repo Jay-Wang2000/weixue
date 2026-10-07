@@ -1,0 +1,347 @@
+# fix-wave5-server (rebased on main 8d888d7): server/sim gate (compose project weixue-wave3-sim, 127.0.0.1:18100/18103, image weixue/xiaozhi-esp32-server:local with this branch's overlay files mounted; office mode: no device, no audio, live stack untouched). 2026-10-07 17:32 IST
+## gate (server/sim/scenarios.sh, exit 0)
+PASS 1 poll with a unlisted Device-Id is 401
+PASS 1 poll with a missing Device-Id is 401
+PASS 1 poll with a upper-case Device-Id is 401
+PASS 2 unlisted WebSocket gets no session
+PASS 2 server refuses the unlisted device
+PASS 3 poll answer names the message and a lease
+PASS 3 announce delivered
+PASS 3 on attempt 1
+PASS 4 session closed by the server
+PASS 4 server logs no current lease
+PASS 4 message for the other device stays queued
+PASS 5 failed
+PASS 5 after 3 attempts
+PASS 5 error is no_audio
+PASS 5 requeued twice
+PASS 6 answered
+PASS 6 reply is Yes.
+PASS 6 poll answer is urgent
+PASS 7 echo ignored
+PASS 7 no barge-in
+PASS 7 answered with Yes.
+PASS 8 Stop. barges in
+PASS 8 Stop. is not taken for echo
+PASS 8 answered
+PASS 9 negation correction is not taken for echo
+PASS 9 negation correction barges in
+PASS 9 negation correction is the reply
+PASS 9 opposite correction is not taken for echo
+PASS 9 opposite correction barges in
+PASS 9 opposite correction is the reply
+PASS 10 message played in the device's session
+PASS 10 second client's poll is 204
+PASS 10 delivered
+PASS 11 cue Hmm? then Yes reaches the LLM
+PASS 11 cue Mm-hm? then Yes reaches the LLM
+PASS 11 cue Yes? then Yes reaches the LLM
+PASS 12 cue skipped after the abort
+PASS 12 no cue caption sent
+PASS 13 stale session closed
+PASS 13 message still queued
+PASS 13 not attempted
+PASS 13 the next poll's bound invocation delivers it
+PASS 13 on attempt 1
+PASS 14 partial
+PASS 14 error names the synthesis
+PASS 14 not retried
+46 passed, 0 failed (transcript below)
+
+## transcript
+## 1. poll identity
+poll Device-Id unlisted: 401
+poll Device-Id missing: 401
+poll Device-Id upper-case: 401
+## 2. WebSocket from a device not on allowed_devices
+-- sim ws-unlisted: --device aa:bb:cc:dd:ee:99 --direct --max-seconds 5
+17:29:52 refused: 认证失败
+-- server log ws-unlisted.log
+261007 16:29:52[0.9.7_00000000000000][weixue_patches]-WARNING-WebSocket refused: device 'aa:bb:cc:dd:ee:99' is not in allowed_devices
+## 3. announce from idle; the poll answer carries id, urgent and lease
+POST {"mode":"announce","message":"The washing machine has finished.","id":"run-1791390591-314-announce"} -> {"id": "f9da8a40ee0a4bc6845981ff8d6d87ea", "mode": "announce", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:29:52+00:00", "finished_at": null, "reason": "offline"}
+-- sim announce: --device aa:bb:cc:dd:ee:01 --max-seconds 20
+17:29:52 poll 200 {"pending": true, "urgent": false, "id": "f9da8a40ee0a4bc6845981ff8d6d87ea", "lease": "567a909356064a2680d117bc8de71271"}
+17:29:52 hello 487cfbb9-f94b-454f-8daa-486d978141b7
+17:29:52 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:29:52 << {"type": "tts", "state": "sentence_start", "text": "The washing machine has finished"} (audio frames so far 0)
+17:29:54 << {"type": "tts", "state": "stop"} (audio frames so far 32)
+17:29:54 session ended: server closed audio frames 32
+record f9da8a40ee0a4bc6845981ff8d6d87ea: {"id": "f9da8a40ee0a4bc6845981ff8d6d87ea", "mode": "announce", "status": "delivered", "device": null, "attempts": 1, "created_at": "2026-10-07T16:29:52+00:00", "finished_at": "2026-10-07T16:29:54+00:00"}
+## 4. invoke with no lease from an allowed device
+POST {"mode":"announce","message":"For another device.","id":"run-1791390591-314-noreserve","device":"aa:bb:cc:dd:ee:02","ttl":30} -> {"id": "4d44c659c980438b8449dbd9906fbbcc", "mode": "announce", "status": "queued", "device": "aa:bb:cc:dd:ee:02", "attempts": 0, "created_at": "2026-10-07T16:29:55+00:00", "finished_at": null, "reason": "offline"}
+-- sim noreserve: --device aa:bb:cc:dd:ee:01 --direct --invoke --max-seconds 5
+17:29:55 hello a1b5cc57-6a4e-4e71-9ad0-fe1a6ab4619b
+17:29:55 session ended: server closed audio frames 0
+-- server log noreserve.log
+261007 16:29:55[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 4d44c659c980438b8449dbd9906fbbcc queued: mode=announce device=aa:bb:cc:dd:ee:02 urgent=False ttl=30
+261007 16:29:55[0.9.7_00000000000000][weixue_proactive]-INFO-proactive session opened with no current lease for it; closing
+## 5. synthesis failure before any audio: requeued twice, then failed
+POST {"mode":"announce","message":"SIMFAIL Water detected under the sink.","id":"run-1791390591-314-fail","ttl":60} -> {"id": "2009ec9acb7b4ea9af6e1ba3ef2008f1", "mode": "announce", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:29:56+00:00", "finished_at": null}
+-- sim fail-1: --device aa:bb:cc:dd:ee:01 --polls 3 --max-seconds 10
+17:29:56 poll 200 {"pending": true, "urgent": false, "id": "2009ec9acb7b4ea9af6e1ba3ef2008f1", "lease": "d02322d5f918442397129aa6e1ab23b1"}
+17:29:56 hello 7c18b9aa-440c-41fb-a8f3-ddfe75587966
+17:29:56 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:29:56 << {"type": "tts", "state": "sentence_start", "text": "SIMFAIL Water detected under the sink"} (audio frames so far 0)
+17:29:56 << {"type": "tts", "state": "stop"} (audio frames so far 0)
+17:29:56 session ended: server closed audio frames 0
+-- sim fail-2: --device aa:bb:cc:dd:ee:01 --polls 3 --max-seconds 10
+17:29:58 poll 200 {"pending": true, "urgent": false, "id": "2009ec9acb7b4ea9af6e1ba3ef2008f1", "lease": "499594de932d45eda16dbe4a25273962"}
+17:29:58 hello 2ba7cf63-7185-4a10-8495-1e13920a9d99
+17:29:58 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:29:58 << {"type": "tts", "state": "sentence_start", "text": "SIMFAIL Water detected under the sink"} (audio frames so far 0)
+17:29:58 << {"type": "tts", "state": "stop"} (audio frames so far 0)
+17:29:58 session ended: server closed audio frames 0
+-- sim fail-3: --device aa:bb:cc:dd:ee:01 --polls 3 --max-seconds 10
+17:30:03 poll 200 {"pending": true, "urgent": false, "id": "2009ec9acb7b4ea9af6e1ba3ef2008f1", "lease": "dfe304f522e8426b89bb5a573ad04b19"}
+17:30:04 hello a526a31b-fb34-4433-8edc-920e26eac747
+17:30:04 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:30:04 << {"type": "tts", "state": "sentence_start", "text": "SIMFAIL Water detected under the sink"} (audio frames so far 0)
+17:30:04 << {"type": "tts", "state": "stop"} (audio frames so far 0)
+17:30:04 session ended: server closed audio frames 0
+record 2009ec9acb7b4ea9af6e1ba3ef2008f1: {"id": "2009ec9acb7b4ea9af6e1ba3ef2008f1", "mode": "announce", "status": "failed", "device": null, "attempts": 3, "created_at": "2026-10-07T16:29:56+00:00", "finished_at": "2026-10-07T16:30:03+00:00", "error": "no_audio"}
+-- server log fail.log
+261007 16:29:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2009ec9acb7b4ea9af6e1ba3ef2008f1 queued: mode=announce device=any urgent=False ttl=60
+261007 16:29:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2009ec9acb7b4ea9af6e1ba3ef2008f1 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 16:29:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2009ec9acb7b4ea9af6e1ba3ef2008f1 delivering: attempt=1 session=7c18b9aa-440c-41fb-a8f3-ddfe75587966 invoked=True urgent=False
+261007 16:29:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2009ec9acb7b4ea9af6e1ba3ef2008f1 requeued: no_audio; retry in 2s
+261007 16:29:58[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2009ec9acb7b4ea9af6e1ba3ef2008f1 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 16:29:58[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2009ec9acb7b4ea9af6e1ba3ef2008f1 delivering: attempt=2 session=2ba7cf63-7185-4a10-8495-1e13920a9d99 invoked=True urgent=False
+261007 16:29:58[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2009ec9acb7b4ea9af6e1ba3ef2008f1 requeued: no_audio; retry in 5s
+261007 16:30:03[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2009ec9acb7b4ea9af6e1ba3ef2008f1 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 16:30:03[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2009ec9acb7b4ea9af6e1ba3ef2008f1 delivering: attempt=3 session=a526a31b-fb34-4433-8edc-920e26eac747 invoked=True urgent=False
+261007 16:30:03[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 2009ec9acb7b4ea9af6e1ba3ef2008f1 failed: no_audio
+## 6. urgent conversation, a real Yes after the opener
+POST {"mode":"conversation","message":"Water detected under the kitchen sink. Do you want me to turn off the main water valve?","id":"run-1791390591-314-conv-yes","urgent":true} -> {"id": "27e279c958674b629eb0ee5c0f6f45a5", "mode": "conversation", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:30:04+00:00", "finished_at": null}
+-- sim conv-yes: --device aa:bb:cc:dd:ee:01 --reply <repo>/server/tests/assets/en-US_turn_on_the_living_room_lights.wav --reply-delay 0.5 --max-seconds 25
+17:30:05 poll 200 {"pending": true, "urgent": true, "id": "27e279c958674b629eb0ee5c0f6f45a5", "lease": "4fe13cb06657494cb2c269e4c3547059"}
+17:30:05 hello 13bf39d9-4f46-4296-a62f-5a18c979819e
+17:30:05 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:30:05 << {"type": "tts", "state": "sentence_start", "text": "Water detected under the kitchen sink"} (audio frames so far 0)
+17:30:06 << {"type": "tts", "state": "sentence_start", "text": "Do you want me to turn off the main water valve?"} (audio frames so far 37)
+17:30:10 << {"type": "tts", "state": "stop"} (audio frames so far 85)
+17:30:10 sending reply clip 26 frames
+17:30:12 << {"type": "stt", "text": "Yes"} (audio frames so far 85)
+17:30:12 << {"type": "tts", "state": "start"} (audio frames so far 85)
+17:30:12 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 85)
+17:30:12 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 85)
+17:30:12 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 89)
+17:30:14 << {"type": "tts", "state": "stop"} (audio frames so far 111)
+17:30:22 session ended: server closed audio frames 111
+record 27e279c958674b629eb0ee5c0f6f45a5: {"id": "27e279c958674b629eb0ee5c0f6f45a5", "mode": "conversation", "status": "answered", "device": null, "attempts": 1, "created_at": "2026-10-07T16:30:04+00:00", "finished_at": "2026-10-07T16:30:12+00:00", "reply": "Yes."}
+## 7. echo guard: the playing sentence's echo is dropped, then a real Yes
+POST {"mode":"conversation","message":"Water detected under the kitchen sink. Do you want me to turn off the main water valve?","id":"run-1791390591-314-conv-echo"} -> {"id": "5c048ee298714f04bda76e169f8f36d2", "mode": "conversation", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:30:22+00:00", "finished_at": null}
+-- sim conv-echo: --device aa:bb:cc:dd:ee:01 --reply <repo>/server/tests/assets/en-US_turn_on_the_living_room_lights.wav --reply-during-playback --reply-delay 0.3 --max-seconds 30
+17:30:22 poll 200 {"pending": true, "urgent": false, "id": "5c048ee298714f04bda76e169f8f36d2", "lease": "73100042c93b4117ad2f4211630d07e2"}
+17:30:22 hello c3654e16-d24b-40ec-96dc-cf67f25cd404
+17:30:22 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:30:22 << {"type": "tts", "state": "sentence_start", "text": "Water detected under the kitchen sink"} (audio frames so far 0)
+17:30:23 sending reply clip 26 frames
+17:30:24 << {"type": "tts", "state": "sentence_start", "text": "Do you want me to turn off the main water valve?"} (audio frames so far 37)
+17:30:28 << {"type": "tts", "state": "stop"} (audio frames so far 85)
+17:30:28 sending reply clip 26 frames
+17:30:30 << {"type": "stt", "text": "Yes"} (audio frames so far 85)
+17:30:30 << {"type": "tts", "state": "start"} (audio frames so far 85)
+17:30:30 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 85)
+17:30:30 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 85)
+17:30:30 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 89)
+17:30:31 << {"type": "tts", "state": "stop"} (audio frames so far 111)
+17:30:39 session ended: server closed audio frames 111
+record 5c048ee298714f04bda76e169f8f36d2: {"id": "5c048ee298714f04bda76e169f8f36d2", "mode": "conversation", "status": "answered", "device": null, "attempts": 1, "created_at": "2026-10-07T16:30:22+00:00", "finished_at": "2026-10-07T16:30:30+00:00", "reply": "Yes."}
+-- server log conv-echo.log
+261007 16:30:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 5c048ee298714f04bda76e169f8f36d2 queued: mode=conversation device=any urgent=False ttl=600
+261007 16:30:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 5c048ee298714f04bda76e169f8f36d2 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 16:30:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 5c048ee298714f04bda76e169f8f36d2 delivering: attempt=1 session=c3654e16-d24b-40ec-96dc-cf67f25cd404 invoked=True urgent=False
+261007 16:30:25[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: water detected under the kitchen sink
+261007 16:30:25[0.9.7_00000000000000][weixue_patches]-INFO-playback echo ignored: 'water detected under the kitchen sink' matches 'Water detected under the kitchen sink'
+261007 16:30:25[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 4d44c659c980438b8449dbd9906fbbcc expired
+261007 16:30:30[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261007 16:30:30[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 5c048ee298714f04bda76e169f8f36d2 answered
+## 8. real speech during playback barges in
+POST {"mode":"conversation","message":"Water detected under the kitchen sink. Do you want me to turn off the main water valve?","id":"run-1791390591-314-conv-bargein"} -> {"id": "60025a3f4e9f4a719565f1acb3647ac2", "mode": "conversation", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:30:40+00:00", "finished_at": null}
+-- sim conv-bargein: --device aa:bb:cc:dd:ee:01 --reply <repo>/server/tests/assets/en-US_turn_on_the_living_room_lights.wav --reply-during-playback --reply-delay 0.3 --max-seconds 30
+17:30:40 poll 200 {"pending": true, "urgent": false, "id": "60025a3f4e9f4a719565f1acb3647ac2", "lease": "61a7b0fde18f4adc87ccaec3f6aad8fa"}
+17:30:41 hello e1727ffa-dbbf-4a35-9fad-441dc3454eca
+17:30:41 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:30:41 << {"type": "tts", "state": "sentence_start", "text": "Water detected under the kitchen sink"} (audio frames so far 0)
+17:30:41 sending reply clip 26 frames
+17:30:42 << {"type": "tts", "state": "sentence_start", "text": "Do you want me to turn off the main water valve?"} (audio frames so far 37)
+17:30:43 << {"type": "tts", "state": "stop"} (audio frames so far 43)
+17:30:43 << {"type": "stt", "text": "Stop"} (audio frames so far 43)
+17:30:43 << {"type": "tts", "state": "start"} (audio frames so far 43)
+17:30:43 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 43)
+17:30:43 sending reply clip 26 frames
+17:30:43 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 43)
+17:30:43 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 47)
+17:30:45 << {"type": "tts", "state": "stop"} (audio frames so far 69)
+17:30:45 << {"type": "stt", "text": "Yes"} (audio frames so far 69)
+17:30:45 << {"type": "tts", "state": "start"} (audio frames so far 69)
+17:30:45 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 69)
+17:30:45 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 69)
+17:30:45 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 73)
+17:30:47 << {"type": "tts", "state": "stop"} (audio frames so far 95)
+17:30:55 session ended: server closed audio frames 95
+record 60025a3f4e9f4a719565f1acb3647ac2: {"id": "60025a3f4e9f4a719565f1acb3647ac2", "mode": "conversation", "status": "answered", "device": null, "attempts": 1, "created_at": "2026-10-07T16:30:40+00:00", "finished_at": "2026-10-07T16:30:43+00:00", "reply": "Stop."}
+-- server log conv-bargein.log
+261007 16:30:40[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 60025a3f4e9f4a719565f1acb3647ac2 queued: mode=conversation device=any urgent=False ttl=600
+261007 16:30:40[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 60025a3f4e9f4a719565f1acb3647ac2 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 16:30:41[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 60025a3f4e9f4a719565f1acb3647ac2 delivering: attempt=1 session=e1727ffa-dbbf-4a35-9fad-441dc3454eca invoked=True urgent=False
+261007 16:30:43[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Stop.
+261007 16:30:43[0.9.7_SiSiSiGononoCh][core.handle.abortHandle]-INFO-Abort message received
+261007 16:30:43[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 60025a3f4e9f4a719565f1acb3647ac2 answered
+261007 16:30:45[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+## 9. a correction that reverses the opener barges in
+POST {"mode":"conversation","message":"I will turn on the living room light now. Is that okay with you?","id":"run-1791390591-314-correct-negation"} -> {"id": "f234c49e7193427b838a6e55fd43a479", "mode": "conversation", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:30:56+00:00", "finished_at": null}
+-- sim correct-negation: --device aa:bb:cc:dd:ee:01 --reply <repo>/server/tests/assets/en-US_turn_on_the_living_room_lights.wav --reply-during-playback --reply-delay 0.3 --max-seconds 30
+17:30:56 poll 200 {"pending": true, "urgent": false, "id": "f234c49e7193427b838a6e55fd43a479", "lease": "676ccd4d04f744739b9fb51f4ba6cedb"}
+17:30:56 hello 58bb4ab5-e78b-4c1f-b977-9635a479064c
+17:30:56 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:30:56 << {"type": "tts", "state": "sentence_start", "text": "I will turn on the living room light now"} (audio frames so far 0)
+17:30:57 sending reply clip 26 frames
+17:30:58 << {"type": "tts", "state": "sentence_start", "text": "Is that okay with you?"} (audio frames so far 40)
+17:30:59 << {"type": "tts", "state": "stop"} (audio frames so far 44)
+17:30:59 << {"type": "stt", "text": "Do not turn on the living room light"} (audio frames so far 44)
+17:30:59 << {"type": "tts", "state": "start"} (audio frames so far 44)
+17:30:59 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 44)
+17:30:59 sending reply clip 26 frames
+17:30:59 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 44)
+17:30:59 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 48)
+17:31:01 << {"type": "tts", "state": "stop"} (audio frames so far 70)
+17:31:01 << {"type": "stt", "text": "Yes"} (audio frames so far 70)
+17:31:01 << {"type": "tts", "state": "start"} (audio frames so far 70)
+17:31:01 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 70)
+17:31:01 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 70)
+17:31:01 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 74)
+17:31:02 << {"type": "tts", "state": "stop"} (audio frames so far 96)
+17:31:10 session ended: server closed audio frames 96
+record f234c49e7193427b838a6e55fd43a479: {"id": "f234c49e7193427b838a6e55fd43a479", "mode": "conversation", "status": "answered", "device": null, "attempts": 1, "created_at": "2026-10-07T16:30:56+00:00", "finished_at": "2026-10-07T16:30:59+00:00", "reply": "Do not turn on the living room light."}
+-- server log correct-negation.log
+261007 16:30:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive f234c49e7193427b838a6e55fd43a479 queued: mode=conversation device=any urgent=False ttl=600
+261007 16:30:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive f234c49e7193427b838a6e55fd43a479 reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 16:30:56[0.9.7_00000000000000][weixue_proactive]-INFO-proactive f234c49e7193427b838a6e55fd43a479 delivering: attempt=1 session=58bb4ab5-e78b-4c1f-b977-9635a479064c invoked=True urgent=False
+261007 16:30:58[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Do not turn on the living room light.
+261007 16:30:58[0.9.7_SiSiSiGononoCh][core.handle.abortHandle]-INFO-Abort message received
+261007 16:30:59[0.9.7_00000000000000][weixue_proactive]-INFO-proactive f234c49e7193427b838a6e55fd43a479 answered
+261007 16:31:01[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+POST {"mode":"conversation","message":"I will turn on the living room light now. Is that okay with you?","id":"run-1791390591-314-correct-opposite"} -> {"id": "3f6ec3aa0eff4fed8980b6d5a8faba1c", "mode": "conversation", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:31:11+00:00", "finished_at": null}
+-- sim correct-opposite: --device aa:bb:cc:dd:ee:01 --reply <repo>/server/tests/assets/en-US_turn_on_the_living_room_lights.wav --reply-during-playback --reply-delay 0.3 --max-seconds 30
+17:31:12 poll 200 {"pending": true, "urgent": false, "id": "3f6ec3aa0eff4fed8980b6d5a8faba1c", "lease": "70a8322835e44cc89a47d1a2a42a254b"}
+17:31:12 hello 58944421-592d-46d9-9b57-90822d0d028b
+17:31:12 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:31:12 << {"type": "tts", "state": "sentence_start", "text": "I will turn on the living room light now"} (audio frames so far 0)
+17:31:12 sending reply clip 26 frames
+17:31:14 << {"type": "tts", "state": "sentence_start", "text": "Is that okay with you?"} (audio frames so far 40)
+17:31:14 << {"type": "tts", "state": "stop"} (audio frames so far 43)
+17:31:14 << {"type": "stt", "text": "Turn off the living room light"} (audio frames so far 43)
+17:31:14 << {"type": "tts", "state": "start"} (audio frames so far 43)
+17:31:14 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 43)
+17:31:15 sending reply clip 26 frames
+17:31:15 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 43)
+17:31:15 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 47)
+17:31:16 << {"type": "tts", "state": "stop"} (audio frames so far 69)
+17:31:16 << {"type": "stt", "text": "Yes"} (audio frames so far 69)
+17:31:16 << {"type": "tts", "state": "start"} (audio frames so far 69)
+17:31:16 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 69)
+17:31:16 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 69)
+17:31:16 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 73)
+17:31:18 << {"type": "tts", "state": "stop"} (audio frames so far 95)
+17:31:26 session ended: server closed audio frames 95
+record 3f6ec3aa0eff4fed8980b6d5a8faba1c: {"id": "3f6ec3aa0eff4fed8980b6d5a8faba1c", "mode": "conversation", "status": "answered", "device": null, "attempts": 1, "created_at": "2026-10-07T16:31:11+00:00", "finished_at": "2026-10-07T16:31:14+00:00", "reply": "Turn off the living room light."}
+-- server log correct-opposite.log
+261007 16:31:12[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3f6ec3aa0eff4fed8980b6d5a8faba1c reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 16:31:12[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3f6ec3aa0eff4fed8980b6d5a8faba1c delivering: attempt=1 session=58944421-592d-46d9-9b57-90822d0d028b invoked=True urgent=False
+261007 16:31:14[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Turn off the living room light.
+261007 16:31:14[0.9.7_SiSiSiGononoCh][core.handle.abortHandle]-INFO-Abort message received
+261007 16:31:14[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3f6ec3aa0eff4fed8980b6d5a8faba1c answered
+261007 16:31:16[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+## 10. a second client polls with the device id while the device's session is open
+POST {"mode":"announce","message":"The dryer has finished.","id":"run-1791390591-314-busy"} -> {"id": "a981a0fe3334464497f0de6bff1bbf0e", "mode": "announce", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:31:29+00:00", "finished_at": null, "reason": "busy"}
+-- device session
+17:31:27 hello 46dcc6c4-644f-4cd0-aa79-9f6189bab5c6
+17:31:30 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:31:30 << {"type": "tts", "state": "sentence_start", "text": "The dryer has finished"} (audio frames so far 0)
+17:31:32 << {"type": "tts", "state": "stop"} (audio frames so far 22)
+17:31:40 session ended: server closed audio frames 22
+-- second client
+17:31:54 poll 204 
+record a981a0fe3334464497f0de6bff1bbf0e: {"id": "a981a0fe3334464497f0de6bff1bbf0e", "mode": "announce", "status": "delivered", "device": null, "attempts": 1, "created_at": "2026-10-07T16:31:29+00:00", "finished_at": "2026-10-07T16:31:32+00:00"}
+## 11. every wake cue, each followed by a real Yes that reaches the LLM
+-- sim wake-1: --device aa:bb:cc:dd:ee:01 --direct --wake Jarvis --reply <repo>/server/tests/assets/en-US_turn_on_the_living_room_lights.wav --reply-delay 0.3 --max-seconds 8
+17:31:54 hello 98b0580e-eb56-4ea4-8faf-de0c3f064ab2
+17:31:55 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:31:55 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+17:31:56 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+17:31:56 sending reply clip 26 frames
+17:31:58 << {"type": "stt", "text": "Yes"} (audio frames so far 10)
+17:31:58 << {"type": "tts", "state": "start"} (audio frames so far 10)
+17:31:58 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+17:31:58 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 10)
+17:31:58 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 14)
+17:31:59 << {"type": "tts", "state": "stop"} (audio frames so far 36)
+17:32:02 session ended: timeout audio frames 36
+-- sim wake-2: --device aa:bb:cc:dd:ee:01 --direct --wake Jarvis --reply <repo>/server/tests/assets/en-US_turn_on_the_living_room_lights.wav --reply-delay 0.3 --max-seconds 8
+17:32:02 hello 6aec3dae-81c6-4678-9b61-ead12bb022dd
+17:32:03 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:32:03 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+17:32:04 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+17:32:04 sending reply clip 26 frames
+17:32:06 << {"type": "stt", "text": "Yes"} (audio frames so far 8)
+17:32:06 << {"type": "tts", "state": "start"} (audio frames so far 8)
+17:32:06 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+17:32:06 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 8)
+17:32:06 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 12)
+17:32:08 << {"type": "tts", "state": "stop"} (audio frames so far 34)
+17:32:10 session ended: timeout audio frames 34
+-- sim wake-3: --device aa:bb:cc:dd:ee:01 --direct --wake Jarvis --reply <repo>/server/tests/assets/en-US_turn_on_the_living_room_lights.wav --reply-delay 0.3 --max-seconds 8
+17:32:11 hello cf49dcff-8b29-4a4e-9925-63c205f5e581
+17:32:11 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:32:12 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+17:32:12 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+17:32:13 sending reply clip 26 frames
+17:32:14 << {"type": "stt", "text": "Yes"} (audio frames so far 8)
+17:32:14 << {"type": "tts", "state": "start"} (audio frames so far 8)
+17:32:14 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+17:32:14 << {"type": "tts", "state": "sentence_start", "text": "Okay"} (audio frames so far 8)
+17:32:14 << {"type": "tts", "state": "sentence_start", "text": "I will close the valve"} (audio frames so far 12)
+17:32:16 << {"type": "tts", "state": "stop"} (audio frames so far 34)
+17:32:19 session ended: timeout audio frames 34
+cues followed by Yes and the LLM reply: Yes? Mm-hm? Hmm? 
+## 12. abort right after the wake drops the cue
+-- sim wake-abort: --device aa:bb:cc:dd:ee:01 --direct --wake Jarvis --abort-after 0.2 --max-seconds 5
+17:32:19 hello 40807151-61b7-4f6a-81e4-dbad890c646e
+17:32:19 sending abort
+17:32:19 << {"type": "tts", "state": "stop"} (audio frames so far 0)
+17:32:24 session ended: timeout audio frames 0
+-- server log wake-abort.log
+261007 16:32:19[0.9.7_SiSiSiGononoCh][core.handle.abortHandle]-INFO-Abort message received
+261007 16:32:20[0.9.7_00000000000000][weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+## 13. a lease that expired before the session opened consumes nothing
+POST {"mode":"announce","message":"The oven is preheated.","id":"run-1791390591-314-stale"} -> {"id": "13dc655fb34e41bcb2846a9bee79796d", "mode": "announce", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:32:25+00:00", "finished_at": null}
+-- sim stale: --device aa:bb:cc:dd:ee:01 --polls 1 --invoke-delay 16 --max-seconds 5
+17:32:26 poll 200 {"pending": true, "urgent": false, "id": "13dc655fb34e41bcb2846a9bee79796d", "lease": "8b729627ba27481bae41457fae2bf451"}
+17:32:26 waiting 16.0 s before opening the session
+17:32:42 hello 94afe0f2-f542-48d8-8c71-1900138a2812
+17:32:42 session ended: server closed audio frames 0
+-- server log stale.log
+261007 16:32:25[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 13dc655fb34e41bcb2846a9bee79796d queued: mode=announce device=any urgent=False ttl=600
+261007 16:32:25[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 13dc655fb34e41bcb2846a9bee79796d reserved for aa:bb:cc:dd:ee:01 urgent=False
+261007 16:32:42[0.9.7_00000000000000][weixue_proactive]-INFO-proactive session opened with no current lease for it; closing
+record 13dc655fb34e41bcb2846a9bee79796d: {"id": "13dc655fb34e41bcb2846a9bee79796d", "mode": "announce", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:32:25+00:00", "finished_at": null}
+-- sim stale-retry: --device aa:bb:cc:dd:ee:01 --bind --max-seconds 15
+17:32:43 poll 200 {"pending": true, "urgent": false, "id": "13dc655fb34e41bcb2846a9bee79796d", "lease": "3c002ae8383a43a8a9b5702742c41831"}
+17:32:43 hello f530e115-80ae-4bed-aa05-1e4728aa9cdf
+17:32:43 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:32:43 << {"type": "tts", "state": "sentence_start", "text": "The oven is preheated"} (audio frames so far 0)
+17:32:44 << {"type": "tts", "state": "stop"} (audio frames so far 21)
+17:32:44 session ended: server closed audio frames 21
+record 13dc655fb34e41bcb2846a9bee79796d: {"id": "13dc655fb34e41bcb2846a9bee79796d", "mode": "announce", "status": "delivered", "device": null, "attempts": 1, "created_at": "2026-10-07T16:32:25+00:00", "finished_at": "2026-10-07T16:32:44+00:00"}
+## 14. synthesis fails after its first audio chunk
+POST {"mode":"announce","message":"SIMBREAK The dryer has finished.","id":"run-1791390591-314-break"} -> {"id": "5c4e7a6583a24019b1f6382616ee98b2", "mode": "announce", "status": "queued", "device": null, "attempts": 0, "created_at": "2026-10-07T16:32:44+00:00", "finished_at": null}
+-- sim break: --device aa:bb:cc:dd:ee:01 --max-seconds 15
+17:32:45 poll 200 {"pending": true, "urgent": false, "id": "5c4e7a6583a24019b1f6382616ee98b2", "lease": "0b4a8bf5104c4e74b8a6613675c97ca1"}
+17:32:45 hello 16708a73-681b-4e28-a9d9-9db4819e77c1
+17:32:45 << {"type": "tts", "state": "start"} (audio frames so far 0)
+17:32:45 << {"type": "tts", "state": "sentence_start", "text": "SIMBREAK The dryer has finished"} (audio frames so far 0)
+17:32:45 << {"type": "tts", "state": "stop"} (audio frames so far 3)
+17:32:45 session ended: server closed audio frames 3
+record 5c4e7a6583a24019b1f6382616ee98b2: {"id": "5c4e7a6583a24019b1f6382616ee98b2", "mode": "announce", "status": "partial", "device": null, "attempts": 1, "created_at": "2026-10-07T16:32:44+00:00", "finished_at": "2026-10-07T16:32:45+00:00", "error": "synthesis failed after audio started"}

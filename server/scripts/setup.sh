@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Idempotent bootstrap: pre-flight, model download, config render, image build, validation, atomic
-# publish, start, readiness check; a failed start or check restores the previous config and images.
+# publish, start, deployment readiness; a failed start or check restores the previous deployment.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.rd/bin:$PATH"
@@ -88,6 +88,15 @@ umask 077
 STAGED=$(mktemp "$CONFIG.XXXXXX")
 trap 'rm -f "$STAGED"' EXIT
 
+# The endpoint key, the URL derived from it and its two consumers (the server config and the
+# bridge's URL file) are one deployment unit: rollback restores all of them.
+ENDPOINT_CFG=data/mcp-endpoint/.mcp-endpoint-server.cfg
+ENDPOINT_URL=data/mcp-bridge/endpoint-url
+for file in "$ENDPOINT_CFG" "$ENDPOINT_URL"; do
+  rm -f "$file.rollback"
+  if [ -f "$file" ]; then cp -p "$file" "$file.rollback"; fi
+done
+
 docker compose up -d mcp-endpoint-server
 MCP=""
 for _ in $(seq 1 30); do
@@ -118,6 +127,34 @@ restore_images() {
 
 # .env of the last successful run (0600); rollback restores it and keeps the attempted one as .env.failed.
 ENV_DEPLOYED=.env.deployed
+DEPLOY_WAIT_S=${DEPLOY_WAIT_S:-90}
+
+# Runs "$@" every 2 s until it passes; after DEPLOY_WAIT_S fails with the last line it printed.
+wait_for() {
+  local what=$1 end=$((SECONDS + DEPLOY_WAIT_S)) out
+  shift
+  until out=$("$@" 2>&1); do
+    if [ "$SECONDS" -ge "$end" ]; then
+      echo "$what not ready after ${DEPLOY_WAIT_S}s$(printf '%s' "$out" | tail -n 1 | sed 's/^./: &/')"
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+# Deployment readiness: OTA and WebSocket banners, the tunnel (WG_TUNNEL=1: handshake and
+# boundary), the bridge's health file, and one read-only Home Assistant call made from the
+# server container through the endpoint, the bridge and ha-mcp (scripts/check_ha_path.py).
+deploy_ready() {
+  python3 scripts/check_ready.py "$(ready_host)" || return 1
+  if [ "${WG_TUNNEL:-}" = 1 ]; then
+    wait_for "wg tunnel" docker exec wg /usr/local/bin/healthcheck.sh || return 1
+  fi
+  wait_for mcp-bridge docker exec mcp-bridge python -m weixue_bridge.health || return 1
+  wait_for "Home Assistant via the voice path" \
+    sh -c 'docker exec -i xiaozhi-esp32-server python - --timeout 20 < scripts/check_ha_path.py' || return 1
+  echo "ready: bridge healthy$([ "${WG_TUNNEL:-}" != 1 ] || echo ", tunnel healthy"), Home Assistant answered via the voice path"
+}
 
 manual_restore() {
   local profiles=${COMPOSE_PROFILES:-} flags=""
@@ -133,10 +170,17 @@ manual_restore() {
   echo "docker-compose.yml is not rolled back; if that up fails the same way, correct it and server/.env first."
 }
 
-# Restores the previous config, .env and images and recreates the containers; always exits 1.
+# Restores the previous config, endpoint unit, .env and images and recreates the containers; always exits 1.
 rollback() {
   echo "$1; rolling back"
   if [ -f "$CONFIG.rollback" ]; then mv -f "$CONFIG.rollback" "$CONFIG"; fi
+  if [ -f "$ENDPOINT_URL.rollback" ]; then mv -f "$ENDPOINT_URL.rollback" "$ENDPOINT_URL"; fi
+  local endpoint=""
+  if [ -f "$ENDPOINT_CFG.rollback" ] && ! cmp -s "$ENDPOINT_CFG.rollback" "$ENDPOINT_CFG"; then
+    cp -p "$ENDPOINT_CFG.rollback" "$ENDPOINT_CFG"
+    endpoint=mcp-endpoint-server
+    echo "endpoint key restored from the last run"
+  fi
   if [ -f "$ENV_DEPLOYED" ]; then
     cp -p .env .env.failed
     chmod 600 .env.failed
@@ -146,11 +190,11 @@ rollback() {
     set -a; . ./.env; set +a
     echo "server/.env restored from the last successful run; the attempted one is server/.env.failed"
   fi
-  local services=(mcp-bridge xiaozhi-esp32-server)
+  local services=($endpoint mcp-bridge xiaozhi-esp32-server)
   [ "${WG_TUNNEL:-}" != 1 ] || services=(wg "${services[@]}")
   if restore_images && docker compose up -d --force-recreate "${services[@]}"; then
     [ "${WG_TUNNEL:-}" = 1 ] || docker rm -f wg >/dev/null 2>&1 || true
-    python3 scripts/check_ready.py "$(ready_host)" || echo "previous version is not ready either"
+    deploy_ready || echo "previous version is not ready either"
   else
     manual_restore "${services[@]}"
   fi
@@ -171,17 +215,17 @@ if ! docker run --rm --entrypoint python \
   exit 1
 fi
 
-ENDPOINT_FILE=$(mktemp data/mcp-bridge/endpoint-url.XXXXXX)
+ENDPOINT_FILE=$(mktemp "$ENDPOINT_URL.XXXXXX")
 printf '%s\n' "$MCP_ENDPOINT_INTERNAL" > "$ENDPOINT_FILE"
-mv -f "$ENDPOINT_FILE" data/mcp-bridge/endpoint-url
+mv -f "$ENDPOINT_FILE" "$ENDPOINT_URL"
 if [ -f "$CONFIG" ]; then cp -p "$CONFIG" "$CONFIG.rollback"; fi
 mv -f "$STAGED" "$CONFIG"
 
 docker compose up -d --force-recreate "${SERVICES[@]}" || rollback "docker compose up failed"
 [ -n "$TUNNEL_SERVICES" ] || docker rm -f wg >/dev/null 2>&1 || true
-python3 scripts/check_ready.py "$(ready_host)" || rollback "new version is not ready"
+deploy_ready || rollback "new version is not ready"
 cp .env "$ENV_DEPLOYED"
 chmod 600 "$ENV_DEPLOYED"
-rm -f .env.failed
+rm -f .env.failed "$ENDPOINT_CFG.rollback" "$ENDPOINT_URL.rollback"
 echo "OTA: http://$LAN_IP:8003/xiaozhi/ota/"
 echo "WS:  ws://$LAN_IP:8000/xiaozhi/v1/"

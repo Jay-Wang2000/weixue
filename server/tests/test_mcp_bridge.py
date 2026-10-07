@@ -640,3 +640,119 @@ async def test_bridge_keeps_running_while_only_ha_mcp_fails(reconnect):
     with pytest.raises(StopLoop):
         await bridge_mod.run(reconnect["config"], reconnect["ha"])
     assert reconnect["connects"] == iterations + 1
+
+
+# --- heartbeat ----------------------------------------------------------------
+
+
+class ScriptedHa:
+    """ha.send for pings: each step is a response dict, None, or an exception to raise."""
+
+    def __init__(self, steps):
+        self.steps = list(steps)
+
+    async def send(self, message):
+        step = self.steps.pop(0)
+        if isinstance(step, Exception):
+            raise step
+        return step(message) if callable(step) else step
+
+
+def _ok(message):
+    return {"jsonrpc": "2.0", "id": message["id"], "result": {}}
+
+
+async def _beats(monkeypatch, tmp_path, steps):
+    """Runs _heartbeat for len(steps) pings; returns the health file state after each."""
+    path = tmp_path / "healthy"
+    path.write_text("0")
+    seen = []
+    count = {"n": 0}
+
+    async def sleep(_seconds):
+        if count["n"]:
+            seen.append(path.exists())
+        if count["n"] == len(steps):
+            raise StopLoop
+        count["n"] += 1
+        if path.exists():
+            old = time.time() - 600
+            os.utime(path, (old, old))
+
+    monkeypatch.setattr(bridge_mod.asyncio, "sleep", sleep)
+    with pytest.raises(StopLoop):
+        await bridge_mod._heartbeat(ScriptedHa(steps), str(path))
+    return seen, path
+
+
+@pytest.mark.parametrize(
+    "step",
+    [
+        lambda m: {"jsonrpc": "2.0", "id": m["id"], "error": {"code": -32603, "message": "boom"}},
+        None,
+        lambda m: {"jsonrpc": "2.0", "id": m["id"]},
+        lambda m: {"jsonrpc": "2.0", "id": "other", "result": {}},
+        HaMcpError("ConnectError"),
+        HaMcpError("HTTP 404"),
+    ],
+    ids=["rpc-error", "no-response", "missing-result", "other-id", "disconnect", "stale-session"],
+)
+async def test_heartbeat_failure_clears_health(monkeypatch, tmp_path, step):
+    seen, _ = await _beats(monkeypatch, tmp_path, [step])
+    assert seen == [False]
+
+
+async def test_heartbeat_recovers_after_failures(monkeypatch, tmp_path):
+    steps = [None, HaMcpError("ConnectError"), _ok, _ok]
+    seen, path = await _beats(monkeypatch, tmp_path, steps)
+    assert seen == [False, False, True, True]
+    assert healthy(str(path), time.time())
+
+
+def test_ping_ok_needs_a_matching_result():
+    assert bridge_mod.ping_ok({"jsonrpc": "2.0", "id": bridge_mod.PING_ID, "result": {}})
+    assert not bridge_mod.ping_ok({"jsonrpc": "2.0", "id": bridge_mod.PING_ID, "result": {}, "error": {}})
+    assert not bridge_mod.ping_ok({"jsonrpc": "2.0", "id": bridge_mod.PING_ID, "result": None})
+    assert not bridge_mod.ping_ok(None)
+
+
+async def test_stale_session_ping_clears_and_next_ping_recovers():
+    calls = []
+
+    def handler(request):
+        calls.append(request.headers.get("mcp-session-id"))
+        if len(calls) == 1:
+            return httpx.Response(200, json={"jsonrpc": "2.0", "id": "x", "result": {}}, headers={"mcp-session-id": "s1"})
+        if len(calls) == 2:
+            return httpx.Response(404, json={})
+        body = json.loads(request.content)
+        return httpx.Response(200, json={"jsonrpc": "2.0", "id": body["id"], "result": {}})
+
+    client = HaMcpClient(HA_URL, transport=httpx.MockTransport(handler))
+    await client.send({"jsonrpc": "2.0", "id": "x", "method": "initialize"})
+    ping = {"jsonrpc": "2.0", "id": bridge_mod.PING_ID, "method": "ping"}
+    with pytest.raises(HaMcpError):
+        await client.send(ping)
+    assert bridge_mod.ping_ok(await client.send(ping))
+    assert calls == [None, "s1", None]
+    await client.aclose()
+
+
+# --- tunnel interface ------------------------------------------------------------
+
+
+async def test_bridge_waits_for_the_tunnel_interface_before_connecting(reconnect):
+    reconnect["config"] = bridge_mod.BridgeConfig(HA_URL, ENDPOINT, VOICE, reconnect["config"].health_file, "wg0")
+    reconnect["interfaces"] = [{"lo", "eth0"}, {"lo", "eth0"}, {"lo", "eth0", "wg0"}, {"lo", "eth0"}]
+    reconnect["script"] = [OSError("unreachable")]
+    with pytest.raises(bridge_mod.BridgeExit) as e:
+        await bridge_mod.run(reconnect["config"], reconnect["ha"])
+    assert str(e.value) == "wg0 is gone from the network namespace"
+    assert reconnect["connects"] == 1
+    assert reconnect["sleeps"][:2] == [bridge_mod.IFACE_POLL_S, bridge_mod.IFACE_POLL_S]
+
+
+def test_load_config_reads_the_tunnel_interface(tmp_path):
+    env = {"HA_MCP_URL": HA_URL, "MCP_ENDPOINT": ENDPOINT, "VOICE_FILTER_FILE": str(FILTER_FILE), "TUNNEL_IFACE": "wg0"}
+    assert load_config(env).tunnel_iface == "wg0"
+    assert load_config({**env, "TUNNEL_IFACE": ""}).tunnel_iface == ""

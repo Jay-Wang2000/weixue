@@ -28,13 +28,49 @@ class Conn:
         self.config = {"wakeup_words": ["Jarvis"], "wake_cues": []}
 
 
-def _watch():
+class Transport:
+    """Upstream _do_send_audio stand-in: writes each packet unless told to fail or hold it."""
+
+    def __init__(self):
+        self.written = []
+        self.fail_at = None
+        self.held = False
+
+    async def do_send(self, conn, packet, flow_control):
+        if self.fail_at is not None and len(self.written) + 1 >= self.fail_at:
+            raise ConnectionError("socket closed")
+        self.written.append((packet, flow_control["sentence_id"]))
+
+
+def _watch(transport=None):
+    """watch_sent_audio over an upstream stand-in that hands each packet of the current, unaborted
+    sentence to the wrapped transport (held packets stay queued)."""
     sent = []
+    transport = transport or Transport()
+    write = weixue_patches.watch_transport(transport.do_send)
+    queued = []
 
     async def send(conn, kind, audios, text, sentence_id=None):
         sent.append((kind, sentence_id))
+        sid = conn.sentence_id if sentence_id is None else sentence_id
+        if sid != conn.sentence_id or conn.client_abort:
+            return
+        queued.extend((p, sid) for p in ([audios] if isinstance(audios, bytes) else audios or []))
+        while queued and not transport.held:
+            packet, owner = queued.pop(0)
+            await write(conn, packet, {"sentence_id": owner})
 
-    return sent, weixue_patches.watch_sent_audio(send, FIRST, LAST)
+    send.flush = lambda conn: _flush(conn, queued, write)
+    watch = weixue_patches.watch_sent_audio(send, FIRST, LAST)
+    watch.transport = transport
+    watch.flush = send.flush
+    return sent, watch
+
+
+async def _flush(conn, queued, write):
+    while queued:
+        packet, owner = queued.pop(0)
+        await write(conn, packet, {"sentence_id": owner})
 
 
 async def _play(watch, conn, text, sid=None, packets=3, last=True):
@@ -53,7 +89,7 @@ async def test_record_counts_audio_and_marks_the_end():
     conn = Conn()
     record = weixue_patches.track_playback(conn, "turn-1")
     await _play(watch, conn, "The light is on.")
-    assert (record.frames, record.done.is_set()) == (3, True)
+    assert (record.handed, record.frames, record.done.is_set()) == (3, 3, True)
     assert [k for k, _ in sent] == [FIRST, MIDDLE, MIDDLE, MIDDLE, LAST]
     weixue_patches.untrack_playback(conn, "turn-1")
     assert conn.weixue_playback == {}
@@ -95,6 +131,65 @@ def test_synthesis_failure_marks_only_the_tracked_sentence():
     weixue_patches.note_synthesis_failure(Conn(), "turn-1")
 
 
+async def test_failed_write_is_a_send_error_and_never_done():
+    _, watch = _watch()
+    watch.transport.fail_at = 2
+    conn = Conn()
+    record = weixue_patches.track_playback(conn, "turn-1")
+    await watch(conn, FIRST, [b"a"], "The light is on.", "turn-1")
+    with pytest.raises(ConnectionError):
+        await watch(conn, MIDDLE, b"b", None, "turn-1")
+    watch.transport.fail_at = None
+    await watch(conn, LAST, [], None, "turn-1")
+    assert (record.handed, record.frames, record.send_error, record.done.is_set()) == (2, 1, "ConnectionError", False)
+
+
+async def test_failed_last_send_is_not_done():
+    async def send(conn, kind, audios, text, sentence_id=None):
+        if kind == LAST:
+            raise ConnectionError("stop not sent")
+
+    watch = weixue_patches.watch_sent_audio(send, FIRST, LAST)
+    conn = Conn()
+    record = weixue_patches.track_playback(conn, "turn-1")
+    with pytest.raises(ConnectionError):
+        await watch(conn, LAST, [], None, "turn-1")
+    assert record.send_error == "ConnectionError" and not record.done.is_set()
+
+
+async def test_cancelled_send_is_a_send_error():
+    async def send(conn, kind, audios, text, sentence_id=None):
+        raise asyncio.CancelledError()
+
+    watch = weixue_patches.watch_sent_audio(send, FIRST, LAST)
+    conn = Conn()
+    record = weixue_patches.track_playback(conn, "turn-1")
+    with pytest.raises(asyncio.CancelledError):
+        await watch(conn, FIRST, [b"a"], "Hi.", "turn-1")
+    assert record.send_error == "cancelled"
+
+
+async def test_queued_but_unwritten_audio_is_not_done():
+    _, watch = _watch()
+    watch.transport.held = True
+    conn = Conn()
+    record = weixue_patches.track_playback(conn, "turn-1")
+    await _play(watch, conn, "The light is on.")
+    assert (record.handed, record.frames, record.done.is_set()) == (3, 0, False)
+
+
+async def test_ownership_lost_before_last_returns_is_not_done():
+    async def send(conn, kind, audios, text, sentence_id=None):
+        if kind == LAST:
+            conn.sentence_id = "turn-2"
+
+    watch = weixue_patches.watch_sent_audio(send, FIRST, LAST)
+    conn = Conn()
+    record = weixue_patches.track_playback(conn, "turn-1")
+    await watch(conn, LAST, [], None, "turn-1")
+    assert not record.done.is_set()
+
+
 async def test_record_ignores_aborted_and_stale_audio():
     _, watch = _watch()
     conn = Conn()
@@ -108,7 +203,7 @@ async def test_record_ignores_aborted_and_stale_audio():
 # Echo guard
 
 def _onset(conn, delay=0.0):
-    conn.weixue_voice_onset = (time.monotonic() + delay, conn.sentence_id, conn.client_is_speaking)
+    conn.weixue_voice_onset = time.monotonic() + delay
 
 
 async def _played(texts, speaking=True):
@@ -146,6 +241,77 @@ async def test_real_answers_during_playback_are_kept(heard):
     conn, _ = await _played(["Yes, I've turned on the living room light. Shall I dim it?"])
     _onset(conn)
     assert weixue_patches.echo_of_playback(conn, heard) is None
+
+
+@pytest.mark.parametrize(
+    "played, heard",
+    [
+        ("I will turn on the living room light.", "Do not turn on the living room light."),
+        ("I will turn on the living room light.", "Don't turn on the living room light."),
+        ("I will turn on the living room light.", "Turn off the living room light."),
+        ("I will turn on the living room light.", "turn on the kitchen light"),
+        ("I will turn on the living room light.", "turn on the living room lamp"),
+        ("I will unlock the front door.", "lock the front door"),
+        ("Setting the heating to 21 degrees.", "setting the heating to 20 degrees"),
+        ("Setting the heating to twenty one degrees.", "setting the heating to twenty degrees"),
+        ("Dimming the bedroom light to 40 percent.", "dimming the bedroom light to 4 percent"),
+        ("我会打开客厅的灯。", "不要打开客厅的灯"),
+        ("我会打开客厅的灯。", "关闭客厅的灯"),
+        ("我会打开客厅的灯。", "打开卧室的灯"),
+        ("我把空调调到二十一度。", "把空调调到二十度"),
+    ],
+)
+async def test_corrections_that_change_the_meaning_are_kept(played, heard):
+    conn, _ = await _played([played])
+    _onset(conn)
+    assert weixue_patches.echo_of_playback(conn, heard) is None
+
+
+@pytest.mark.parametrize(
+    "played, heard",
+    [
+        ("I will turn on the living room light.", "turn on the living room light"),
+        ("I will turn on the living room light.", "will turn on the living room lights"),
+        ("Setting the heating to 21 degrees.", "the heating to 21 degrees"),
+        ("我会打开客厅的灯。", "打开客厅的灯"),
+        ("我把空调调到二十一度。", "空调调到二十一度"),
+    ],
+)
+async def test_echo_with_the_same_meaning_is_dropped(played, heard):
+    conn, _ = await _played([played])
+    _onset(conn)
+    assert weixue_patches.echo_of_playback(conn, heard) == played
+
+
+async def test_late_correction_during_a_multi_sentence_reply(monkeypatch):
+    monkeypatch.setattr(weixue_patches, "ECHO_TAIL_S", 0.05)
+    _, watch = _watch()
+    conn = Conn()
+    conn.client_is_speaking = True
+    await _play(watch, conn, "I will turn on the living room light.", last=False)
+    await asyncio.sleep(0.1)
+    await _play(watch, conn, "It will stay on for an hour.", last=False)
+    _onset(conn)
+    assert weixue_patches.echo_of_playback(conn, "turn on the living room light") is None
+    assert weixue_patches.echo_of_playback(conn, "it will stay on for an hour") == "It will stay on for an hour."
+    assert weixue_patches.echo_of_playback(conn, "it will not stay on for an hour") is None
+    assert weixue_patches.echo_of_playback(conn, "不要打开灯") is None
+
+
+async def test_sentences_handed_but_not_yet_written_are_not_candidates():
+    _, watch = _watch()
+    watch.transport.held = True
+    conn = Conn()
+    conn.client_is_speaking = True
+    await _play(watch, conn, "I will turn on the living room light.", last=False)
+    await _play(watch, conn, "It will stay on for an hour.", last=False)
+    _onset(conn)
+    assert weixue_patches.echo_of_playback(conn, "turn on the living room light") is None
+    watch.transport.held = False
+    await watch.flush(conn)
+    first, second = conn.weixue_spoken
+    assert (first["start"], first["end"], second["start"], second["end"]) == (0, 3, 3, 6)
+    assert first["first"] <= first["last"] <= second["first"]
 
 
 @pytest.mark.parametrize("cue, heard", [("Yes?", "Yes."), ("Hmm?", "Hmm."), ("Mm-hm?", "Mm-hm.")])
@@ -215,11 +381,10 @@ def test_vad_wrapper_records_the_utterance_onset():
     is_vad(FakeVad(False), conn, b"")
     assert not hasattr(conn, "weixue_voice_onset")
     is_vad(FakeVad(True), conn, b"")
-    started, sid, holding = conn.weixue_voice_onset
-    assert sid == "turn-1" and holding is True and abs(time.monotonic() - started) < 1
-    conn.sentence_id = "turn-2"
+    started = conn.weixue_voice_onset
+    assert abs(time.monotonic() - started) < 1
     is_vad(FakeVad(True), conn, b"")
-    assert conn.weixue_voice_onset[1] == "turn-1"
+    assert conn.weixue_voice_onset == started
 
 
 async def test_guard_drops_echo_before_barge_in_and_passes_speech():
@@ -235,9 +400,11 @@ async def test_guard_drops_echo_before_barge_in_and_passes_speech():
     assert await guard(conn, "the kitchen light is now off") is None
     assert calls == [] and not conn.weixue_wake_cue.done()
     assert any("playback echo ignored" in m for _, m in LOGGER.records)
+    generation = weixue_patches.event_generation(conn)
     await guard(conn, "Yes.")
     await asyncio.sleep(0)
     assert calls == ["Yes."] and conn.weixue_wake_cue.cancelled()
+    assert weixue_patches.event_generation(conn) == generation + 1
 
 
 async def test_cue_caption_is_not_kept_through_the_wrapped_sender():
@@ -283,6 +450,7 @@ async def test_apply_wraps_playback_hooks_once(monkeypatch):
     asr_base = sys.modules["core.providers.asr.base"]
     server = sys.modules["core.http_server"].SimpleHttpServer
     upstream_start, upstream_init = asr_base.startToChat, server.__init__
+    upstream_send, upstream_abort = send_audio._do_send_audio, sys.modules["core.handle.abortHandle"].handleAbortMessage
     proactive = wp.Proactive("t")
     monkeypatch.setattr(wp, "INSTANCE", proactive)
 
@@ -293,6 +461,9 @@ async def test_apply_wraps_playback_hooks_once(monkeypatch):
     assert tts_base.sendAudioMessage.weixue_playback and tts_base.sendAudioMessage.weixue_wrapped is None
     assert asr_base.startToChat.weixue_wrapped is upstream_start
     assert server.__init__.weixue_wrapped is upstream_init
+    assert send_audio._do_send_audio.weixue_wrapped is upstream_send
+    for name in weixue_patches.ABORT_MODULES:
+        assert sys.modules[name].handleAbortMessage.weixue_wrapped is upstream_abort
     server({"server": {"auth_key": "k", "auth": {"enabled": True, "allowed_devices": [DEVICE]}}})
     assert proactive.auth.device({"device-id": DEVICE}) == DEVICE
 
@@ -361,6 +532,7 @@ async def pipeline(monkeypatch):
         "sendAudioMessage",
         weixue_patches.watch_sent_audio(send_audio.sendAudioMessage, SentenceType.FIRST, SentenceType.LAST),
     )
+    monkeypatch.setattr(send_audio, "_do_send_audio", weixue_patches.watch_transport(send_audio._do_send_audio))
     provider = create_instance("google_tts", dict(TEST_CONFIG["TTS"]["GoogleTTS"]), True)
     conn = PipelineConn(asyncio.get_running_loop(), provider)
     provider.conn = conn
@@ -458,3 +630,55 @@ async def test_later_request_chunk_failing_is_partial(pipeline, monkeypatch):
     assert len(texts) == 2
     assert sum(isinstance(m, bytes) for m in conn.websocket.sent) > 0
     assert (item.status, item.error) == ("partial", "synthesis failed after audio started")
+
+
+async def test_write_failing_after_audio_started_is_partial(pipeline):
+    conn, _ = pipeline
+    real_send = conn.websocket.send
+    written = []
+
+    async def send(data):
+        if isinstance(data, bytes):
+            if written:
+                raise ConnectionError("socket closed")
+            written.append(data)
+        await real_send(data)
+
+    conn.websocket.send = send
+    p = wp.Proactive("t", speaker=wp.speak, auth=wp.DeviceAuth(True, [DEVICE]))
+    item = _message(p)
+    await asyncio.wait_for(p.claim(conn, item), 10)
+    assert (item.status, item.attempts) == ("partial", 1) and not p.queue
+
+
+async def test_write_failing_before_any_audio_is_retried(pipeline):
+    conn, _ = pipeline
+    real_send = conn.websocket.send
+    fail = [True]
+
+    async def send(data):
+        if isinstance(data, bytes) and fail[0]:
+            raise ConnectionError("socket closed")
+        await real_send(data)
+
+    conn.websocket.send = send
+    p = wp.Proactive("t", speaker=wp.speak, auth=wp.DeviceAuth(True, [DEVICE]))
+    item = _message(p)
+    await asyncio.wait_for(p.claim(conn, item), 10)
+    assert (item.status, item.attempts) == ("queued", 1)
+    assert not any(isinstance(m, bytes) for m in conn.websocket.sent)
+
+
+async def test_transport_error_before_audio_is_retried_not_failed(pipeline, monkeypatch):
+    import core.handle.sendAudioHandle as send_audio
+
+    conn, _ = pipeline
+
+    async def start_fails(conn, state, text=None):
+        raise ConnectionError("socket closed")
+
+    monkeypatch.setattr(send_audio, "send_tts_message", start_fails)
+    p = wp.Proactive("t", speaker=wp.speak, auth=wp.DeviceAuth(True, [DEVICE]))
+    item = _message(p)
+    await asyncio.wait_for(p.claim(conn, item), 10)
+    assert (item.status, item.attempts, item.error) == ("queued", 1, "")

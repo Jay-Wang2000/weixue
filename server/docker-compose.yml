@@ -48,6 +48,7 @@ services:
     network_mode: ${WG_TUNNEL:+service:wg}
     environment:
       - HA_MCP_URL=${HA_MCP_URL:?set HA_MCP_URL in server/.env}
+      - TUNNEL_IFACE=${WG_TUNNEL:+wg0}
     volumes:
       - ./data/mcp-bridge/endpoint-url:/run/secrets/mcp-endpoint-url:ro
       - ./policy/voice_bridge.json:/app/policy/voice_bridge.json:ro
@@ -58,7 +59,11 @@ services:
       start_period: 20s
       retries: 3
     depends_on:
-      - mcp-endpoint-server
+      mcp-endpoint-server:
+        condition: service_started
+      wg:
+        condition: service_healthy
+        required: false
 
   wg:
     profiles: [tunnel]

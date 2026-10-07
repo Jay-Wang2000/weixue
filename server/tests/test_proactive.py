@@ -337,9 +337,110 @@ def test_reservation_survives_ttl_until_it_lapses():
     item = p.reserve(DEVICE)
     assert item.id == a["id"]
     clock.t += wp.MIN_TTL_SECONDS + 1
-    assert p.reserved_for(DEVICE) is item and item.status == "queued"
+    assert p.leased(DEVICE, clock.t) is item and item.status == "queued"
     clock.t += wp.RESERVE_SECONDS
-    assert p.reserved_for(DEVICE) is None and item.status == "expired"
+    assert p.leased(DEVICE, clock.t) is None and item.status == "expired"
+
+
+def test_expired_lease_is_not_consumable_while_the_message_lives():
+    clock = Clock()
+    p = make(clock)
+    p.submit(fields(ttl=wp.MAX_TTL_SECONDS), "ha")
+    item = p.reserve(DEVICE)
+    lease = item.lease
+    clock.t += wp.RESERVE_SECONDS
+    assert item.status == "queued" and item.reserved_for == DEVICE
+    assert p.leased(DEVICE, clock.t) is None
+    assert p.leased(DEVICE, clock.t, item.id, lease) is None
+
+
+def test_a_new_lease_releases_the_device_s_older_one():
+    clock = Clock()
+    p = make(clock)
+    p.set_mute(10)
+    _, a = p.submit(fields(key="a", urgent=True), "ha")
+    first = p.reserve(DEVICE)
+    old_lease = first.lease
+    _, b = p.submit(fields(key="b"), "ha")
+    p.set_mute(0)
+    clock.t += 1
+    again = p.reserve(DEVICE)
+    assert again is first and again.lease != old_lease
+    assert p.leased(DEVICE, clock.t, first.id, old_lease) is None
+    assert p.messages[b["id"]].reserved_for is None
+
+
+async def test_invoke_naming_its_lease_delivers_only_that_message():
+    clock = Clock()
+    speaker = Speaker()
+    p = make(clock, speaker)
+    _, a = p.submit(fields(key="a"), "ha")
+    item = p.reserve(DEVICE)
+    conn = Conn()
+    p.on_session_open(DEVICE, conn)
+    await p.on_invoke(conn, f"{wp.INVOKE_TEXT}:{item.id}:{item.lease}")
+    await p._delivery
+    assert speaker.calls == [(a["id"], True)] and p.messages[a["id"]].status == "delivered"
+
+
+@pytest.mark.parametrize("binding", ["{id}:wrong", "other:{lease}", "{id}", "{id}:{lease}:x", ":"])
+async def test_invoke_with_a_wrong_binding_consumes_nothing(binding):
+    clock = Clock()
+    p = make(clock)
+    _, a = p.submit(fields(key="a"), "ha")
+    item = p.reserve(DEVICE)
+    conn = Conn()
+    p.on_session_open(DEVICE, conn)
+    await p.on_invoke(conn, f"{wp.INVOKE_TEXT}:" + binding.format(id=item.id, lease=item.lease))
+    assert conn.closed and p._delivery is None
+    assert (item.status, item.attempts, item.reserved_for) == ("queued", 0, DEVICE)
+
+
+async def test_delayed_invoke_does_not_consume_a_newer_lease():
+    clock = Clock()
+    speaker = Speaker()
+    p = make(clock, speaker)
+    _, a = p.submit(fields(key="a", ttl=wp.MAX_TTL_SECONDS), "ha")
+    first = p.reserve(DEVICE)
+    a_lease = first.lease
+    stale = Conn(session_id="stale")
+    p.on_session_open(DEVICE, stale)
+    clock.t += wp.RESERVE_SECONDS + 1
+    p.on_session_close(DEVICE, stale)
+    _, b = p.submit(fields(key="b", urgent=True, message="Leak!"), "ha")
+    p.queue.rotate(1)
+    newer = p.reserve(DEVICE)
+    assert newer.id == b["id"]
+    await p.on_invoke(stale)
+    assert stale.closed and p._delivery is None
+    bound = Conn(session_id="bound")
+    p.on_session_open(DEVICE, bound)
+    await p.on_invoke(bound, f"{wp.INVOKE_TEXT}:{first.id}:{a_lease}")
+    assert bound.closed and p._delivery is None
+    assert (newer.status, newer.reserved_for, newer.attempts) == ("queued", DEVICE, 0)
+    assert p.messages[a["id"]].status == "queued"
+    fresh = Conn(session_id="fresh")
+    clock.t += 1
+    p.on_session_open(DEVICE, fresh)
+    await p.on_invoke(fresh)
+    await p._delivery
+    assert speaker.calls == [(b["id"], True)]
+
+
+async def test_overlapping_polls_keep_each_invoke_to_its_own_lease():
+    clock = Clock()
+    speaker = Speaker()
+    p = make(clock, speaker)
+    _, a = p.submit(fields(key="a"), "ha")
+    a_item = p.reserve(DEVICE)
+    a_binding = f"{wp.INVOKE_TEXT}:{a_item.id}:{a_item.lease}"
+    clock.t += 1
+    again = p.reserve(DEVICE)
+    conn = Conn()
+    clock.t += 1
+    p.on_session_open(DEVICE, conn)
+    await p.on_invoke(conn, a_binding)
+    assert conn.closed and p._delivery is None and again.status == "queued"
 
 
 async def test_invoke_delivers_the_reserved_message_with_its_urgency():
@@ -351,6 +452,7 @@ async def test_invoke_delivers_the_reserved_message_with_its_urgency():
     clock.t += wp.MIN_TTL_SECONDS
     _, urgent = p.submit(fields(key="b", urgent=True, message="Leak!"), "ha")
     conn = Conn()
+    clock.t += 1
     p.on_session_open(DEVICE, conn)
     await p.on_invoke(conn)
     await p._delivery
@@ -381,8 +483,9 @@ async def test_invoke_while_muted_releases_a_normal_reservation():
     item = p.reserve(DEVICE)
     p.set_mute(10)
     conn = Conn()
+    p.on_session_open(DEVICE, conn)
     await p.on_invoke(conn)
-    assert conn.closed and item.status == "queued" and item.reserved_for is None
+    assert conn.closed and item.status == "queued" and item.reserved_for is None and item.lease is None
 
 
 # Device identity
@@ -443,6 +546,8 @@ async def test_overlapping_invokes_deliver_once():
     _, body = p.submit(fields(), "ha")
     p.reserve(DEVICE)
     first, second = Conn(session_id="s1"), Conn(session_id="s2")
+    p.on_session_open(DEVICE, first)
+    p.on_session_open(DEVICE, second)
     await p.on_invoke(first)
     await p.on_invoke(second)
     assert p.messages[body["id"]].status == "delivering"
@@ -517,9 +622,37 @@ async def test_invoke_does_not_block_the_session_loop():
     p = make(speaker=slow)
     p.submit(fields(), "ha")
     p.reserve(DEVICE)
-    await asyncio.wait_for(p.on_invoke(Conn()), 0.1)
+    conn = Conn()
+    p.on_session_open(DEVICE, conn)
+    await asyncio.wait_for(p.on_invoke(conn), 0.1)
     await asyncio.wait_for(started.wait(), 1)
     p._delivery.cancel()
+
+
+def test_parse_invoke():
+    assert wp.parse_invoke(wp.INVOKE_TEXT) == (None, None)
+    assert wp.parse_invoke(wp.INVOKE_TEXT + ":m1:l1") == ("m1", "l1")
+    for text in (wp.INVOKE_TEXT + ":", wp.INVOKE_TEXT + ":m1", wp.INVOKE_TEXT + ":m1:", wp.INVOKE_TEXT + "x", "Jarvis", None):
+        assert wp.parse_invoke(text) is None
+
+
+@pytest.mark.parametrize("raised, heard, status", [(ConnectionError("gone"), False, "queued"), (ValueError("x"), True, "partial")])
+async def test_errors_before_audio_retry_and_after_it_are_partial(raised, heard, status):
+    async def speaker(conn, item, close_after):
+        if heard:
+            return "spoken"
+        raise raised
+
+    p = make(speaker=speaker)
+    _, body = p.submit(fields(mode="conversation" if heard else "announce"), "ha")
+    item = p.messages[body["id"]]
+    conn = Conn()
+    if heard:
+        conn.dialogue = None
+    await p.claim(conn, item)
+    assert (item.status, item.attempts) == (status, 1)
+    if heard:
+        assert item.error == "error after audio started"
 
 
 async def test_failed_delivery_requeues_then_fails():
@@ -535,7 +668,7 @@ async def test_failed_delivery_requeues_then_fails():
     assert not p.queue
 
 
-@pytest.mark.parametrize("outcome", ["no_audio", "superseded", "no_tts", "timeout"])
+@pytest.mark.parametrize("outcome", ["no_audio", "send_failed", "superseded", "no_tts", "timeout", "error"])
 async def test_failures_before_any_audio_requeue(outcome):
     p = make(speaker=Speaker(outcome=outcome))
     _, body = p.submit(fields(), "ha")
@@ -612,6 +745,7 @@ async def test_conversation_without_reply_closes_invoked_session():
     _, body = p.submit(fields(mode="conversation", message="Shall I close the valve?"), "ha")
     p.reserve(DEVICE)
     conn = Conn()
+    p.on_session_open(DEVICE, conn)
     await p.on_invoke(conn)
     await p._delivery
     assert speaker.calls == [(body["id"], False)]
@@ -625,6 +759,7 @@ async def test_reply_window_extends_while_user_is_speaking():
     _, body = p.submit(fields(mode="conversation"), "ha")
     p.reserve(DEVICE)
     conn = Conn()
+    p.on_session_open(DEVICE, conn)
     conn.client_have_voice = True
 
     async def answer():
@@ -701,8 +836,8 @@ async def test_intercept_invoke_only_for_invoke_text():
     calls = []
 
     class FakeProactive:
-        async def on_invoke(self, conn):
-            calls.append("invoke")
+        async def on_invoke(self, conn, text):
+            calls.append(text)
 
     async def handle(self, conn, msg_json):
         calls.append(msg_json["text"])
@@ -710,8 +845,10 @@ async def test_intercept_invoke_only_for_invoke_text():
     wrapped = weixue_patches.intercept_invoke(handle, FakeProactive(), wp.INVOKE_TEXT)
     conn = Conn()
     await wrapped(None, conn, {"type": "listen", "state": "detect", "text": wp.INVOKE_TEXT, "mode": "realtime"})
+    await wrapped(None, conn, {"type": "listen", "state": "detect", "text": wp.INVOKE_TEXT + ":m:l"})
+    await wrapped(None, conn, {"type": "listen", "state": "detect", "text": wp.INVOKE_TEXT + "x"})
     await wrapped(None, conn, {"type": "listen", "state": "detect", "text": "Jarvis"})
-    assert calls == ["invoke", "Jarvis"]
+    assert calls == [wp.INVOKE_TEXT, wp.INVOKE_TEXT + ":m:l", wp.INVOKE_TEXT + "x", "Jarvis"]
     assert conn.client_listen_mode == "realtime"
 
 
@@ -785,8 +922,10 @@ async def test_http_poll(client):
     created = await (await client.post("/weixue/proactive/messages", json={"message": "hi"}, headers=AUTH)).json()
     resp = await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE})
     assert resp.status == 200
-    assert (await resp.json()) == {"pending": True, "urgent": False, "id": created["id"]}
-    assert client.proactive.messages[created["id"]].reserved_for == DEVICE
+    body = await resp.json()
+    item = client.proactive.messages[created["id"]]
+    assert body == {"pending": True, "urgent": False, "id": created["id"], "lease": item.lease}
+    assert item.reserved_for == DEVICE and len(item.lease) == 32
 
 
 async def test_http_poll_reports_urgent(client):

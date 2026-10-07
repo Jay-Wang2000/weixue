@@ -145,7 +145,21 @@ def stub_handler_modules(monkeypatch):
     send = types.ModuleType("core.handle.sendAudioHandle")
     send.send_tts_message = None
     send.sendAudioMessage = None
+
+    async def do_send_audio(_conn, _packet, _flow_control):
+        return None
+
+    send._do_send_audio = do_send_audio
     send.SentenceType = types.SimpleNamespace(FIRST="FIRST", LAST="LAST")
+
+    async def handle_abort(_conn):
+        return None
+
+    abort = types.ModuleType("core.handle.abortHandle")
+    abort.handleAbortMessage = handle_abort
+    abort_text = types.ModuleType("core.handle.textHandler.abortMessageHandler")
+    abort_text.handleAbortMessage = handle_abort
+    receive.handleAbortMessage = handle_abort
     silero = types.ModuleType("core.providers.vad.silero")
 
     class VADProvider:
@@ -174,7 +188,7 @@ def stub_handler_modules(monkeypatch):
             return None
 
     websocket_server.WebSocketServer = WebSocketServer
-    for module in (receive, intent, util, send, silero, mcp, ota, websocket_server):
+    for module in (receive, intent, util, send, abort, abort_text, silero, mcp, ota, websocket_server):
         monkeypatch.setitem(sys.modules, module.__name__, module)
     return receive, intent, VADProvider
 

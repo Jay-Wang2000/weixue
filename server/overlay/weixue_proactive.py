@@ -87,6 +87,8 @@ class Message:
     error: str = ""
     reserved_for: Optional[str] = None
     reserved_until: float = 0.0
+    lease: Optional[str] = None
+    leased_at: float = 0.0
     claim: Optional[str] = None
     retry_at: float = 0.0
 
@@ -339,19 +341,38 @@ class Proactive:
             return item
         return None
 
-    def reserved_for(self, device):
-        """The queued message a poll reserved for the device, while it has not expired."""
+    def _release(self, item):
+        item.reserved_for = None
+        item.reserved_until = 0.0
+        item.lease = None
+
+    def leased(self, device, opened, message_id=None, lease=None):
+        """The queued message whose unexpired lease the device holds. With message_id and lease,
+        only that message under that lease; without them, a lease issued before the session
+        opened (`opened`, self.clock() time)."""
         self.expire()
+        now = self.clock()
         for item in self.queue:
-            if item.status == "queued" and item.reserved_for == device:
-                return item
+            if item.status != "queued" or item.reserved_for != device or not self._reserved(item, now):
+                continue
+            if message_id is not None:
+                return item if item.id == message_id and hmac.compare_digest(item.lease or "", lease or "") else None
+            return item if opened is not None and item.leased_at <= opened else None
         return None
 
     def reserve(self, device):
+        """Leases the next message the device may play to it (one lease per device: an older one
+        is released) for RESERVE_SECONDS."""
         item = self.next_for(device)
         if item is not None:
+            for other in self.queue:
+                if other is not item and other.reserved_for == device:
+                    self._release(other)
+            now = self.clock()
             item.reserved_for = device
-            item.reserved_until = self.clock() + RESERVE_SECONDS
+            item.reserved_until = now + RESERVE_SECONDS
+            item.lease = uuid.uuid4().hex
+            item.leased_at = now
             self.logger.bind(tag=TAG).info(f"proactive {item.id} reserved for {device} urgent={item.urgent}")
         return item
 
@@ -452,6 +473,7 @@ class Proactive:
     def on_session_open(self, device, conn, ws=None):
         """Registers a session whose device identity self.auth verified."""
         conn._weixue_ws = ws
+        conn._weixue_opened = self.clock()
         self.sessions.setdefault(device, []).append(conn)
         self._notify()
 
@@ -523,28 +545,33 @@ class Proactive:
         may finish or requeue it. Returns the task."""
         item.status = "delivering"
         item.attempts += 1
-        item.reserved_for = None
+        self._release(item)
         item.claim = uuid.uuid4().hex
         conn._weixue_busy = True
         self._delivery = asyncio.get_running_loop().create_task(self.deliver(conn, item, item.claim))
         return self._delivery
 
-    async def on_invoke(self, conn):
-        """The device opened this session because a poll answered 200: the message that poll
-        reserved for this verified device is delivered. Delivery runs as a task: the caller is
-        the session's message loop, which must keep reading the device's audio."""
+    async def on_invoke(self, conn, text=INVOKE_TEXT):
+        """The device opened this session because a poll answered 200: the message leased to this
+        verified device is delivered (`leased`; text INVOKE_TEXT + ":<id>:<lease>" names it).
+        Anything else, including a stale or expired lease, closes the session and consumes
+        nothing. Delivery runs as a task: the caller is the session's message loop, which must
+        keep reading the device's audio."""
         conn._weixue_invoked = True
         conn.reset_audio_states()
         conn.last_activity_time = time.time() * 1000
         if getattr(conn, "_weixue_busy", False):
             return
         device = self.auth.device(getattr(conn, "headers", None))
-        item = self.reserved_for(device) if device else None
+        binding = parse_invoke(text)
+        item = None
+        if device and binding is not None:
+            item = self.leased(device, getattr(conn, "_weixue_opened", None), *binding)
         if item is not None and self.muted() and not item.urgent:
-            item.reserved_for = None
+            self._release(item)
             item = None
         if item is None:
-            why = "nothing reserved for it" if device else "unverified device"
+            why = "no current lease for it" if device else "unverified device"
             self.logger.bind(tag=TAG).info(f"proactive session opened with {why}; closing")
             await conn.close()
             return
@@ -583,15 +610,32 @@ class Proactive:
         if self._dispatcher is None or self._dispatcher.done():
             self._dispatcher = asyncio.get_running_loop().create_task(self.run())
 
+    def _retry_or_fail(self, item, outcome):
+        """A failure before any audio: requeued after RETRY_BACKOFF_SECONDS, failed after
+        MAX_ATTEMPTS, expired past its TTL."""
+        if item.attempts >= MAX_ATTEMPTS:
+            self._finish(item, "failed", outcome)
+        elif self.clock() >= item.expires:
+            self._finish(item, "expired")
+        else:
+            delay = RETRY_BACKOFF_SECONDS[min(item.attempts, len(RETRY_BACKOFF_SECONDS)) - 1]
+            item.status = "queued"
+            item.claim = None
+            item.retry_at = self.clock() + delay
+            self.logger.bind(tag=TAG).info(f"proactive {item.id} requeued: {outcome}; retry in {delay}s")
+            self._notify()
+
     async def deliver(self, conn, item, claim):
         """Speaks a claimed message. Heard (spoken, or interrupted after audio) finishes it;
         audio cut off by a lost session or a failed synthesis finishes it as partial; a failure
-        before any audio requeues it after RETRY_BACKOFF_SECONDS (MAX_ATTEMPTS, within the TTL)."""
+        or an error before any audio goes to _retry_or_fail; an error after the message was heard
+        finishes it as partial."""
         invoked = getattr(conn, "_weixue_invoked", False)
         self.logger.bind(tag=TAG).info(
             f"proactive {item.id} delivering: attempt={item.attempts} session={conn.session_id} "
             f"invoked={invoked} urgent={item.urgent}"
         )
+        heard = False
         try:
             outcome = await self.speaker(conn, item, close_after=invoked and item.mode == "announce")
             if item.claim != claim:
@@ -600,26 +644,20 @@ class Proactive:
                 self._finish(item, "partial", PARTIAL[outcome])
                 return
             if outcome not in HEARD:
-                if item.attempts >= MAX_ATTEMPTS:
-                    self._finish(item, "failed", outcome)
-                elif self.clock() >= item.expires:
-                    self._finish(item, "expired")
-                else:
-                    delay = RETRY_BACKOFF_SECONDS[min(item.attempts, len(RETRY_BACKOFF_SECONDS)) - 1]
-                    item.status = "queued"
-                    item.claim = None
-                    item.retry_at = self.clock() + delay
-                    self.logger.bind(tag=TAG).info(f"proactive {item.id} requeued: {outcome}; retry in {delay}s")
-                    self._notify()
+                self._retry_or_fail(item, outcome)
                 return
+            heard = True
             if item.mode == "announce":
                 self._finish(item, "delivered")
                 return
             await self._await_reply(conn, item, invoked, claim)
         except Exception as e:
-            self.logger.bind(tag=TAG).error(f"proactive {item.id} delivery error: {e}")
+            self.logger.bind(tag=TAG).error(f"proactive {item.id} delivery error: {type(e).__name__}: {e}")
             if item.claim == claim and item.status == "delivering":
-                self._finish(item, "failed", "error")
+                if heard:
+                    self._finish(item, "partial", "error after audio started")
+                else:
+                    self._retry_or_fail(item, "error")
         finally:
             conn._weixue_busy = False
             self._notify()
@@ -657,13 +695,13 @@ async def _close_quietly(conn):
 
 async def speak(conn, item, close_after):
     """Plays item.text as an assistant turn (conn._weixue_anchor) after a user-role note of the
-    event. The outcome comes from the sentence's own playback record (weixue_patches.track_playback):
-    with audio sent, "spoken" (its last packet went out), "incomplete" (its last packet went out but
-    a segment's synthesis failed), "interrupted" (abort or a newer turn) or "partial" (session
-    closed or SPEECH_TIMEOUT_SECONDS passed); with no audio sent, "no_audio"
-    (synthesis produced none), "superseded", "closed", "no_tts" or "timeout"."""
+    event. The outcome comes from the sentence's own playback record (weixue_patches.track_playback),
+    whose frames are packets the transport wrote: with audio written, "spoken" (its LAST completed,
+    weixue_patches.SentencePlayback), "incomplete" (completed but a segment's synthesis failed),
+    "interrupted" (abort or a newer turn) or "partial" (a write failed, session closed, an error,
+    or SPEECH_TIMEOUT_SECONDS passed); with none written, "no_audio" (synthesis produced none),
+    "send_failed", "superseded", "closed", "no_tts", "timeout" or "error"."""
     from core.handle.sendAudioHandle import send_tts_message
-    from core.providers.tts.dto.dto import ContentType, SentenceType, TTSMessageDTO
     from core.utils.dialogue import Message as DialogueMessage
 
     deadline = time.time() + TTS_READY_SECONDS
@@ -680,44 +718,70 @@ async def speak(conn, item, close_after):
     sentence_id = uuid.uuid4().hex
     playback = weixue_patches.track_playback(conn, sentence_id)
     try:
-        conn.client_abort = False
-        conn.close_after_chat = close_after
-        conn.sentence_id = sentence_id
-        conn.client_is_speaking = True
-        await send_tts_message(conn, "start")
-        conn.tts.store_tts_text(sentence_id, item.text)
-        conn.tts.tts_text_queue.put(
-            TTSMessageDTO(sentence_id=sentence_id, sentence_type=SentenceType.FIRST, content_type=ContentType.ACTION)
-        )
-        conn.tts.tts_one_sentence(conn, ContentType.TEXT, content_detail=item.text, sentence_id=sentence_id)
-        conn.tts.tts_text_queue.put(
-            TTSMessageDTO(sentence_id=sentence_id, sentence_type=SentenceType.LAST, content_type=ContentType.ACTION)
-        )
-        deadline = time.time() + SPEECH_TIMEOUT_SECONDS
-        while True:
-            heard = playback.frames > 0
-            if playback.done.is_set():
-                if not heard:
-                    return "no_audio"
-                return "incomplete" if playback.failed else "spoken"
-            if conn.client_abort or conn.sentence_id != sentence_id:
-                return "interrupted" if heard else "superseded"
-            if conn.stop_event.is_set():
-                return "partial" if heard else "closed"
-            if time.time() > deadline:
-                return "partial" if heard else "timeout"
-            try:
-                await asyncio.wait_for(playback.done.wait(), 0.1)
-            except asyncio.TimeoutError:
-                pass
+        return await _play_tracked(conn, item, close_after, sentence_id, playback, send_tts_message)
+    except Exception as e:
+        setup_logging().bind(tag=TAG).warning(f"proactive {item.id} playback error: {type(e).__name__}")
+        return "partial" if playback.frames > 0 else "error"
     finally:
         weixue_patches.untrack_playback(conn, sentence_id)
+
+
+async def _play_tracked(conn, item, close_after, sentence_id, playback, send_tts_message):
+    """speak() after the dialogue entries: queues the sentence and waits for its outcome."""
+    from core.providers.tts.dto.dto import ContentType, SentenceType, TTSMessageDTO
+
+    conn.client_abort = False
+    conn.close_after_chat = close_after
+    conn.sentence_id = sentence_id
+    conn.client_is_speaking = True
+    await send_tts_message(conn, "start")
+    conn.tts.store_tts_text(sentence_id, item.text)
+    conn.tts.tts_text_queue.put(
+        TTSMessageDTO(sentence_id=sentence_id, sentence_type=SentenceType.FIRST, content_type=ContentType.ACTION)
+    )
+    conn.tts.tts_one_sentence(conn, ContentType.TEXT, content_detail=item.text, sentence_id=sentence_id)
+    conn.tts.tts_text_queue.put(
+        TTSMessageDTO(sentence_id=sentence_id, sentence_type=SentenceType.LAST, content_type=ContentType.ACTION)
+    )
+    deadline = time.time() + SPEECH_TIMEOUT_SECONDS
+    while True:
+        heard = playback.frames > 0
+        if playback.done.is_set():
+            if not heard:
+                return "no_audio"
+            return "incomplete" if playback.failed else "spoken"
+        if conn.client_abort or conn.sentence_id != sentence_id:
+            return "interrupted" if heard else "superseded"
+        if playback.send_error:
+            return "partial" if heard else "send_failed"
+        if conn.stop_event.is_set():
+            return "partial" if heard else "closed"
+        if time.time() > deadline:
+            return "partial" if heard else "timeout"
+        try:
+            await asyncio.wait_for(playback.done.wait(), 0.1)
+        except asyncio.TimeoutError:
+            pass
 
 
 # HTTP
 
 def _client(request):
     return request.remote or "unknown"
+
+
+def parse_invoke(text):
+    """(message id, lease) of an invocation text INVOKE_TEXT + ":<id>:<lease>", (None, None) for
+    INVOKE_TEXT alone, else None."""
+    if text == INVOKE_TEXT:
+        return None, None
+    prefix = INVOKE_TEXT + ":"
+    if not isinstance(text, str) or not text.startswith(prefix):
+        return None
+    parts = text[len(prefix):].split(":")
+    if len(parts) != 2 or not all(parts):
+        return None
+    return parts[0], parts[1]
 
 
 def _authorized(proactive, request):
@@ -782,7 +846,7 @@ def add_routes(app, proactive):
         except RequestError as e:
             return web.json_response(e.body, status=e.status, headers={"Retry-After": str(e.body["retry_after"])})
         if item is not None:
-            return web.json_response({"pending": True, "urgent": item.urgent, "id": item.id})
+            return web.json_response({"pending": True, "urgent": item.urgent, "id": item.id, "lease": item.lease})
         return web.Response(status=204)
 
     async def start_dispatcher(_app):

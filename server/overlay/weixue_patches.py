@@ -84,8 +84,8 @@ keep_decoded_text.weixue_replacement = True
 
 def register_sessions(handle_connection, proactive):
     """Wraps ConnectionHandler.handle_connection: while it runs, a session whose device identity
-    proactive.auth verifies is registered for proactive delivery; on its end a pending wake cue
-    is cancelled."""
+    proactive.auth verifies is registered for proactive delivery; its end is a connection event
+    and cancels a pending wake cue."""
 
     async def wrapper(self, ws):
         device = proactive.auth.device(ws.request.headers)
@@ -94,6 +94,7 @@ def register_sessions(handle_connection, proactive):
         try:
             return await handle_connection(self, ws)
         finally:
+            note_event(self)
             cancel_wake_cue(self)
             if device:
                 proactive.on_session_close(device, self)
@@ -103,13 +104,17 @@ def register_sessions(handle_connection, proactive):
 
 
 def intercept_invoke(handle, proactive, invoke_text):
-    """Wraps ListenTextMessageHandler.handle: a `listen detect` carrying invoke_text delivers queued proactive messages."""
+    """Wraps ListenTextMessageHandler.handle: a `listen detect` whose text is invoke_text, or
+    invoke_text + ":" + a binding, delivers the proactive message reserved for the session."""
 
     async def wrapper(self, conn, msg_json):
-        if msg_json.get("state") == "detect" and msg_json.get("text") == invoke_text:
+        text = msg_json.get("text")
+        if msg_json.get("state") == "detect" and isinstance(text, str) and (
+            text == invoke_text or text.startswith(invoke_text + ":")
+        ):
             if "mode" in msg_json:
                 conn.client_listen_mode = msg_json["mode"]
-            await proactive.on_invoke(conn)
+            await proactive.on_invoke(conn, text)
             return None
         return await handle(self, conn, msg_json)
 
@@ -190,13 +195,13 @@ def hold_wake_utterance(is_vad):
     """Wraps the VAD provider's is_vad(conn, pcm_frame) for the WAKE_HOLD_S after a wake's
     `listen start` (conn.weixue_live_since): an end of utterance is withheld, and voice
     heard after VAD_FLUSH_S sets conn.weixue_live_voice. The start of every utterance is kept
-    as conn.weixue_voice_onset (monotonic time, sentence_id, server holding the turn)."""
+    as conn.weixue_voice_onset (monotonic time)."""
 
     def wrapper(self, conn, pcm_frame):
         before = getattr(conn, "client_have_voice", False)
         have_voice = is_vad(self, conn, pcm_frame)
         if not before and getattr(conn, "client_have_voice", False):
-            conn.weixue_voice_onset = (time.monotonic(), conn.sentence_id, conn.client_is_speaking)
+            conn.weixue_voice_onset = time.monotonic()
         since = getattr(conn, "weixue_live_since", None)
         if since is not None:
             elapsed = time.time() - since
@@ -218,23 +223,57 @@ def _closed(conn):
     return stop is not None and stop.is_set()
 
 
-def wake_cue_player(audio_to_data, send_tts_message, send_audio_message, first, last, logger):
-    """Returns play(conn, cue, turn): CUE_DELAY_S after the wake, one tts start /
-    sentence_start + audio / tts stop for cue["file"], captioned cue["text"], under a sentence_id
-    kept as conn.weixue_cue_sentence. turn is
-    conn.sentence_id when the cue was scheduled (default: at the call). Before the cue takes
-    the connection, and after every await, it is dropped once a newer turn owns the connection
-    (sentence_id changed), live voice was heard, the server holds a turn or the connection
-    closed."""
+def event_generation(conn):
+    """Counter of connection events that end what a pending wake cue was scheduled for: an abort,
+    a wake detect, a transcript that starts a turn, the end of the session."""
+    return getattr(conn, "weixue_event_gen", 0)
 
-    async def play(conn, cue, turn=_SCHEDULED):
+
+def note_event(conn):
+    conn.weixue_event_gen = event_generation(conn) + 1
+
+
+def count_aborts(handle_abort):
+    """Wraps upstream handleAbortMessage(conn): every abort is a connection event (event_generation)."""
+
+    async def wrapper(conn, *args, **kwargs):
+        note_event(conn)
+        return await handle_abort(conn, *args, **kwargs)
+
+    wrapper.weixue_wrapped = handle_abort
+    return wrapper
+
+
+def _release_cue_speaking(conn, sentence_id):
+    """Clears client_is_speaking when the cue sentence_id set it and still owns the connection."""
+    if getattr(conn, "weixue_cue_speaking", None) != sentence_id:
+        return
+    conn.weixue_cue_speaking = None
+    if conn.sentence_id == sentence_id:
+        conn.client_is_speaking = False
+
+
+def wake_cue_player(audio_to_data, send_tts_message, send_audio_message, first, last, logger):
+    """Returns play(conn, cue, turn, generation): CUE_DELAY_S after the wake, one tts start /
+    sentence_start + audio / tts stop for cue["file"], captioned cue["text"], under a sentence_id
+    kept as conn.weixue_cue_sentence. turn is conn.sentence_id and generation event_generation(conn)
+    when the cue was scheduled (default: at the call). Before the cue takes the connection, and
+    after every await, it is dropped once a newer turn owns the connection (sentence_id changed), a
+    connection event happened (generation changed), live voice was heard, the server holds a turn
+    or the connection closed. A cue that sent tts start and is dropped while it still owns the
+    connection sends tts stop and clears client_is_speaking."""
+
+    async def play(conn, cue, turn=_SCHEDULED, generation=_SCHEDULED):
         if turn is _SCHEDULED:
             turn = conn.sentence_id
+        if generation is _SCHEDULED:
+            generation = event_generation(conn)
 
         def superseded():
             return (
                 _closed(conn)
                 or conn.sentence_id != turn
+                or event_generation(conn) != generation
                 or getattr(conn, "weixue_live_voice", False)
                 or conn.client_is_speaking
             )
@@ -247,11 +286,11 @@ def wake_cue_player(audio_to_data, send_tts_message, send_audio_message, first, 
             await asyncio.sleep(0.05)
         await asyncio.sleep(CUE_DELAY_S)
         if superseded():
-            logger.bind(tag=__name__).info("wake cue skipped: user speaking or newer turn")
+            logger.bind(tag=__name__).info("wake cue skipped: user speaking, abort or newer turn")
             return
         packets = await audio_to_data(cue["file"])
         if superseded():
-            logger.bind(tag=__name__).info("wake cue dropped after loading: user speaking or newer turn")
+            logger.bind(tag=__name__).info("wake cue dropped after loading: user speaking, abort or newer turn")
             return
         sentence_id = uuid.uuid4().hex
         conn.sentence_id = sentence_id
@@ -259,19 +298,33 @@ def wake_cue_player(audio_to_data, send_tts_message, send_audio_message, first, 
         conn.client_abort = False
 
         def owned():
-            return not _closed(conn) and conn.sentence_id == sentence_id
+            return not _closed(conn) and conn.sentence_id == sentence_id and event_generation(conn) == generation
 
-        await send_tts_message(conn, "start")
-        if not owned():
-            return
-        conn.client_is_speaking = True
-        await asyncio.sleep(DECODER_RESET_S)
-        if not owned():
-            return
-        logger.bind(tag=__name__).info(f"wake cue: {cue.get('text')}")
-        await send_audio_message(conn, first, packets, cue.get("text"), sentence_id)
-        if owned():
-            await send_audio_message(conn, last, [], None, sentence_id)
+        started = finished = False
+        try:
+            await send_tts_message(conn, "start")
+            started = True
+            if not owned():
+                return
+            conn.client_is_speaking = True
+            conn.weixue_cue_speaking = sentence_id
+            await asyncio.sleep(DECODER_RESET_S)
+            if not owned():
+                return
+            logger.bind(tag=__name__).info(f"wake cue: {cue.get('text')}")
+            await send_audio_message(conn, first, packets, cue.get("text"), sentence_id)
+            if owned():
+                await send_audio_message(conn, last, [], None, sentence_id)
+                finished = owned()
+        finally:
+            if started and not finished and owned():
+                conn.client_is_speaking = False
+                try:
+                    await send_tts_message(conn, "stop")
+                except Exception as e:
+                    logger.bind(tag=__name__).warning(f"wake cue stop not sent: {type(e).__name__}")
+            if getattr(conn, "weixue_cue_speaking", None) == sentence_id:
+                conn.weixue_cue_speaking = None
 
     return play
 
@@ -284,9 +337,10 @@ def cancel_wake_cue(conn):
 
 def acknowledge_wake(handle, remove_punctuation_and_length, play):
     """Wraps ListenTextMessageHandler.handle when `wake_cues` is configured: a `listen detect`
-    whose text is a wake word starts one random cue in the background, and neither it nor
-    the next `listen start` resets the audio state, so the wake-word audio the device sends
-    before the detect reaches VAD and ASR; that `listen start` sets conn.weixue_live_since."""
+    whose text is a wake word is a connection event (a pending cue is cancelled and the speaking
+    state it set is cleared) and starts one random cue in the background; neither it nor the next
+    `listen start` resets the audio state, so the wake-word audio the device sends before the
+    detect reaches VAD and ASR; that `listen start` sets conn.weixue_live_since."""
 
     async def wrapper(self, conn, msg_json):
         state = msg_json.get("state")
@@ -305,7 +359,11 @@ def acknowledge_wake(handle, remove_punctuation_and_length, play):
             conn.last_activity_time = time.time() * 1000
             cue = random.choice(conn.config["wake_cues"])
             cancel_wake_cue(conn)
-            conn.weixue_wake_cue = asyncio.create_task(play(conn, cue, conn.sentence_id))
+            pending = getattr(conn, "weixue_cue_speaking", None)
+            if pending is not None:
+                _release_cue_speaking(conn, pending)
+            note_event(conn)
+            conn.weixue_wake_cue = asyncio.create_task(play(conn, cue, conn.sentence_id, event_generation(conn)))
             return None
         return await handle(self, conn, msg_json)
 
@@ -315,35 +373,41 @@ def acknowledge_wake(handle, remove_punctuation_and_length, play):
 
 # Playback record and echo guard
 
-# An utterance is checked against the reply sentences playing when it started: the current
-# sentence while the server held the turn, or one whose packets ran until less than
-# ECHO_TAIL_S before it. Wake cues are not kept. ECHO_SENTENCES most recent sentences are
-# kept per connection.
+# An utterance is checked against the reply sentences whose audio was being written to the device
+# when it started: from a sentence's first written packet until ECHO_TAIL_S after its latest.
+# Wake cues are not kept. ECHO_SENTENCES most recent sentences are kept per connection.
 ECHO_TAIL_S = 1.0
 ECHO_SENTENCES = 6
 # Transcripts shorter than ECHO_SHORT_CHARS letters must match a whole sentence to
-# ECHO_SHORT_RATIO (by letters); longer ones must have ECHO_COVER_RATIO of their words
-# (Chinese: characters) in order inside one.
+# ECHO_SHORT_RATIO (by letters). In longer ones every word (Chinese: character) other than
+# ECHO_FILLERS must match one run of a sentence's words, in order, skipping only ECHO_SKIPPABLE
+# sentence words; a word differing from the sentence's word only by ECHO_SUFFIXES still matches.
 ECHO_SHORT_CHARS = 6
 ECHO_SHORT_RATIO = 0.8
-ECHO_COVER_RATIO = 0.7
+ECHO_FILLERS = frozenset({"a", "an", "the", "uh", "um", "er", "erm", "ah", "hmm", "mm", "嗯", "啊", "呃", "的", "了"})
+ECHO_SKIPPABLE = ECHO_FILLERS | {"ve", "ll", "re", "m", "d", "s"}
+ECHO_SUFFIXES = ("s", "es", "ed", "d", "ing")
 _ECHO_TOKEN = re.compile(r"[0-9a-z]+|[\u3400-\u9fff]")
 
 
 class SentencePlayback:
-    """Audio handed to the device for one sentence_id: frames counts audio packets sent while
-    it was the current, unaborted sentence; done is set once its last packet went out unaborted;
-    failed is set when a text segment (FIRST) got no audio before the next FIRST or the LAST,
-    or note_synthesis_failure reported one."""
+    """Audio of one sentence_id. handed counts packets given to sendAudioMessage while it was the
+    current, unaborted sentence; frames counts packets the transport wrote without error;
+    send_error names the first failed or cancelled write. done is set when its LAST returned with
+    every handed packet written, no send error, and the sentence still current and unaborted.
+    failed is set when a text segment (FIRST) got no audio before the next FIRST or the LAST, or
+    note_synthesis_failure reported one."""
 
     def __init__(self):
+        self.handed = 0
         self.frames = 0
+        self.send_error = ""
         self.failed = False
         self.segment = None
         self.done = asyncio.Event()
 
     def count(self, sentence_type, packets, first, last):
-        self.frames += packets
+        self.handed += packets
         if sentence_type == first:
             if self.segment == 0:
                 self.failed = True
@@ -352,6 +416,10 @@ class SentencePlayback:
             self.segment += packets
             if sentence_type == last and self.segment == 0:
                 self.failed = True
+
+    def note_send_error(self, error):
+        if not self.send_error:
+            self.send_error = error
 
 
 def track_playback(conn, sentence_id):
@@ -377,35 +445,96 @@ def _packets(audios):
     return len(audios or ())
 
 
+def _transmit(conn, sentence_id):
+    """Packet counters of the sentence currently handed to the transport; a new sentence_id starts at 0."""
+    tx = conn.__dict__.get("weixue_tx")
+    if tx is None or tx["sid"] != sentence_id:
+        tx = conn.weixue_tx = {"sid": sentence_id, "handed": 0, "sent": 0}
+    return tx
+
+
 def watch_sent_audio(send, first, last):
-    """Wraps upstream sendAudioMessage: for the connection's current sentence, while not
-    aborted, counts audio packets into its track_playback record and sets done after its last
-    packet, and keeps each captioned sentence other than a wake cue with the time of its latest
-    packet for echo_of_playback."""
+    """Wraps upstream sendAudioMessage. For the connection's current, unaborted sentence it counts
+    the packets handed over (track_playback record and the transmit counters watch_transport
+    attributes written packets with) and keeps each captioned sentence other than a wake cue for
+    echo_of_playback. A raised or cancelled send is a send error of the record; its LAST sets done
+    as SentencePlayback describes."""
 
     async def wrapper(conn, sentence_type, audios, text, sentence_id=None):
         sid = conn.sentence_id if sentence_id is None else sentence_id
         current = sid == conn.sentence_id and not conn.client_abort
         record = getattr(conn, "weixue_playback", {}).get(sid) if current else None
         if current:
+            tx = _transmit(conn, sid)
             spoken = conn.__dict__.setdefault("weixue_spoken", deque(maxlen=ECHO_SENTENCES))
             if sentence_type == first and text and sid != getattr(conn, "weixue_cue_sentence", None):
-                now = time.monotonic()
-                spoken.append({"sid": sid, "text": text, "first": now, "last": now})
-            elif spoken and spoken[-1]["sid"] == sid:
-                spoken[-1]["last"] = time.monotonic()
+                spoken.append({"sid": sid, "text": text, "start": tx["handed"], "end": tx["handed"], "first": None, "last": None})
+            tx["handed"] += _packets(audios)
+            if spoken and spoken[-1]["sid"] == sid:
+                spoken[-1]["end"] = tx["handed"]
             if record is not None:
                 record.count(sentence_type, _packets(audios), first, last)
         try:
-            return await send(conn, sentence_type, audios, text, sentence_id)
-        finally:
-            if record is not None and sentence_type == last and not conn.client_abort:
-                if conn.weixue_spoken and conn.weixue_spoken[-1]["sid"] == sid:
-                    conn.weixue_spoken[-1]["last"] = time.monotonic()
-                record.done.set()
+            result = await send(conn, sentence_type, audios, text, sentence_id)
+        except asyncio.CancelledError:
+            if record is not None:
+                record.note_send_error("cancelled")
+            raise
+        except Exception as e:
+            if record is not None:
+                record.note_send_error(type(e).__name__)
+            raise
+        if (
+            record is not None
+            and sentence_type == last
+            and not record.send_error
+            and record.frames >= record.handed
+            and sid == conn.sentence_id
+            and not conn.client_abort
+        ):
+            record.done.set()
+        return result
 
     wrapper.weixue_wrapped = send
     wrapper.weixue_playback = True
+    return wrapper
+
+
+def watch_transport(do_send):
+    """Wraps upstream _do_send_audio(conn, packet, flow_control), the write of one audio packet to
+    the device. A write that returned counts as a frame of flow_control's sentence record and marks
+    the caption it belongs to as playing (first/latest write time); a raised or cancelled write is
+    a send error of that record."""
+
+    async def wrapper(conn, packet, flow_control):
+        sid = flow_control.get("sentence_id") if isinstance(flow_control, dict) else None
+        record = getattr(conn, "weixue_playback", {}).get(sid)
+        try:
+            result = await do_send(conn, packet, flow_control)
+        except asyncio.CancelledError:
+            if record is not None:
+                record.note_send_error("cancelled")
+            raise
+        except Exception as e:
+            if record is not None:
+                record.note_send_error(type(e).__name__)
+            raise
+        if record is not None:
+            record.frames += 1
+        tx = conn.__dict__.get("weixue_tx")
+        if tx is not None and tx["sid"] == sid:
+            tx["sent"] += 1
+            now = time.monotonic()
+            for entry in reversed(conn.__dict__.get("weixue_spoken", ())):
+                if entry["sid"] == sid and entry["start"] < tx["sent"] <= entry["end"]:
+                    if entry["first"] is None:
+                        entry["first"] = now
+                    entry["last"] = now
+                    break
+        return result
+
+    wrapper.weixue_wrapped = do_send
+    wrapper.weixue_transport = True
     return wrapper
 
 
@@ -420,20 +549,47 @@ def _echo_tokens(text):
     return _ECHO_TOKEN.findall((text or "").casefold())
 
 
+def _same_word(heard, said):
+    if heard == said:
+        return True
+    if not (heard.isascii() and said.isascii() and heard.isalpha() and said.isalpha()):
+        return False
+    short, long_ = sorted((heard, said), key=len)
+    return len(short) >= 3 and long_.startswith(short) and long_[len(short):] in ECHO_SUFFIXES
+
+
+def _inside(heard, said):
+    """The heard tokens other than fillers match (_same_word) a run of said tokens in order, with
+    only ECHO_SKIPPABLE said tokens between them."""
+    words = [token for token in heard if token not in ECHO_FILLERS]
+    if not words:
+        return False
+    for start, token in enumerate(said):
+        if not _same_word(words[0], token):
+            continue
+        j = start + 1
+        for word in words[1:]:
+            while j < len(said) and not _same_word(word, said[j]) and said[j] in ECHO_SKIPPABLE:
+                j += 1
+            if j == len(said) or not _same_word(word, said[j]):
+                break
+            j += 1
+        else:
+            return True
+    return False
+
+
 def echo_of_playback(conn, text):
-    """The played sentence text matches, else None. Only sentences playing when the utterance
-    started (conn.weixue_voice_onset) are compared; without an onset nothing matches."""
-    onset = getattr(conn, "weixue_voice_onset", None)
+    """The played sentence text matches, else None. Only sentences whose audio was being written
+    when the utterance started (conn.weixue_voice_onset) are compared; without an onset nothing
+    matches."""
+    started = getattr(conn, "weixue_voice_onset", None)
     heard = _echo_tokens(text)
     letters = "".join(heard)
-    if onset is None or not letters:
+    if started is None or not letters:
         return None
-    started, onset_sid, holding = onset
     for entry in reversed(getattr(conn, "weixue_spoken", ())):
-        if entry["first"] > started:
-            continue
-        current = holding and entry["sid"] == onset_sid
-        if not current and started > entry["last"] + ECHO_TAIL_S:
+        if entry["first"] is None or not entry["first"] <= started <= entry["last"] + ECHO_TAIL_S:
             continue
         said = _echo_tokens(entry["text"])
         if not said:
@@ -442,22 +598,22 @@ def echo_of_playback(conn, text):
             if SequenceMatcher(None, letters, "".join(said), autojunk=False).ratio() >= ECHO_SHORT_RATIO:
                 return entry["text"]
             continue
-        blocks = SequenceMatcher(None, heard, said, autojunk=False).get_matching_blocks()
-        if sum(b.size for b in blocks) / len(heard) >= ECHO_COVER_RATIO:
+        if _inside(heard, said):
             return entry["text"]
     return None
 
 
 def guard_playback_echo(start_to_chat, logger):
     """Wraps the ASR path's startToChat: a transcript echo_of_playback matches is dropped
-    before upstream can treat it as barge-in; any other transcript cancels a pending wake cue
-    and starts the turn."""
+    before upstream can treat it as barge-in; any other transcript is a connection event
+    (event_generation), cancels a pending wake cue and starts the turn."""
 
     async def wrapper(conn, text):
         played = echo_of_playback(conn, text)
         if played is not None:
             logger.bind(tag=__name__).info(f"playback echo ignored: {text!r} matches {played!r}")
             return None
+        note_event(conn)
         cancel_wake_cue(conn)
         return await start_to_chat(conn, text)
 
@@ -476,9 +632,12 @@ def bind_device_auth(init, proactive):
     return wrapper
 
 
+ABORT_MODULES = ("core.handle.abortHandle", "core.handle.receiveAudioHandle", "core.handle.textHandler.abortMessageHandler")
+
+
 def apply_playback_guards(proactive, logger):
-    """Playback record, echo guard and proactive device auth. Runs before the wake cue player
-    is built, so the cue sends through the wrapped sendAudioMessage."""
+    """Playback record, transport hook, abort events, echo guard and proactive device auth. Runs
+    before the wake cue player is built, so the cue sends through the wrapped sendAudioMessage."""
     import core.http_server as http_server
 
     send_audio = importlib.import_module("core.handle.sendAudioHandle")
@@ -488,6 +647,13 @@ def apply_playback_guards(proactive, logger):
     for module in (send_audio, tts_base):
         if not getattr(module.sendAudioMessage, "weixue_playback", False):
             module.sendAudioMessage = watch_sent_audio(module.sendAudioMessage, kinds.FIRST, kinds.LAST)
+    if not getattr(send_audio._do_send_audio, "weixue_transport", False):
+        send_audio._do_send_audio = watch_transport(send_audio._do_send_audio)
+    for name in ABORT_MODULES:
+        module = importlib.import_module(name)
+        handle_abort = getattr(module, "handleAbortMessage", None)
+        if handle_abort is not None and getattr(handle_abort, "weixue_wrapped", None) is None:
+            module.handleAbortMessage = count_aborts(handle_abort)
     if getattr(asr_base.startToChat, "weixue_wrapped", None) is None:
         asr_base.startToChat = guard_playback_echo(asr_base.startToChat, logger)
     server = http_server.SimpleHttpServer
