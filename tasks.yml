@@ -131,7 +131,7 @@ tasks:
     branch: fix/conversation-timing
     description: 用户实测反馈：回复后监听时间过长、结束时啰嗦。调 xiaozhi-server 配置与 overlay：回复后免唤醒追问窗口约 8 s（ADR-7），超时静默回到 idle；关闭 end_prompt 告别语；唤醒应答：用户要求一个人声“hmm/嗯?”式的简短应答——用当前 Google TTS 英文音色预渲染 2–3 个短片段（Hmm? / Mm-hm? / Yes?），每次唤醒随机播放，配置为服务器唤醒应答资源，替换中文罐头音；缩短句尾静音判定（VAD）；确认设备端 realtime 监听模式与服务器超时的配合。实机验证：说完一轮后 ≤10 s 回到待机且无告别语，追问在窗口内可被识别。
     depends_on: [feat-firmware-base]
-    status: pending
+    status: done
     retries: 0
     model: opus
   - id: fix-server-review-2
