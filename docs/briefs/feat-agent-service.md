@@ -400,3 +400,7 @@ Build on it in place, squash at the end (~5.9 k lines in `server/agent-service/`
 - Q9 effort: resolved by the orchestrator within decision 15's intent — per-turn effort if S1 (m) shows the CLI supports it (low for short replies, high once a turn calls a tool or is steered), otherwise `medium` everywhere.
 - Stop lexicon handled service-side with a canned "Stopped." is accepted (our stack).
 - The old worktree attempt (§16) is reference only; nothing from it is committed blindly.
+
+## Latency red line (Jay, 2026-10-07)
+
+Latency is a hard constraint, not a nice-to-have. S0 must measure, on this Mac with the personal key, warm session, prompt cache warm, effort low: (a) text first-token latency of the Agent SDK path for a one-line question with the full ha-mcp tool surface loaded; (b) the same question via a direct `messages.stream` call (claude-sonnet-5-5, no tools) as the floor; (c) end-to-end speech-end → first TTS audio through the gateway. Budgets: (c) ≤ 1.5 s median for quick asks, (a) ≤ 800 ms median. If the SDK path misses the budget, the task does not proceed on the SDK alone: implement the hybrid path (quick asks via direct streaming API with a small tool set, tasks via the SDK) or escalate to the orchestrator to switch to a lightweight in-process agent loop. Record the numbers in docs/logs/feat-agent-service-s1-2026-10-07.md.
