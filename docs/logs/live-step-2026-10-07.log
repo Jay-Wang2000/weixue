@@ -1,0 +1,45 @@
+== live step 2026-10-07 16:01:34 main 50df7ad
+== containers
+mcp-bridge Up 45 seconds (healthy)
+wg Up 46 seconds (healthy)
+xiaozhi-esp32-server Up 46 seconds
+mcp-endpoint-server Up 3 hours
+== tunnel
+handshake 45 s ago
+== bridge log
+2026-10-07 15:00:49,203 INFO weixue_bridge: ha-mcp http://<ha_ip>:9584 <-> endpoint ws://mcp-endpoint-server:8004
+2026-10-07 15:00:49,869 INFO weixue_bridge: connected; 7 ha-mcp tools on the voice path
+== option C: OTA unlisted (expect 403)
+403
+== option C: OTA listed (expect 200, token empty)
+status 200; websocket keys: ['token', 'url'] token: ''
+== option C: WS unlisted with token (expect 认证失败 then close)
+first frame: 认证失败
+closed: ConnectionClosedOK
+== banner without Device-Id
+banner: 端口正常，如需测试连接，请启动digital-human测试
+== proactive poll unlisted (expect 401)
+endpoints documented: /weixue/proactive /weixue/proactive/messages /weixue/proactive/messages-- 
+401
+== server log refusals
+2
+== HA via bridge (read-only)
+entity from docs: light.living_room_ceiling_lights
+ERR AttributeError 'HaMcpClient' object has no attribute 'list_tools'
+== HA via bridge (read-only, retry)
+tools/list 77 True 0.64 s
+ha_get_state light.living_room_ceiling_lights -> {"content": [{"text": "{\"data\":{\"entity_id\":\"light.living_room_ceiling_lights\",\"state\":\"off\",\"attributes\":{\"min_color_temp_kelvin\":2202,\"max_colo 0.71 s
+== device reconnect (serial 30 s,  lines)
+== server side
+xiaozhi-esp32-server  | 261007 16:01:34[0.9.7_00000000000000][core.api.ota_handler]-INFO-Firmware cache refreshed: 0 models
+xiaozhi-esp32-server  | 261007 16:01:34[0.9.7_00000000000000][core.api.ota_handler]-INFO-查找型号 default 的固件，找到 0 个候选
+xiaozhi-esp32-server  | 261007 16:01:34[0.9.7_00000000000000][core.api.ota_handler]-INFO-设备 <mac> 固件已是最新: 0.0.0
+== device reconnect (serial 30 s,      216 lines)
+I (2007) StateMachine: State: unknown -> starting
+I (4117) WifiStation: Got IP: <ip>
+I (4117) StateMachine: State: starting -> activating
+I (4327) Ota: Current version: 2.5.1
+I (4647) Ota: No mqtt section found !
+I (4647) Ota: Current is the latest version
+I (4647) Ota: Running partition: ota_0
+I (4657) StateMachine: State: activating -> idle
