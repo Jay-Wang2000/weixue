@@ -53,6 +53,13 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 30. **Monitor board exposure** — decided 2026-10-07 (Jay): bind 127.0.0.1 only. The backend moves to the home Ubuntu server on the LAN, reached over Tailscale; the board is then opened through the tailnet (no public exposure, no basic auth needed for v1).
 
+## M2 open questions — answers 2026-10-07 (Jay)
+31. **Q1 voice approval**: explicit phrases (approve / do it / 批准 / 同意) approve REVERSIBLE actions only; irreversible or money actions are tap-only; a spoken decision applies to the single card on screen; bare "yes" gets a repeat-back. Supersedes the "voice never approves" line of decision 20.
+32. **Q3 overnight card vs HA token**: no special case. The card expires with the ha-mcp token; the agent acknowledges the expiry (tells the user it lapsed, offers nothing automatic).
+33. **Q7 retention**: unknown; go with defaults. S0 spike verifies a Fable call with the personal key; on a retention 400 the service falls back to Opus and the monitor shows it; Jay checks the org setting later.
+34. **Q8 test entity**: `light.living_room_ceiling_lights` may be toggled in live tests (restore its previous state afterwards). Home audio window: still to be named.
+35. **Q2 (90 s deadline) and Q6 (delivery after restart)**: Jay asked for plain explanations; defaults proposed in chat, pending.
+
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
 - Audio-only checks from fix-server-review-2 (barge-in / TTS cancel) and fix-wave3-server (announce playback, urgent conversation, wake cue → "Yes" for every cue, long reply with 0 self-aborts): run at home via the feat-voice-integration gate. Everything else passed in the 2026-10-07 live step.

@@ -387,3 +387,11 @@ The agent service owns the single SQLite database; the monitor reads it read-onl
 - `can_use_tool` is not a filesystem guard: enforce the memory-dir boundary with permission rules plus filesystem isolation (dedicated cwd, no symlink escape); test traversal.
 - `interrupt()` must drain the old turn (buffered partial messages stay attached to their generation) before the next query is admitted; already-dispatched HA work is reported as outcome-unknown, never retried.
 - Outbox: define `partial` and lost-record/404 handling; a handed-off question cannot be withdrawn through the proactive API, so supersession marks it stale on arrival instead; INTERRUPT deliveries bypass the quiescence wait.
+
+## Answers 2026-10-07 (override §14 where they conflict)
+
+- Q1: explicit phrases approve reversible actions; irreversible/money tap-only; one card at a time; repeat-back on a bare yes. Implement voice approval accordingly (not deny-only).
+- Q3: card expires with the ha-mcp token; the agent acknowledges the lapse; no renewal path.
+- Q7: defaults; S0 verifies Fable; retention 400 → fallback model + monitor entry.
+- Q8: test entity `light.living_room_ceiling_lights` (restore state after each test).
+- Q2, Q6: pending Jay (plain-language explanation requested).
