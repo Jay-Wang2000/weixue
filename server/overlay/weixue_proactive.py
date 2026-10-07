@@ -599,7 +599,8 @@ def add_routes(app, proactive):
         if device is None:
             return web.json_response({"error": "Device-Id header required"}, status=400)
         if await proactive.poll(device):
-            return web.json_response({"pending": True})
+            item = proactive.next_for(device)
+            return web.json_response({"pending": True, "urgent": bool(item and item.urgent)})
         return web.Response(status=204)
 
     async def start_dispatcher(_app):

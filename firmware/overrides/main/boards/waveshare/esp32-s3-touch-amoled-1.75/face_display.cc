@@ -1,20 +1,25 @@
 #include "face_display.h"
 
 #include "application.h"
+#include "assets/lang_config.h"
 #include "lvgl_theme.h"
+#include "settings.h"
 
+#include <esp_heap_caps.h>
 #include <esp_log.h>
 #include <esp_random.h>
 #include <esp_timer.h>
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
+#include <ctime>
 
 #if WEIXUE_FACE_DIAG
-#include <esp_heap_caps.h>
 #include <freertos/task.h>
 #include <mbedtls/base64.h>
+#include "lvgl_private.h"
 #include <cstdio>
 #endif
 
@@ -25,6 +30,11 @@ namespace {
 constexpr uint32_t kEyeColor = 0x00E0FF;
 constexpr uint32_t kCaptionColor = 0x9FB4BC;
 constexpr uint32_t kChromeColor = 0x6E8A92;
+constexpr uint32_t kThinkTailColor = 0x3048FF;
+constexpr uint32_t kErrorColor = 0xFF2A1A;
+constexpr uint32_t kBedsideClockColor = 0x701000;
+constexpr uint32_t kBedsideEyeColor = 0x5A0C00;
+constexpr uint32_t kBedsideRingColor = 0x801400;
 
 constexpr uint32_t kTickMs = 33;
 constexpr uint32_t kRestTickMs = 100;
@@ -39,6 +49,37 @@ constexpr int64_t kShiftPeriodUs = 60LL * 1000 * 1000;
 constexpr int8_t kShiftPath[8][2] = {{0, 0},  {1, 0},  {1, 1},   {0, 1},
                                      {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}};
 constexpr float kPi = 3.14159265f;
+
+// Ring: 9 px is 2% of the 466 px diameter; the outer edge sits kRingInset inside the panel edge.
+constexpr int kRingWidth = 9;
+constexpr int kRingInset = 1;
+constexpr int kRingPad = 2;
+constexpr int64_t kErrorFlashUs = 1800LL * 1000;
+constexpr int64_t kErrorFlashPeriodUs = 600LL * 1000;
+constexpr float kListenPulseHz = 0.8f;
+constexpr float kSpinDegPerS = 180.0f;
+constexpr int64_t kSolidFrameUs = 100LL * 1000;
+constexpr int64_t kSpinFrameUs = 66LL * 1000;
+constexpr float kLevelAttackTau = 0.03f;
+constexpr float kLevelReleaseTau = 0.15f;
+constexpr float kBedsideRingOpa = 0.55f;
+
+// Bedside page: seven-segment HH:MM clock above two closed-eye lines.
+constexpr int64_t kBedsideResumeUs = 15LL * 1000 * 1000;
+constexpr int kBedsideShiftScale = 6;
+constexpr float kBedsideEyesY = 96.0f;
+constexpr int kClockY = -26;
+constexpr int kDigitW = 60;
+constexpr int kDigitH = 112;
+constexpr int kSegT = 11;
+constexpr int kDigitGap = 18;
+constexpr int kColonGap = 22;
+constexpr int kColonDot = 12;
+constexpr int kClockW = 4 * kDigitW + 2 * kDigitGap + 2 * kColonGap + kColonDot;
+// Segments a-g as bits 0-6.
+constexpr uint8_t kDigitSegments[10] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F};
+constexpr uint8_t kDashSegments = 0x40;
+constexpr time_t kClockValidAfter = 1735689600;  // 2025-01-01
 
 #if WEIXUE_FACE_DIAG
 // One encoded screen dump handed from the LVGL task to the diag print task.
@@ -84,17 +125,27 @@ FaceDisplay::FaceDisplay(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_handl
                          int width, int height, int offset_x, int offset_y, bool mirror_x,
                          bool mirror_y, bool swap_xy)
     : SpiLcdDisplay(panel_io, panel, width, height, offset_x, offset_y, mirror_x, mirror_y,
-                    swap_xy) {
+                    swap_xy),
+      eye_color_(kEyeColor),
+      bedside_schedule_(-1, -1) {
     auto dark = LvglThemeManager::GetInstance().GetTheme("dark");
     if (dark != nullptr) {
         current_theme_ = dark;
     }
+    Settings settings("bedside", false);
+    std::string start = settings.GetString("start", CONFIG_WEIXUE_BEDSIDE_START);
+    std::string end = settings.GetString("end", CONFIG_WEIXUE_BEDSIDE_END);
+    bedside_schedule_.SetWindow(BedsideSchedule::ParseClock(start.c_str()),
+                                BedsideSchedule::ParseClock(end.c_str()));
+    ESP_LOGI(TAG, "bedside window %s-%s (%d-%d min)", start.c_str(), end.c_str(),
+             bedside_schedule_.start(), bedside_schedule_.end());
 }
 
 FaceDisplay::~FaceDisplay() {
     if (timer_ != nullptr) {
         lv_timer_delete(timer_);
     }
+    heap_caps_free(ring_mask_);
 #if WEIXUE_FACE_DIAG
     heap_caps_free(diag_buf_);
 #endif
@@ -188,6 +239,22 @@ void FaceDisplay::SetupUI() {
         lv_obj_add_flag(dots_[i], LV_OBJ_FLAG_HIDDEN);
     }
 
+    clock_ = lv_obj_create(face_root_);
+    lv_obj_remove_style_all(clock_);
+    lv_obj_remove_flag(clock_, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_remove_flag(clock_, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_size(clock_, kClockW, kDigitH);
+    lv_obj_add_event_cb(clock_, ClockDrawCb, LV_EVENT_DRAW_MAIN, this);
+    lv_obj_add_flag(clock_, LV_OBJ_FLAG_HIDDEN);
+
+    ring_obj_ = lv_obj_create(screen);
+    lv_obj_remove_style_all(ring_obj_);
+    lv_obj_set_size(ring_obj_, width_, height_);
+    lv_obj_remove_flag(ring_obj_, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_remove_flag(ring_obj_, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_event_cb(ring_obj_, RingDrawCb, LV_EVENT_DRAW_MAIN, this);
+    BuildRingMask();
+
     StyleChrome();
 
     EyeShape initial[2];
@@ -240,6 +307,69 @@ void FaceDisplay::SetTheme(Theme* theme) {
         DisplayLockGuard lock(this);
         StyleChrome();
     }
+}
+
+void FaceDisplay::SetStatus(const char* status) {
+    SpiLcdDisplay::SetStatus(status);
+    if (status != nullptr && strcmp(status, Lang::Strings::ERROR) == 0) {
+        DisplayLockGuard lock(this);
+        error_until_us_ = esp_timer_get_time() + kErrorFlashUs;
+    }
+}
+
+bool FaceDisplay::SetBedsideHint(const char* hint) {
+    BedsideSchedule::Hint h;
+    if (hint != nullptr && strcmp(hint, "night") == 0) {
+        h = BedsideSchedule::Hint::kNight;
+    } else if (hint != nullptr && strcmp(hint, "day") == 0) {
+        h = BedsideSchedule::Hint::kDay;
+    } else if (hint != nullptr && strcmp(hint, "auto") == 0) {
+        h = BedsideSchedule::Hint::kAuto;
+    } else {
+        return false;
+    }
+    DisplayLockGuard lock(this);
+    bedside_schedule_.SetHint(h, local_minute_, esp_timer_get_time() / 1000000);
+    ESP_LOGI(TAG, "bedside hint=%s local=%s", hint, clock_text_);
+    return true;
+}
+
+bool FaceDisplay::SetBedsideWindow(const char* start, const char* end) {
+    int s = BedsideSchedule::ParseClock(start), e = BedsideSchedule::ParseClock(end);
+    if (s < 0 || e < 0) {
+        return false;
+    }
+    {
+        Settings settings("bedside", true);
+        settings.SetString("start", start);
+        settings.SetString("end", end);
+    }
+    DisplayLockGuard lock(this);
+    bedside_schedule_.SetWindow(s, e);
+    ESP_LOGI(TAG, "bedside window %s-%s local=%s", start, end, clock_text_);
+    return true;
+}
+
+void FaceDisplay::OnTouch() {
+    touch_us_ = esp_timer_get_time();
+}
+
+std::string FaceDisplay::BedsideStateJson() {
+    DisplayLockGuard lock(this);
+    static const char* kHints[] = {"auto", "night", "day"};
+    char buf[200];
+    char window[24];
+    bedside_schedule_.WindowText(window, sizeof(window));
+    bool night = bedside_schedule_.IsNight(local_minute_, esp_timer_get_time() / 1000000);
+    char local[10] = "null";
+    if (local_minute_ >= 0) {
+        snprintf(local, sizeof(local), "\"%s\"", clock_text_);
+    }
+    snprintf(buf, sizeof(buf),
+             "{\"night\":%s,\"showing\":%s,\"hint\":\"%s\",\"window\":\"%s\",\"local_time\":%s}",
+             night ? "true" : "false", bedside_ ? "true" : "false",
+             kHints[static_cast<int>(bedside_schedule_.hint())], window, local);
+    return buf;
 }
 
 void FaceDisplay::SetEmotion(const char* emotion) {
@@ -301,6 +431,9 @@ void FaceDisplay::Tick() {
         last_state_ = state;
     }
 
+    UpdateClock(now);
+    UpdateBedside(now, state);
+
     Mode mode = ModeFromState(state, now);
     if (mode != mode_ || mood_ != shown_mood_) {
         mode_ = mode;
@@ -355,13 +488,14 @@ void FaceDisplay::Tick() {
         s.y += s.h * 0.12f * blink_;
         s.h = std::max(6.0f, s.h * (1.0f - blink_));
         s.w *= 1.0f + 0.05f * blink_;
-        s.x += shift_x_;
-        s.y += shift_y_;
+        s.x += ShiftX();
+        s.y += ShiftY();
         changed |= ApplyEye(i, s);
     }
     UpdateDots(now);
+    bool ring_on = UpdateRing(now, dt, state);
 
-    bool resting = !changed && blink_start_us_ == 0 &&
+    bool resting = !changed && !ring_on && blink_start_us_ == 0 &&
                    (mode_ == Mode::kIdle || mode_ == Mode::kListening);
     lv_timer_set_period(timer_, resting ? kRestTickMs : kTickMs);
 
@@ -371,6 +505,12 @@ void FaceDisplay::Tick() {
 }
 
 void FaceDisplay::TargetShapes(EyeShape out[2], bool voice) const {
+    if (bedside_) {
+        for (int i = 0; i < 2; i++) {
+            out[i] = {(i == 0 ? -1.0f : 1.0f) * kEyeSpacing, kBedsideEyesY, 84, 6, 3, 0, 0, 0};
+        }
+        return;
+    }
     EyeShape base = {0, 0, 100, 116, 30, 0, 0, 0};
     switch (mode_) {
         case Mode::kIdle:
@@ -441,7 +581,11 @@ void FaceDisplay::TargetShapes(EyeShape out[2], bool voice) const {
 }
 
 void FaceDisplay::UpdateGaze(int64_t now, float dt) {
-    if (now >= next_gaze_us_) {
+    if (bedside_) {
+        gaze_tx_ = 0;
+        gaze_ty_ = 0;
+        next_gaze_us_ = now;
+    } else if (now >= next_gaze_us_) {
         switch (mode_) {
             case Mode::kIdle:
                 if (Rand01() < 0.35f) {
@@ -478,7 +622,7 @@ void FaceDisplay::UpdateGaze(int64_t now, float dt) {
 }
 
 void FaceDisplay::UpdateBlink(int64_t now) {
-    if (mode_ == Mode::kThinking) {
+    if (mode_ == Mode::kThinking || bedside_) {
         blink_ = 0;
         blink_start_us_ = 0;
         return;
@@ -528,6 +672,9 @@ void FaceDisplay::UpdateShift(int64_t now) {
         lv_obj_set_style_translate_x(obj, shift_x_, 0);
         lv_obj_set_style_translate_y(obj, shift_y_, 0);
     }
+    if (bedside_) {
+        PlaceClock();
+    }
 #if WEIXUE_FACE_DIAG
     ESP_LOGI(TAG, "diag shift=%d,%d", shift_x_, shift_y_);
 #endif
@@ -535,7 +682,7 @@ void FaceDisplay::UpdateShift(int64_t now) {
 
 void FaceDisplay::UpdateDots(int64_t now) {
     static const int16_t kDotPos[3][2] = {{58, -96}, {82, -116}, {110, -138}};
-    bool show = mode_ == Mode::kThinking;
+    bool show = mode_ == Mode::kThinking && !bedside_;
     float t = WaveTime(now);
     for (int i = 0; i < 3; i++) {
         if (!show) {
@@ -546,8 +693,8 @@ void FaceDisplay::UpdateDots(int64_t now) {
             continue;
         }
         int size = 10 + 4 * i;
-        lv_obj_set_pos(dots_[i], width_ / 2 + kDotPos[i][0] - size / 2 + shift_x_,
-                       height_ / 2 + kDotPos[i][1] - size / 2 + shift_y_);
+        lv_obj_set_pos(dots_[i], width_ / 2 + kDotPos[i][0] - size / 2 + ShiftX(),
+                       height_ / 2 + kDotPos[i][1] - size / 2 + ShiftY());
         float wave = 0.5f + 0.5f * sinf(2 * kPi * 1.2f * t - i * 0.9f);
         uint8_t opa = static_cast<uint8_t>((60 + static_cast<int>(195 * wave)) & 0xF0);
         if (opa != dot_opa_[i]) {
@@ -597,7 +744,7 @@ void FaceDisplay::DrawEye(lv_layer_t* layer, lv_obj_t* obj, int i) const {
 
     lv_draw_fill_dsc_t fill;
     lv_draw_fill_dsc_init(&fill);
-    fill.color = lv_color_hex(kEyeColor);
+    fill.color = lv_color_hex(eye_color_);
     fill.opa = LV_OPA_COVER;
     fill.radius = b.r;
     lv_draw_fill(layer, &fill, &area);
@@ -637,15 +784,340 @@ void FaceDisplay::DrawEye(lv_layer_t* layer, lv_obj_t* obj, int i) const {
     }
 }
 
+int FaceDisplay::ShiftX() const { return shift_x_ * (bedside_ ? kBedsideShiftScale : 1); }
+int FaceDisplay::ShiftY() const { return shift_y_ * (bedside_ ? kBedsideShiftScale : 1); }
+
+void FaceDisplay::UpdateClock(int64_t now) {
+    if (clock_checked_us_ != 0 && now - clock_checked_us_ < 1000000) {
+        return;
+    }
+    clock_checked_us_ = now;
+    time_t t = time(nullptr);
+    int minute = -1;
+    char text[6] = "--:--";
+    if (t >= kClockValidAfter) {
+        struct tm tm_now;
+        localtime_r(&t, &tm_now);
+        minute = tm_now.tm_hour * 60 + tm_now.tm_min;
+        snprintf(text, sizeof(text), "%02d:%02d", tm_now.tm_hour, tm_now.tm_min);
+    }
+    local_minute_ = minute;
+    if (strcmp(text, clock_text_) != 0) {
+        memcpy(clock_text_, text, sizeof(clock_text_));
+        if (bedside_) {
+            lv_obj_invalidate(clock_);
+        }
+    }
+}
+
+// Night and no interaction (touch, or a session other than a non-urgent announcement without a
+// wake word or user transcript) within kBedsideResumeUs shows the bedside page.
+void FaceDisplay::UpdateBedside(int64_t now, DeviceState state) {
+    int64_t touch = touch_us_;
+    bool touched = touch != touch_seen_us_;
+    touch_seen_us_ = touch;
+    bool quiet_session = Application::GetInstance().GetSessionOrigin() ==
+                         Application::SessionOrigin::kProactive;
+    bool active = state != kDeviceStateIdle && !quiet_session;
+    if (touched || active) {
+        bedside_resume_us_ = now + kBedsideResumeUs;
+    }
+    bool night = bedside_schedule_.IsNight(local_minute_, now / 1000000);
+    bool want = night && now >= bedside_resume_us_;
+    if (want != bedside_) {
+        SetBedside(want, !night ? "day" : touched ? "touch" : active ? "session" : "night");
+    }
+}
+
+void FaceDisplay::SetBedside(bool on, const char* reason) {
+    bedside_ = on;
+    eye_color_ = on ? kBedsideEyeColor : kEyeColor;
+    lv_obj_t* chrome[] = {top_bar_, status_bar_, bottom_bar_};
+    for (lv_obj_t* obj : chrome) {
+        lv_obj_set_style_opa(obj, on ? LV_OPA_TRANSP : LV_OPA_COVER, 0);
+    }
+    if (on) {
+        PlaceClock();
+        lv_obj_remove_flag(clock_, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(clock_, LV_OBJ_FLAG_HIDDEN);
+    }
+    for (lv_obj_t* eye : eyes_) {
+        lv_obj_invalidate(eye);
+    }
+    for (RingState& tile : ring_tiles_) {
+        tile = RingState();
+    }
+    lv_obj_invalidate(ring_obj_);
+    next_gaze_us_ = esp_timer_get_time();
+    ESP_LOGI(TAG, "bedside=%s reason=%s local=%s hint=%d", on ? "on" : "off", reason, clock_text_,
+             static_cast<int>(bedside_schedule_.hint()));
+#if WEIXUE_FACE_DIAG
+    diag_pose_since_us_ = esp_timer_get_time();
+    if ((diag_dumped_poses_ & DiagPoseBit()) == 0) {
+        diag_dump_due_us_ = diag_pose_since_us_ + 800 * 1000;
+    }
+#endif
+}
+
+void FaceDisplay::PlaceClock() {
+    lv_obj_set_pos(clock_, (width_ - kClockW) / 2 + ShiftX(),
+                   height_ / 2 + kClockY - kDigitH / 2 + ShiftY());
+}
+
+void FaceDisplay::ClockDrawCb(lv_event_t* e) {
+    auto* self = static_cast<FaceDisplay*>(lv_event_get_user_data(e));
+    self->DrawClock(lv_event_get_layer(e), lv_event_get_target_obj(e));
+}
+
+void FaceDisplay::DrawClock(lv_layer_t* layer, lv_obj_t* obj) const {
+    lv_area_t area;
+    lv_obj_get_coords(obj, &area);
+    lv_draw_fill_dsc_t fill;
+    lv_draw_fill_dsc_init(&fill);
+    fill.color = lv_color_hex(kBedsideClockColor);
+    fill.opa = LV_OPA_COVER;
+    fill.radius = kSegT / 2;
+
+    auto rect = [&](int32_t x, int32_t y, int32_t w, int32_t h) {
+        lv_area_t a = {area.x1 + x, area.y1 + y, area.x1 + x + w - 1, area.y1 + y + h - 1};
+        lv_draw_fill(layer, &fill, &a);
+    };
+    const int32_t half = (kDigitH + kSegT) / 2;
+    auto digit = [&](int32_t x, uint8_t seg) {
+        if (seg & 0x01) rect(x, 0, kDigitW, kSegT);                         // a
+        if (seg & 0x02) rect(x + kDigitW - kSegT, 0, kSegT, half);          // b
+        if (seg & 0x04) rect(x + kDigitW - kSegT, half - kSegT, kSegT, kDigitH - half + kSegT);  // c
+        if (seg & 0x08) rect(x, kDigitH - kSegT, kDigitW, kSegT);           // d
+        if (seg & 0x10) rect(x, half - kSegT, kSegT, kDigitH - half + kSegT);  // e
+        if (seg & 0x20) rect(x, 0, kSegT, half);                            // f
+        if (seg & 0x40) rect(x, (kDigitH - kSegT) / 2, kDigitW, kSegT);     // g
+    };
+    const int32_t xs[4] = {0, kDigitW + kDigitGap, kClockW - 2 * kDigitW - kDigitGap,
+                           kClockW - kDigitW};
+    const int chars[4] = {0, 1, 3, 4};
+    for (int i = 0; i < 4; i++) {
+        char c = clock_text_[chars[i]];
+        digit(xs[i], c >= '0' && c <= '9' ? kDigitSegments[c - '0'] : kDashSegments);
+    }
+    int32_t colon_x = 2 * kDigitW + kDigitGap + kColonGap;
+    fill.radius = LV_RADIUS_CIRCLE;
+    rect(colon_x, kDigitH * 3 / 10 - kColonDot / 2, kColonDot, kColonDot);
+    rect(colon_x, kDigitH * 7 / 10 - kColonDot / 2, kColonDot, kColonDot);
+}
+
+// Returns whether the ring is showing anything.
+bool FaceDisplay::UpdateRing(int64_t now, float dt, DeviceState state) {
+    RingState s;
+    s.width = kRingWidth;
+    s.color = kEyeColor;
+    float t = WaveTime(now);
+    float level_target = Application::GetInstance().GetAudioService().GetOutputLevel() / 255.0f;
+    out_level_ = Approach(out_level_, level_target, dt,
+                          level_target > out_level_ ? kLevelAttackTau : kLevelReleaseTau);
+
+    bool error = now < error_until_us_ || state == kDeviceStateFatalError;
+    if (error) {
+        s.style = RingState::Style::kSolid;
+        s.color = kErrorColor;
+        int64_t since = now - (error_until_us_ - kErrorFlashUs);
+        s.opa = since % kErrorFlashPeriodUs < kErrorFlashPeriodUs / 2 ? LV_OPA_COVER : 0;
+    } else {
+        switch (mode_) {
+            case Mode::kIdle:
+                break;
+            case Mode::kListening: {
+                float wave = 0.5f + 0.5f * sinf(2 * kPi * kListenPulseHz * t);
+                s.style = RingState::Style::kSolid;
+                s.opa = static_cast<uint8_t>(64 + 191 * wave) & 0xE0;
+                break;
+            }
+            case Mode::kThinking:
+                s.style = RingState::Style::kSpin;
+                s.opa = LV_OPA_COVER;
+                s.tail_color = kThinkTailColor;
+                s.head_deg = static_cast<int16_t>(
+                    RingState::Wrap(static_cast<int>(fmodf(t * kSpinDegPerS, 360.0f)) & ~1));
+                break;
+            case Mode::kSpeaking:
+                s.style = RingState::Style::kSolid;
+                s.opa = static_cast<uint8_t>(48 + 207 * out_level_) & 0xE0;
+                break;
+        }
+    }
+    if (bedside_ && s.style != RingState::Style::kOff) {
+        s.color = s.tail_color = error ? kErrorColor : kBedsideRingColor;
+        s.opa = static_cast<uint8_t>(s.opa * kBedsideRingOpa) & 0xF0;
+    }
+
+    // Solid rings repaint at most every kSolidFrameUs, a spin every kSpinFrameUs; a new style
+    // or colour repaints at once.
+    bool restyled = s.style != ring_.style || s.color != ring_.color;
+    int64_t gap = s.style == RingState::Style::kSpin ? kSpinFrameUs : kSolidFrameUs;
+    bool repaint = restyled || now - ring_painted_us_ >= gap;
+    if (repaint) {
+        ring_ = s;
+        ring_painted_us_ = now;
+    }
+    const char* kind = error                                    ? "error"
+                       : s.style == RingState::Style::kOff      ? "off"
+                       : s.style == RingState::Style::kSpin     ? "spin"
+                       : mode_ == Mode::kListening              ? "pulse"
+                                                                : "level";
+    if (strcmp(kind, ring_kind_) != 0) {
+        ring_kind_ = kind;
+        ESP_LOGI(TAG, "ring=%s bedside=%d", kind, bedside_);
+#if WEIXUE_FACE_DIAG
+        if (error && (diag_dumped_poses_ & DiagPoseBit()) == 0) {
+            diag_dump_due_us_ = now + 800 * 1000;
+        }
+#endif
+    }
+    if (!repaint) {
+        return s.style != RingState::Style::kOff;
+    }
+    const int cx = width_ / 2, cy = height_ / 2;
+    const int r_out = width_ / 2 - kRingInset;
+    for (int k = 0; k < RingState::kTiles; k++) {
+        RingState view = s.TileView(k);
+        if (view == ring_tiles_[k]) {
+            continue;
+        }
+        int r_in = r_out - std::max(view.width, ring_tiles_[k].width);
+        ring_tiles_[k] = view;
+        RingState::Box b = RingState::SectorBox(cx, cy, r_out, r_in, k * RingState::kTileDeg,
+                                                RingState::kTileDeg, kRingPad);
+        lv_area_t a = {b.x1, b.y1, b.x2, b.y2};
+        lv_obj_invalidate_area(ring_obj_, &a);
+    }
+    return s.style != RingState::Style::kOff;
+}
+
+// A8 coverage mask of the solid ring.
+void FaceDisplay::BuildRingMask() {
+    const int w = width_, h = height_;
+    ring_mask_ = static_cast<uint8_t*>(heap_caps_calloc(1, w * h, MALLOC_CAP_SPIRAM));
+    if (ring_mask_ == nullptr) {
+        ESP_LOGW(TAG, "ring mask: no memory, drawing arcs");
+        return;
+    }
+    const float cx = w / 2, cy = h / 2;
+    const float r_out = w / 2 - kRingInset, r_in = r_out - kRingWidth;
+    const float skip2 = (r_in - 1) * (r_in - 1), out2 = (r_out + 1) * (r_out + 1);
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            float dx = x - cx, dy = y - cy, d2 = dx * dx + dy * dy;
+            if (d2 < skip2 || d2 > out2) {
+                continue;
+            }
+            float d = sqrtf(d2);
+            float cov = std::clamp(r_out + 0.5f - d, 0.0f, 1.0f) * std::clamp(d - r_in + 0.5f, 0.0f, 1.0f);
+            ring_mask_[y * w + x] = static_cast<uint8_t>(lroundf(cov * 255));
+        }
+    }
+    ring_img_.header.magic = LV_IMAGE_HEADER_MAGIC;
+    ring_img_.header.cf = LV_COLOR_FORMAT_A8;
+    ring_img_.header.w = w;
+    ring_img_.header.h = h;
+    ring_img_.header.stride = w;
+    ring_img_.data_size = w * h;
+    ring_img_.data = ring_mask_;
+}
+
+void FaceDisplay::RingDrawCb(lv_event_t* e) {
+    auto* self = static_cast<FaceDisplay*>(lv_event_get_user_data(e));
+    self->DrawRing(lv_event_get_layer(e));
+}
+
+void FaceDisplay::DrawRing(lv_layer_t* layer) const {
+    const RingState& s = ring_;
+    if (s.style == RingState::Style::kOff || s.opa == 0) {
+        return;
+    }
+    const int cx = width_ / 2, cy = height_ / 2;
+    const int r_out = width_ / 2 - kRingInset;
+    lv_draw_arc_dsc_t arc;
+    lv_draw_arc_dsc_init(&arc);
+    arc.center = {cx, cy};
+    arc.radius = r_out;
+    arc.width = s.width;
+    arc.rounded = 0;
+    const lv_area_t clip = layer->_clip_area;
+    auto dist2 = [&](int32_t x, int32_t y) {
+        return int64_t(x - cx) * (x - cx) + int64_t(y - cy) * (y - cy);
+    };
+    int32_t nx = std::clamp<int32_t>(cx, clip.x1, clip.x2), ny = std::clamp<int32_t>(cy, clip.y1, clip.y2);
+    int64_t far2 = std::max({dist2(clip.x1, clip.y1), dist2(clip.x2, clip.y1), dist2(clip.x1, clip.y2),
+                             dist2(clip.x2, clip.y2)});
+    const int r_in = r_out - s.width - 1;
+    if (far2 < int64_t(r_in) * r_in || dist2(nx, ny) > int64_t(r_out + 1) * (r_out + 1)) {
+        return;
+    }
+    if (s.style == RingState::Style::kSolid && ring_mask_ != nullptr) {
+        lv_draw_image_dsc_t img;
+        lv_draw_image_dsc_init(&img);
+        img.src = &ring_img_;
+        img.recolor = lv_color_hex(s.color);
+        img.recolor_opa = LV_OPA_COVER;
+        img.opa = s.opa;
+        lv_area_t coords = {0, 0, width_ - 1, height_ - 1};
+        lv_draw_image(layer, &img, &coords);
+        return;
+    }
+    if (s.style == RingState::Style::kSolid) {
+        arc.color = lv_color_hex(s.color);
+        arc.opa = s.opa;
+        arc.start_angle = 0;
+        arc.end_angle = 360;
+        lv_draw_arc(layer, &arc);
+        return;
+    }
+    constexpr int step_deg = RingState::kSpinSpanDeg / RingState::kSpinSteps;
+    for (int i = 0; i < RingState::kSpinSteps; i++) {
+        int start;
+        uint8_t opa, mix;
+        s.SpinStep(i, start, opa, mix);
+        if (opa <= LV_OPA_MIN) {
+            continue;
+        }
+        RingState::Box b = RingState::SectorBox(cx, cy, r_out, r_out - s.width, start, step_deg, 1);
+        lv_area_t step_clip = {std::max(b.x1, clip.x1), std::max(b.y1, clip.y1),
+                               std::min(b.x2, clip.x2), std::min(b.y2, clip.y2)};
+        if (step_clip.x1 > step_clip.x2 || step_clip.y1 > step_clip.y2) {
+            continue;
+        }
+        // Each step's draw task covers only its own sector box.
+        lv_area_t clip_ori = layer->_clip_area;
+        layer->_clip_area = step_clip;
+        arc.color = lv_color_mix(lv_color_hex(s.tail_color), lv_color_hex(s.color), mix);
+        arc.opa = opa;
+        arc.start_angle = start;
+        arc.end_angle = start + step_deg;
+        lv_draw_arc(layer, &arc);
+        layer->_clip_area = clip_ori;
+    }
+}
+
 #if WEIXUE_FACE_DIAG
 void FaceDisplay::DiagRefrCb(lv_event_t* e) {
     auto* self = static_cast<FaceDisplay*>(lv_event_get_user_data(e));
     int64_t now = esp_timer_get_time();
     switch (lv_event_get_code(e)) {
-        case LV_EVENT_REFR_START:
+        case LV_EVENT_REFR_START: {
             self->diag_refr_start_us_ = now;
             self->diag_rendered_ = false;
+            lv_display_t* disp = self->display_;
+            const int64_t screen = int64_t(self->width_) * self->height_;
+            for (uint32_t i = 0; i < disp->inv_p; i++) {
+                int64_t size = lv_area_get_size(&disp->inv_areas[i]);
+                self->diag_inv_areas_++;
+                self->diag_inv_px_ += size;
+                if (size >= screen) {
+                    self->diag_inv_full_++;
+                }
+            }
             break;
+        }
         case LV_EVENT_RENDER_START:
             self->diag_rendered_ = true;
             break;
@@ -663,17 +1135,30 @@ void FaceDisplay::DiagRefrCb(lv_event_t* e) {
 }
 
 uint32_t FaceDisplay::DiagPoseBit() const {
+    if (bedside_) {
+        return 1u << 31;
+    }
+    if (ring_.color == kErrorColor) {
+        return 1u << 30;
+    }
     return 1u << (static_cast<int>(mode_) * 6 + static_cast<int>(shown_mood_));
 }
 
 void FaceDisplay::DiagTick(int64_t now) {
     if (now - diag_window_us_ >= 5LL * 1000 * 1000) {
         float secs = (now - diag_window_us_) / 1e6f;
-        ESP_LOGI(TAG, "diag fps=%.1f frame_ms_avg=%.1f frame_ms_max=%.1f voice_flips=%lu mode=%s mood=%s",
+        ESP_LOGI(TAG, "diag fps=%.1f frame_ms_avg=%.1f frame_ms_max=%.1f voice_flips=%lu mode=%s mood=%s "
+                 "inv_areas=%.1f inv_kpx=%.1f inv_full=%lu ring=%s",
                  diag_frames_ / secs,
                  diag_frames_ ? diag_frame_us_sum_ / 1000.0f / diag_frames_ : 0.0f,
                  diag_frame_us_max_ / 1000.0f, (unsigned long)diag_voice_flips_, ModeName(mode_),
-                 MoodName(shown_mood_));
+                 MoodName(shown_mood_),
+                 diag_frames_ ? static_cast<float>(diag_inv_areas_) / diag_frames_ : 0.0f,
+                 diag_frames_ ? diag_inv_px_ / 1000.0f / diag_frames_ : 0.0f,
+                 (unsigned long)diag_inv_full_, ring_kind_);
+        diag_inv_areas_ = 0;
+        diag_inv_px_ = 0;
+        diag_inv_full_ = 0;
         diag_window_us_ = now;
         diag_voice_flips_ = 0;
         diag_frames_ = 0;

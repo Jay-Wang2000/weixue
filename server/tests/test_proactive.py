@@ -507,7 +507,13 @@ async def test_http_poll(client):
     assert (await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE})).status == 204
     await client.post("/weixue/proactive/messages", json={"message": "hi"}, headers=AUTH)
     resp = await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE.upper()})
-    assert resp.status == 200 and (await resp.json()) == {"pending": True}
+    assert resp.status == 200 and (await resp.json()) == {"pending": True, "urgent": False}
+
+
+async def test_http_poll_reports_urgent(client):
+    await client.post("/weixue/proactive/messages", json={"message": "leak", "urgent": True}, headers=AUTH)
+    resp = await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE})
+    assert resp.status == 200 and (await resp.json()) == {"pending": True, "urgent": True}
 
 
 async def test_speak_queues_one_assistant_turn(monkeypatch):

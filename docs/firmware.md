@@ -10,7 +10,8 @@ xiaozhi-esp32 2.5.1 (vendored clone pinned in `vendor.lock`) built for the Waves
 | `firmware/overrides/` | New files copied into the scratch copy at the same path on every build; `build.sh` stops when one would replace an upstream file |
 | `firmware/patches/*.patch` | Source changes to upstream files, applied to the scratch copy on every build (see Source patches) |
 | `firmware/overrides/main/boards/waveshare/esp32-s3-touch-amoled-1.75/face_display.{h,cc}`, `firmware/patches/11-face-display.patch` | Procedural eyes face (see Face) |
-| `firmware/tests/run.sh` | Host build and run of the tests for `firmware/overrides` sources (`imu_gestures_test.cc`) |
+| `voice_ring.h`, `bedside_schedule.h` (same directory), `firmware/patches/21-ring-bedside.patch` | Voice-state ring and bedside page (see Ring and bedside page) |
+| `firmware/tests/run.sh` | Host build and run of the tests for `firmware/overrides` sources (`imu_gestures_test.cc`, `ring_bedside_test.cc`) |
 | `firmware/tools/imu_gesture_test.py` | On-device IMU gesture check over the serial console (see IMU gestures) |
 | `firmware/flash.sh` | Checks port, the scratch copy against `weixue-build.sha256`, that it matches `config.weixue.json` (file and `CONFIG_OTA_URL`), `esptool flash-id` (32 MB), and a sha256-verified full 32 MB backup of this device's MAC, then `esptool write-flash @build/flash_args` |
 | `scripts/venv.sh` | Creates or repairs the project `.venv` with the `vendor.lock` esptool pin (5.4.0); `flash.sh` and `scripts/backup_flash.sh` use only this esptool |
@@ -71,6 +72,28 @@ Mood comes from `SetEmotion` (server `llm` emotion, alerts, power save `sleepy`)
 - Caption: the upstream chat label (single line, circular scroll), restyled to a 340 px transparent bar 128 px below centre in `#9FB4BC`; it shows assistant `sentence_start` text and system messages. `user` (STT) text clears it and switches to thinking; the next assistant sentence ends thinking. Top-bar icons and the status/clock label are `#6E8A92`.
 - Serial: every mode or mood change logs `FaceDisplay: mode=<mode> mood=<mood>`.
 - Diag build (`WEIXUE_FACE_DIAG=1`): every 5 s `diag fps=... frame_ms_avg=... frame_ms_max=... voice_flips=...` (rendered LVGL refreshes per second; refresh start to ready, including flush; VAD changes seen by the face); `diag blink`, `diag gaze`, `diag shift` events; 0.8 s after the first occurrence of each mode+mood pair since boot and every 60 s once idle for 5 s, a full-screen `lv_snapshot` logs `diag lit=<screen>% <circle>% ... snap_ms=...` and queues the run-length encoded screen; the `face_diag` task prints it as `FACEDUMP` lines at one line per 20 ms, without the display lock. Each snapshot holds the display lock for about 0.3 s. `.venv/bin/python firmware/tools/face_dump.py <log> <dir>` writes one PNG per dump.
+
+## Ring and bedside page
+
+Sources: `voice_ring.h` (ring state and invalidation tiles), `bedside_schedule.h` (night window and hint), the ring, clock and page switching in `face_display.cc`, and `firmware/patches/21-ring-bedside.patch` (`AudioService::GetOutputLevel`, `Application::GetSessionOrigin`, the `urgent` field of the proactive poll, touch and MCP tool on the board, `CONFIG_WEIXUE_BEDSIDE_START`/`END`).
+
+Ring: a 9 px band (2% of the 466 px diameter) whose outer edge is 1 px inside the panel edge, drawn above everything from the face timer: a solid ring is one A8 coverage mask (466x466, PSRAM, built at boot) blended in the ring colour, the spin is `lv_draw_arc` steps each clipped to its own sector box. The ring is split into 20 tiles of 18° and only tiles whose content changed are invalidated; a full repaint is about 56k px, so a solid ring repaints at most every 100 ms and the spin every 66 ms (a new style or colour at once).
+
+| Face mode | Ring |
+|---|---|
+| idle | off |
+| listening | cyan, opacity pulsing between 64 and 224 in 6 levels at 0.8 Hz |
+| thinking | 120° arc rotating clockwise at 180°/s, fading from a cyan head to a blue tail in 12 steps |
+| speaking | cyan; opacity 48-224 in 32-step levels follows the RMS of the PCM frame being played (-50..-6 dBFS, 30 ms attack, 150 ms release) |
+| error | red, 300 ms on / 300 ms off for 1.8 s after the status shows `Error` (network or server failure alert); continuous in the fatal-error state |
+
+Bedside page: a seven-segment `HH:MM` clock (`#701000`, 60x112 px digits) 26 px above centre and two 84x6 px closed-eye lines (`#5A0C00`) 96 px below it; top bar, status bar and caption are hidden; the ring keeps its states in `#801400` at 55% opacity (error stays red). The page and eyes move 6 px along the 8-step burn-in ring every 60 s; `--:--` shows until the OTA response has set the clock. Serial: `FaceDisplay: bedside=on|off reason=night|day|touch|session`.
+
+- When: during the bedside hours, local time from the OTA `server_time` (`CONFIG_WEIXUE_BEDSIDE_START` 22:00 to `CONFIG_WEIXUE_BEDSIDE_END` 07:00; equal values disable the hours), or after a `night` hint until the end hour. A `day` hint turns it off until the start hour; `auto` clears the hint.
+- Interaction: a touch while the panel is on, or a session other than a non-urgent announcement, shows the face; a user transcript (`stt`, from a conversation-mode reply or a voice barge-in) or a wake word during an announcement session makes it a user session (this build detects no wake word inside a session: `CONFIG_WAKE_WORD_DETECTION_IN_LISTENING` is off and listening is realtime); the page returns 15 s after the device is idle again. A touch that turns the panel back on, IMU pick-up and face-up relight the page without leaving it. A proactive announcement with `urgent: false` plays over the page; `urgent: true` shows the face (`docs/proactive.md`).
+- Screen-off: unchanged (ADR-12): the 60 s dim and the 300 s panel off apply to the page as to the face.
+- Server control: device MCP tool `self.screen.set_bedside` with `mode` `night|day|auto|status` and optional `start`/`end` (`HH:MM`, both together, stored in NVS namespace `bedside` over the Kconfig defaults); it returns `{"night":..,"showing":..,"hint":..,"window":"HH:MM-HH:MM"|"off","local_time":..}` (`off`: equal, empty or malformed hours) (`night`: bedside mode is on; `showing`: the page is on screen now). The LLM calls it for requests such as "switch the screen to bedside mode".
+- Diag build: the first bedside page and the first error flash each get a screen dump like a new pose, and the 60 s idle dumps cover the page.
 
 ## Device behaviour
 
@@ -201,3 +224,27 @@ USB power, live backend, Mac `say` at volume 55. Logs: `docs/logs/imu-build-2026
 | Idle false positives | 0 `IMU gesture` and 0 `IMU tap` lines in 415 s idle after boot (dim at 65.4 s, `Panel off after 300 s idle (VBUS present)` at 305.0 s, `Idle power-off skipped: VBUS present`) |
 | Voice round | Wake `Jarvis`, "Are you lying face down right now?" -> Anthropic called `self_imu_get_state` (`face_down:false`, `mic_muted:false`, no gestures) -> spoken answer; "What time is it?" -> time reply; `Goodbye` -> `handle_exit_intent` -> idle. 0 `IMU` gesture or tap lines during TTS playback |
 | Gestures (pick-up, face-down, double-tap x10) | Not run: need a person to move the board |
+
+## Ring and bedside on-device results (feat-ui-ring-bedside, 2026-10-07)
+
+USB power, live backend with the branch `weixue_proactive.py` copied into the server container for runs A and B (restored after each; D-F use the main file, whose poll body has no `urgent` field, so every announcement is non-urgent), Mac `say` at volume 55, device local time UTC-7. Logs: `docs/logs/ui-ring-bedside-{d,e,f}-*` (release build after the review fixes: reply and barge-in at night, disabled window; build and flash logs `ui-ring-bedside-d-build-*`, `-d-flash-*`), `docs/logs/ui-ring-bedside-diag-a-*` (diag build, ring drawn with `lv_draw_arc`), `ui-ring-bedside-diag-b-*` (diag build, A8 mask, invalidation stats), `ui-ring-bedside-c-*` (final diag build, then release build), `ui-ring-bedside-build-2026-10-07.log`, `ui-ring-bedside-flash-2026-10-07.log` (release), screen dumps `docs/logs/ui-ring-bedside-png/`. Device logs carry the driver timeline (UTC) in their header; FACEDUMP lines are removed.
+
+| Check | Result |
+|---|---|
+| Build | release 2,911,968 B (D); patches 05, 10, 11, 12, 20, 21 apply; host tests pass (`ring_bedside_test`) |
+| Ring states | every round logs `ring=pulse` on wake, `ring=level` for the wake cue and replies, `ring=spin` from the STT text to the first sentence, `ring=off` at idle (A, B, C, release). Dumps `a-001-listening`, `a-003-thinking`, `a-004-speaking`, `b-002-listening-a8` |
+| Error ring | server container stopped, wake word: `Alert [cancel] Error: Unable to connect to service`, `ring=error` 60 ms later, red ring in dump `a-010-error` |
+| Frame time with the ring (5 s windows, face alone 13-16 ms) | arcs (A): listening 45-74 ms, thinking 48-81 ms, speaking 63-130 ms; A8 mask (B): listening 44-47 ms at 55-63k px invalidated per frame, no full-screen fallback; final (C): listening 33-38 ms, speaking 28-30 ms, 12-19 fps. No `Encode queue is full` in C |
+| Night hint | "Please switch the screen to bedside mode." -> `self_screen_set_bedside` (`hint=night`) -> `bedside=on reason=night` 14.9 s after the session closed (B) |
+| Window by time | "Set the bedside hours from 7:47 p.m. to 7:54 p.m., and set bedside mode to auto." -> `bedside window 19:47-19:54`; `bedside=on reason=night` at 19:47, `Panel off after 300 s idle (VBUS present)` over the page 299 s after the session, `bedside=off reason=day` at 19:54; hours then set back to 22:00-07:00 by voice (A) |
+| Lit pixels, bedside page | 4.50-5.45% screen / 5.73-6.94% circle at 19:47-19:54 (A, dump `a-016-bedside`), 6.20-6.61% / 7.90-8.41% at 20:05-20:08 (B, dump `b-007-bedside`) |
+| Pixel shift on the page | seven `diag shift` steps 60 s apart while the page showed (A); the dumps place the colon centre at x 239 (shift 1,0) and 227 (shift -1,1), 6 px per step |
+| Relight at night | wake word: `bedside=off reason=session`, face for the round, `bedside=on` 15.0 s after idle (B); wake word with the panel off: `Panel on` (A) |
+| Announcements at night | `urgent: false`: `Proactive message pending (urgent=0)`, played with the page kept (`ring=pulse bedside=1`, `ring=level bedside=1`); `urgent: true`: `urgent=1`, `bedside=off reason=session`, face for the announcement, page again 15 s later (B) |
+| Reply to an announcement at night (D) | conversation message, "No, thank you." in the reply window: `>> No, thank you`, `bedside=off reason=session` 10 ms later, face for the LLM turn, page again 15.0 s after idle |
+| Voice barge-in at night (F) | speech 2 s into a long announcement: playback stops, `>> Excuse me`, `bedside=off reason=session`, face for the round, page 15 s after idle; the page shows until the transcript arrives (6.6 s after playback start) |
+| Wake word inside an announcement session (D, E) | "Jarvis" during playback and in the reply window: no `Wake word detected`, page kept |
+| Announcement at night without speech (D) | `ring=level bedside=1` to idle, page kept |
+| Disabled window (D) | "Set the bedside hours to start at 07:00 and end at 07:00" -> tool result `"window":"off"`, `night:false`; hours restored to 22:00-07:00 by voice |
+| Release smoke | no `diag`/`FACEDUMP` lines; wake, "What is two plus two?" -> "Four", `Goodbye` -> idle, ring states logged (C) |
+| Not run | touch on the panel and IMU pick-up/face-up relight at night (need a person); `custom`-message night hint (the hint uses the MCP tool) |

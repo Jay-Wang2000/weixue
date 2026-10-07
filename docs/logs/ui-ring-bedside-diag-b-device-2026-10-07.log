@@ -1,0 +1,742 @@
+# feat-ui-ring-bedside diag build B (solid ring from the A8 mask, invalidation stats), serial from RTS reset at 2026-10-07T03:04:21Z UTC; I (ms) is uptime. FACEDUMP lines removed (PNGs in ui-ring-bedside-png/). Driver timeline (UTC):
+# 03:03:15 lock acquired
+# 03:03:15 server swap
+# 03:03:18 flash
+# 03:04:21 flash done
+# 03:04:21 serial capture started (reset)
+# 03:05:01 say: Jarvis
+# 03:05:06 say: What is the capital of Italy?
+# 03:05:18 say: Please switch the screen to bedside mode.
+# 03:05:29 say: Goodbye
+# 03:06:02 bedside idle
+# 03:07:12 say: Jarvis
+# 03:07:17 say: What time is it?
+# 03:07:27 say: Goodbye
+# 03:07:59 post non-urgent: 202
+# 03:08:29 post urgent: 202
+# 03:09:09 say: Jarvis
+# 03:09:15 say: Set bedside mode to auto.
+# 03:09:26 say: Goodbye
+# 03:09:53 done
+# 03:09:53 restoring server file
+# 03:09:55 lock released
+I (208) esp_psram: Reserving pool of 100K of inESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4004882e
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x544
+load:0x403c8700,len:0xd14
+load:0x403cb700,len:0x2eb4
+entry 0x403c88f4
+I (34) octal_psram: vendor id    : 0x0d (AP)
+I (34) octal_psram: dev id       : 0x02 (generation 3)
+I (34) octal_psram: density      : 0x03 (64 Mbit)
+I (36) octal_psram: good-die     : 0x01 (Pass)
+I (40) octal_psram: Latency      : 0x01 (Fixed)
+I (45) octal_psram: VCC          : 0x01 (3V)
+I (49) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (63) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (68) octal_psram: DriveStrength: 0x00 (1/1)
+I (72) MSPI Timing: Enter psram timing tuning
+I (77) esp_psram: Found 8MB PSRAM device
+I (79) esp_psram: Speed: 80MHz
+I (82) cpu_start: Multicore app
+I (97) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (97) cpu_start: Pro cpu start user code
+I (97) cpu_start: cpu freq: 240000000 Hz
+I (99) app_init: Application information:
+I (102) app_init: Project name:     xiaozhi
+I (106) app_init: App version:      2.5.1
+I (110) app_init: Compile time:     Oct  7 2026 03:23:14
+I (115) app_init: ELF file SHA256:  4bfbae3f9...
+I (119) app_init: ESP-IDF:          v6.1
+I (123) efuse_init: Min chip rev:     v0.0
+I (127) efuse_init: Max chip rev:     v0.99 
+I (131) efuse_init: Chip rev:         v0.2
+I (135) heap_init: Initializing. RAM available for dynamic allocation:
+I (141) heap_init: At 3FCAB250 len 0003E4C0 (249 KiB): RAM
+I (146) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+I (162) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (169) spi_flash: detected chip: gd
+I (171) spi_flash: flash io: qio
+I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (181) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (188) main_task: Started on CPU0
+I (188) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+I (198) main_task: Calling app_main()
+I (368) Board: UUID=ad786b10-efaf-422a-ab57-40edacba9d51 SKU=esp32-s3-touch-amoled-1.75c-weixue
+I (368) button: IoT Button Version: 4.2.1
+I (368) PowerSaveTimer: Power save timer enabled
+I (378) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+I (378) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+W (388) spi_common: GPIO 0 is conflict with others and be overwritten
+W (398) spi_common: GPIO 0 is conflict with others and be overwritten
+W (408) spi_common: GPIO 0 is conflict with others and be overwritten
+I (408) co5300: version: 2.2.0
+I (418) co5300_spi: LCD panel create success, version: 2.2.0
+W (578) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+I (1778) Display: Power management not supported
+I (1858) LcdDisplay: Turning display on
+I (1858) LcdDisplay: Initialize LVGL library
+I (1858) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+I (1858) LcdDisplay: Use 2MB of PSRAM for image cache
+I (1868) LcdDisplay: Initialize LVGL port
+I (1868) LcdDisplay: Adding LCD display
+I (1868) LVGL: Starting LVGL task
+I (1878) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+I (1878) Backlight: Set brightness to 75
+I (1888) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+I (1958) CST9217: Checkcode: 0x204ECACA
+I (1958) CST9217: Resolution X: 466, Y: 466
+I (1958) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+I (1958) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+I (1958) Qmi8658: QMI8658 found at 0x6B
+I (1988) Qmi8658: Reset result 0x80
+I (2008) MCP: Add tool: self.system.reconfigure_wifi
+I (2008) MCP: Add tool: self.screen.set_bedside
+I (2008) MCP: Add tool: self.imu.get_state
+I (2008) StateMachine: State: unknown -> starting
+I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.194 y=-0.541 z=0.823 g
+W (2178) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+I (2188) BoxAudioCodec: Duplex channels created
+I (2188) ES8311: Work in Slave mode
+I (2198) ES7210: Work in Slave mode
+I (2208) ES7210: Enable ES7210_INPUT_MIC1
+I (2208) ES7210: Enable ES7210_INPUT_MIC2
+I (2208) ES7210: Enable ES7210_INPUT_MIC3
+I (2218) ES7210: Enable ES7210_INPUT_MIC4
+I (2218) ES7210: Enable TDM mode
+I (2218) BoxAudioCodec: BoxAudioDevice initialized
+I (2218) AudioCodec: Audio codec started
+I (2228) Application: After board/audio init
+I (2228) SystemInfo: free sram: 186963 minimal sram: 85436
+I (2228) MCP: Add tool: self.get_device_status
+I (2238) MCP: Add tool: self.audio_speaker.set_volume
+I (2238) MCP: Add tool: self.screen.set_brightness
+I (2248) MCP: Add tool: self.screen.set_theme
+I (2248) MCP: Add tool: self.get_system_info [user]
+I (2248) MCP: Add tool: self.reboot [user]
+I (2258) MCP: Add tool: self.upgrade_firmware [user]
+I (2258) MCP: Add tool: self.screen.get_info [user]
+I (2268) MCP: Add tool: self.screen.snapshot [user]
+I (2268) MCP: Add tool: self.screen.preview_image [user]
+I (2278) MCP: Add tool: self.assets.set_download_url [user]
+I (2278) WifiManager: Initializing...
+I (2288) pp: pp rom version: e7ae62f
+I (2288) net80211: net80211 rom version: e7ae62f
+I (2298) wifi:wifi driver task: 3fce3eb0, prio:23, stack:6656, core=0
+I (2298) wifi:wifi firmware version: e12a754
+I (2298) wifi:wifi certification version: v7.0
+I (2308) wifi:config NVS flash: disabled
+I (2308) wifi:config nano formatting: disabled
+I (2308) wifi:Init data frame dynamic rx buffer num: 6
+I (2318) wifi:Init dynamic rx mgmt buffer num: 5
+I (2318) wifi:Init management short buffer num: 32
+I (2328) wifi:Init dynamic tx buffer num: 32
+I (2328) wifi:Init static tx FG buffer num: 2
+I (2338) wifi:Init static rx buffer size: 1600
+I (2338) wifi:Init static rx buffer num: 3
+I (2338) wifi:Init dynamic rx buffer num: 6
+I (2348) wifi_init: rx ba win: 3
+I (2348) wifi_init: accept mbox: 6
+I (2348) wifi_init: tcpip mbox: 16
+I (2358) wifi_init: udp mbox: 6
+I (2358) wifi_init: tcp mbox: 6
+I (2358) wifi_init: tcp tx win: 5760
+I (2368) wifi_init: tcp rx win: 5760
+I (2368) wifi_init: tcp mss: 1440
+I (2368) WifiManager: Initialized
+I (2378) WifiBoard: Starting WiFi connection attempt
+I (2378) WifiManager: Starting station
+I (2378) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+I (2388) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (2428) wifi:mode : sta (7c:0c:5f:42:4b:fc)
+I (2428) wifi:enable tsf
+I (2428) WifiStation: Scanning saved channel 11
+I (2428) WifiBoard: WiFi scanning
+I (2548) WifiStation: Found AP: <ssid>, BSSID: <bssid>, RSSI: -71, Channel: 11, Authmode: 3
+I (2548) WifiBoard: WiFi connecting to <ssid>
+W (2558) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+I (2628) wifi:new:<11,2>, old:<1,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+I (2628) wifi:state: init -> auth (0xb0)
+I (2628) wifi:state: auth -> init (0x8a0)
+I (2628) wifi:new:<11,0>, old:<11,2>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+I (2638) wifi:new:<11,2>, old:<11,0>, ap:<255,255>, sta:<11,2>, prof:1, snd_ch_cfg:0x0
+I (2648) wifi:state: init -> auth (0xb0)
+I (2658) wifi:state: auth -> assoc (0x0)
+I (2668) wifi:state: assoc -> run (0x10)
+I (2718) wifi:connected with <ssid>, aid = 4, channel 11, 40D, bssid = <bssid>
+I (2718) wifi:security: WPA2-PSK, phy: bgn, rssi: -71, cipher(pairwise:0x3, group:0x3), pmf:0
+I (2718) wifi:pm start, type: 1
+
+I (2728) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+I (2728) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (2748) wifi:<ba-add>idx:0 (ifx:0, <bssid>), tid:7, ssn:0, winSize:64
+I (2758) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (3048) wifi:<ba-add>idx:1 (ifx:0, <bssid>), tid:0, ssn:0, winSize:64
+I (3798) esp_netif_handlers: sta ip: 192.168.8.148, mask: 255.255.255.0, gw: 192.168.8.1
+I (3798) WifiStation: Got IP: 192.168.8.148
+I (3798) WifiBoard: Connected to WiFi: <ssid>
+I (3798) Application: Network connected
+I (3798) StateMachine: State: starting -> activating
+I (3808) Assets: The storage free size is 21760 KB
+I (3808) Assets: The assets map size is 2944 KB (partition 16384 KB)
+I (3998) Assets: The checksum calculation time is 182 ms
+I (3998) MODEL_LOADER: Successfully load srmodels
+I (4008) Assets: Refreshing display theme...
+I (4088) Ota: Current version: 2.5.1
+I (4088) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (4408) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=320
+I (4548) HttpClient: HTTP connection closed
+I (4548) Ota: No mqtt section found !
+I (4548) Ota: Current is the latest version
+I (4548) Ota: Running partition: ota_0
+I (4548) Application: Activation done
+I (4558) SystemInfo: free sram: 138443 minimal sram: 39812
+I (4558) StateMachine: State: activating -> idle
+I (4568) Application: Proactive poller: http://192.168.8.220:8003/weixue/proactive/poll
+I (4568) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (4568) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (4578) wifi:Set ps type: 2, coexist: 0
+
+I (4588) AfeAudioEngine: Model 0: wn9_jarvis_tts
+I (4588) WakeWordCache: Allocated 64000 bytes in PSRAM
+I (4598) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+I (4598) AfeAudioEngine: Before AFE create: free=136743 min=39812 largest=94208
+I (4658) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=90
+MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+I (4698) AFE: AFE Version: (1MIC_V251128)
+I (4698) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4708) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+I (4718) AFE: AFE Version: (1MIC_V251128)
+I (4718) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4728) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+I (4738) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+I (4748) AfeAudioEngine: After AFE create: free=111619 min=33468 largest=69632
+I (4748) I2S_IF: Paired data: 0x3fcee700, current mode: playback, paired in_enable: 0, paired out_enable: 0
+I (4758) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+I (4768) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4788) Adev_Codec: Open codec device OK
+I (4788) AudioCodec: Set output enable to true
+I (4798) I2S_IF: Peer mode playback need extend bits 32 to 64
+I (4798) AudioService: Resampling audio from 16000 to 24000
+I (4798) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+I (4808) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4818) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+I (4828) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4828) ES7210: Bits 16
+I (4838) ES7210: Enable ES7210_INPUT_MIC1
+I (4848) ES7210: Enable ES7210_INPUT_MIC2
+I (4848) ES7210: Enable ES7210_INPUT_MIC3
+I (4848) ES7210: Enable ES7210_INPUT_MIC4
+I (4848) ES7210: Enable TDM mode
+I (4858) ES7210: Unmuted
+I (4858) Adev_Codec: Open codec device OK
+I (4858) AudioCodec: Set input enable to true
+I (7018) FaceDisplay: diag blink double=0 mode=idle
+I (7148) FaceDisplay: diag fps=6.8 frame_ms_avg=15.7 frame_ms_max=71.8 voice_flips=0 mode=idle mood=neutral inv_areas=1.4 inv_kpx=39.4 inv_full=3 ring=off
+I (7188) FaceDisplay: diag gaze=-2,-4 mode=idle
+I (9678) FaceDisplay: diag gaze=0,0 mode=idle
+I (12038) FaceDisplay: diag blink double=0 mode=idle
+I (12178) FaceDisplay: diag fps=3.0 frame_ms_avg=9.5 frame_ms_max=16.2 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=18.9 inv_full=0 ring=off
+I (12858) FaceDisplay: diag gaze=14,4 mode=idle
+I (14228) SystemInfo: free sram: 117471 minimal sram: 33468
+I (15768) FaceDisplay: diag blink double=0 mode=idle
+I (17248) FaceDisplay: diag gaze=-21,-1 mode=idle
+I (17248) FaceDisplay: diag fps=3.9 frame_ms_avg=8.9 frame_ms_max=13.9 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=17.0 inv_full=0 ring=off
+I (20598) FaceDisplay: diag blink double=1 mode=idle
+I (21048) FaceDisplay: diag gaze=-7,3 mode=idle
+I (22338) FaceDisplay: diag fps=6.7 frame_ms_avg=9.7 frame_ms_max=15.4 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=19.2 inv_full=0 ring=off
+I (24228) SystemInfo: free sram: 117471 minimal sram: 33468
+I (25848) FaceDisplay: diag blink double=0 mode=idle
+I (26138) FaceDisplay: diag gaze=17,-8 mode=idle
+I (27368) FaceDisplay: diag fps=4.0 frame_ms_avg=9.7 frame_ms_max=14.9 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=19.8 inv_full=0 ring=off
+I (30908) FaceDisplay: diag blink double=0 mode=idle
+I (31208) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (31318) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=110
+I (31508) FaceDisplay: diag gaze=-9,2 mode=idle
+I (32398) FaceDisplay: diag fps=4.0 frame_ms_avg=9.2 frame_ms_max=12.6 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=19.9 inv_full=0 ring=off
+I (34228) SystemInfo: free sram: 117463 minimal sram: 33468
+I (34838) FaceDisplay: diag gaze=0,0 mode=idle
+I (35148) FaceDisplay: diag blink double=0 mode=idle
+I (37478) FaceDisplay: diag fps=2.6 frame_ms_avg=9.2 frame_ms_max=14.5 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=17.8 inv_full=0 ring=off
+I (39408) FaceDisplay: diag gaze=3,-1 mode=idle
+I (39408) FaceDisplay: diag blink double=0 mode=idle
+I (42278) Application: Wake word detected: Jarvis (state: 3)
+I (42278) StateMachine: State: idle -> connecting
+I (42288) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (42288) wifi:Set ps type: 0, coexist: 0
+
+I (42298) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+I (42298) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (42448) FaceDisplay: mode=listening mood=neutral
+I (42448) FaceDisplay: diag gaze=-3,-1 mode=listening
+I (42448) FaceDisplay: ring=pulse bedside=0
+I (42468) WebSocket: WebSocket handshake done, cost=170 tcp=90 handshake=80
+I (42498) WS: Session ID: 6e240140-ea49-4600-904f-536dc8d88f82
+I (42498) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (42498) wifi:Set ps type: 0, coexist: 0
+
+W (42508) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (42518) Application: Wake word detected: Jarvis
+I (42528) AfeAudioEngine: Encoded wake word into 33 packets in 243 ms
+I (42528) StateMachine: State: connecting -> listening
+I (42588) FaceDisplay: diag fps=2.0 frame_ms_avg=20.0 frame_ms_max=122.0 voice_flips=0 mode=listening mood=neutral inv_areas=3.8 inv_kpx=23.4 inv_full=0 ring=pulse
+I (43208) StateMachine: State: listening -> speaking
+I (43228) FaceDisplay: mode=speaking mood=neutral
+I (43228) FaceDisplay: diag gaze=4,3 mode=speaking
+I (43228) FaceDisplay: ring=level bedside=0
+I (43388) Application: << Yes?
+I (44058) StateMachine: State: speaking -> listening
+I (44378) FaceDisplay: diag lit=18.31% screen 23.32% circle mode=speaking mood=neutral dump=1 snap_ms=325.3
+W (44428) AudioService: Encode queue is full, dropping oldest frame (dropped 1 so far)
+I (44448) FaceDisplay: mode=listening mood=neutral
+I (44448) FaceDisplay: diag gaze=1,0 mode=listening
+I (44448) FaceDisplay: diag blink double=0 mode=listening
+I (44458) FaceDisplay: ring=pulse bedside=0
+I (46418) FaceDisplay: diag lit=21.60% screen 27.52% circle mode=listening mood=neutral dump=2 snap_ms=350.3
+W (46418) AudioService: Encode queue is full, dropping oldest frame (dropped 6 so far)
+I (46718) FaceDisplay: diag gaze=-1,0 mode=listening
+I (47598) FaceDisplay: diag fps=9.8 frame_ms_avg=44.6 frame_ms_max=81.6 voice_flips=2 mode=listening mood=neutral inv_areas=15.9 inv_kpx=62.8 inv_full=0 ring=pulse
+I (48758) FaceDisplay: diag blink double=1 mode=listening
+I (49908) FaceDisplay: diag gaze=-3,0 mode=listening
+I (51398) Application: >> What is the capital of Italy?
+I (51418) StateMachine: State: listening -> speaking
+I (51438) FaceDisplay: mode=thinking mood=neutral
+I (51438) FaceDisplay: diag gaze=16,-9 mode=thinking
+I (51448) FaceDisplay: ring=spin bedside=0
+I (52608) FaceDisplay: diag lit=8.23% screen 10.49% circle mode=thinking mood=neutral dump=3 snap_ms=336.1
+I (52648) FaceDisplay: diag fps=11.1 frame_ms_avg=43.6 frame_ms_max=84.1 voice_flips=2 mode=thinking mood=neutral inv_areas=15.8 inv_kpx=54.3 inv_full=0 ring=spin
+I (52758) Application: << The capital of Italy is Rome
+I (52798) FaceDisplay: mode=speaking mood=neutral
+I (52808) FaceDisplay: diag gaze=-3,0 mode=speaking
+I (52808) FaceDisplay: ring=level bedside=0
+I (54058) FaceDisplay: diag blink double=0 mode=speaking
+I (54548) FaceDisplay: diag gaze=6,0 mode=speaking
+I (55048) StateMachine: State: speaking -> listening
+I (55048) FaceDisplay: mode=listening mood=neutral
+I (55048) FaceDisplay: diag gaze=0,-2 mode=listening
+I (55058) FaceDisplay: ring=pulse bedside=0
+I (56868) FaceDisplay: diag gaze=-2,-1 mode=listening
+I (57718) FaceDisplay: diag fps=15.2 frame_ms_avg=46.4 frame_ms_max=123.3 voice_flips=2 mode=listening mood=neutral inv_areas=10.7 inv_kpx=54.9 inv_full=0 ring=pulse
+I (59048) FaceDisplay: diag gaze=3,1 mode=listening
+I (60348) FaceDisplay: diag blink double=1 mode=listening
+I (61638) FaceDisplay: diag gaze=3,-2 mode=listening
+I (62138) FaceDisplay: diag shift=1,0
+I (62328) Application: >> Please switch the screen to bedside mode
+I (62328) StateMachine: State: listening -> speaking
+I (62338) FaceDisplay: mode=thinking mood=neutral
+I (62348) FaceDisplay: diag gaze=15,-11 mode=thinking
+I (62348) FaceDisplay: ring=spin bedside=0
+I (62728) FaceDisplay: diag fps=15.2 frame_ms_avg=46.1 frame_ms_max=88.7 voice_flips=2 mode=thinking mood=neutral inv_areas=12.3 inv_kpx=60.2 inv_full=0 ring=spin
+I (63488) FaceDisplay: diag gaze=16,-11 mode=thinking
+I (63718) Application: >> % self_screen_set_bedside
+I (63728) FaceDisplay: bedside hint=night local=20:05
+I (65088) FaceDisplay: diag gaze=16,-9 mode=thinking
+I (66168) Application: << Bedside mode is set
+I (66198) FaceDisplay: mode=speaking mood=happy
+I (66198) FaceDisplay: diag gaze=6,-2 mode=speaking
+I (66198) FaceDisplay: diag blink double=0 mode=speaking
+I (66198) FaceDisplay: ring=level bedside=0
+I (67448) FaceDisplay: diag lit=14.30% screen 18.21% circle mode=speaking mood=happy dump=4 snap_ms=394.2
+W (67498) AudioService: Encode queue is full, dropping oldest frame (dropped 7 so far)
+I (67698) Application: << but the screen isn't showing the red clock yet. It's only 8:05 PM, and the bedside window runs from 10 PM to 7 AM. Want me to change those hours?
+I (67778) FaceDisplay: diag fps=18.3 frame_ms_avg=34.2 frame_ms_max=91.3 voice_flips=0 mode=speaking mood=happy inv_areas=11.6 inv_kpx=32.5 inv_full=0 ring=level
+I (68128) FaceDisplay: diag gaze=-4,-3 mode=speaking
+I (71068) FaceDisplay: diag gaze=6,-4 mode=speaking
+I (72068) FaceDisplay: diag blink double=0 mode=speaking
+I (72188) StateMachine: State: speaking -> listening
+I (72198) FaceDisplay: mode=listening mood=happy
+I (72198) FaceDisplay: diag gaze=2,-2 mode=listening
+I (72188) Application: >> Good bye
+I (72198) FaceDisplay: ring=pulse bedside=0
+I (72278) StateMachine: State: listening -> speaking
+I (72298) FaceDisplay: mode=thinking mood=neutral
+I (72298) FaceDisplay: diag gaze=20,-11 mode=thinking
+I (72308) FaceDisplay: ring=spin bedside=0
+I (72768) FaceDisplay: diag fps=11.6 frame_ms_avg=69.4 frame_ms_max=129.1 voice_flips=6 mode=thinking mood=neutral inv_areas=12.3 inv_kpx=65.0 inv_full=0 ring=spin
+I (73348) FaceDisplay: diag lit=8.22% screen 10.47% circle mode=thinking mood=neutral dump=5 snap_ms=329.2
+W (73388) AudioService: Encode queue is full, dropping oldest frame (dropped 9 so far)
+I (73638) Application: >> % handle_exit_intent
+I (73638) Application: << Goodbye
+I (73688) FaceDisplay: mode=speaking mood=neutral
+I (73688) FaceDisplay: diag gaze=-1,-1 mode=speaking
+I (73698) FaceDisplay: diag blink double=1 mode=speaking
+I (73698) FaceDisplay: ring=level bedside=0
+I (74948) Application: << sleep well when it's time
+I (75698) FaceDisplay: diag gaze=0,-1 mode=speaking
+I (77538) FaceDisplay: diag gaze=-6,2 mode=speaking
+I (77718) StateMachine: State: speaking -> listening
+I (77738) FaceDisplay: mode=listening mood=neutral
+I (77738) FaceDisplay: diag gaze=-3,0 mode=listening
+I (77738) FaceDisplay: ring=pulse bedside=0
+I (77808) WS: Websocket disconnected
+I (77808) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (77828) wifi:Set ps type: 2, coexist: 0
+
+I (77838) StateMachine: State: listening -> idle
+I (77848) FaceDisplay: mode=idle mood=neutral
+I (77848) FaceDisplay: diag gaze=0,6 mode=idle
+I (77858) FaceDisplay: ring=off bedside=0
+I (77858) FaceDisplay: diag fps=12.0 frame_ms_avg=57.0 frame_ms_max=119.3 voice_flips=10 mode=idle mood=neutral inv_areas=13.6 inv_kpx=57.5 inv_full=0 ring=off
+I (78398) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (78418) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=20
+I (79038) FaceDisplay: diag lit=10.58% screen 13.48% circle mode=idle mood=neutral dump=6 snap_ms=311.8
+I (79908) FaceDisplay: diag blink double=0 mode=idle
+I (80948) FaceDisplay: diag gaze=-1,9 mode=idle
+I (82938) FaceDisplay: diag fps=3.5 frame_ms_avg=11.7 frame_ms_max=47.3 voice_flips=0 mode=idle mood=neutral inv_areas=3.0 inv_kpx=24.6 inv_full=0 ring=off
+I (85928) FaceDisplay: diag blink double=0 mode=idle
+I (86328) FaceDisplay: diag gaze=-2,-5 mode=idle
+I (87228) SystemInfo: free sram: 109747 minimal sram: 33468
+I (87958) FaceDisplay: diag fps=3.4 frame_ms_avg=8.8 frame_ms_max=13.3 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=19.1 inv_full=0 ring=off
+I (89158) FaceDisplay: diag gaze=0,0 mode=idle
+I (92228) FaceDisplay: diag gaze=0,0 mode=idle
+I (92228) FaceDisplay: diag blink double=1 mode=idle
+I (92778) FaceDisplay: bedside=on reason=night local=20:05 hint=1
+I (92968) FaceDisplay: diag fps=4.0 frame_ms_avg=10.7 frame_ms_max=68.0 voice_flips=0 mode=idle mood=neutral inv_areas=2.2 inv_kpx=28.6 inv_full=1 ring=off
+I (93918) FaceDisplay: diag lit=6.20% screen 7.90% circle mode=idle mood=neutral dump=7 snap_ms=306.0
+I (97228) SystemInfo: free sram: 114603 minimal sram: 33468
+I (98038) FaceDisplay: diag fps=1.6 frame_ms_avg=3.7 frame_ms_max=6.3 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=2.0 inv_full=0 ring=off
+I (103098) FaceDisplay: diag fps=0.4 frame_ms_avg=10.1 frame_ms_max=14.1 voice_flips=0 mode=idle mood=neutral inv_areas=1.0 inv_kpx=29.1 inv_full=0 ring=off
+I (104628) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (104628) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+I (107228) SystemInfo: free sram: 114607 minimal sram: 33468
+I (108168) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (113188) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (117228) SystemInfo: free sram: 114607 minimal sram: 33468
+I (118248) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (122188) FaceDisplay: diag shift=1,1
+I (123328) FaceDisplay: diag fps=0.2 frame_ms_avg=29.3 frame_ms_max=29.3 voice_flips=0 mode=idle mood=neutral inv_areas=5.0 inv_kpx=82.0 inv_full=0 ring=off
+I (127228) SystemInfo: free sram: 114591 minimal sram: 33468
+I (128388) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (131258) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (131288) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=30
+I (133408) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (137228) SystemInfo: free sram: 114627 minimal sram: 33468
+I (137368) PowerSaveTimer: Enabling power save mode
+I (137368) Backlight: Set brightness to 20
+I (137398) FaceDisplay: mode=idle mood=sleepy
+I (138468) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=sleepy inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (143528) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=sleepy inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (147228) SystemInfo: free sram: 114627 minimal sram: 33468
+I (148548) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=sleepy inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (153568) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=sleepy inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (153968) FaceDisplay: diag lit=6.41% screen 8.16% circle mode=idle mood=sleepy dump=8 snap_ms=306.7
+I (157228) SystemInfo: free sram: 118439 minimal sram: 33468
+I (157888) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (157908) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=20
+I (158648) FaceDisplay: diag fps=0.2 frame_ms_avg=16.7 frame_ms_max=16.7 voice_flips=0 mode=idle mood=sleepy inv_areas=1.0 inv_kpx=38.1 inv_full=0 ring=off
+I (163708) FaceDisplay: diag fps=0.2 frame_ms_avg=6.1 frame_ms_max=6.1 voice_flips=0 mode=idle mood=sleepy inv_areas=1.0 inv_kpx=20.8 inv_full=0 ring=off
+I (167228) SystemInfo: free sram: 114619 minimal sram: 33468
+I (168748) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=sleepy inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (173018) Application: Wake word detected: Jarvis (state: 3)
+I (173018) StateMachine: State: idle -> connecting
+I (173028) PowerSaveTimer: Exiting power save mode
+I (173028) Backlight: Set brightness to 75
+I (173028) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (173038) wifi:Set ps type: 0, coexist: 0
+
+I (173038) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+I (173048) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (173078) FaceDisplay: bedside=off reason=session local=20:07 hint=1
+I (173078) FaceDisplay: mode=listening mood=neutral
+I (173078) FaceDisplay: diag gaze=-1,-1 mode=listening
+I (173088) FaceDisplay: diag blink double=0 mode=listening
+I (173088) FaceDisplay: ring=pulse bedside=0
+I (173238) WebSocket: WebSocket handshake done, cost=190 tcp=20 handshake=170
+I (173318) AfeAudioEngine: Encoded wake word into 33 packets in 298 ms
+I (173318) WS: Session ID: b5928515-4eb3-4c48-a64b-42756fe59a90
+I (173318) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (173328) wifi:Set ps type: 0, coexist: 0
+
+W (173328) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (173348) Application: Wake word detected: Jarvis
+I (173358) StateMachine: State: connecting -> listening
+I (173748) FaceDisplay: diag fps=1.6 frame_ms_avg=41.8 frame_ms_max=143.1 voice_flips=0 mode=listening mood=neutral inv_areas=9.5 inv_kpx=86.0 inv_full=1 ring=pulse
+I (174058) StateMachine: State: listening -> speaking
+I (174248) FaceDisplay: diag lit=21.40% screen 27.26% circle mode=listening mood=neutral dump=9 snap_ms=355.5
+I (174278) Application: << Yes?
+W (174298) AudioService: Encode queue is full, dropping oldest frame (dropped 10 so far)
+I (174308) FaceDisplay: mode=speaking mood=neutral
+I (174318) FaceDisplay: diag gaze=6,1 mode=speaking
+I (174318) FaceDisplay: ring=level bedside=0
+I (174898) StateMachine: State: speaking -> listening
+I (174898) FaceDisplay: mode=listening mood=neutral
+I (174898) FaceDisplay: diag gaze=1,0 mode=listening
+I (174908) FaceDisplay: ring=pulse bedside=0
+I (177258) FaceDisplay: diag gaze=2,1 mode=listening
+I (178768) FaceDisplay: diag fps=10.2 frame_ms_avg=44.6 frame_ms_max=113.4 voice_flips=4 mode=listening mood=neutral inv_areas=15.5 inv_kpx=60.9 inv_full=0 ring=pulse
+I (179058) FaceDisplay: diag gaze=0,-2 mode=listening
+I (179058) FaceDisplay: diag blink double=1 mode=listening
+I (179808) Application: >> What time is it?
+I (179808) StateMachine: State: listening -> speaking
+I (179858) FaceDisplay: mode=thinking mood=neutral
+I (179858) FaceDisplay: diag gaze=20,-9 mode=thinking
+I (179858) FaceDisplay: ring=spin bedside=0
+I (181438) FaceDisplay: diag gaze=17,-9 mode=thinking
+I (181658) Application: << It's eight oh seven in the evening
+I (181668) FaceDisplay: mode=speaking mood=neutral
+I (181668) FaceDisplay: diag gaze=-2,2 mode=speaking
+I (181678) FaceDisplay: ring=level bedside=0
+I (182238) FaceDisplay: diag shift=0,1
+I (183588) FaceDisplay: diag gaze=-7,-1 mode=speaking
+I (183898) FaceDisplay: diag fps=16.4 frame_ms_avg=40.4 frame_ms_max=119.6 voice_flips=1 mode=speaking mood=neutral inv_areas=11.2 inv_kpx=44.3 inv_full=0 ring=level
+I (184528) StateMachine: State: speaking -> listening
+I (184538) FaceDisplay: mode=listening mood=neutral
+I (184538) FaceDisplay: diag gaze=0,-1 mode=listening
+I (184538) FaceDisplay: ring=pulse bedside=0
+I (185548) FaceDisplay: diag blink double=1 mode=listening
+I (186878) FaceDisplay: diag gaze=3,0 mode=listening
+I (188948) FaceDisplay: diag fps=14.9 frame_ms_avg=47.3 frame_ms_max=117.0 voice_flips=3 mode=listening mood=neutral inv_areas=11.9 inv_kpx=61.7 inv_full=0 ring=pulse
+I (189368) FaceDisplay: diag gaze=-1,1 mode=listening
+I (189738) Application: >> Goodbye
+I (189748) StateMachine: State: listening -> speaking
+I (189758) FaceDisplay: mode=thinking mood=neutral
+I (189758) FaceDisplay: diag gaze=15,-11 mode=thinking
+I (189758) FaceDisplay: ring=spin bedside=0
+I (190598) FaceDisplay: diag gaze=20,-8 mode=thinking
+I (191668) Application: >> % handle_exit_intent
+I (191668) Application: << Goodbye
+I (191698) FaceDisplay: mode=speaking mood=neutral
+I (191698) FaceDisplay: diag gaze=6,0 mode=speaking
+I (191698) FaceDisplay: diag blink double=1 mode=speaking
+I (191708) FaceDisplay: ring=level bedside=0
+I (192508) Application: << talk soon
+I (193388) FaceDisplay: diag gaze=-1,-2 mode=speaking
+I (194018) FaceDisplay: diag fps=15.7 frame_ms_avg=44.8 frame_ms_max=143.7 voice_flips=5 mode=speaking mood=neutral inv_areas=13.2 inv_kpx=48.4 inv_full=0 ring=level
+I (194488) StateMachine: State: speaking -> listening
+I (194518) FaceDisplay: mode=listening mood=neutral
+I (194518) WS: Websocket disconnected
+I (194518) FaceDisplay: diag gaze=-1,-1 mode=listening
+I (194518) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (194518) FaceDisplay: ring=pulse bedside=0
+I (194528) wifi:Set ps type: 2, coexist: 0
+
+I (194598) StateMachine: State: listening -> idle
+I (194608) FaceDisplay: mode=idle mood=neutral
+I (194608) FaceDisplay: diag gaze=0,0 mode=idle
+I (194608) FaceDisplay: ring=off bedside=0
+I (194938) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (194938) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=0
+I (198368) FaceDisplay: diag blink double=0 mode=idle
+I (199098) FaceDisplay: diag fps=4.1 frame_ms_avg=25.7 frame_ms_max=91.0 voice_flips=1 mode=idle mood=neutral inv_areas=7.3 inv_kpx=38.8 inv_full=0 ring=off
+I (199198) FaceDisplay: diag gaze=-2,-4 mode=idle
+I (203228) FaceDisplay: diag blink double=0 mode=idle
+I (204128) FaceDisplay: diag gaze=-7,-2 mode=idle
+I (204128) FaceDisplay: diag fps=2.0 frame_ms_avg=7.8 frame_ms_max=11.9 voice_flips=0 mode=idle mood=neutral inv_areas=1.9 inv_kpx=15.8 inv_full=0 ring=off
+I (204228) SystemInfo: free sram: 109771 minimal sram: 33468
+I (207748) FaceDisplay: diag blink double=0 mode=idle
+I (208798) FaceDisplay: diag gaze=-6,-1 mode=idle
+I (209158) FaceDisplay: diag fps=2.4 frame_ms_avg=9.3 frame_ms_max=13.6 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=17.3 inv_full=0 ring=off
+I (209568) FaceDisplay: bedside=on reason=night local=20:07 hint=1
+I (214168) FaceDisplay: diag fps=2.0 frame_ms_avg=9.9 frame_ms_max=66.8 voice_flips=0 mode=idle mood=neutral inv_areas=2.4 inv_kpx=34.8 inv_full=1 ring=off
+I (214228) SystemInfo: free sram: 114619 minimal sram: 33468
+I (219158) HttpClient: HTTP connection closed
+I (219158) Application: Proactive message pending (urgent=0)
+I (219158) StateMachine: State: idle -> connecting
+I (219168) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (219178) wifi:Set ps type: 0, coexist: 0
+
+I (219178) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+I (219178) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (219218) WebSocket: WebSocket handshake done, cost=40 tcp=20 handshake=20
+I (219228) FaceDisplay: mode=listening mood=neutral
+I (219228) FaceDisplay: ring=pulse bedside=1
+I (219228) FaceDisplay: diag fps=0.4 frame_ms_avg=10.9 frame_ms_max=13.6 voice_flips=0 mode=listening mood=neutral inv_areas=1.0 inv_kpx=29.5 inv_full=0 ring=pulse
+I (219238) WS: Session ID: 3fa49f9f-0a8f-4287-a27f-00cd5748fd62
+I (219248) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (219258) wifi:Set ps type: 0, coexist: 0
+
+W (219258) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (219268) Application: Proactive session opened
+I (219278) StateMachine: State: connecting -> listening
+I (219368) StateMachine: State: listening -> speaking
+I (219378) Application: << This is a quiet test announcement
+I (219398) FaceDisplay: mode=speaking mood=neutral
+I (219398) FaceDisplay: ring=level bedside=1
+I (221728) StateMachine: State: speaking -> listening
+I (221728) WS: Websocket disconnected
+I (221728) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (221728) wifi:Set ps type: 2, coexist: 0
+
+I (221738) StateMachine: State: listening -> idle
+I (221768) FaceDisplay: mode=idle mood=neutral
+I (221768) FaceDisplay: ring=off bedside=1
+I (222158) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (222168) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=10
+I (224298) FaceDisplay: diag fps=6.1 frame_ms_avg=44.2 frame_ms_max=85.4 voice_flips=4 mode=idle mood=neutral inv_areas=14.2 inv_kpx=55.6 inv_full=0 ring=off
+I (229318) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (231228) SystemInfo: free sram: 109771 minimal sram: 33468
+I (234248) FaceDisplay: diag lit=6.61% screen 8.41% circle mode=idle mood=neutral dump=10 snap_ms=315.1
+I (234378) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (239478) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (241228) SystemInfo: free sram: 114639 minimal sram: 33468
+I (242278) FaceDisplay: diag shift=-1,1
+I (244568) FaceDisplay: diag fps=0.2 frame_ms_avg=29.5 frame_ms_max=29.5 voice_flips=0 mode=idle mood=neutral inv_areas=5.0 inv_kpx=83.8 inv_full=0 ring=off
+I (248408) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (248438) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=30
+I (249468) HttpClient: HTTP connection closed
+I (249468) Application: Proactive message pending (urgent=1)
+I (249468) StateMachine: State: idle -> connecting
+I (249468) FaceDisplay: bedside=off reason=session local=20:08 hint=1
+I (249478) FaceDisplay: mode=listening mood=neutral
+I (249478) FaceDisplay: diag gaze=0,-2 mode=listening
+I (249488) FaceDisplay: diag blink double=0 mode=listening
+I (249498) FaceDisplay: ring=pulse bedside=0
+I (249598) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (249598) wifi:Set ps type: 0, coexist: 0
+
+I (249608) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+I (249608) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (249618) FaceDisplay: diag fps=0.2 frame_ms_avg=102.6 frame_ms_max=102.6 voice_flips=0 mode=listening mood=neutral inv_areas=7.0 inv_kpx=321.8 inv_full=1 ring=pulse
+I (249778) WebSocket: WebSocket handshake done, cost=170 tcp=50 handshake=120
+I (249818) WS: Session ID: 04434665-bbde-4985-b2cc-ab431b8433ce
+I (249818) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (249818) wifi:Set ps type: 0, coexist: 0
+
+W (249828) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (249838) Application: Proactive session opened
+I (249838) StateMachine: State: connecting -> listening
+I (249848) Application: << This is an urgent test announcement
+I (249848) StateMachine: State: listening -> speaking
+I (249858) FaceDisplay: mode=speaking mood=neutral
+I (249858) FaceDisplay: diag gaze=5,2 mode=speaking
+I (249868) FaceDisplay: ring=level bedside=0
+I (251098) FaceDisplay: diag gaze=-7,2 mode=speaking
+I (252688) StateMachine: State: speaking -> listening
+I (252688) WS: Websocket disconnected
+I (252688) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (252688) wifi:Set ps type: 2, coexist: 0
+
+I (252698) StateMachine: State: listening -> idle
+I (252708) FaceDisplay: mode=idle mood=neutral
+I (252708) FaceDisplay: diag gaze=13,-3 mode=idle
+I (252708) FaceDisplay: ring=off bedside=0
+I (253468) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (253488) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=20
+I (254258) FaceDisplay: diag blink double=0 mode=idle
+I (254658) FaceDisplay: diag gaze=-6,4 mode=idle
+I (254668) FaceDisplay: diag fps=12.9 frame_ms_avg=36.4 frame_ms_max=112.7 voice_flips=2 mode=idle mood=neutral inv_areas=7.4 inv_kpx=46.2 inv_full=0 ring=off
+I (259678) FaceDisplay: diag gaze=20,-6 mode=idle
+I (259678) FaceDisplay: diag fps=2.2 frame_ms_avg=10.1 frame_ms_max=12.8 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=23.7 inv_full=0 ring=off
+I (259888) FaceDisplay: diag blink double=0 mode=idle
+I (262228) SystemInfo: free sram: 109783 minimal sram: 33468
+I (263628) FaceDisplay: diag gaze=0,0 mode=idle
+I (264768) FaceDisplay: diag fps=5.1 frame_ms_avg=9.7 frame_ms_max=15.2 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=20.8 inv_full=0 ring=off
+I (265298) FaceDisplay: diag blink double=0 mode=idle
+I (265458) FaceDisplay: diag gaze=21,-5 mode=idle
+I (267768) FaceDisplay: bedside=on reason=night local=20:08 hint=1
+I (269798) FaceDisplay: diag fps=5.6 frame_ms_avg=8.6 frame_ms_max=66.4 voice_flips=0 mode=idle mood=neutral inv_areas=2.1 inv_kpx=22.4 inv_full=1 ring=off
+I (272228) SystemInfo: free sram: 114639 minimal sram: 33468
+I (274818) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (279848) FaceDisplay: diag fps=0.4 frame_ms_avg=12.3 frame_ms_max=17.6 voice_flips=0 mode=idle mood=neutral inv_areas=1.0 inv_kpx=29.5 inv_full=0 ring=off
+I (280378) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (280398) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=20
+I (282228) SystemInfo: free sram: 114623 minimal sram: 33468
+I (284948) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (289968) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=neutral inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=off
+I (290278) Application: Wake word detected: Jarvis (state: 3)
+I (290278) StateMachine: State: idle -> connecting
+I (290288) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (290288) wifi:Set ps type: 0, coexist: 0
+
+I (290298) WS: Connecting to websocket server: ws://192.168.8.220:8000/xiaozhi/v1/ with version: 1
+I (290298) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (290348) FaceDisplay: bedside=off reason=session local=20:09 hint=1
+I (290348) FaceDisplay: mode=listening mood=neutral
+I (290348) FaceDisplay: diag gaze=-1,-1 mode=listening
+I (290348) FaceDisplay: diag blink double=0 mode=listening
+I (290358) FaceDisplay: ring=pulse bedside=0
+I (290368) WebSocket: WebSocket handshake done, cost=70 tcp=20 handshake=50
+I (290398) WS: Session ID: 87c3e921-ec4c-402f-a04b-1eb439cdc2bd
+I (290398) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (290398) wifi:Set ps type: 0, coexist: 0
+
+W (290408) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (290418) Application: Wake word detected: Jarvis
+I (290568) AfeAudioEngine: Encoded wake word into 33 packets in 284 ms
+I (290568) StateMachine: State: connecting -> listening
+I (291298) StateMachine: State: listening -> speaking
+I (291328) FaceDisplay: mode=speaking mood=neutral
+I (291328) FaceDisplay: diag gaze=1,0 mode=speaking
+I (291328) FaceDisplay: ring=level bedside=0
+I (291538) Application: << Hmm?
+I (292108) StateMachine: State: speaking -> listening
+I (292168) FaceDisplay: mode=listening mood=neutral
+I (292168) FaceDisplay: diag gaze=0,-1 mode=listening
+I (292168) FaceDisplay: ring=pulse bedside=0
+I (294378) FaceDisplay: diag gaze=1,1 mode=listening
+I (294998) FaceDisplay: diag fps=10.3 frame_ms_avg=45.5 frame_ms_max=289.6 voice_flips=5 mode=listening mood=neutral inv_areas=14.2 inv_kpx=63.1 inv_full=1 ring=pulse
+I (295388) FaceDisplay: diag blink double=1 mode=listening
+I (296248) FaceDisplay: diag gaze=1,0 mode=listening
+I (298058) FaceDisplay: diag gaze=1,2 mode=listening
+I (298418) Application: >> Set bedside mode to auto
+I (298458) StateMachine: State: listening -> speaking
+I (298468) FaceDisplay: mode=thinking mood=neutral
+I (298468) FaceDisplay: diag gaze=19,-9 mode=thinking
+I (298478) FaceDisplay: ring=spin bedside=0
+I (299628) FaceDisplay: diag gaze=17,-8 mode=thinking
+I (300018) FaceDisplay: diag fps=13.9 frame_ms_avg=41.2 frame_ms_max=82.0 voice_flips=1 mode=thinking mood=neutral inv_areas=14.7 inv_kpx=51.2 inv_full=0 ring=spin
+I (300178) Application: >> % self_screen_set_bedside
+I (300208) FaceDisplay: bedside hint=auto local=20:09
+I (300968) FaceDisplay: diag gaze=17,-9 mode=thinking
+I (301848) Application: << Bedside mode is now on auto. It will follow the bedside hours of ten PM to seven AM
+I (301878) FaceDisplay: mode=speaking mood=happy
+I (301878) FaceDisplay: diag gaze=-7,3 mode=speaking
+I (301878) FaceDisplay: diag blink double=0 mode=speaking
+I (301888) FaceDisplay: ring=level bedside=0
+I (302328) FaceDisplay: diag shift=-1,0
+I (304868) FaceDisplay: diag gaze=5,-3 mode=speaking
+I (305068) FaceDisplay: diag fps=16.7 frame_ms_avg=43.7 frame_ms_max=142.5 voice_flips=3 mode=speaking mood=happy inv_areas=10.6 inv_kpx=43.5 inv_full=0 ring=level
+I (307558) FaceDisplay: diag blink double=0 mode=speaking
+I (307628) Application: << so the red clock stays off for now
+I (307818) FaceDisplay: diag gaze=-6,0 mode=speaking
+I (307978) StateMachine: State: speaking -> listening
+I (307988) Application: >> Goodbye
+I (308048) StateMachine: State: listening -> speaking
+I (308058) FaceDisplay: mode=thinking mood=neutral
+I (308058) FaceDisplay: diag gaze=17,-10 mode=thinking
+I (308058) FaceDisplay: ring=spin bedside=0
+I (309318) FaceDisplay: diag gaze=20,-11 mode=thinking
+I (309578) Application: >> % handle_exit_intent
+I (309578) Application: << Goodbye
+I (309628) FaceDisplay: mode=speaking mood=neutral
+I (309628) FaceDisplay: diag gaze=1,-1 mode=speaking
+I (309628) FaceDisplay: ring=level bedside=0
+I (310088) FaceDisplay: diag fps=14.9 frame_ms_avg=49.4 frame_ms_max=115.0 voice_flips=7 mode=speaking mood=neutral inv_areas=11.7 inv_kpx=51.2 inv_full=0 ring=level
+I (310868) Application: << talk soon
+I (311428) FaceDisplay: diag gaze=1,-2 mode=speaking
+I (312688) StateMachine: State: speaking -> listening
+I (312688) WS: Websocket disconnected
+I (312688) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (312698) wifi:Set ps type: 2, coexist: 0
+
+I (312708) StateMachine: State: listening -> idle
+I (312718) FaceDisplay: mode=idle mood=neutral
+I (312718) FaceDisplay: diag gaze=-4,-10 mode=idle
+I (312718) FaceDisplay: ring=off bedside=0
+I (313028) FaceDisplay: diag blink double=0 mode=idle
+I (313458) EspTcp: Resolved 192.168.8.220 -> 192.168.8.220
+I (313768) HttpClient: Established new connection to 192.168.8.220:8003 protocol=http cost=310
+I (315148) FaceDisplay: diag fps=10.7 frame_ms_avg=32.4 frame_ms_max=105.1 voice_flips=4 mode=idle mood=neutral inv_areas=7.5 inv_kpx=40.3 inv_full=0 ring=off
+I (316448) FaceDisplay: diag blink double=0 mode=idle
+I (317288) FaceDisplay: diag gaze=19,0 mode=idle
+I (318118) FaceDisplay: diag lit=10.61% screen 13.52% circle mode=idle mood=neutral dump=11 snap_ms=310.0
+I (320198) FaceDisplay: diag fps=3.8 frame_ms_avg=9.5 frame_ms_max=13.2 voice_flips=0 mode=idle mood=neutral inv_areas=2.1 inv_kpx=20.5 inv_full=0 ring=off
+I (322128) FaceDisplay: diag gaze=-15,2 mode=idle
+I (322228) SystemInfo: free sram: 109759 minimal sram: 33468
+I (322378) FaceDisplay: diag blink double=1 mode=idle
+I (325288) FaceDisplay: diag fps=4.1 frame_ms_avg=8.6 frame_ms_max=12.7 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=16.4 inv_full=0 ring=off
+I (325388) FaceDisplay: diag gaze=0,0 mode=idle
+I (327548) FaceDisplay: diag gaze=0,0 mode=idle
+I (328538) FaceDisplay: diag blink double=0 mode=idle
+I (330028) FaceDisplay: diag gaze=11,0 mode=idle
+I (330328) FaceDisplay: diag fps=4.6 frame_ms_avg=9.5 frame_ms_max=14.1 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=20.4 inv_full=0 ring=off
