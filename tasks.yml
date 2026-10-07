@@ -189,7 +189,7 @@ tasks:
     description: |
       按 docs/reviews/codex-gpt6-astra-high-wave5-review-2026-10-07.md（网关侧，不碰小智 LLM 循环本身）：C1 投递结果——帧计数以实际发送成功为准，LAST 发送失败不得 done，发送/取消失败传入句子结果，首帧前传输失败按可重试处理；C2 回声护栏——保留否定/动作/目标/数值差异（"Do not turn on"、"Turn off" 不得被 "I will turn on" 吞掉），只在该句实际播放区间内比对，不确定的放行到打断路径；C3 唤醒提示音——abort 使提示音作废（不可变 generation，await 后复查），不得清除更新事件的 client_abort，清理提示音的 speaking 状态；C4 预留归属——invocation 绑定 message id + lease nonce，过期预留不得被消费，拒绝陈旧 invocation；C5 部署就绪——提交 .env.deployed 前要求 bridge 就绪 + 经预期路径一次只读 HA RPC +（启用时）隧道健康，超时回滚；C6 回滚一致性——endpoint URL/凭据与两个消费者作为一个部署单元快照/恢复；C7 隧道边界——HA 目的流量只能走 wg0（无隧道路由时丢弃，不走默认路由），bridge 等 wg 就绪再启动；T1 sim 场景要断言结果、不复用固定幂等键、覆盖全部提示音；R2 bridge 心跳需匹配的成功 ping 结果才刷新健康。R1（bridge 120 s 等待 vs 30 s 调用方）记录为已接受风险：语音路径的 HA 调用在 feat-llm-claude-agent 接管后不再经 bridge，pending 逻辑在 feat-agent-service 实现。办公室模式下 host-only 门禁 + sim；真机音频项并入 feat-voice-integration。
     depends_on: [fix-wave3-server]
-    status: pending
+    status: in_progress
     retries: 0
     model: opus
   - id: feat-agent-service
