@@ -9,4 +9,5 @@ Rule: if Codex P1 findings per task rise above the baseline for two consecutive 
 | 1 (toolchain, server) | original | 54 + 81 | ~11 + 18 min | 0/21, 0/28 | included in Wave 2 review | — | baseline |
 | 2 (firmware, stt, tts, llm) + integration | original | 203 + 37 | ~66 + 35 min | 0/15, 0/21, 0/18 (+ integration 0/11) | 5 P1, 5 P2 across 4 tasks (tool index, turn leak, deadline, TTS cancel, exposure) | TTS lost spaces ("isfour"); farewell/long listening | baseline |
 | 3 (timing, face, imu, proactive) | original (launched before change) | 60 (only proactive reached the gate; 3 tasks blocked on the board being powered off) | 88 min total; proactive gate ~25 min | proactive 0/4 | tbd (after Wave 3 Codex review) | tbd | partial |
-| 4+ | time-bounded | | | | | | |
+| 3 serial chain (screen-off, proactive, face, imu, timing + reconcile) | time-bounded (3 lenses ∥ tester, dedupe, cap 10, warning=1 skeptic) | 71 for 5 tasks + reconcile | 3.7 h total incl. builds/flashes on one board | 1, 5, 4, 2, 2 (all warnings, 0 errors) | tbd (Codex Wave 3 review running) | tbd | first sample of the new gate |
+| 4 (ring/bedside, panel) | time-bounded (wave-gate.js) | | | | | | |
