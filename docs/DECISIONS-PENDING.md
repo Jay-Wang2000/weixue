@@ -38,6 +38,14 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 21. **Memory + retention**: SDK auto-memory on, one project memory dir shared across chats; transcripts kept until a chat is deleted; task events and logs pruned after 30 days; no audio stored.
 22. **Scope**: no web tools in v1 (weather via the HA weather entity); the dev-job dispatcher becomes a separate task `feat-dev-dispatch`; feat-llm-claude-agent acceptance reworded to "a 5-min voiceless task survives a device disconnect and its result arrives via WHEN_IDLE".
 
+## Agent UI design review (artifact https://claude.ai/artifact/ExW3FbgpovZD3zk6LncHfv · report `~/Projects/research/reports/weixue-agent-ui-v1.md`, 2026-10-07)
+23. **Approve the design direction** (glanceable character: eyes stay, one glyph + one line per state, amber ears = needs you, approve-left/deny-right, numbered clarification options, tasks page on swipe-up, chats page). Deviations from backend §5 are listed in report §9 (full ring stays voice-only; countdown as footer text; task list not on swipe-left).
+24. 1. **批准超时与夜间策略**：设备只显示服务端 `timeout_s`，不自定时限；后端 §5 的倒计时取 ha-mcp 策略的 5 min（ADR-9：到期时间由我们的应用记录，不改 `wait_seconds`）。默认 300 s 与后端 §5 一致，还是更短的 120 s？超时自动拒绝；说话时暂停累计上限 30 s。床头窗口内的 WHEN_IDLE 批准：延长 `timeout_s` 到 07:30，还是按原时限自动拒绝并在早上告知？（建议：延长到 07:30，INTERRUPT 不受影响。）
+25. 2. **语音批准严格度**：只接受显式动词（approve / do it / 批准 / 同意），裸 "yes" 触发复述；irreversible / spends money 只能点按。接受否？
+26. 3. **D1 字体**：随固件带 `common_20_4`（量 bin 体积，占 assets 分区），还是接受英文单语的二级标签（Approve / Deny 按钮上无 批准 / 拒绝）？（建议：先量体积，<1.5 MB 则带。）
+27. 4. **任务列表手势**：脸上上滑 + 面板任务行，取代 DESIGN.md 的「左滑任务列表」（左滑第二次给会话页）。接受这项修订并更新 DESIGN.md？
+28. 5. **Approve 左 / Deny 右**（现有面板约定）而非手表约定的「确认在右」。保持左 / 右？
+
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
 - `fix-server-review-2`: only the barge-in / TTS-cancel audio check; the HA round and auth check gate now (tunnel).
