@@ -25,15 +25,15 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 ## Anthropic client settings (needs your decision)
 14. **Anthropic HTTP timeout and retries** — decided 2026-10-07 (Jay): keep the SDK retry; handle network/external-service exceptions gracefully instead (cue or final state to the device within the ADR-11 deadline, nothing stale in history, retries logged). Timeout values unchanged. Ships with `fix-turn-isolation`.
 
-## Deferred to home (device audio/network needed)
+## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
-- `fix-server-review-2` live round + barge-in + auth check.
+- `fix-server-review-2`: only the barge-in / TTS-cancel audio check; the HA round and auth check gate now (tunnel).
 
 ## FYI (proceeding; our own stack, not an external service)
 9. Codex Wave 2 code review (`docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md`): fix-first verdict. Three fix tasks queued after Wave 3: `fix-server-review-2`, `fix-turn-isolation`, `fix-firmware-scripts-2`. Includes enabling `server.auth` with the device MAC allow-list and binding OTA/WS to needed interfaces only.
 
-## Current network mode (temporary, 2026-10-07)
-- Office day: Mac + device on Jay's phone hotspot (SSID in `.env`, Mac IP 172.20.10.2). `server/.env` LAN_IP and the live config advertise 172.20.10.2; the device gets Wi-Fi + `ota_url` override via USB NVS provisioning. **When back home**: set LAN_IP back to 192.168.8.220, re-render/restart, and clear the device's `ota_url` override (provisioning tool `--clear-ota-url`) so it uses the baked home URL; HA/ha-mcp work resumes then.
+## Current network mode (2026-10-07)
+- Office day: Mac + device on Jay's phone hotspot (SSID in `.env`, Mac IP 172.20.10.2); the device gets Wi-Fi + `ota_url` override via USB provisioning. HA is reached through the WireGuard sidecar (`server/.env` WG_TUNNEL=1, profile `tunnel`, task `tool-wg-tunnel`); the policy apply script runs from a container in the tunnel namespace. At home: LAN_IP back to 192.168.8.220, WG_TUNNEL unset, clear the device `ota_url` override.
 
 ## User-only test items
 

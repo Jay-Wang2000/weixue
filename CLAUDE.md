@@ -36,3 +36,4 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 
 ## Office mode
 - When Jay is in the office (Mac away from the home LAN), no agent may use macOS `say` or play audio; the Mac output is muted. Device voice tests are deferred; Jay is told only when a test needs him.
+- Home Assistant stays reachable from the office through the WireGuard sidecar (`server/.env` WG_TUNNEL=1, compose profile `tunnel`, see `docs/server.md`): only the mcp-bridge container uses it. HA-dependent server tasks are not deferred; only audio is. Deploying a compose file that lacks the `wg` service would drop the tunnel, so server branches must be rebased onto `main` before any live deploy.
