@@ -18,7 +18,7 @@ const EXTRA = (args && args.extraCtx) || ''
 const RANK = { error: 0, warning: 1, info: 2 }
 const ctx = (t) => `Worktree ${REPO.replace('weixue','weixue-wt-'+t.slug)} (branch ${t.branch}, base main). Read DESIGN.md, CLAUDE.md, tasks.yml entry ${t.id}, .claude/status/spec.md, docs/logs there, and git diff main..HEAD. Read-only on files. ${LOCK} Never print secrets. ${EXTRA}`
 const LENSES = (t) => [
-  { key: 'design-correctness', prompt: `${ctx(t)}\nLens: DESIGN.md/ADR conformance and the acceptance row for ${t.id}, plus correctness: read every changed file fully; logic/concurrency/timing bugs, ESP32 memory use, error paths, config keys vs upstream schema. Report at most ${CAP} findings, highest severity first; skip style nits.` },
+  { key: 'design-correctness', prompt: `${ctx(t)}\nLens: DESIGN.md/ADR conformance and the acceptance row for ${t.id}, plus correctness: read every changed file fully; logic/concurrency/timing bugs, ESP32 memory use, error paths, config keys vs upstream schema. Report at most ${CAP} findings, highest severity first; skip style nits. Rate as error (not warning) anything that blocks the firmware main task, drops audio, leaks secrets, or contradicts the task's acceptance row.` },
   { key: 'security-ops', prompt: `${ctx(t)}\nLens: secrets (none committed; env/config paths only), network exposure, timeouts vs the device's 120 s channel timeout, restart/rollback behaviour, log redaction. At most ${CAP} findings, highest severity first.` },
   { key: 'tests-quality', prompt: `${ctx(t)}\nLens: are tests meaningful (not tautological), what acceptance-critical path is untested, comment rules (final state only), docs match code. At most ${CAP} findings, highest severity first.` },
 ]
