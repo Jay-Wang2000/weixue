@@ -22,7 +22,7 @@ tasks:
     branch: feat/firmware-base
     description: 编译 esp32-s3-touch-amoled-1.75c build，sdkconfig 只启用 wn9_jarvis_tts（ADR-6）并开启 CONFIG_RECEIVE_CUSTOM_MESSAGE，OTA_URL 指向自建后端，烧录并验证唤醒、连接与 custom 消息可达。
     depends_on: [feat-toolchain, feat-server]
-    status: blocked
+    status: done
     retries: 0
     model: opus
     question:
@@ -59,7 +59,7 @@ tasks:
     branch: feat/ha-mcp
     description: 后端 MCP 接入点连 ha-mcp；为语音路径调策略（日常域免审批、不可逆禁用）；轮换 secret path；把策略 wait_seconds 设为 5–10 s 并实现 token 式异步审批（DESIGN ADR-9 修订）。策略改动需用户确认。
     depends_on: [feat-server, feat-llm]
-    status: pending
+    status: done
     retries: 0
     model: opus
   - id: feat-approvals
@@ -99,7 +99,7 @@ tasks:
     branch: feat/imu
     description: QMI8658 驱动；拿起亮屏、翻面静音、双击止闹。
     depends_on: [feat-firmware-base]
-    status: pending
+    status: done
     retries: 0
     model: sonnet
   - id: feat-proactive
