@@ -1,74 +1,74 @@
-# feat-agent-service — developer brief (rev 3)
+# feat-agent-service — developer brief (rev 4)
 
-Rev 3 (2026-10-07) replaces rev 2's forked-task model and 90 s deadline with decision 36 and the rewritten ADR-11; rev 2's other contracts stay. SDK facts cite the wheel `claude-agent-sdk 0.2.164` (bundled CLI 2.1.292, arm64 wheel exists) and its source: `interrupt()` sends an `interrupt` control request (60 s default control timeout); an interrupted turn's `ResultMessage.terminal_reason` is `aborted_streaming|aborted_tools`; `ResultMessage.origin` ties a result to its prompt. UNVERIFIED items are checked in the S0/S1 gate (section 13) first. Paths relative to `~/Projects/weixue`.
+Rev 4 (2026-10-07) replaces the Claude Agent SDK with an in-process loop on the Anthropic Python SDK (40, ADR-10) and serves quick asks and tasks in one conversation with a per-turn model (39). Rev 3's runtime-independent contracts stay (sections 5, 7, 8, 10–12); rev 3 (git history) is the fallback design if the S0/S1 gate fails (section 13). SDK facts cite the installed `anthropic 1.11.0` source (`lib/tools/_beta_runner.py`, `mcp.py`, `_beta_builtin_memory_tool.py`) and the `claude-api` skill (cached 2026-09-25); UNVERIFIED items are checked in S1 first. Background: `~/Projects/research/reports/weixue-agent-runtime-assessment.md`, `docs/logs/latency-spike-2026-10-07.md`. Paths relative to `~/Projects/weixue`.
 
-Fixed by Jay: decisions 15–36 in `docs/DECISIONS-PENDING.md`, which win over this brief (numbers in parentheses), plus self-hosted Python `claude-agent-sdk` in Docker, the personal API key (no claude.ai login), ha-mcp `wait_seconds` unchanged (ADR-9). Open items: section 14. Never print secrets.
+Fixed by Jay: decisions 15–41 in `docs/DECISIONS-PENDING.md`, which win over this brief (numbers in parentheses), plus the personal API key, ha-mcp `wait_seconds` unchanged (ADR-9) and ha-mcp policy as the only security gate (39). Open items: section 14. Never print secrets.
 
 Jay's model: "I call Jarvis, 'do something for me'. It acknowledges; the exchange drops after 8 s of no voice. It keeps working and reports back when done. Same Claude session. While waiting I can wake it again and ask for progress or redirect, just like interrupting Claude Code."
 
 ## 1. Goal & scope
 
-Build `server/agent-service/`: a compose service that keeps one Claude Agent SDK session per chat, runs each user message as a turn that may outlive its voice exchange, lets a new message interrupt and steer the turn in flight, calls ha-mcp directly through an in-process adapter implementing the ADR-9 pending/approval contract, and reports results through a tiered, durable outbox. Closing the voice connection never cancels work.
+Build `server/agent-service/`: one asyncio process keeping one append-only Claude conversation per chat, with quick asks on Sonnet 5.5 and tasks on Fable 5.1 in that conversation; a new message steers the work in flight at the next tool boundary (a barge-in during a reply cancels the stream); it calls ha-mcp through an in-process adapter implementing the ADR-9 pending/approval contract, and reports results through a tiered, durable outbox. Closing the voice connection never cancels work.
 
-In scope: container, process and job model, HTTP+SSE API with JSON Schemas, SDK sessions and interrupts, memory, HA adapter, errors (ADR-11), delivery tiers, config, observability, tests, and `tools/sim_device.py` (gateway + device).
+In scope: container, actors, HTTP+SSE API with JSON Schemas, the turn loop, memory, web tools, HA adapter, errors (ADR-11), delivery tiers, config, observability, tests, `tools/sim_device.py` (gateway + device).
 
 ## 2. Non-goals
 
 - The xiaozhi provider (feat-llm-claude-agent), device transport and playback/user acks (feat-protocol-agent-msg), device UI (feat-ui-agent-states, feat-ui-sessions); this brief fixes the service side of each contract.
 - `dispatch_dev_job`: separate future task `feat-dev-dispatch` (22).
-- Chat deletion, transcript export, Ubuntu migration mechanics (layout is migratable: fixed `cwd`, one volume).
+- The Claude Agent SDK and its harness features (CLAUDE.md, auto-memory, Skills, hooks, subagents).
+- Chat deletion, transcript export, Ubuntu migration mechanics (one volume).
 - Any change to ha-mcp policy or `wait_seconds`; applying `voice_policy.proposed.json` stays a user step.
 - Parallel work inside one chat. Several tasks at once means several chats.
 
 ## 3. Architecture & module layout
 
 ```
-xiaozhi provider ──POST /v1/chats/{id}/messages (SSE)──► agent-service ──stdio──► claude CLI (one per live chat)
-gateway outbox   ◄──GET /v1/deliveries/stream──────────┤            └─ in-process MCP: ha (adapter), weixue (app tools)
-device panel     ──POST /v1/chats/{id}/approve|deny|answer|interrupt
+xiaozhi provider ──POST /v1/chats/{id}/messages (SSE)──► agent-service (one process, ChatActor per chat)
+gateway outbox   ◄──GET /v1/deliveries/stream──────────┤   └─ stream ─► Anthropic Messages API (+ server-side web, tool search)
+device panel     ──POST /v1/chats/{id}/approve|deny|answer|interrupt   tools in-process: ha (adapter), app, memory
                                                        └──HTTP (HA_MCP_URL)──► ha-mcp (HA Green :9584, secret path)
                                                           office mode: from inside the wg namespace, like mcp-bridge
 ```
 
-**Container**: `python:3.12-slim` pinned by digest (`vendor.lock`), pinned `requirements.txt` + `pip check`, non-root uid 1000; the wheel bundles the CLI (no Node). Paths: `/data/agent.db`, `/data/claude` (`CLAUDE_CONFIG_DIR`: transcripts, auto-memory), `/workspace` (fixed SDK `cwd`, read-only bind of `server/agent-service/workspace/`; part of every session and memory path, never changes). Nothing under `/` or `/workspace`'s parents may hold a `CLAUDE.md`.
+**Container**: `python:3.12-slim` pinned by digest (`vendor.lock`), pinned `requirements.txt`/`.lock` (`anthropic==1.11.0`, `mcp==2.3.0`, starlette, uvicorn, pydantic; no Node) + `pip check`, uid 1000. Paths: `/data/agent.db`, `/data/memory` (0700).
 
 **Networking** (17, no relay). agent-service calls `HA_MCP_URL` itself with mcp-bridge's switch `network_mode: ${WG_TUNNEL:+service:wg}`: project network at home, the `wg` namespace in office mode, started once the tunnel is ready, egress only via `wg0` (fix-wave5-server C7). Others use `AGENT_SERVICE_URL` (`http://agent-service:8010` or `http://wg:8010`, rendered by `setup.sh`). No LAN port; a `127.0.0.1:8010` publish (on `wg` in office mode) is allowed for readiness checks and the simulator. When a `wg` restart removes its `eth0` the service exits non-zero within 10 s; `restart: unless-stopped` rejoins the new namespace and recovery (section 9) runs. `setup.sh` generates `AGENT_SERVICE_TOKEN` (32 random bytes hex, `server/.env` 0600, never printed).
 
-**Process model.** One `uvicorn --workers 1` process, Starlette/FastAPI + pydantic v2 (the schema source). One **ChatActor** per live chat owns its `ClaudeSDKClient` (streaming mode) and alone calls `query()`/`interrupt()`; others reach it through an `asyncio.Queue` (`message`, `event`, `interrupt`, `close`). It runs one continuous `receive_messages()` pump (not `receive_response()`: the 100-message buffer blocks control requests when undrained) and hands each message to the sink of the turn that owns it. One turn in flight per chat. All CLIs share the semaphore `CLI_PROCS_MAX` (default 4, re-set from S0 memory; `mem_limit` likewise); a busy actor is never evicted.
+**Process model.** One `uvicorn --workers 1` process, Starlette + pydantic v2 (the schema source), one `AsyncAnthropic` client (retries and timeouts at SDK defaults, 16) and one `HaGateway`. One **ChatActor** per live chat owns its transcript and running turn; others reach it through an `asyncio.Queue`. One turn in flight per chat; chats run in parallel up to `STREAMS_MAX` model streams, then 503 `busy` after `QUEUE_WAIT_MS` with a spoken "I'm busy right now, try again in a moment" (zh 「我这会儿忙，稍后再试」). An actor idle `ACTOR_IDLE_S` with nothing pending is dropped from memory and reloads from SQLite; a busy actor is never evicted.
 
-**Layout** (`server/agent-service/`): `weixue_agent/{__main__,config,jsonlog,ids,timeutil,schemas,store,api,sse,chats,turns,actor,sdk_options,routing,interactions,deliveries,recovery,weixue_tools,ha_adapter,monitor,health}.py`, `workspace/{CLAUDE.md,.claude/settings.json}`, `tools/{sim_device,e2e_conversation,export_schemas}.py`, `schemas/*.schema.json` (committed, drift fails a test), `tests/`. The bridge's `hamcp.py`/`config.py` move to a shared `server/weixue_hamcp/` installed in both images; `voice_filter.py` stays in the bridge; bridge tests stay green.
+**Layout**: `weixue_agent/{__main__,config,jsonlog,ids,timeutil,schemas,store,api,sse,chats,turns,actor,transcript,models,app_tools,memory,routing,interactions,deliveries,recovery,ha_adapter,monitor,health}.py`, `prompts/system.md`, `tools/{sim_device,e2e_conversation,export_schemas,spike_s1}.py`, `schemas/*.schema.json` (committed, drift fails a test), `tests/`. The bridge's `hamcp.py`/`config.py` move to a shared `server/weixue_hamcp/` installed in both images; `voice_filter.py` stays in the bridge; bridge tests stay green.
 
 ## 4. Conversation & job model
 
 | Term | Meaning |
 |---|---|
 | Device | `device_id` = MAC (xiaozhi `Device-Id`); sim uses `sim-device-01` |
-| Chat | one SDK session (`sdk_session_id` uuid4 chosen at creation) + index row; a device has `current_chat_id` and `previous_chat_id` |
-| Turn | one `query()` in the chat session, from its prompt to its `ResultMessage`. `kind ∈ user \| steer \| event`; at most one in flight per chat |
-| Task | the chat's in-flight work: opened by a user message when the chat has none, continued by steer and event turns in the **same session** (incl. waits between turns); at most one open per chat |
+| Chat | one append-only conversation (`transcript` rows, section 6) + index row; a device has `current_chat_id` and `previous_chat_id` |
+| Turn | one user-role message (`kind ∈ user \| steer \| event`) and the model requests that follow it until `end_turn`, a steer boundary or a stop; at most one in flight per chat |
+| Mode | `quick` (Sonnet 5.5, effort low) or `task` (Fable 5.1, effort high), chosen per turn, switchable at a tool boundary (section 6) |
+| Task | the chat's in-flight work: opened by a user message when the chat has none, continued by steer and event turns in the **same conversation** (incl. waits between turns); at most one open per chat |
 | Reply | the part of a turn that is spoken in the open voice exchange; it ends with `reply_end` (section 9) |
-| Interaction | pending `input` (AskUserQuestion or a text question) or `approval` (HA held call, or SDK gate for a non-HA tool), `source ∈ sdk \| ha_mcp \| text` |
+| Interaction | pending `input` (the `ask_user` app tool, or a text question) or `approval` (HA held call), `source ∈ sdk \| ha_mcp \| text` (`sdk` name kept for schema stability) |
 | Delivery | outbox row for the device: `agent` card, `chats` snapshot, spoken text (section 10) |
-
-No forked task sessions, side turns, task actor or subagents: the model does long work in its own turn with full history, `AskUserQuestion` and auto-memory.
 
 `task.state ∈ progress | needs_input | needs_approval | done | failed | cancelled` (last three terminal):
 
 | State | Entered when |
 |---|---|
 | start → `progress` | a user message opens a task; its first turn is sent (event `started`) |
-| `progress` | a turn is in flight; `Progress` from tool uses (`phase:"tool"`, name, `step` = count), text between tools (`label`) and `api_retry` |
-| `needs_input` | `AskUserQuestion` reached `can_use_tool`, or a turn's final text asks something (`mcp__weixue__awaiting_answer`, or ends in `?`/`？`/`吗`; `source:"text"`, no options) |
-| `needs_approval` | an HA call is held (section 8) or the SDK gate holds a non-HA tool |
-| `done` | a turn ended `completed` with final text (`ResultMessage.result`) and nothing is pending |
-| `failed` | SDK/API error, refusal, runaway guard, failed resume after a forced interrupt, `service_restart` |
+| `progress` | a turn is in flight; `Progress` from tool uses (`phase:"tool"`, name, `step` = count), progress notes (`thinking.display:"updates"`, as `label`) and SDK retries |
+| `needs_input` | `ask_user` was called, or a turn's final text asks something (`awaiting_answer`, or ends in `?`/`？`/`吗`; `source:"text"`, no options) |
+| `needs_approval` | an HA call is held (section 8) |
+| `done` | a turn ended `end_turn` with final text and nothing is pending |
+| `failed` | API error, refusal after fallbacks, runaway guard, `service_restart` |
 | `cancelled` | `POST /chats/{id}/interrupt` (panel Stop, voice stop lexicon) |
 
-`needs_*` return to `progress` when the task's next turn starts. Terminal tasks carry `outcome ∈ ok|partial|denied|expired|unknown|none` and `side_effects[]` (`confirmed|failed|unknown|not_run`) from `ToolUseBlock`/`ToolResultBlock(is_error)` pairs of non-read-only tools across its turns; a tool use with no result when its turn ends is `unknown`, and such a task is never reported as "cancelled cleanly" or "not done" (ADR-11). Turn state: `running → completed | interrupted | failed`; an interrupted turn does not end its task: the steer turn continues it, and the model decides whether to report progress, change course, continue or stop.
+`needs_*` return to `progress` when the task's next turn starts. Terminal tasks carry `outcome ∈ ok|partial|denied|expired|unknown|none` and `side_effects[]` (`confirmed|failed|unknown|not_run`) from `tool_use`/`tool_result(is_error)` pairs of non-read-only tools across its turns; a tool use with no result when its turn ends is `unknown`, and such a task is never reported as "cancelled cleanly" or "not done" (ADR-11). Turn state: `running → completed | interrupted | failed`; an interrupted turn does not end its task: the steer turn continues it, and the model decides whether to report progress, change course, continue or stop.
 
 ## 5. API (schemas)
 
-Base `http://agent-service:8010/v1`; JSON UTF-8; RFC 3339 UTC ms; ids `tsk_|cht_|trn_|int_|dlv_` + 26-char ULID. Every route but `GET /healthz` needs `Authorization: Bearer <AGENT_SERVICE_TOKEN>`. `X-Trace-Id` (32 hex) generated when absent, echoed. UI text caps (title 32, summary 60, option 24, question 120) truncate with `…`, never reject. Errors `{"error":{"code","message","detail"}}`: `invalid_request` 400, `unauthorized` 401, `not_found` 404, `idempotency_mismatch|already_decided|expired|invalid_state|stale_lease` 409, `too_many_tasks` 429 (+`Retry-After`), `unavailable` 503 (CLI, process cap or key; never a value).
+Base `http://agent-service:8010/v1`; JSON UTF-8; RFC 3339 UTC ms; ids `tsk_|cht_|trn_|int_|dlv_` + 26-char ULID. Every route but `GET /healthz` needs `Authorization: Bearer <AGENT_SERVICE_TOKEN>`. `X-Trace-Id` (32 hex) generated when absent, echoed. UI text caps (title 32, summary 60, option 24, question 120) truncate with `…`, never reject. Errors `{"error":{"code","message","detail"}}`: `invalid_request` 400, `unauthorized` 401, `not_found` 404, `idempotency_mismatch|already_decided|expired|invalid_state|stale_lease` 409, `too_many_tasks` 429 (+`Retry-After`), `unavailable` 503 (model API, stream cap or key; never a value).
 
 Idempotency: `POST /chats/{id}/messages` and `POST /chats` require `Idempotency-Key` (provider: `<device>:<xiaozhi session>:<turn seq>`; sim: uuid4; kept 24 h). Same key + hash → 200 `duplicate:true` (SSE replays from `Last-Event-ID`/`after`); different hash → 409. Decisions (`answer|approve|deny|interrupt`) carry a `decision_id`: first wins, repeat → 200 duplicate, conflict → 409 `already_decided`, expired → 409 `expired`.
 
@@ -81,7 +81,7 @@ Idempotency: `POST /chats/{id}/messages` and `POST /chats` require `Idempotency-
 | `GET /chats?device_id&limit=12`, `POST /chats`, `GET /chats/{id}`, `POST /chats/{id}/switch`, `POST /chats/back`, `GET /chats/resolve?device_id&q`, `POST /chats/{id}/read` | chat index (feat-ui-sessions); `GET /chats/{id}` adds the open task and last 20 turns; switch prewarms, never interrupts |
 | `GET /tasks/{id}`, `GET /tasks/{id}/trace` | task; trace (turns, events, redacted tool calls, interactions, deliveries, cost) |
 | `GET /deliveries/stream?device_id`, `POST /deliveries/{id}/ack`, `GET /devices/{id}/snapshot`, `POST /devices/{id}/connection` | outbox (section 10); gateway connection events |
-| `GET /healthz`, `GET /status` | health: DB writable, last CLI spawn ok, a matching successful ha-mcp `ping` result within 60 s (RPC error or result-less 202 is unhealthy); status: live clients, turns in flight, open tasks, pending deliveries, last API error, SDK/CLI versions |
+| `GET /healthz`, `GET /status` | health: DB writable, last model request ok, a matching successful ha-mcp `ping` result within 60 s (RPC error or result-less 202 is unhealthy); status: live clients, turns in flight, open tasks, pending deliveries, last API error, anthropic/mcp versions |
 
 Normative schemas (`$id` prefix `https://weixue.local/agent/v1/`, written by `tools/export_schemas.py`):
 
@@ -165,11 +165,11 @@ Event envelope (`id: <seq>` / `event: <type>` / `data: <one line>`; `seq` is per
 | type | data |
 |---|---|
 | `accepted` | `{routed, task_state}`; first event of a message stream |
-| `started` | `{kind, title}`; a turn was sent to the CLI |
+| `started` | `{kind, title}`; a turn's first request was sent |
 | `text` | `{delta}` (`parent_tool_use_id is None`); on the message stream only until `reply_end`; persisted coalesced per 150 ms or sentence |
 | `reply_end` | `{reason: "turn_done"\|"hold_elapsed"\|"ack"\|"question"\|"gateway_closed", ack_text: string\|null}`; once per message stream, then the stream ends |
 | `progress` | `Progress`; at most one per 2 s per task except phase changes |
-| `interrupted` | `{turn_id, by_turn_id\|null, terminal_reason, drain_ms, forced, unknown: [SideEffect]}` |
+| `interrupted` | `{turn_id, by_turn_id\|null, terminal_reason, drain_ms, forced, unknown: [SideEffect]}` (`drain_ms` = wait to the boundary, `forced` = stream cancelled) |
 | `needs_input` / `needs_approval` | `{interaction, speak}` e.g. "I need your OK on the panel to turn on the desk plug." |
 | `resolved` | `{interaction_id, state, via}` |
 | `done` | `{summary ≤60, speak\|null (null when already spoken), tier, outcome, side_effects}` |
@@ -196,39 +196,44 @@ Decision bodies:
    "retry_after_ms":{"type":"integer","minimum":0},"detail":{"type":"string","maxLength":200}}}}
 ```
 
-AskUserQuestion answers go back as `PermissionResultAllow(updated_input={"questions": <original>, "answers": {<question text>: <label | [labels] | free text>}})` while its turn waits; after that turn ended (section 9) the answer is a new turn: `[answer to your earlier question "…"]: …`. Approve/deny on `source:sdk` resolves the `can_use_tool` future ("The user declined."); on `source:ha_mcp` it calls `ha_adapter.decide`. The `agent` payload uses the UI spec names (`concept-cards.md` §10), `progress→working`, `needs_input→needs_clarification` mapped only in `deliveries.py`.
+`ask_user` answers resolve the held tool call while its turn waits; after that turn ended the answer is a new turn: `[answer to your earlier question "…"]: …`. Approve/deny on `source:ha_mcp` calls `ha_adapter.decide`; `source:sdk` approvals do not occur in v1 (no non-HA tool with side effects). The `agent` payload uses the UI spec names (`concept-cards.md` §10), `progress→working`, `needs_input→needs_clarification` mapped only in `deliveries.py`.
 
-## 6. SDK usage & sessions
+## 6. Model loop, transcript & tools
 
-`sdk_options.py` is the single `ClaudeAgentOptions` builder; every chat session uses the same options.
+**Runner.** Each turn drives `client.beta.messages.tool_runner(..., stream=True, max_iterations=MAX_ITERATIONS)` (`BetaAsyncStreamingToolRunner`) built from the stored transcript. In the loop body the actor forwards stream events to the reply sink, reads `get_final_message()`, runs the calls with `generate_tool_call_response()` and appends message and results (plus any steer text) itself with `append_messages()`, so every message passes through `transcript.py` first. `run_tools_eagerly=False` in v1: tools run after the stream ends, so a cancelled stream ran nothing (S1 option: eager mode with `defer_tool_call()` for non-read-only HA calls). In 1.11 `pause_turn` and `compaction` resume (`_STOP_REASON_STEPS`; the skill's "runners don't resume `pause_turn`" note is for 0.116): the paused message is persisted and resent unchanged, nothing after it, at most `PAUSE_RESUME_MAX` per turn. `refusal`, `max_tokens`, `model_context_window_exceeded` stop the loop (section 9).
 
-| Option | Value |
+| Request field | Value |
 |---|---|
-| `model` / `fallback_model` | `claude-fable-5-1` / `claude-opus-5-5` (15); a retention 400 switches to Opus, shown on the monitor (33) |
-| `effort` | `low` until Q9 is answered (section 14); S1 (m) checks whether the pinned CLI accepts an effort change per turn |
-| `thinking` | omit (always on for Fable 5.1; other values 400) |
-| `max_turns` / `max_budget_usd` | 60 / 25.0 per turn, runaway guards only (15); S1 (i) checks whether `max_budget_usd` accumulates across `query()` calls of one process |
-| `cwd` | `/workspace` |
-| `permission_mode` | `"default"` explicitly |
-| `setting_sources` | `["project"]` (loads `/workspace/CLAUDE.md`, `.claude/settings.json`) |
-| `system_prompt` | omit (minimal default); all rules live in the root `CLAUDE.md` |
-| `tools` | `["Read","Write","Edit","AskUserQuestion","WebSearch","WebFetch","TaskCreate","TaskUpdate","TaskList","TaskGet"]` + MCP (CLI ≥2.1.268 ships the Task* tools, not `TodoWrite`; UNVERIFIED that listing them is enough on Fable, else `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`) |
-| `allowed_tools` | `["mcp__ha__*","mcp__weixue__*","WebSearch","WebFetch"]` (19, 22) |
-| `disallowed_tools` | `["Bash","Glob","Grep","NotebookEdit","Agent","Skill"]` |
-| `can_use_tool` | `interactions.gate`: AskUserQuestion → `needs_input`; Read/Write/Edit allowed only under the memory dir, else deny; other non-HA tools → `needs_approval` (`source:sdk`) |
-| `hooks` | none in v1 |
-| `mcp_servers` | `{"ha": {"type":"sdk","name":"ha","instance": ha_adapter.server, "disableAutoBackground": True, "timeout": 30000}, "weixue": create_sdk_mcp_server(...)}`; `strict_mcp_config=True` |
-| `include_partial_messages` | `True` (the reply streams per delta) |
-| `env` | `{"CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS":"1","CLAUDE_AGENT_SDK_CLIENT_APP":"weixue-agent/1","AGENT_SERVICE_TOKEN":"","HA_MCP_URL":""}`; `CLAUDE_CONFIG_DIR` at container level; retries/timeouts at SDK defaults (16) |
-| `stderr` | redacting logger at DEBUG |
+| `model` | per turn: quick `claude-sonnet-5-5`, task `claude-fable-5-1` (39); after a retention 400 the chat's task model is `claude-opus-5-5`, shown on the monitor (15, 33) |
+| `thinking` | `{"type":"adaptive","display":"updates","block_binding":{"prefix_mismatch_behavior":"drop_block"}}` (tests `"error"`); not `between_tools` (no per-message effort) |
+| `output_config.effort` | top level fixed `low` (a change there restarts the cache); changes are appended effort-only messages `{"role":"system","content":[],"output_config":{"effort":"high"}}` |
+| `fallbacks` | `"default"` on both models (open Q10) |
+| `system`, `tools` | `prompts/system.md` (short, cached) and the tools below, stored per epoch, replayed byte-identical after restarts |
+| betas | `server-side-fallback-2026-07-01`, `mid-conversation-output-config-2026-07-01`, `thinking-display-updates-2026-08-18`, `thinking-binding-controls-2026-08-01`, `compact-2026-09-04` |
 
-`mcp__weixue__*` app tools: `set_chat_title`, `notify_user(text, urgent)`, `set_result_tier(interrupt|silent)` (default WHEN_IDLE), `awaiting_answer()` (the final text is a question). No `start_background_task`.
+**Tools** (fixed per chat epoch; a change breaks the cached and signed prefix):
 
-Tool correlation comes from the stream, not hooks: `ToolUseBlock(id, name, input, parent_tool_use_id)` and `ToolResultBlock(tool_use_id, is_error)` fill `tool_calls` keyed by `turn_id`. Prompts are dict messages through `client.query(async_iter)` with `origin={"kind":"human"}`; a `ResultMessage` with `origin.kind=="human"` closes the turn in flight, anything else is logged as injected. `SystemMessage` subtypes `api_retry` (INFO + `progress{retrying}`), `model_fallback`, `model_refusal_no_fallback` are routed. `ResultMessage.model_usage` is cumulative per CLI process: keep a baseline reset on connect and on `ConversationResetMessage`, attribute each result to its turn.
+- **HA** (19): every ha-mcp tool from `ha_tools_cache` as `async_mcp_tool(tool, gateway, defer_loading=…)`; `gateway` is `HaGateway` exposing `call_tool(name, arguments) -> CallToolResult` (a raw `ClientSession` would bypass the 8 s boundary).
+- **Tool search**: `tool_search_tool_bm25_20251119` (or regex, S1 picks); HA tools `defer_loading:true` except `HOT_HA_TOOLS` (the bridge's 7 voice-path tools).
+- **App** (`@beta_async_tool`): `ask_user(question, options[], multi_select)`, `start_task(title)`, `set_chat_title`, `notify_user(text, urgent)`, `set_result_tier(interrupt|silent)` (default WHEN_IDLE), `awaiting_answer()`.
+- **Memory** `memory_20250818` (section 11); **web** (22, 41): server-side `web_search_20260209`, `web_fetch_20260209`, `max_uses` 5 each, no `user_location`.
 
-**Lifecycle.** Connect with `resume=<sid>` when `$CLAUDE_CONFIG_DIR/projects/-workspace/<sid>.jsonl` exists, else `session_id=<sid>`. A failed `resume` never silently becomes a fresh session under the same chat id: the turn fails `agent_process`, the chat shows `failed`, the history association is kept and the user decides. Never `continue_conversation` (shared cwd) or `fork_session`. A switch prewarms with `connect()` and no prompt; the device UI is served from the index. Idle disconnect after `CLIENT_IDLE_S=300` with no turn in flight and nothing pending; LRU eviction takes idle actors only. Back-pressure: a message needing a new process waits `QUEUE_WAIT_MS`, then 503 `busy` and a spoken "I'm busy right now, try again in a moment" (zh 「我这会儿忙，稍后再试」). `CanUseToolShadowedWarning` at connect is expected and logged once.
+A changed ha-mcp list applies to new chats and after a compaction. Per-model tool sets are allowed only as a pure function of the model (the skill's verified form): if a model rejects a tool version, and as the fallback if tool search misses the budget (S1 item 1): hot set + app tools on quick turns, full set on task turns.
 
-**Index** (`store.py`, SQLite, `user_version` migrations): `devices`, `chats` (`sdk_session_id UNIQUE, title, title_source, summary, open_task_id, last_activity_at, last_read_seq`), `tasks` (`retry_allowed`, `result_tier`), `turns` (`kind, state, terminal_reason, started_at, reply_end_at, ended_at, interrupted_by, cost_usd`), `chat_notes` (context lines for the next turn), `tool_calls`, `chat_events` (coalesced text, pruned after `EVENT_RETENTION_DAYS`, 21), `task_transitions`, `interactions` (`external_ref` = ha-mcp token, never returned), `approvals`, `deliveries` (`lease_id, attempt, proactive_id, playback`), `idempotency`, `decisions`, `ha_tools_cache`, plus the monitor tables (section 12). Title: placeholder → first utterance → `set_chat_title`; no `rename_session`. S0 tests WAL on the real Rancher bind mount (`kill -9`, reopen, `integrity_check`, uid 1000), else a named volume or `journal_mode=DELETE, synchronous=FULL`.
+**Mode switching** (39). A turn with no open task starts `quick`. Sonnet escalates by calling `start_task(title)` after a spoken acknowledgement: the result opens the task, the actor appends an effort-high message and the same loop continues on Fable; reaching `QUICK_MAX_ROUNDS` tool rounds escalates the same way. Turns of an open task run `task`; a steer inside a running loop keeps its model; a task closed at `end_turn` makes the next message `quick`. Thinking blocks are replayed unchanged on a switch, never stripped: Sonnet 5.5 drops Fable's blocks unbilled; Fable reads them again. Whether Fable reads Sonnet 5.5's blocks is UNVERIFIED; `model_binding_mismatch` entries are expected. Caches are per model (S1 item 6 times the first Sonnet turn after Fable work).
+
+**Transcript** (`transcript.py`, sole writer): `transcript(chat_id, epoch, seq, role, content_json, model, turn_id, request_id, state)`, blocks verbatim (thinking with signatures, server-tool blocks, `compaction`, `fallback`).
+
+1. Append-only; a request sends the current epoch. Rows stay `tail` until the response they were sent with completes; only such an uncommitted tail may be rewritten, once, by the cancel path (section 9): no thinking block was minted after it, so no signed prefix changes (S1 item 8).
+2. Never a partial assistant message (no prefill; an unfinished thinking block has no signature). A message with a mid-stream `fallback` block is stored in the documented echo form (before the last `fallback` block only text and paired server-tool blocks).
+3. Every `tool_use` gets a `tool_result` in the next user message: `is_error:true` "not run: <why>" or "result unknown: <why>; do not repeat it" when it never ran or its result is lost.
+4. User words are a text block after the last `tool_result`, never inside one. Service notices (`[context …]`, `chat_notes`, interrupt, cut-off, restart, approval lines) are a separate `{"role":"system"}` message after it (last, or followed by an assistant turn). An event-only turn is a user message holding the `[event …]` line, which the system prompt attributes to the service.
+
+**Compaction** (`compact-2026-09-04`): when a turn's last request input exceeds `COMPACT_AT_TOKENS`, the actor calls `runner.compact_before_next_turn({"type":"summarize","instructions": …})`; the runner compacts after the final message (skipped if tool calls are unanswered). The compaction message starts a new epoch and refreshes the tool list; the instructions keep the open task, pending interactions, unknown HA calls and the user's stated preferences.
+
+**Usage.** Per request `usage`, model, effort, mode, `request_id`, TTFT, `input_transformations` → `usage` (section 12); cost from `config.py` prices. Runaway guards (15): `MAX_ITERATIONS` → `failed{max_turns}`; `TURN_BUDGET_USD` → stop at the next boundary, `failed{max_budget}`.
+
+**Index** (`store.py`, SQLite, `user_version` migrations): the worktree's tables (section 16) with `sdk_session_id` replaced by `epoch` (plus `chats.mode`, `chats.task_model`, `turns.mode`), and `transcript`, `chat_prompts` (frozen `system` + `tools` per epoch). `interactions.external_ref` (the ha-mcp token) is never returned.
 
 ## 7. Routing of new messages
 
@@ -237,14 +242,14 @@ Tool correlation comes from the stream, not hooks: `ToolUseBlock(id, name, input
 1. **Spoken interaction window** (`VOICE_WINDOW_S=20`, across chats, from the last question or cue spoken inline or acked `played`). `input`: the text is the answer (`routed:"answer"`). `approval` (31): explicit phrases (en "approve / do it", zh 「批准 / 同意」, exact match) approve only a `voice_can_approve` card, the single one on screen; deny words (en "no / deny / cancel / stop", zh 「不 / 不要 / 拒绝 / 取消」) deny; a bare "yes / ok / 好 / 是" gets a repeat-back ("Say approve to turn on the desk plug, or tap the panel."); irreversible or money actions are tap-only. Other text falls through.
 2. **Stop lexicon** (exact match: en "stop / cancel / never mind", zh 「停 / 停下 / 取消 / 算了」) while C has an open task → same as `POST /chats/C/interrupt{reason:"voice"}` (`routed:"cancel"`); the service speaks "Stopped." (zh 「好，停了。」) plus "Some of it may already have happened." when a side effect is `unknown`. Other phrasings go to the model as a steer.
 3. **Turn in flight in C** → **steer** (`routed:"steer"`, section 9).
-4. **Open task in C, no turn in flight** (waiting on an approval, a denied-in-turn question or a text question) → a `steer` turn of that task (`routed:"continue"`); a pending text question is answered by it.
+4. **Open task in C, no turn in flight** (waiting on an approval, an unanswered `ask_user` or a text question) → a `steer` turn of that task (`routed:"continue"`); a pending text question is answered by it.
 5. Otherwise → a new task with a `user` turn (`routed:"new_task"`).
 
-Panel answers apply to their interaction whatever the chat is doing. A chat switch never interrupts anything; deliveries keep their turn's `chat_id`. One chat never has two turns in flight; another chat runs in parallel in its own process.
+Panel answers apply to their interaction whatever the chat is doing. A chat switch never interrupts anything; deliveries keep their turn's `chat_id`. One chat never has two turns in flight; another chat runs in parallel in its own actor.
 
 ## 8. HA adapter & approvals (ADR-9 inside this service)
 
-**Exposure** (19): in-process `McpSdkServerConfig{"type":"sdk","name":"ha","instance": <mcp.server.Server>}`, one per chat actor (resolving the turn in flight at call time), sharing one `HaGateway` (streamable-HTTP client to `HA_MCP_URL` from `weixue_hamcp`, approvals table, pending poller). This adapter is the 8 s boundary. `list_tools` serves **every** ha-mcp tool from `ha_tools_cache`, unfiltered; a cache change calls `client.reconnect_mcp_server("ha")` (UNVERIFIED). Not `type:"http"` (no 8 s boundary; the secret URL would sit in the CLI's MCP config); no `PreToolUse` `defer` (a second gate).
+**Exposure** (19): the runner's HA tools are `async_mcp_tool` wrappers over one `HaGateway` (streamable-HTTP client to `HA_MCP_URL` from `weixue_hamcp`, approvals table, pending poller); the actor binds each call to `(chat, task, turn, tool_use_id)` before it runs. This adapter is the 8 s boundary. Every ha-mcp tool is declared, unfiltered (section 6). Not the Messages API MCP connector (it needs a public URL, has no 8 s boundary, and the secret URL would leave the LAN).
 
 **Call path** (`HA_CALL_BUDGET_S=8`, HTTP read timeout = `wait_seconds + 20` read from `/api/policy/config` at start; `approval_ttl_minutes` and `wait_seconds` are never hardcoded):
 
@@ -264,47 +269,47 @@ Panel answers apply to their interaction whatever the chat is doing. A chat swit
 | TTL passes, or `/approve` returns 404 | `expired`; the agent tells the user it lapsed and offers nothing automatic (32) |
 | Transport error or service restart | `unknown`; never replayed (ADR-9: no blind retry) |
 
-Terminal transitions close every waiter and add one event line per chat: `[event approval <id>] <tool> <summary>: executed | denied | expired | failed: <text> | result unknown. Already handled; do not call the tool again.` With no turn in flight the line starts an `event` turn of the waiting task; otherwise it goes to `chat_notes`, and an event turn follows the current turn unless another turn is queued. Event turns never interrupt, and are sent with `client_composed: True` (no `@path` expansion); their rules ("never retry an unknown result") live in the root `CLAUDE.md`. An HA request sent before its turn was interrupted keeps running here (approvals rows are not tied to turns); section 9 covers how it is reported.
+Terminal transitions close every waiter and add one event line per chat: `[event approval <id>] <tool> <summary>: executed | denied | expired | failed: <text> | result unknown. Already handled; do not call the tool again.` With no turn in flight the line starts an `event` turn of the waiting task; otherwise it goes to `chat_notes` and is appended as a system message at the running loop's next tool boundary (or with the next turn). Event turns never interrupt; their rules ("never retry an unknown result") live in the system prompt. An HA request sent before its turn was interrupted keeps running here (approvals rows are not tied to turns); section 9 covers how it is reported.
 
 **Cancel** denies owned tokens of the task through the same route; it is not optional. Uncorrelated holds keep a card reading "may still be waiting in the Home Assistant panel", never "cancelled". **Boot** reconciliation denies only pending tokens our `approvals` rows own; their tasks stay `unknown` until the deny result arrives; other pending calls are left and shown on the monitor. An HA restart drops ha-mcp's queue: a later decision gets `unknown_token`, mapped to `expired`.
 
-**Gate model** (20, 31): HA tools are in `allowed_tools`, so ha-mcp policy alone decides held versus free and the panel (or an explicit phrase for reversible actions) approves held calls; `can_use_tool` covers only AskUserQuestion, the memory-dir path guard and any future non-HA tool (web tools are pre-allowed). A tool that can edit the policy or approve (S0/S1 item 4) goes to Jay, not into an app filter.
+**Gate model** (20, 31, 39): ha-mcp policy alone decides held versus free and the panel (or an explicit phrase for reversible actions) approves held calls. The service gates nothing else: web tools are server-side and pre-allowed (22), memory is confined to `/data/memory`, `ask_user` is an interaction, not a gate. A tool that can edit the policy or approve (S0/S1 item 10) goes to Jay, not into an app filter.
 
-## 9. Turn lifecycle, interrupt & errors (ADR-11)
+## 9. Turn lifecycle, steer, cancel & errors (ADR-11)
 
-**Reply and acknowledgement.** No 90 s deadline, no foreground/background mode. The message stream (the provider's `chat()`) carries the reply and ends with `reply_end`; the device then runs its normal 8 s no-voice window. `reply_end` fires at the first of: `turn_done` (the turn ended; its final text was streamed, `done.speak` null); `hold_elapsed` (the first text segment ended in a tool use and `REPLY_HOLD_S=6` passed; text inside the hold is spoken); `ack` (no text within `ACK_AFTER_S=20` of the prompt: the service streams a canned "On it." / 「好的，我来处理。」, for a steer "One moment." / 「稍等。」); `question` (a question or approval cue was spoken); `gateway_closed` (the provider's SSE dropped: barge-in or disconnect; the turn keeps running, and `[note: your last reply was cut off and not heard]` goes to `chat_notes`). Root `CLAUDE.md` makes a short acknowledgement the model's first words for longer work; the canned ack is the safety net, so the device channel never idles past ~120 s. Text after `reply_end` is persisted, never spoken live.
+**Reply and acknowledgement.** No 90 s deadline, no foreground/background mode. The message stream (the provider's `chat()`) carries the reply and ends with `reply_end`; the device then runs its normal 8 s no-voice window. `reply_end` fires at the first of: `turn_done` (the turn ended; its final text was streamed, `done.speak` null); `hold_elapsed` (the first text segment ended in a tool use and `REPLY_HOLD_S=6` passed; text inside the hold is spoken); `ack` (no text within `ACK_AFTER_S=20` of the prompt: the service streams a canned "On it." / 「好的，我来处理。」, for a steer "One moment." / 「稍等。」); `question` (a question or approval cue was spoken); `gateway_closed` (the provider's SSE dropped: barge-in or disconnect; see barge-in below). The system prompt makes a short acknowledgement the model's first words for longer work; the canned ack is the safety net, so the device channel never idles past ~120 s. Text after `reply_end` is persisted, never spoken live.
 
 **Result delivery.** A turn that ends with final text after its `reply_end` gives `done{speak}` in the task's `result_tier` (default WHEN_IDLE, section 10). Progress is spoken only when asked: "how is it going?" is a steer.
 
-**Steer** (message while turn N is in flight):
+**Steer** (message M while turn N is in flight; 36). No abort:
 
-1. Persist N+1 (`kind:"steer"`, unsent), emit `accepted{routed:"steer"}`; the device shows thinking; nothing of N is spoken from now on; N+1's `ACK_AFTER_S` clock starts.
-2. Deny N's pending `can_use_tool` futures (`PermissionResultDeny("Interrupted by a new user message", interrupt=True)`, interaction `cancelled`); HA held calls are untouched.
-3. `await client.interrupt()` bounded by `INTERRUPT_ACK_S=5` (the SDK's own control timeout is 60 s).
-4. **Drain** until N's `ResultMessage` with `terminal_reason ∈ aborted_streaming|aborted_tools`, bounded by `DRAIN_S=10`. The actor stamps every message with the generation of the turn in flight and installs N+1's sink only after N's result, so buffered messages stay with N, are persisted and never spoken. N ends `interrupted`; its tool uses without a result are `unknown` (`interrupted.unknown`). An HA request already sent keeps running in the adapter; its later outcome reaches the chat as an event line; never retried.
-5. Send N+1 in the same session: `[context: …]` + `chat_notes` + `[note: you were interrupted while working on "<title>"; the user's new message follows. Answer it; then continue, change course or stop as they ask.]` + an unknown-HA line naming calls still running ("result unknown; do not repeat them"), then the user text.
+Persist N+1 (`kind:"steer"`, unsent), emit `accepted{routed:"steer"}`; nothing of N is spoken from now on; N+1's `ACK_AFTER_S` clock starts; a held `ask_user` resolves "No answer; the user's new message follows."; HA held calls are untouched. Then, at N's next boundary:
 
-Latency from STT end to N+1's first token is drain + TTFT; S1 (l) measures it.
-
-| Race | Rule |
+| N is | Action |
 |---|---|
-| N's result is `completed` (finished first) | N+1 is a `continue` turn with `[note: your work on "<title>" finished just before this message; result: "<text>"; the user has not heard it]`; N's `done` card is SILENT, no spoken delivery |
-| Interrupt ack or drain times out | `disconnect()`, N `failed{interrupt_timeout}` (open tool uses `unknown`), reconnect with `resume` and send N+1 with `[note: your previous turn was force-stopped]` |
-| A second steer arrives before N+1 is sent | both texts go into one N+1, in order |
-| Late interrupt hitting N+1 | impossible: N+1 is sent only after the ack and N's result |
+| in a tool round | after the results: user message `[tool_result…, text M]`, then system `[note: the user spoke while you were working on "<title>"; answer them, then continue, change course or stop as they ask]` + `chat_notes`; N ends `interrupted{terminal_reason:"steered"}`; N+1 continues the same loop and model |
+| streaming | wait for the stream's end up to `STEER_WAIT_S`, then cancel it (barge-in path) |
+| resuming `pause_turn` | wait; nothing goes after a paused message |
+| finished (`end_turn`) | N+1 is a `continue` turn with `[note: your work on "<title>" finished just before this message; result: "<text>"; the user has not heard it]`; N's `done` card is SILENT |
 
-**Interrupt route / cancel** (`POST /chats/{id}/interrupt`, stop lexicon, panel Stop): steps 2–4 without N+1; deny owned HA tokens of the task; task `cancelled{reason, outcome, side_effects}`; the next prompt in the chat gets `[note: the user stopped your previous work]`. A call already sent to HA "may have happened", never undone.
+A second steer before the boundary joins N+1, in order. HA calls already sent keep running in the adapter (outcome as an event line, never retried). STT end → N+1 first token = wait to the boundary + TTFT (S1 item 7).
+
+**Barge-in** (37). When the provider's stream drops while reply text streams, or a steer's wait elapses, the actor cancels the task reading the stream (target < 500 ms to a closed HTTP stream). The partial assistant message is discarded: the conversation falls back to its last committed state; the spoken part survives only as context. The next request rewrites the uncommitted tail once into the same user content plus M (if any), then system `[note: your previous reply was cut off; the user heard: "<spoken text>"]`. After a completed message, a barge-in only adds that note to `chat_notes`.
+
+**Interrupt route / cancel** (`POST /chats/{id}/interrupt`, stop lexicon, panel Stop): cancel the stream or tool coroutines (the adapter keeps HA requests already sent), close open tool uses ("not run: the user stopped this task" / "result unknown"), deny owned HA tokens of the task; task `cancelled{reason, outcome, side_effects}` within `CANCEL_MAX_S`; those results and `[note: the user stopped your previous work]` go with the next turn. A call already sent to HA "may have happened", never undone.
 
 | Event | Rule |
 |---|---|
-| `TURN_MAX_S=1800` (runaway guard, not a voice deadline) | interrupt, task `failed{timeout}`, WHEN_IDLE notice |
-| Question raised after `reply_end`, or unanswered `VOICE_WINDOW_S` after it was spoken | deny it with "The user has not answered yet; end the turn. Their answer will arrive as a new message"; task stays `needs_input`, card + WHEN_IDLE question |
-| `AssistantMessage.error` / `ResultMessage.is_error`, `api_error_status` | `failed{rate_limit\|auth\|billing\|api_error\|max_turns\|max_budget\|sdk_error}`, spoken cue per code; every stream ends with `reply_end` or a terminal event |
-| Fable `refusal` | `failed{refusal}`, "Sorry, I can't help with that one." (fallback coverage seen in S1) |
-| `CLIConnectionError` / `ProcessError` | `failed{agent_process}`; next message resumes |
-| Restart (`recovery.py`, before the API opens) | a turn in flight → its task `failed{service_restart}`, outcome `unknown` if a non-read-only call has no end, else `none`; WHEN_IDLE "I restarted while working on <title>, so it may not have finished" with `Retry` **only when `retry_allowed`**, else a "check state" follow-up; the chat's next turn gets a restart note naming unknown calls; tasks with no turn in flight keep their state; HA rows per section 8; SDK interactions `expired`; `CLAUDE_CODE_RESUME_INTERRUPTED_TURN` never set; deliveries per section 10; chats unchanged |
+| `TURN_MAX_S=1800` (runaway guard, not a voice deadline) | cancel, task `failed{timeout}`, WHEN_IDLE notice |
+| Question raised after `reply_end`, or unanswered `VOICE_WINDOW_S` after it was spoken | `ask_user` resolves "The user has not answered yet; end the turn. Their answer will arrive as a new message"; task stays `needs_input`, card + WHEN_IDLE question |
+| `RateLimitError`, `AuthenticationError`/`PermissionDeniedError`, billing 400, 5xx/529 after retries, `APIConnectionError`, stream `error` | `failed{rate_limit\|auth\|billing\|api_error}`, spoken cue per code; every stream ends with `reply_end` or a terminal event |
+| Retention 400 on Fable | the chat's task model becomes `claude-opus-5-5`, one retry, monitor row (33) |
+| `input_transformations` with `prefix_binding_mismatch` (or its 400 in tests) | `errors` row `code:"transcript"`; production continues (`drop_block`), tests fail |
+| `refusal` after fallbacks | `failed{refusal}`, "Sorry, I can't help with that one."; nothing of the refused message is appended |
+| `max_tokens` / context window exceeded | one continue / one compaction, else `failed{api_error}` |
+| Restart (`recovery.py`, before the API opens) | a turn in flight → task `failed{service_restart}`, outcome `unknown` if a non-read-only call has no end, else `none`; WHEN_IDLE "I restarted while working on <title>, so it may not have finished" with `Retry` **only when `retry_allowed`**; open tool uses get "result unknown (service restarted); do not repeat it" plus a restart note with the next turn; other tasks keep their state; HA rows per section 8; `ask_user` `expired`; deliveries per section 10 |
 
-Nothing is retried after an unknown outcome. The SDK owns history; the service decides what the device hears and which context lines precede the next turn.
+`Error.code` keeps its enum: `sdk_error` = SDK or request error, `max_turns` = `MAX_ITERATIONS`; `agent_process` and `interrupt_timeout` are no longer emitted. Nothing is retried after an unknown outcome. The service owns the transcript and decides what the device hears and which notices precede the next request.
 
 ## 10. Delivery tiers & device queue
 
@@ -327,86 +332,82 @@ INTERRUPT = proactive `urgent` (ignores mute; agent-declared urgency and HA safe
 
 ## 11. Config, secrets & memory
 
-`server/.env` (0600) is the single key source (16): `ANTHROPIC_API_KEY` (personal key), `HA_MCP_URL`, `AGENT_SERVICE_TOKEN`. Compose resolves `env_file` and `environment:` alike, so `docker compose config` never runs in gates or logs. agent-service gets a service-specific `environment:` with only those keys plus `TZ` and `CLAUDE_CONFIG_DIR`, never `env_file: .env`; the CLI keeps only the API key. `AGENT_SERVICE_TOKEN` reaches xiaozhi as an env var, never in `data/.config.yaml`. Constants (`config.py`): `REPLY_HOLD_S 6`, `ACK_AFTER_S 20`, `INTERRUPT_ACK_S 5`, `DRAIN_S 10`, `TURN_MAX_S 1800`, `HEARTBEAT_S 2` while a reply is open else 5, `QUEUE_WAIT_MS 1500`, `VOICE_WINDOW_S 20`, `INPUT_TTL_S 1800`, `CLI_PROCS_MAX 4`, `CLIENT_IDLE_S 300`, `MAX_OPEN_TASKS_PER_DEVICE 20` (429 `too_many_tasks`), `HA_CALL_BUDGET_S 8`, `HA_PENDING_POLL_S 2`, `EVENT_RETENTION_DAYS 30`. Error messages never echo values.
+`server/.env` (0600) is the single key source (16): `ANTHROPIC_API_KEY` (personal key), `HA_MCP_URL`, `AGENT_SERVICE_TOKEN`. Compose resolves `env_file` and `environment:` alike, so `docker compose config` never runs in gates or logs. agent-service gets a service-specific `environment:` with only those keys plus `TZ`, never `env_file: .env`. `AGENT_SERVICE_TOKEN` reaches xiaozhi as an env var, never in `data/.config.yaml`. Constants (`config.py`): `REPLY_HOLD_S 6`, `ACK_AFTER_S 20`, `STEER_WAIT_S 3`, `CANCEL_MAX_S 2`, `TURN_MAX_S 1800`, `HEARTBEAT_S 2` while a reply is open else 5, `QUEUE_WAIT_MS 1500`, `STREAMS_MAX 8`, `ACTOR_IDLE_S 300`, `QUICK_MAX_ROUNDS 3`, `MAX_ITERATIONS 60`, `TURN_BUDGET_USD 25`, `PAUSE_RESUME_MAX 5`, `COMPACT_AT_TOKENS 150000`, `VOICE_WINDOW_S 20`, `INPUT_TTL_S 1800`, `MAX_OPEN_TASKS_PER_DEVICE 20` (429 `too_many_tasks`), `HA_CALL_BUDGET_S 8`, `HA_PENDING_POLL_S 2`, `EVENT_RETENTION_DAYS 30`, the model price table. Error messages never echo values.
 
-Compose: one `agent-service` definition in `server/docker-compose.yml` with `network_mode: ${WG_TUNNEL:+service:wg}`, the `environment:` above, volumes `./data/agent-service:/data`, `./agent-service/workspace:/workspace:ro`, `mem_limit` from S0, `restart: unless-stopped`, healthcheck `python -m weixue_agent.health` (15 s, start period 30 s). `mcp-bridge` is unchanged.
+Compose: one `agent-service` definition in `server/docker-compose.yml` with `network_mode: ${WG_TUNNEL:+service:wg}`, the `environment:` above, volume `./data/agent-service:/data`, `mem_limit` from S0, `restart: unless-stopped`, healthcheck `python -m weixue_agent.health` (15 s, start period 30 s). `mcp-bridge` is unchanged.
 
-**Memory layout.** In git, read-only at `/workspace`: `CLAUDE.md` (identity; spoken style: turn language, one or two sentences, no Markdown; device state only from HA; acknowledge first for longer work, then do it in the same turn; how to read interrupt, `[event approval …]`, unknown-HA and restart notes; never retry an unknown result; asked for progress, say where you are in one sentence and carry on unless told otherwise; `AskUserQuestion` when an answer is needed), `.claude/settings.json` (allow `Read|Edit|Write(//data/claude/projects/-workspace/memory/**)`, deny rules mirroring `disallowed_tools`; exact rule syntax UNVERIFIED, S1). `can_use_tool` is not a filesystem guard: the boundary is the permission rules plus filesystem isolation (dedicated cwd, read-only workspace, no symlink escape), tested for traversal. Volume `/data/claude` (0700): transcripts, auto-memory `projects/-workspace/memory/`, `.claude.json`. Auto-memory stays on. Per-turn context (Dublin time, device, bedside/muted, reply language) is prefixed to the user text, not the system prompt, so the cache prefix stays stable.
+**Memory.** The `memory_20250818` tool backed by `BetaAsyncLocalFilesystemMemoryTool(base_path="/data/memory")`, subclassed to serialize writes behind one process-wide lock, cap file size and log each command (path only); the helper already rejects traversal and symlink escape (`_validate_path`, `_validate_no_symlink_escape`). No secrets in memory. `prompts/system.md` (in git, frozen per chat epoch, cached) carries rev 3's root `CLAUDE.md` rules: identity; spoken style (turn language, one or two sentences, no Markdown); device state only from HA; acknowledge before `start_task`, then do the work; how to read interrupt, cut-off, `[event approval …]`, unknown-HA and restart notes; never retry an unknown result; asked for progress, say where you are in one sentence and carry on unless told otherwise; `ask_user` when an answer is needed; check memory only when the ask needs it. Per-turn context (Dublin time, device, bedside/muted, reply language) goes in the system message after the user text, never in `system`. UNVERIFIED: whether the memory tool makes the model view its directory every turn; if so S1 picks an index in each epoch's first system message or the tool on task turns only.
 
 ## 12. Observability & monitor data
 
-JSON lines to stdout (`jsonlog.py`): `ts, level, msg, trace_id, task_id, chat_id, turn_id, device_id, sdk_session_id, event, tool, outcome, latency_ms, model, cost_usd, attempt, code`; one line per task state change, turn start/end (`terminal_reason`), `reply_end` (reason, ms), interrupt (ack ms, drain ms, forced), tool call, interaction, delivery offer/ack, `api_retry`, `model_fallback`, SDK error, connect/resume/disconnect, recovery summary. Never text deltas; summaries ≤60 chars. Redaction: never the API key, HA URLs, tokens, `private_`/`token=` URLs, ha-mcp tokens; tool args logged as `args_redacted_json` (keys matching `/(token|pin|password|secret|key|url)/i` → `[redacted]`, strings capped at 120); SDK stderr through the same redactor. The trace id travels provider → service, so one grep across both containers' logs reconstructs a turn. Per turn TTFT, time to `reply_end`, time to result and cost; per task turns, interrupts and total time, in `/tasks/{id}/trace`. Gate logs saved redacted under `docs/logs/agent-service-<scenario>-<date>.log`.
+JSON lines to stdout (`jsonlog.py`): `ts, level, msg, trace_id, task_id, chat_id, turn_id, device_id, epoch, mode, event, tool, outcome, latency_ms, model, effort, cost_usd, attempt, code`; one line per task state change, turn start/end (`terminal_reason`), mode switch, `reply_end` (reason, ms), steer (boundary ms) and cancel (stop ms), tool call, interaction, delivery offer/ack, `api_retry` (`anthropic` logger retries), `model_fallback` (a `fallback` block), `input_transformations` entries, compaction, API error, actor load/evict, recovery summary. Never text deltas; summaries ≤60 chars. Redaction: never the API key, HA URLs, tokens, `private_`/`token=` URLs, ha-mcp tokens; tool args logged as `args_redacted_json` (keys matching `/(token|pin|password|secret|key|url)/i` → `[redacted]`, strings capped at 120); the `anthropic`/`httpx` loggers go through the same redactor. The trace id travels provider → service, so one grep across both containers' logs reconstructs a turn. Per turn TTFT, time to `reply_end`, time to result and cost; per task turns, steers and total time, in `/tasks/{id}/trace`. Gate logs saved redacted under `docs/logs/agent-service-<scenario>-<date>.log`.
 
-**Monitor data** (feat-agent-monitor reads the SQLite file read-only): every tool call (name, args summary, result status, duration, `turn_id`, ha-mcp token id when held, approval decision + source + decided_at); every result's usage (tokens incl. cache, cost, model, turn kind) in `usage` + daily `usage_daily`; task and turn transitions incl. interrupts; `connection_events` (WS open/close per device); `health_probes` (ha-mcp reachable, tool count, pending count, policy version; mcp-endpoint; bridge; tunnel handshake age); `errors`. Retention per 21. The board binds 127.0.0.1, reached over Tailscale on the home server (30).
+**Monitor data** (feat-agent-monitor reads the SQLite file read-only): every tool call incl. server-side web calls (name, args summary, result status, duration, `turn_id`, ha-mcp token id when held, approval decision + source + decided_at); every request's usage (tokens incl. cache, server tool uses, cost, model, effort, mode, turn kind, TTFT) in `usage` + daily `usage_daily`; task and turn transitions incl. steers and cancels; `connection_events` (WS open/close per device); `health_probes` (ha-mcp reachable, tool count, pending count, policy version; mcp-endpoint; bridge; tunnel handshake age); `errors`. Retention per 21. The board binds 127.0.0.1, reached over Tailscale on the home server (30).
 
 ## 13. Test plan & e2e gate
 
-**S0/S1 gate checklist** (first gate, from the Codex Wave 5 review; evidence per item in the spec; an office-mode deferral is outstanding, not passed):
+**S0/S1 gate** (first gate; evidence per item in the spec, numbers in `docs/logs/feat-agent-service-s1-<date>.md`; an office-mode deferral is outstanding, not passed). Items 1–4 are the fallback trigger (40): if one fails within 3 working days, the task path reverts to rev 3's Agent SDK design; quick asks stay here.
 
-1. The exact pinned SDK/CLI on arm64 with the personal key, the approved models, fallback and the retention behaviour (33); record the actual option and event shapes.
-2. Session creation, restart/resume, **interrupt → drain → next turn in the same session** (S1 (l)), concurrent memory writes.
-3. HTTP approvals against the installed ha-mcp version: early/late approve, deny, expiry, concurrent identical calls from another client, truncated-argument collisions, lost responses, restart of either service; `wait_seconds` untouched.
-4. The complete HA tool surface against the effective policy, including indirect dispatch and policy/approval-management tools.
-5. Fault tests of namespace replacement, deployment rollback, outbox partial delivery and crash after speech before ack.
-6. The physical audio gate on the final stack (home): corrections during playback, all three cues followed by short answers, abort during cue loading, proactive failures, one real HA action, a spoken steer of a running task.
+1. **First token**: a quick turn with the real ha-mcp tool list (from the `wg` namespace; token count vs the stub's 91k) behind tool search: first-output median ≤ 800 ms on the spike's Q1/Q2 (1 warm-up + 5); else the hot-set quick tools ≤ 800 ms with `start_task` working.
+2. **Cancel and steer on Fable**: stream cancel < 500 ms median; boundary steer and the next request 200 under `"error"`.
+3. **Web**: `web_search` turns until a `pause_turn` occurs (or none in 20 tries, reported); the runner resumes it, the transcript holds the paused message once.
+4. **One ADR-9 held HA call end to end**: pending at 8 s → card → panel approve via `/api/policy/approve` → `executed` → event line → `done` (needs Jay's policy overlay).
+5. **Tool search, real 77 tools**: first output/text all-deferred vs hot set; searches per turn; wrong-tool rate on the e2e prompts; bm25 vs regex.
+6. **Model switch in one chat**: quick → `start_task` → Fable → end → quick: no 400; `input_transformations`, cache read/creation and first token per request; both models accept the per-message effort and the same `tools`.
+7. **Cancel/steer races**: steer during text, a tool round, a held `ask_user`, just after `end_turn`; double steer; cancel during a `pause_turn` resume; barge-in then a message 10 s later; each then one request in `"error"` mode.
+8. **Append-only after interrupts**: the skill's `prefix_diff.py` over every request body of a 20-turn session with steer, cancel, barge-in, restart, switch and compaction shows only appends, the permitted tail rewrite and model switches.
+9. **Basics**: pinned arm64 image as uid 1000; a Fable call with the personal key (33); WAL on the real bind mount (`kill -9`, reopen, `integrity_check`; else a named volume or `journal_mode=DELETE`); RSS for `mem_limit`; memory codeword in a new chat after restart, 4 concurrent writers; memory-tool view behaviour; whether ha-mcp executes an approved held call after the client's request dropped.
+10. **Rev 3 items 3–6 unchanged** (sub-cases in rev 3 section 13): HTTP approvals against the installed ha-mcp; the HA tool surface against the effective policy; fault tests; the physical audio gate at home.
 
-**Spike details.** S0: the pinned wheel in the arm64 image, CLI as uid 1000 with only `CLAUDE_CONFIG_DIR` and the key; WAL on the bind mount; idle/working CLI RSS (`CLI_PROCS_MAX`, `mem_limit`). S1 with `ClaudeSDKClient`: (a) `session_id` then `resume` after prewarm-only `connect()` and after restart; (c) AskUserQuestion reaches `can_use_tool`, answer shape accepted, deny-with-message ends the turn; (d) Task* tools on Fable via the `tools` list; (e) `api_retry`, `model_fallback`, `model_refusal_no_fallback` names; (f) cold `connect()` to first token with HA up and down; (g) memory: codeword recalled after restart in a new chat; 4 concurrent writers + restart keep `MEMORY.md` and `.claude.json` intact, else serialize via `mcp__weixue__remember` or ask Jay; (i) `max_budget_usd` accumulation across `query()` calls; (j) settings.json path-rule syntax; (k) whether ha-mcp executes an approved held call after the client's HTTP request dropped; (l) **`interrupt()` on the pinned SDK**, timed, during streaming text, during a running in-process MCP call, during a pending `can_use_tool`, and just after a turn completed: control-response latency; exactly one `ResultMessage` with `aborted_*` and its `origin`; all buffered messages before it and none of N after it; a late MCP result after the abort neither reaching N+1 nor corrupting the transcript; the next `query()` in the same `session_id` sees the interrupted turn (record the marker); an interrupt after completion is a no-op; `resume` of an interrupted session; (m) whether the CLI accepts an effort change between turns (Q9). Fallback if (l) fails: every steer takes the forced path (disconnect, `resume`, send N+1); API unchanged, latency recorded.
+**Unit** (`tests/`, no network; a fake streaming Messages API scripting text, `tool_use`, `pause_turn`, `refusal`, `fallback` and `compaction` with delays; rev 2's fake ha-mcp): rev 3's suites (`test_task_state, test_reply, test_routing, test_events, test_interactions, test_idempotency, test_sse, test_recovery, test_chats, test_deliveries, test_ha_adapter, test_backpressure, test_schemas, test_redaction`, the last also over transcript and memory files) plus `test_steer` (boundary message shape, separate notes message, wait then cancel, races, held `ask_user`, in-flight HA call → late event line), `test_cancel` (partial discarded, tail rewritten once, open tool uses closed, owned tokens denied), `test_transcript` (each request = previous + appends except the tail rewrite; fallback echo form; compaction epoch; `system`/`tools` stable across restart), `test_modes`, `test_memory` (lock, traversal, symlink).
 
-**Unit** (`tests/`, no network; `FakeSDKClient` scripting interrupt acks, buffered messages and `aborted_*` results with delays; fixtures recorded once live; rev 2's fake ha-mcp): `test_task_state`; `test_reply` (each `reply_end` reason, hold, canned acks, nothing streamed after `reply_end`); `test_steer` (generation attribution, `interrupted` with unknown effects, prefix lines, completed-before-interrupt race, timeout → forced resume, double steer merged, pending question denied, in-flight HA call → unknown then late event line, no retry); `test_cancel` (stop lexicon, interrupt route, owned tokens denied, uncorrelated wording); `test_routing` (spoken window, reversible-only phrases, "yes" repeat-back, tap-only, `continue`, parallel chat); `test_events` (event turn when idle, queued when busy); `test_interactions`; `test_idempotency`; `test_sse`; `test_recovery`; `test_chats`; `test_deliveries` (tiers, `played|cut_off|lost`, no replay without evidence, steer supersedes); `test_ha_adapter` (rev 2 list); `test_backpressure`; `test_schemas`; `test_redaction` (synthetic secrets absent from logs, trace, errors, MCP config, transcripts, monitor rows).
+**Live** (`RUN_LIVE_TESTS=1`, key sourced from `server/.env` in a subshell): S1 items 1–9 via `tools/spike_s1.py`.
 
-**Live SDK** (`RUN_LIVE_TESTS=1`, key sourced from `server/.env` in a subshell): short question with TTFT; codeword across resume and container recreate; S1 (l) against the real CLI.
+**End-to-end gate (office mode)**: `tools/e2e_conversation.py` drives `tools/sim_device.py` as gateway and device; no audio; live HA over the tunnel; read-only entities plus `light.living_room_ceiling_lights` (34, restored after each scenario); unique run ids; every expectation asserted (non-zero exit on failure); redacted logs in `docs/logs/`. The service-side first token per mode is recorded; speech-end → first audio ≤ 1.5 s (37) is measured in feat-llm-claude-agent's gate.
 
-**End-to-end gate (office mode)**: `tools/e2e_conversation.py` drives `tools/sim_device.py` as gateway and device; no audio; live HA over the tunnel; read-only entities plus `light.living_room_ceiling_lights` (34, restored after each scenario); unique run ids; every expectation asserted (non-zero exit on failure); redacted logs in `docs/logs/`.
-
-1. **Short turn**: "Is the living room ceiling light on?" → one HA read, `reply_end{turn_done}`, `done.speak` null.
-2. **Long task**: "Look at the living room lights and today's sunset time, check their history this week, and draft (don't apply) an automation that turns them on at sunset." → acknowledgement within `ACK_AFTER_S` (model or canned, logged), `reply_end` within `ACK_AFTER_S + REPLY_HOLD_S`, then ≥3 HA calls, total >30 s, `done` on `watch` as WHEN_IDLE (with `--busy`: deferred, lands within 10 s of un-busying).
-3. **Interrupt mid-task**: rerun 2; after `reply_end` and one tool call send "How is it going?" → `interrupted` (drain ms logged), a streamed progress reply, more tool calls of the same task in the same `sdk_session_id`; then "stop" → `cancelled` within `INTERRUPT_ACK_S + DRAIN_S`, "Stopped." spoken, `side_effects` listed, no tool call after it.
+1. **Short turn**: "Is the living room ceiling light on?" → `quick`, one HA read, `reply_end{turn_done}`, `done.speak` null.
+2. **Long task**: "Look at the living room lights and today's sunset time, check their history this week, and draft (don't apply) an automation that turns them on at sunset." → acknowledgement then `start_task` (switch to Fable logged), `reply_end` within `ACK_AFTER_S + REPLY_HOLD_S`, ≥3 HA calls, total >30 s, `done` on `watch` as WHEN_IDLE (with `--busy`: deferred, lands within 10 s of un-busying).
+3. **Steer mid-task**: rerun 2; after `reply_end` and one tool call send "How is it going?" → `interrupted{steered}` (boundary ms logged), a streamed progress reply, more tool calls of the same task in the same transcript; then "stop" → `cancelled` within `CANCEL_MAX_S`, "Stopped." spoken, `side_effects` listed, no tool call after it.
 4. **Denied approval**: held HA call → `needs_approval`; `POST /chats/{id}/deny` → our `/api/policy/deny` succeeds → `resolved{denied}` → event turn → `done{outcome:"denied"}`. Live only with Jay's policy overlay applied, else the fake ha-mcp (spec says which).
-5. **Restart mid-turn**: `docker restart agent-service` during 2 → `failed{service_restart}`, WHEN_IDLE notice, `chats list` unchanged; the next message resumes the same `sdk_session_id` and the reply knows the work was cut off.
-6. **Second chat**: during 2 in chat A, `chats new` and ask "What's the weather like?" → answered with `reply_end{turn_done}` while A still runs; no `interrupted` in A; two CLI processes in `status`.
+5. **Restart mid-turn**: `docker restart agent-service` during 2 → `failed{service_restart}`, WHEN_IDLE notice, `chats list` unchanged; the next message continues the same transcript and the reply knows the work was cut off.
+6. **Second chat**: during 2 in chat A, `chats new` and ask "What's the weather like?" → answered (web search) with `reply_end{turn_done}` while A still runs; no `interrupted` in A; two busy actors in `status`.
 7. **5-min task, device gone**: a ~5 min task (per-day history of three entities, step by step); the sim drops the stream at `reply_end` and disconnects; on reconnect the snapshot and a WHEN_IDLE delivery carry the result.
-8. **Clarification**: "Remind me about the bins" → "Which day?" spoken, `reply_end{question}` → "Thursday" within `VOICE_WINDOW_S` → `done`.
+8. **Clarification**: "Remind me about the bins" → `ask_user` "Which day?" spoken, `reply_end{question}` → "Thursday" within `VOICE_WINDOW_S` → `done`.
 9. **Free HA action** on the test entity: on, off, `ha_get_state` confirms, `side_effects: confirmed`, state restored.
+10. **Barge-in**: the sim drops the stream mid-answer and sends a correction → stream cancelled < 500 ms, no partial assistant message stored, the reply follows the correction.
 
-Per CLAUDE.md the spec states that this task cannot run end to end on the device; feat-llm-claude-agent's gate covers wake → STT → agent → TTS incl. a spoken steer; feat-protocol-agent-msg / feat-ui-agent-states cover cards and acks.
+Per CLAUDE.md the spec states that this task cannot run end to end on the device; feat-llm-claude-agent's gate covers wake → STT → agent → TTS incl. a spoken steer and barge-in; feat-protocol-agent-msg / feat-ui-agent-states cover cards and acks.
 
 ## 14. Open questions for Jay
 
-Answered: Q1 (31), Q2 (35, superseded by 36), Q3 (32), Q4/Q5 (orchestrator, section 8), Q6 (35), Q7 (33), Q8 (34). Open:
+Answered: Q1 (31), Q2 (35, superseded by 36), Q3 (32), Q4/Q5 (orchestrator, section 8), Q6 (35), Q7 (33), Q8 (34), Q9 (per-turn model and effort, 39). Open:
 
-- **Q9 Effort in a shared session.** Decision 15 (low for chat, high for tasks) assumed separate task sessions; 36 puts tasks in the chat session. Options: (a) one effort for every turn (`low` fastest, `medium`, `high` slower short answers); (b) per-turn effort if S1 (m) shows support: `low`, raised to `high` for tool work. Recommendation: (b), else (a) `medium`. Build default `low` until answered.
+- **Q10 Refusal fallback target.** Decision 15 names `claude-opus-5-5`, but per the skill Fable 5.1's server-side fallbacks only target Opus 4.8 and Opus 5. Options: (a) `fallbacks:"default"`, server-routed, no extra request (recommended; matches 39); (b) a client-side retry on `claude-opus-5-5` (one more request). Build default (a); the retention-400 switch to Opus 5.5 (33) stays.
 - **Home audio window** (34): still to be named, for the deferred device-audio gate.
 
 ## 15. Follow-ups for the dependent tasks
 
-- **feat-llm-claude-agent**: sync `httpx` SSE client to `POST /v1/chats/current/messages` (connect 2 s, read 15 s); `Idempotency-Key <device>:<session>:<turn>`, `X-Trace-Id`; yield `text`; return from `chat()` on `reply_end` or a terminal event, so xiaozhi runs its normal 8 s window; no 90 s deadline or task timer (36 supersedes tasks.yml's inherited line); on barge-in just close the stream; on stream drop try `GET /chats/{id}/events?after=` once, then the "can't reach my assistant" cue, no history write; `self.*` device tools are out of this contract; token via env; retire the sentence_id guard once voice HA calls move here.
-- **feat-protocol-agent-msg**: consume `GET /v1/deliveries/stream` with the two-phase ack and `lease_id`; playback ack `played|cut_off` and user ack (35); `agent`/`chats` as `custom`; snapshot on session open; panel events `approval_decision/clarification_choice/card_later/card_shown/task_open/task_stop/chat_switch/chat_new` mapped to `approve|deny|answer`, `interrupt`, `read` and chat routes.
+- **feat-llm-claude-agent**: every ask goes to the service (39, 40); no direct Sonnet path or `hand_off_to_agent` unless the fallback trigger fires. Sync `httpx` SSE client to `POST /v1/chats/current/messages` (connect 2 s, read 15 s); `Idempotency-Key <device>:<session>:<turn>`, `X-Trace-Id`; yield `text`; return from `chat()` on `reply_end` or a terminal event, so xiaozhi runs its normal 8 s window; no 90 s deadline or task timer (36); on barge-in close the stream (the service cancels the generation) and send the new utterance; on stream drop try `GET /chats/{id}/events?after=` once, then the "can't reach my assistant" cue, no history write; `self.*` device tools are out of this contract; token via env; retire the sentence_id guard once voice HA calls move here.
+- **feat-protocol-agent-msg**: consume `GET /v1/deliveries/stream` with the two-phase ack and `lease_id`; playback ack `played|cut_off` and user ack (35); `agent`/`chats` as `custom`; snapshot on session open; panel events `approval_decision/clarification_choice/card_later/card_shown/task_open/task_stop/chat_switch/chat_new` mapped to `approve|deny|answer`, `interrupt`, `read` and chat routes. The device protocol keeps `needs_input` on the wire; the gateway mapper is the only translator.
 - **feat-ui-sessions**: `GET /chats` (≤12), `switch`/`back`/`resolve` (≥2 matches above 0.5 → clarification), `last_summary` toast, `read` on open; "new chat" starts a parallel task; single management view (27).
 - **feat-approvals**: its approval source becomes this service's interactions plus ha-mcp policy; the held-call live test needs the policy overlay applied by Jay.
 - **fix-wave3-server**: keep proactive status polling, `device` mandatory on agent posts, `urgent` bypassing the quiescence wait.
 
-## 16. Existing worktree (`~/Projects/weixue-wt-feat-agent-service`, uncommitted, rev 2 model)
+## 16. Salvage from the stopped worktree
 
-Build on it in place, squash at the end (~5.9 k lines in `server/agent-service/` plus edits to `server/{docker-compose.yml,.env.example,scripts/*}`).
+`~/Projects/weixue-wt-feat-agent-service`, branch `feat/agent-service`, wip commit `8fa8dc0` (76 files, +9.8 k lines; its 82 unit tests pass in its own venv on 2026-10-07). Build on it in place and squash; nothing is committed blindly.
 
-**Reusable:** `Dockerfile`, `.dockerignore`, `requirements*.txt`/`.lock` (SDK 0.2.164), `pytest.ini`; `weixue_agent/{ids,timeutil,jsonlog,health,monitor,policy_model}.py` as is; `hamcp.py` moved to `server/weixue_hamcp/`; `ha_proxy.py` (section 8 adapter) with waiters bound to `(chat, task, turn, tool_use_id)` and outcomes routed as event lines/turns; `runtime.py` actor → `actor.py` (keep own-task connect/disconnect, continuous pump, `origin` attribution; add turn generations, a bounded `interrupt()` that awaits the ack and the drain instead of suppressing every exception, no eviction of busy actors); `store.py` (keep its tables incl. the monitor ones; `task_parts` → `turns`, add `chat_notes`, events per chat, drop `tasks.mode` and deadline columns); `deliveries, chats, events, recovery, schemas, api, service, config` restructured per sections 5, 9–11; from `tasks.py` tool correlation, gate, interactions, decisions, outcome/side-effect/error/usage helpers; `tests/{conftest,fake_sdk,fake_hamcp,test_ha_proxy}.py` (extend `fake_sdk` with interrupts), `test_recovery_outbox.py`/`test_api_misc.py` after re-expecting; `tools/export_schemas.py`; `workspace/.claude/settings.json`; `check_ready.py --agent-port`; the `setup.sh` token and `data/agent-service` steps.
+**Reusable** (light edits):
+- Build: `Dockerfile` (drop `CLAUDE_CONFIG_DIR`), `.dockerignore`, `pytest.ini`, `requirements*.txt`/`.lock` (replace `claude-agent-sdk` with `anthropic==1.11.0`, re-lock).
+- Store: `store.py`, all 20 tables incl. `delivery_acks` and the monitor tables; `sdk_session_id` columns → `epoch`/`mode`; add `transcript`, `chat_prompts`.
+- `api, sse, schemas, chats, routing, deliveries, recovery` (add the open-tool-use rule), `config` (section 11), `ids, timeutil, jsonlog, health, monitor, policy_model`; `schemas/*.schema.json`, `tools/export_schemas.py`.
+- HA adapter: `ha_adapter.py` `HaGateway` (8 s budget, dedupe/waiters, pending poller, exact-match ownership, `decide`, boot reconciliation): keep `call()`, replace `mcp_server()` (SDK in-process server) with the `call_tool` surface; `server/weixue_hamcp/` and the bridge edits.
+- Interactions: `interactions.py` state, decision and expiry logic; its `PermissionResult*` gate becomes the `ask_user` futures.
+- Tests: `conftest`, `fake_hamcp` and every suite not listed under Rewrite; `tools/sim_device.py`, `tools/spike_hamcp.py`.
 
-**Drop or rewrite:** the forked-task model in `tasks.py` (`start_background_task`, `_start_background`, task actor and the `fork_session` branch in `sdk_options.py`, side turns, `_deadline`/`_background_now`/`_close_foreground`/`FOREGROUND_MAX_MS`, `release`, `_bg_timeout`, the main/task split of `TaskRun`, per-kind budgets); `/v1/tasks` write routes, `/v1/interactions/*`, `/v1/devices/{id}/spoken`; schemas `task-create`, `release`, `cancel`, `task`, `event`; old-model cases in `test_tasks.py`; the "Longer work" section and `[While you were busy …]`/`[background task …]` lines of `workspace/CLAUDE.md`; `agent-service/compose.yml` + `compose.tunnel.yml` via `include: compose${WG_TUNNEL:+.tunnel}.yml` and their `env_file: ../.env` (section 11 forbids it) → one service definition.
-
-## Orchestrator notes on rev 3 (2026-10-07)
-
-- Wire names: the device protocol (docs/briefs/feat-protocol-agent-msg.md) keeps `needs_input` on the wire; the gateway mapper is the only translator. Do not rename states in deliveries.
-- Acks: add the `delivery_acks` table (delivery_id, kind played|cut_off|user_ack|lost, sentence_id, cut_at_ms, reason, device boot/seq, ts) written via POST /v1/deliveries/{id}/ack, joined to deliveries.playback; the monitor reads it.
-- Q9 effort: resolved by the orchestrator within decision 15's intent — per-turn effort if S1 (m) shows the CLI supports it (low for short replies, high once a turn calls a tool or is steered), otherwise `medium` everywhere.
-- Stop lexicon handled service-side with a canned "Stopped." is accepted (our stack).
-- The old worktree attempt (§16) is reference only; nothing from it is committed blindly.
-
-## Latency red line (Jay, 2026-10-07)
-
-Latency is a hard constraint, not a nice-to-have. S0 must measure, on this Mac with the personal key, warm session, prompt cache warm, effort low: (a) text first-token latency of the Agent SDK path for a one-line question with the full ha-mcp tool surface loaded; (b) the same question via a direct `messages.stream` call (claude-sonnet-5-5, no tools) as the floor; (c) end-to-end speech-end → first TTS audio through the gateway. Budgets: (c) ≤ 1.5 s median for quick asks, (a) ≤ 800 ms median. If the SDK path misses the budget, the task does not proceed on the SDK alone: implement the hybrid path (quick asks via direct streaming API with a small tool set, tasks via the SDK) or escalate to the orchestrator to switch to a lightweight in-process agent loop. Record the numbers in docs/logs/feat-agent-service-s1-2026-10-07.md.
-
-Decision 37 (2026-10-07): streaming at every stage (STT interim results + endpointing, LLM first token, sentence-level TTS). Barge-in = stop playback → `interrupt()` → fall back to the previous conversation state; the cut reply stays as interrupted context only. The gateway task feat-llm-claude-agent owns streaming STT/TTS; this service owns the interrupt/fallback semantics.
-
-## Latency spike result (2026-10-07, docs/logs/latency-spike-2026-10-07.md)
-
-Agent SDK warm first output 2.4 s (Sonnet) / 4.1 s (Fable); first text 4.3–9.7 s; the 77-tool prefix (~91k cached tokens) costs ~2.5 s on any path; Fable adds ~1.5 s of always-on thinking; SDK cold start 0.85–0.93 s once per client. Direct Sonnet 5.5 with the 7 voice tools: ~0.8 s first output. Consequence (decision 39, pending Jay): the agent service serves TASKS (Fable, all tools; latency acceptable); the gateway task feat-llm-claude-agent serves QUICK ASKS via direct streaming Sonnet with the 7 voice tools + `hand_off_to_agent`. S0 still owes: path C against the real ha-mcp from the bridge network, deferred MCP tool loading to shrink the prefix, and speech-end → first audio on the quick path.
+**Rewrite**:
+- `actor.py` (SDK client pump, generations, interrupt and drain) → runner-driven actor + `transcript.py`.
+- `turns.py`: keep intake, `_enqueue`, reply/ack/`end_reply`/`gateway_closed`, the event-turn queue, progress throttling, side-effect/outcome helpers, `finish_task`; rewrite `_run_turn`, `_on_message`, `_tool_use`/`_tool_result`, `_stop_current`, `result_error`, `_account`, `_finalize`.
+- `sdk_options.py` → `models.py` (section 6); `weixue_tools.py` (`create_sdk_mcp_server`) → `app_tools.py`; `service.py` SDK/CLI version probes → anthropic/mcp versions.
+- `tests/fake_sdk.py` → the fake stream; `test_steer`, `test_cancel`, `test_reply`, `test_recovery`, `test_task_state` re-expected for boundary steer and stream cancel.
+- `tools/spike_s1.py` (SDK spike) → new S1 script; `workspace/CLAUDE.md` → `prompts/system.md`; `workspace/.claude/settings.json` dropped.

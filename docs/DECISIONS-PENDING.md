@@ -76,6 +76,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 42. **Google STT model and mode** — decided 2026-10-07 (Jay): switch the voice path to `latest_short` streaming (en-US + cmn-Hans-CN), after a 10-sentence Mandarin accuracy check; fall back to chirp_3 on detected Chinese if accuracy degrades. Plus the our-stack mitigations (streaming ASR interface, first-clause TTS, short first sentence, spoken ack during tool calls).
 
+43. **Fable fallback target (brief rev 4 Q10)** — resolved by the orchestrator within decision 15: Fable 5.1's server-side fallbacks can only target Opus 4.8 / Opus 5 (per the claude-api skill), not Opus 5.5; the build uses `fallbacks: "default"`; the explicit switch to claude-opus-5-5 stays for the retention-400 case. Jay may override.
+
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
 - Audio-only checks from fix-server-review-2 (barge-in / TTS cancel) and fix-wave3-server (announce playback, urgent conversation, wake cue → "Yes" for every cue, long reply with 0 self-aborts): run at home via the feat-voice-integration gate. Everything else passed in the 2026-10-07 live step.
