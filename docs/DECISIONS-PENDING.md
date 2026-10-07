@@ -19,6 +19,9 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 ## FYI (proceeding; our own stack, not an external service)
 9. Codex Wave 2 code review (`docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md`): fix-first verdict. Three fix tasks queued after Wave 3: `fix-server-review-2`, `fix-turn-isolation`, `fix-firmware-scripts-2`. Includes enabling `server.auth` with the device MAC allow-list and binding OTA/WS to needed interfaces only.
 
+## Current network mode (temporary, 2026-10-07)
+- Office day: Mac + device on Jay's phone hotspot (SSID in `.env`, Mac IP 172.20.10.2). `server/.env` LAN_IP and the live config advertise 172.20.10.2; the device gets Wi-Fi + `ota_url` override via USB NVS provisioning. **When back home**: set LAN_IP back to 192.168.8.220, re-render/restart, and clear the device's `ota_url` override (provisioning tool `--clear-ota-url`) so it uses the baked home URL; HA/ha-mcp work resumes then.
+
 ## User-only test items
 11. `feat-ui-panel`: real finger swipe-left/right on the CST9217 and a tap on the fixture Approve/Deny card (all gate tests used a virtual pointer). Expect: panel slides in 220 ms, values live, tap logs `notifications/weixue/panel` in `docker logs xiaozhi-esp32-server`.
 12. `feat-ui-ring-bedside`: at night (or after saying "set bedside mode"), touch the panel and pick the board up: both should relight into the bedside page.
