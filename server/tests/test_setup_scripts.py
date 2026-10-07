@@ -235,7 +235,11 @@ elif args[:2] == ["image", "inspect"]:
 elif args[:1] == ["tag"]:
     state["tags"][args[2]] = state["tags"][args[1]]
 elif args[:2] == ["logs", "mcp-endpoint-server"]:
-    print("ws://172.18.0.2:8004/mcp_endpoint/mcp/?token=abc")
+    print("ws://172.18.0.2:8004/mcp_endpoint/mcp/?token=" + ("new" if "new-key" in fails else "abc"))
+elif args[:1] == ["exec"]:
+    target = [a for a in args[1:] if not a.startswith("-")][0]
+    state.setdefault("execs", []).append(target)
+    code = 1 if f"exec-{target}" in fails and os.environ.get("ATTEMPT") == "new" else 0
 elif args[:2] == ["compose", "build"]:
     if "build" in fails:
         code = 1
@@ -243,7 +247,10 @@ elif args[:2] == ["compose", "build"]:
         state["tags"]["weixue/mcp-bridge:local"] = "bridge-new"
         state["tags"]["weixue/xiaozhi-esp32-server:local"] = "server-new"
 elif args[:2] == ["compose", "up"]:
+    if args[-1] == "mcp-endpoint-server" and "new-key" in fails:
+        open("data/mcp-endpoint/.mcp-endpoint-server.cfg", "w").write("regenerated key")
     if "--force-recreate" in args:
+        state.setdefault("recreated", []).append(args[args.index("--force-recreate") + 1:])
         state["recreates"] = n = state.get("recreates", 0) + 1
         state.setdefault("up_env", []).append([os.environ.get("BIND_IP"), os.environ.get("COMPOSE_PROFILES")])
         if ("up" in fails and n == 1) or ("rollback-up" in fails and n == 2):
@@ -324,6 +331,7 @@ def setup_tree(tmp_path):
         "FAKE_PYTHON": sys.executable,
         "FAKE_DEFAULTS": str(UPSTREAM_CONFIG),
         "FAKE_READY_COUNT": str(tmp_path / "ready-count"),
+        "DEPLOY_WAIT_S": "1",
     }
 
     def set_env(**values):
@@ -369,6 +377,9 @@ def test_setup_publishes_validated_config_and_new_images(setup_tree):
     assert state["tags"]["weixue/xiaozhi-esp32-server:rollback"] == "server-old"
     assert _leftovers(server) == []
     assert "sk-test" not in result.stdout + result.stderr
+    assert state["execs"] == ["mcp-bridge", "xiaozhi-esp32-server"]
+    assert "ready: bridge healthy, Home Assistant answered via the voice path" in result.stdout
+    assert not list((server / "data").rglob("*.cfg.rollback")) and not (server / "data" / "mcp-bridge" / "endpoint-url.rollback").exists()
 
 
 @pytest.mark.parametrize(
@@ -521,3 +532,131 @@ def test_failed_rollback_up_prints_the_manual_restore(setup_tree, fail, ready, r
     assert state["tags"]["weixue/xiaozhi-esp32-server:local"] == "server-old"
     assert state["running"] == running
     assert run.ready_count() == (0 if ready == "ok" else 1)
+
+
+# ------------------------------------------------------------------ deployment readiness and the endpoint unit
+
+
+@pytest.mark.parametrize(
+    "fail, message",
+    [
+        ("exec-mcp-bridge", "mcp-bridge not ready after 1s"),
+        ("exec-xiaozhi-esp32-server", "Home Assistant via the voice path not ready after 1s"),
+    ],
+)
+def test_unready_bridge_or_ha_path_rolls_back_and_keeps_the_deployed_env(setup_tree, fail, message):
+    server, run = setup_tree
+    result, _ = run()
+    assert result.returncode == 0, result.stdout + result.stderr
+    deployed = (server / ".env.deployed").read_text()
+    run.set_env(ATTEMPT="new")
+    attempted = (server / ".env").read_text()
+    result, state = run(FAKE_FAIL=fail)
+    assert result.returncode == 1
+    assert message in result.stdout and "new version is not ready; rolling back" in result.stdout
+    assert (server / ".env.deployed").read_text() == deployed
+    assert (server / ".env").read_text() == deployed and (server / ".env.failed").read_text() == attempted
+    assert state["recreated"][-2:] == [["mcp-bridge", "xiaozhi-esp32-server"]] * 2
+    assert "previous version is not ready" not in result.stdout
+
+
+def test_rollback_restores_the_endpoint_url_with_the_config(setup_tree):
+    server, run = setup_tree
+    url = server / "data" / "mcp-bridge" / "endpoint-url"
+    url.parent.mkdir(parents=True, exist_ok=True)
+    url.write_text("ws://mcp-endpoint-server:8004/mcp_endpoint/mcp/?token=old\n")
+    os.chmod(url, 0o600)
+    result, state = run(FAKE_READY="fail-new")
+    assert result.returncode == 1
+    assert url.read_text().endswith("token=old\n") and _mode(url) == 0o600
+    assert (server / "data" / ".config.yaml").read_text() == OLD_CONFIG
+    assert state["recreated"][-1] == ["mcp-bridge", "xiaozhi-esp32-server"]
+
+
+def test_rollback_restores_a_regenerated_endpoint_key_and_recreates_the_endpoint(setup_tree):
+    server, run = setup_tree
+    key = server / "data" / "mcp-endpoint" / ".mcp-endpoint-server.cfg"
+    run.set_env(ATTEMPT="new")
+    result, state = run(FAKE_FAIL="new-key,exec-mcp-bridge")
+    assert result.returncode == 1
+    assert key.read_text() == "key"
+    assert "endpoint key restored from the last run" in result.stdout
+    assert state["recreated"][-1] == ["mcp-endpoint-server", "mcp-bridge", "xiaozhi-esp32-server"]
+    assert "token=new" not in (server / "data" / ".config.yaml").read_text()
+
+
+def test_new_endpoint_key_publishes_one_url_to_both_consumers(setup_tree):
+    server, run = setup_tree
+    result, _ = run(FAKE_FAIL="new-key")
+    assert result.returncode == 0, result.stdout + result.stderr
+    config = yaml.safe_load((server / "data" / ".config.yaml").read_text())
+    url = (server / "data" / "mcp-bridge" / "endpoint-url").read_text().strip()
+    assert config["mcp_endpoint"] == url and url.endswith("token=new")
+
+
+def test_check_ha_path_judges_the_answer():
+    sys.path.insert(0, str(SCRIPTS))
+    try:
+        import check_ha_path
+    finally:
+        sys.path.remove(str(SCRIPTS))
+
+    def result(text, error=False):
+        return {"content": [{"type": "text", "text": text}], "isError": error}
+
+    assert check_ha_path.answered(result('{"data": {"entity_id": "zone.home", "state": "0"}}'))
+    assert check_ha_path.answered(result("Tool error: ENTITY_NOT_FOUND zone.home"))
+    assert not check_ha_path.answered(result("Home Assistant is unreachable right now."))
+    assert not check_ha_path.answered(result("Tool error: ConnectError"))
+    assert not check_ha_path.answered(result('{"data": 1}', error=True))
+    assert not check_ha_path.answered(None)
+    assert check_ha_path.caller_url("ws://e:8004/mcp_endpoint/mcp/?token=t") == "ws://e:8004/mcp_endpoint/call/?token=t"
+
+
+def test_check_ha_path_end_to_end_against_a_fake_endpoint(tmp_path):
+    import websockets
+
+    calls = []
+
+    async def handler(ws):
+        assert ws.request.path.startswith("/mcp_endpoint/call/")
+        async for raw in ws:
+            message = json.loads(raw)
+            calls.append(message.get("method"))
+            if "id" not in message:
+                continue
+            if message["method"] == "initialize":
+                result = {"protocolVersion": "2024-11-05"}
+            elif message["method"] == "tools/list":
+                result = {"tools": [{"name": "ha_get_state"}]}
+            else:
+                result = {"content": [{"type": "text", "text": '{"data": {"state": "0"}}'}], "isError": False}
+            await ws.send(json.dumps({"jsonrpc": "2.0", "id": message["id"], "result": result}))
+
+    port_box, stop = [], threading.Event()
+
+    def serve():
+        async def main():
+            async with websockets.serve(handler, "127.0.0.1", 0) as srv:
+                port_box.append(srv.sockets[0].getsockname()[1])
+                while not stop.is_set():
+                    await asyncio.sleep(0.05)
+
+        asyncio.run(main())
+
+    threading.Thread(target=serve, daemon=True).start()
+    while not port_box:
+        pass
+    config = tmp_path / "config.yaml"
+    config.write_text(f'mcp_endpoint: "ws://127.0.0.1:{port_box[0]}/mcp_endpoint/mcp/?token=secret-token"\n')
+    try:
+        ok = subprocess.run([sys.executable, str(SCRIPTS / "check_ha_path.py"), "--config", str(config), "--timeout", "10"],
+                            capture_output=True, text=True, timeout=30)
+        down = subprocess.run([sys.executable, str(SCRIPTS / "check_ha_path.py"), "--config", str(tmp_path / "missing.yaml")],
+                              capture_output=True, text=True, timeout=30)
+    finally:
+        stop.set()
+    assert ok.returncode == 0, ok.stdout + ok.stderr
+    assert calls == ["initialize", "notifications/initialized", "tools/list", "tools/call"]
+    assert down.returncode == 1 and "config unreadable" in down.stdout
+    assert "secret-token" not in ok.stdout + ok.stderr

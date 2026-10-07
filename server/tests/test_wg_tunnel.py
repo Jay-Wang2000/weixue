@@ -48,7 +48,8 @@ class Setup:
         (self.server / "scripts").mkdir(parents=True)
         (self.server / "data" / "mcp-endpoint").mkdir(parents=True)
         (self.server / "data" / "mcp-endpoint" / ".mcp-endpoint-server.cfg").write_text("")
-        shutil.copy(SERVER_DIR / "scripts" / "setup.sh", self.server / "scripts" / "setup.sh")
+        for script in ("setup.sh", "check_ha_path.py"):
+            shutil.copy(SERVER_DIR / "scripts" / script, self.server / "scripts" / script)
         (tmp_path / "vendor.lock").write_text("xiaozhi-esp32-server https://example.invalid deadbeef\n")
         self.sa = tmp_path / "sa.json"
         self.sa.write_text("{}")
@@ -131,6 +132,12 @@ def test_setup_tunnel_on_writes_profile_and_recreates_wg(setup, existing, profil
     assert calls[-1].split("--force-recreate ")[1].split() == ["wg", "mcp-bridge", "xiaozhi-esp32-server"]
     assert any(c.endswith(" compose build wg mcp-bridge xiaozhi-esp32-server") for c in calls)
     assert not any(c.endswith(" rm -f wg") for c in setup.docker_calls())
+    execs = [line.split(" exec ", 1)[1] for line in setup.docker_calls() if " exec " in line]
+    assert execs == [
+        "wg /usr/local/bin/healthcheck.sh",
+        "mcp-bridge python -m weixue_bridge.health",
+        "-i xiaozhi-esp32-server python - --timeout 20",
+    ]
 
 
 @pytest.mark.parametrize(
@@ -153,7 +160,9 @@ def test_setup_tunnel_off_strips_profile_and_skips_wg(setup, existing, seen):
     assert calls[-1].split("--force-recreate ")[1].split() == ["mcp-bridge", "xiaozhi-esp32-server"]
     assert any(c.endswith(" compose build mcp-bridge xiaozhi-esp32-server") for c in calls)
     docker_calls = setup.docker_calls()
-    assert docker_calls[-1].endswith(" rm -f wg") and docker_calls[-2] == calls[-1]
+    removed = next(i for i, c in enumerate(docker_calls) if c.endswith(" rm -f wg"))
+    assert docker_calls[removed - 1] == calls[-1]
+    assert [c.split(" exec ", 1)[1].split()[0] for c in docker_calls[removed + 1:]] == ["mcp-bridge", "-i"]
 
 
 def test_failed_up_and_rollback_print_the_manual_restore_with_the_profile(setup):
@@ -182,10 +191,10 @@ def test_rollback_recreates_in_the_previous_tunnel_mode(setup):
     code, out = setup.run()
     assert code == 1 and "docker compose up failed; rolling back" in out
     assert setup.env_file.read_text() == deployed
-    calls = setup.docker_calls()
+    calls = setup.compose_calls()
     assert calls[-1].startswith("COMPOSE_PROFILES=tunnel ")
     assert calls[-1].split("--force-recreate ")[1].split() == ["wg", "mcp-bridge", "xiaozhi-esp32-server"]
-    assert not any(c.endswith(" rm -f wg") for c in calls)
+    assert not any(c.endswith(" rm -f wg") for c in setup.docker_calls())
 
 
 # --- wg sidecar scripts ---------------------------------------------------------
@@ -240,14 +249,91 @@ def test_wg_quick_failure_is_retried_with_one_redacted_line(tmp_path):
 NOW = 1_800_000_000
 
 
-@pytest.mark.parametrize("age, healthy", [(5, True), (179, True), (181, False), (None, False)])
-def test_healthcheck_handshake_age(tmp_path, age, healthy):
+@pytest.mark.parametrize(
+    "age, boundary, healthy",
+    [(5, True, True), (179, True, True), (181, True, False), (None, True, False), (5, False, False)],
+)
+def test_healthcheck_handshake_age_and_boundary(tmp_path, age, boundary, healthy):
     handshake = 0 if age is None else NOW - age
-    write_stubs(tmp_path / "bin", {"wg": f"printf 'peerA\\t{handshake}\\n'", "date": f"echo {NOW}"})
+    hooked = "exit 0" if boundary else "exit 1"
+    write_stubs(tmp_path / "bin", {
+        "wg": f"printf 'peerA\\t{handshake}\\n'", "date": f"echo {NOW}", "iptables": hooked, "ip6tables": "exit 1",
+    })
     proc = subprocess.run(
         ["sh", str(WG_DIR / "healthcheck.sh")], env={"PATH": f"{tmp_path / 'bin'}:/usr/bin:/bin"}, timeout=10
     )
     assert (proc.returncode == 0) is healthy
+
+
+CONF = """[Interface]
+PrivateKey = {key}
+Address = 10.66.0.2/32
+MTU = 1420
+
+[Peer]
+PublicKey = {key}
+Endpoint = home.example-ddns.net:51820
+allowedips = {allowed}
+"""
+
+
+def _boundary(tmp_path, allowed):
+    conf = tmp_path / "wg0.conf"
+    conf.write_text(CONF.format(key=KEY, allowed=allowed))
+    log = tmp_path / "rules"
+    write_stubs(tmp_path / "bin", {
+        tool: f'echo "{tool} $*" >> {log}; case "$1" in -C) exit 1 ;; esac; exit 0' for tool in ("iptables", "ip6tables")
+    })
+    proc = source_entrypoint(f'install_boundary "{conf}"', path=tmp_path / "bin")
+    rules = log.read_text().splitlines() if log.exists() else []
+    return proc, rules
+
+
+def test_boundary_drops_allowed_ips_outside_wg0_before_the_tunnel(tmp_path):
+    proc, rules = _boundary(tmp_path, "192.168.8.0/24, fd00:8::/64")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert proc.stdout.strip() == "wg: boundary: 2 network(s) only through wg0"
+    assert rules == [
+        "iptables -N WG_BOUNDARY",
+        "iptables -C OUTPUT -j WG_BOUNDARY",
+        "iptables -I OUTPUT 1 -j WG_BOUNDARY",
+        "ip6tables -N WG_BOUNDARY",
+        "ip6tables -C OUTPUT -j WG_BOUNDARY",
+        "ip6tables -I OUTPUT 1 -j WG_BOUNDARY",
+        "iptables -A WG_BOUNDARY -d 192.168.8.0/24 ! -o wg0 -j DROP",
+        "ip6tables -A WG_BOUNDARY -d fd00:8::/64 ! -o wg0 -j DROP",
+    ]
+    for secret in SECRETS + ["192.168.8.0"]:
+        assert secret not in proc.stdout
+
+
+@pytest.mark.parametrize("allowed, message", [
+    ("0.0.0.0/0", "must not contain a default route"),
+    ("192.168.8.0/24, ::/0", "must not contain a default route"),
+])
+def test_boundary_refuses_a_full_tunnel(tmp_path, allowed, message):
+    proc, rules = _boundary(tmp_path, allowed)
+    assert proc.returncode == 1 and message in proc.stdout and rules == []
+
+
+def test_boundary_refuses_a_config_without_allowed_ips(tmp_path):
+    conf = tmp_path / "wg0.conf"
+    conf.write_text("[Interface]\nPrivateKey = x\n")
+    proc = source_entrypoint(f'install_boundary "{conf}"')
+    assert proc.returncode == 1 and "no AllowedIPs" in proc.stdout
+
+
+def test_boundary_is_installed_before_wg_quick_runs():
+    main = (WG_DIR / "entrypoint.sh").read_text().split("main() {", 1)[1]
+    assert main.index('install_boundary "$CONF"') < main.index("up_with_retry")
+
+
+def test_failed_rule_stops_the_sidecar(tmp_path):
+    conf = tmp_path / "wg0.conf"
+    conf.write_text(CONF.format(key=KEY, allowed="192.168.8.0/24"))
+    write_stubs(tmp_path / "bin", {"iptables": 'case "$1" in -A) exit 4 ;; -C) exit 1 ;; esac; exit 0'})
+    proc = source_entrypoint(f'set -e; install_boundary "{conf}"; echo after', path=tmp_path / "bin")
+    assert proc.returncode != 0 and "after" not in proc.stdout
 
 
 # --- compose ------------------------------------------------------------------
@@ -275,5 +361,8 @@ def test_compose_profile_from_env_file_switches_bridge_namespace(tmp_path, tunne
     )
     assert proc.returncode == 0, proc.stderr
     services = json.loads(proc.stdout)["services"]
+    bridge = services["mcp-bridge"]
     assert ("wg" in services) is tunnel
-    assert (services["mcp-bridge"].get("network_mode") or None) == ("service:wg" if tunnel else None)
+    assert (bridge.get("network_mode") or None) == ("service:wg" if tunnel else None)
+    assert bridge["depends_on"]["wg"] == {"condition": "service_healthy", "required": False}
+    assert bridge["environment"]["TUNNEL_IFACE"] == ("wg0" if tunnel else "")

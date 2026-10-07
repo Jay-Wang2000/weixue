@@ -2,8 +2,10 @@
 streams silence and optionally a 16 kHz mono WAV reply after the first `tts stop` (with
 --reply-during-playback also after the first audio frame), and prints the server's messages.
 --direct opens a session without polling, as a user-started session; --wake TEXT then sends a
-wake-word `listen detect` with TEXT. Requests carry Device-Id
-and Client-Id, plus Authorization when --token is given."""
+wake-word `listen detect` with TEXT. After a poll's 200 the invocation is `weixue:proactive`, as the
+firmware sends it, or with --bind `weixue:proactive:<id>:<lease>` from the poll answer;
+--invoke-delay waits before opening the session. --abort-after S sends `abort` S seconds after the
+detect. Requests carry Device-Id and Client-Id, plus Authorization when --token is given."""
 import argparse
 import asyncio
 import json
@@ -42,10 +44,14 @@ async def main():
     ap.add_argument("--direct", action="store_true", help="open a session without polling (user-started session)")
     ap.add_argument("--invoke", action="store_true", help="with --direct, still send the proactive listen detect")
     ap.add_argument("--wake", default=None, help="with --direct, send a wake-word listen detect with this text")
+    ap.add_argument("--bind", action="store_true", help="invoke with the id and lease of the poll answer")
+    ap.add_argument("--invoke-delay", type=float, default=0, help="seconds between the poll's 200 and the session")
+    ap.add_argument("--abort-after", type=float, default=None, help="send abort this many seconds after the detect")
     a = ap.parse_args()
     ident = {"Device-Id": a.device, "Client-Id": a.client_id}
     if a.token:
         ident["Authorization"] = f"Bearer {a.token}"
+    invoke_text = "weixue:proactive"
     async with aiohttp.ClientSession() as http:
         polls = 0
         while not a.direct:
@@ -54,11 +60,17 @@ async def main():
                 log("poll", r.status, body.strip())
                 polls += 1
                 if r.status == 200:
+                    if a.bind:
+                        answer = json.loads(body)
+                        invoke_text = f"weixue:proactive:{answer['id']}:{answer['lease']}"
                     break
                 if a.polls and polls >= a.polls:
                     return
                 if r.status not in (200, 204):
                     await asyncio.sleep(1)
+    if a.invoke_delay:
+        log("waiting", a.invoke_delay, "s before opening the session")
+        await asyncio.sleep(a.invoke_delay)
     enc = opuslib_next.Encoder(16000, 1, "voip")
     silence = enc.encode(b"\0" * FRAME * 2, FRAME)
     reply = [enc.encode(f, FRAME) for f in frames_from_wav(a.reply)] if a.reply else []
@@ -78,10 +90,14 @@ async def main():
         sid = hello.get("session_id")
         log("hello", sid)
         if not a.direct or a.invoke:
-            await ws.send(json.dumps({"session_id": sid, "type": "listen", "state": "detect", "text": "weixue:proactive"}))
+            await ws.send(json.dumps({"session_id": sid, "type": "listen", "state": "detect", "text": invoke_text}))
         elif a.wake:
             await ws.send(json.dumps({"session_id": sid, "type": "listen", "state": "detect", "text": a.wake}))
         await ws.send(json.dumps({"session_id": sid, "type": "listen", "state": "start", "mode": "realtime"}))
+        if a.abort_after is not None:
+            await asyncio.sleep(a.abort_after)
+            log("sending abort")
+            await ws.send(json.dumps({"session_id": sid, "type": "abort"}))
         state = {"stops": 0, "reply_at": None, "audio": 0}
         async def sender():
             queue = []

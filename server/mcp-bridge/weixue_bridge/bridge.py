@@ -12,6 +12,7 @@ import websockets
 from .config import (
     ENDPOINT_MAX_FAILURES,
     HEARTBEAT_S,
+    IFACE_POLL_S,
     NAMESPACE_IFACE,
     BridgeConfig,
     VoiceFilter,
@@ -173,14 +174,30 @@ def _clear_health(path: str) -> None:
         pass
 
 
+def ping_ok(response: Optional[Dict[str, Any]]) -> bool:
+    """A JSON-RPC success result for PING_ID."""
+    return (
+        isinstance(response, dict)
+        and response.get("id") == PING_ID
+        and "error" not in response
+        and isinstance(response.get("result"), dict)
+    )
+
+
 async def _heartbeat(ha: HaMcpClient, health_file: str) -> None:
+    """Every HEARTBEAT_S pings ha-mcp; only a matching success result refreshes the health file."""
     while True:
         await asyncio.sleep(HEARTBEAT_S)
         try:
-            await ha.send({"jsonrpc": "2.0", "id": PING_ID, "method": "ping"})
-            _mark_healthy(health_file)
+            response = await ha.send({"jsonrpc": "2.0", "id": PING_ID, "method": "ping"})
         except HaMcpError as e:
             log.warning("ha-mcp ping failed: %s", e)
+            _clear_health(health_file)
+            continue
+        if ping_ok(response):
+            _mark_healthy(health_file)
+        else:
+            log.warning("ha-mcp ping failed: %s", "error result" if isinstance(response, dict) and "error" in response else "no result")
             _clear_health(health_file)
 
 
@@ -188,11 +205,24 @@ def _interface_names() -> Set[str]:
     return {name for _, name in socket.if_nameindex()}
 
 
+async def wait_for_interface(name: str) -> None:
+    """Returns once the network namespace has interface `name`, polling every IFACE_POLL_S."""
+    logged = False
+    while name not in _interface_names():
+        if not logged:
+            log.info("waiting for %s before connecting", name)
+            logged = True
+        await asyncio.sleep(IFACE_POLL_S)
+
+
 async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None) -> None:
     """Keeps the endpoint connection up; raises BridgeExit after ENDPOINT_MAX_FAILURES consecutive failed
-    connects, or once NAMESPACE_IFACE, present at start, is gone."""
+    connects, once NAMESPACE_IFACE, present at start, is gone, or once config.tunnel_iface is gone.
+    With config.tunnel_iface set nothing is connected before that interface exists."""
     ha = ha or HaMcpClient(config.ha_mcp_url)
     log.info("ha-mcp %s <-> endpoint %s", redact(config.ha_mcp_url), redact(config.endpoint_url))
+    if config.tunnel_iface:
+        await wait_for_interface(config.tunnel_iface)
     watch_iface = NAMESPACE_IFACE in _interface_names()
     backoff = 1
     failures = 0
@@ -221,8 +251,11 @@ async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None) -> None:
         except (OSError, websockets.exceptions.WebSocketException, HaMcpError) as e:
             log.warning("bridge down: %s", type(e).__name__ if not isinstance(e, HaMcpError) else e)
         _clear_health(config.health_file)
-        if watch_iface and NAMESPACE_IFACE not in _interface_names():
+        names = _interface_names()
+        if watch_iface and NAMESPACE_IFACE not in names:
             raise BridgeExit(f"{NAMESPACE_IFACE} is gone from the network namespace")
+        if config.tunnel_iface and config.tunnel_iface not in names:
+            raise BridgeExit(f"{config.tunnel_iface} is gone from the network namespace")
         failures = 0 if connected else failures + 1
         if failures >= ENDPOINT_MAX_FAILURES:
             raise BridgeExit(f"endpoint unreachable for {failures} consecutive attempts")

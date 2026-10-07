@@ -14,6 +14,7 @@ HEALTH_MAX_AGE_S = 3 * HEARTBEAT_S
 ENDPOINT_MAX_FAILURES = 12
 # Interface whose disappearance from the network namespace makes the bridge exit.
 NAMESPACE_IFACE = "eth0"
+IFACE_POLL_S = 2
 
 
 class ConfigError(ValueError):
@@ -32,6 +33,7 @@ class BridgeConfig:
     endpoint_url: str
     voice_filter: VoiceFilter
     health_file: str
+    tunnel_iface: str = ""
 
 
 def redact(url: str) -> str:
@@ -104,4 +106,5 @@ def load_config(env: Mapping[str, str] = os.environ) -> BridgeConfig:
         endpoint_url=parse_endpoint_url(_read_endpoint(env)),
         voice_filter=load_voice_filter(env.get("VOICE_FILTER_FILE", DEFAULT_FILTER_FILE)),
         health_file=env.get("BRIDGE_HEALTH_FILE", DEFAULT_HEALTH_FILE),
+        tunnel_iface=env.get("TUNNEL_IFACE", "").strip(),
     )

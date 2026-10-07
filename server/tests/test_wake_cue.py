@@ -50,7 +50,7 @@ class Upstream:
 def _wrapped(played):
     upstream = Upstream()
 
-    async def play(conn, cue, turn=None):
+    async def play(conn, cue, turn=None, generation=None):
         played.append(cue)
 
     wrapper = weixue_patches.acknowledge_wake(Upstream.handle, REMOVE_PUNCTUATION, play)
@@ -314,7 +314,7 @@ async def test_short_answers_right_after_a_cue_reach_the_llm(cue, text):
     conn = Conn(cues=TEMPLATE_CUES)
     await play(conn, cue)
     assert ("audio", "FIRST", [b"p1", b"p2"], cue["text"], True) == rec.events[2][:5]
-    conn.weixue_voice_onset = (time.monotonic(), conn.sentence_id, conn.client_is_speaking)
+    conn.weixue_voice_onset = time.monotonic()
     await guard(conn, text)
     assert reached == [text]
 
@@ -371,8 +371,8 @@ async def test_turn_scheduled_before_the_cue_was_superseded_skips_it(log_records
 async def test_a_new_wake_cancels_the_pending_cue():
     started = []
 
-    async def play(conn, cue, turn):
-        started.append(turn)
+    async def play(conn, cue, turn, generation):
+        started.append((turn, generation))
         await asyncio.sleep(10)
 
     wrapper = weixue_patches.acknowledge_wake(Upstream.handle, REMOVE_PUNCTUATION, play)
@@ -383,10 +383,113 @@ async def test_a_new_wake_cancels_the_pending_cue():
     await wrapper(Upstream(), conn, {"state": "detect", "text": "Jarvis"})
     await asyncio.sleep(0)
     assert first.cancelled() and not conn.weixue_wake_cue.done()
-    assert started == ["old", "old"]
+    assert started == [("old", 1), ("old", 2)]
     weixue_patches.cancel_wake_cue(conn)
     await asyncio.sleep(0)
     assert conn.weixue_wake_cue.cancelled()
+
+
+class AbortHandler:
+    """Upstream handleAbortMessage stand-in, wrapped as apply() wraps it."""
+
+    def __init__(self):
+        self.calls = 0
+
+    async def handle(self, conn):
+        self.calls += 1
+        conn.client_abort = True
+        conn.client_is_speaking = False
+
+
+async def test_abort_while_the_clip_loads_drops_the_cue_and_keeps_the_abort(log_records):
+    rec = LoadGate()
+    conn = Conn()
+    conn.client_abort = False
+    abort = weixue_patches.count_aborts(AbortHandler().handle)
+    task = asyncio.create_task(_player(rec)(conn, CUES[0]))
+    while not rec.events:
+        await asyncio.sleep(0.01)
+    await abort(conn)
+    rec.release.set()
+    await task
+    assert rec.events == [("load", CUES[0]["file"])]
+    assert conn.client_abort is True and conn.sentence_id == "old" and conn.client_is_speaking is False
+    assert any("dropped after loading" in message for _, message in log_records)
+
+
+async def test_abort_during_the_decoder_reset_stops_the_cue_without_clearing_it():
+    rec = Recorder()
+    conn = Conn()
+    abort = weixue_patches.count_aborts(AbortHandler().handle)
+    task = asyncio.create_task(_player(rec)(conn, CUES[0]))
+    while not any(e[:2] == ("tts", "start") for e in rec.events):
+        await asyncio.sleep(0.01)
+    await abort(conn)
+    await task
+    assert [e[1] for e in rec.events] == [CUES[0]["file"], "start"]
+    assert conn.client_abort is True and conn.client_is_speaking is False
+    assert getattr(conn, "weixue_cue_speaking", None) is None
+
+
+async def test_abort_before_the_wake_is_cleared_for_the_cue():
+    rec = Recorder()
+    conn = Conn()
+    await weixue_patches.count_aborts(AbortHandler().handle)(conn)
+    wrapper = weixue_patches.acknowledge_wake(Upstream.handle, REMOVE_PUNCTUATION, _player(rec))
+    await wrapper(Upstream(), conn, {"state": "detect", "text": "Jarvis"})
+    await conn.weixue_wake_cue
+    assert [e[1] for e in rec.events] == [CUES[0]["file"], "start", "FIRST", "LAST"]
+    assert conn.client_abort is False
+
+
+async def test_a_new_wake_releases_the_speaking_state_of_the_cancelled_cue():
+    gate = asyncio.Event()
+
+    class SlowAudio(Recorder):
+        async def send_audio_message(self, conn, kind, packets, text, sentence_id):
+            await gate.wait()
+            await super().send_audio_message(conn, kind, packets, text, sentence_id)
+
+    slow = SlowAudio()
+    play = _player(slow)
+    wrapper = weixue_patches.acknowledge_wake(Upstream.handle, REMOVE_PUNCTUATION, play)
+    conn = Conn()
+    await wrapper(Upstream(), conn, {"state": "detect", "text": "Jarvis"})
+    first = conn.weixue_wake_cue
+    while not conn.client_is_speaking:
+        await asyncio.sleep(0.01)
+    await wrapper(Upstream(), conn, {"state": "detect", "text": "Jarvis"})
+    assert conn.client_is_speaking is False
+    await asyncio.sleep(0)
+    assert first.cancelled()
+    gate.set()
+    await conn.weixue_wake_cue
+    assert [e[1] for e in slow.events].count("FIRST") == 1 and conn.client_is_speaking is True
+
+
+async def test_a_failed_cue_send_stops_the_cue_it_owns():
+    class Failing(Recorder):
+        async def send_audio_message(self, conn, kind, packets, text, sentence_id):
+            raise ConnectionError("socket closed")
+
+    rec = Failing()
+    conn = Conn()
+    with pytest.raises(ConnectionError):
+        await _player(rec)(conn, CUES[0])
+    assert [e[1] for e in rec.events] == [CUES[0]["file"], "start", "stop"]
+    assert conn.client_is_speaking is False and getattr(conn, "weixue_cue_speaking", None) is None
+
+
+async def test_a_turn_after_the_cue_started_keeps_its_own_speaking_state():
+    rec = Recorder()
+    conn = Conn()
+    task = asyncio.create_task(_player(rec)(conn, CUES[0]))
+    while not conn.client_is_speaking:
+        await asyncio.sleep(0.01)
+    weixue_patches.note_event(conn)
+    conn.sentence_id = "user-turn"
+    await task
+    assert conn.client_is_speaking is True and [e[1] for e in rec.events] == [CUES[0]["file"], "start"]
 
 
 async def test_session_end_cancels_the_pending_cue():
