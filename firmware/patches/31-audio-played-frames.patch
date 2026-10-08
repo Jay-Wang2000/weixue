@@ -1,0 +1,33 @@
+--- a/main/audio/audio_service.h
++++ b/main/audio/audio_service.h
+@@ -126,6 +126,8 @@
+     // RMS of the PCM frame being played, -50..-6 dBFS mapped to 0..255; 0 once no frame has
+     // been written for kOutputLevelHoldUs.
+     uint8_t GetOutputLevel() const;
++    // Milliseconds of PCM written to the codec since boot (any task).
++    uint64_t GetOutputMs() const { return output_us_.load() / 1000; }
+     bool IsIdle();
+     bool IsPlaybackIdle();
+     bool IsWakeWordRunning() const {
+@@ -214,6 +216,7 @@
+     std::atomic<bool> service_stopped_{true};
+     std::atomic<uint8_t> output_level_{0};
+     std::atomic<int64_t> output_level_us_{0};
++    std::atomic<uint64_t> output_us_{0};
+     std::atomic<bool> audio_input_need_warmup_{false};
+     std::atomic<bool> wake_capture_{false};
+ 
+--- a/main/audio/audio_service.cc
++++ b/main/audio/audio_service.cc
+@@ -384,6 +384,11 @@
+ 
+         UpdateOutputLevel(task.pcm);
+         codec_->OutputData(task.pcm);
++        if (codec_->output_sample_rate() > 0) {
++            output_us_ += static_cast<uint64_t>(task.pcm.size()) * 1000000ULL /
++                          (static_cast<uint64_t>(codec_->output_sample_rate()) *
++                           std::max(1, codec_->output_channels()));
++        }
+ 
+         /* Update the last output time */
+         last_output_time_ = std::chrono::steady_clock::now();

@@ -1,0 +1,714 @@
+# feat-protocol-agent-msg: simulated agent device against a scratch stack, 2026-10-07 (office mode)
+# Device on the bench was offline (no /dev/cu.usbmodem*, no ping, no traffic to the live server since 16:49 UTC);
+# server/scripts/agent_sim_device.py played the firmware's agent side. Stack: container weixue-agentmsg-sim-server
+# from weixue/xiaozhi-esp32-server:local with this branch's overlay mounted, tone TTS, scripted ASR, one-line LLM,
+# ports 18000/18003; live containers untouched. Fixture: server/scripts/agent_msg_fixture.py. Token redacted.
+
+## sim device run dev1 (agent_sim_device.py)
+1791394262.437 18:31:02 agent sim device boot=929464353 device=7c:0c:5f:42:4b:fc
+1791394262.475 18:31:02 poll 200 speak=False urgent=False items=1 header=0
+1791394262.475 18:31:02 agent: sync seq=1791394262452 listed=0 dropped=0 tasks=0 via=poll
+1791394266.414 18:31:06 poll 200 speak=False urgent=False items=1 header=1791394262452
+1791394266.414 18:31:06 agent: chat=c_R1 task=t_R1_s1 state=working seq=1791394266390 tier=when_idle speaks=0 result=applied via=poll
+1791394266.987 18:31:06 poll 200 speak=False urgent=False items=1 header=1791394266390
+1791394266.987 18:31:06 agent: chat=c_R1 task=t_R1_s1 state=interrupted seq=1791394266963 tier=silent speaks=0 result=applied via=poll
+1791394267.540 18:31:07 poll 200 speak=False urgent=False items=1 header=1791394266963
+1791394267.541 18:31:07 agent: chat=c_R1 task=t_R1_s1 state=needs_input seq=1791394267516 tier=interrupt speaks=0 result=applied via=poll
+1791394268.094 18:31:08 poll 200 speak=False urgent=False items=1 header=1791394267516
+1791394268.094 18:31:08 agent: chat=c_R1 task=t_R1_s1 state=unread seq=1791394268063 tier=when_idle speaks=0 result=applied via=poll
+1791394268.684 18:31:08 poll 200 speak=False urgent=False items=1 header=1791394268063
+1791394268.684 18:31:08 agent: chat=c_R1 task=t_R1_s2 state=needs_approval seq=1791394268657 tier=silent speaks=0 result=applied via=poll
+1791394269.221 18:31:09 poll 200 speak=False urgent=False items=1 header=1791394268657
+1791394269.221 18:31:09 agent: chat=c_R1 task=t_R1_s2 state=done seq=1791394269196 tier=interrupt speaks=0 result=applied via=poll
+1791394269.765 18:31:09 poll 200 speak=False urgent=False items=1 header=1791394269196
+1791394269.765 18:31:09 agent: chat=c_R1 task=t_R1_s3 state=failed seq=1791394269741 tier=when_idle speaks=0 result=applied via=poll
+1791394270.338 18:31:10 poll 200 speak=False urgent=False items=1 header=1791394269741
+1791394270.338 18:31:10 agent: chat=c_R1 task=t_R1_s4 state=cancelled seq=1791394270314 tier=silent speaks=0 result=applied via=poll
+1791394270.904 18:31:10 poll 200 speak=False urgent=False items=1 header=1791394270314
+1791394270.904 18:31:10 agent: chat=c_R1 task=t_R1_s5 state=stopped seq=1791394270878 tier=interrupt speaks=0 result=applied via=poll
+1791394271.571 18:31:11 poll 200 speak=False urgent=False items=1 header=1791394270878
+1791394271.571 18:31:11 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=applied via=poll
+1791394273.573 18:31:13 agent agent_response: {"v": 1, "boot": 929464353, "seq": 1, "kind": "approve", "chat_id": "c_R1", "task_id": "t_R1_ap", "via": "loopback", "card_id": "i_R1_ap", "option_id": "approve"}
+1791394273.833 18:31:13 poll 200 speak=False urgent=False items=1 header=1791394271546
+1791394273.833 18:31:13 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=applied via=poll
+1791394274.170 18:31:14 device event sent (own session)
+1791394275.835 18:31:15 agent agent_response: {"v": 1, "boot": 929464353, "seq": 2, "kind": "answer", "chat_id": "c_R1", "task_id": "t_R1_cl", "via": "loopback", "card_id": "i_R1_cl", "option_id": "hall"}
+1791394276.062 18:31:16 poll 200 speak=False urgent=False items=1 header=1791394273807
+1791394276.062 18:31:16 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=applied via=poll
+1791394276.384 18:31:16 device event sent (own session)
+1791394278.064 18:31:18 agent agent_response: {"v": 1, "boot": 929464353, "seq": 3, "kind": "ack_seen", "chat_id": "c_R1", "task_id": "t_R1_ur", "via": "loopback"}
+1791394278.311 18:31:18 poll 200 speak=False urgent=False items=6 header=1791394276038
+1791394278.312 18:31:18 agent: chat=c_R1 task=t_R1_b1 state=working seq=1791394283245 tier=silent speaks=0 result=applied via=poll
+1791394278.312 18:31:18 agent: chat=c_R1 task=t_R1_b1 state=working seq=1791394283245 tier=silent speaks=0 result=duplicate via=poll
+1791394278.312 18:31:18 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=applied via=poll
+1791394278.312 18:31:18 agent: chat=c_R1 task=t_R1_b1 state=working seq=1791394283246 tier=silent speaks=0 result=stale via=poll
+1791394278.312 18:31:18 agent: dropped frame of 2228 bytes (limit 2048) via=poll
+1791394278.312 18:31:18 agent: chat=c_R1 task=t_R1_b2 state=working seq=1791394283248 tier=silent speaks=0 result=applied via=poll
+1791394278.610 18:31:18 device event sent (own session)
+1791394286.858 18:31:26 poll 200 speak=False urgent=False items=2 header=1791394283248
+1791394286.858 18:31:26 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=applied via=poll
+1791394286.858 18:31:26 agent: chat=c_R1 task=t_R1_gone state=working seq=1791394286834 tier=silent speaks=0 result=applied via=poll
+1791394295.163 18:31:35 poll 200 speak=False urgent=False items=8 header=1791394286834
+1791394295.163 18:31:35 agent: chat=c_R1 task=t_R1_s1 state=unread seq=1791394268063 tier=when_idle speaks=0 result=duplicate via=poll
+1791394295.163 18:31:35 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=duplicate via=poll
+1791394295.163 18:31:35 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=duplicate via=poll
+1791394295.163 18:31:35 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=duplicate via=poll
+1791394295.163 18:31:35 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=duplicate via=poll
+1791394295.163 18:31:35 agent: chat=c_R1 task=t_R1_b2 state=working seq=1791394283248 tier=silent speaks=0 result=duplicate via=poll
+1791394295.163 18:31:35 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=duplicate via=poll
+1791394295.163 18:31:35 agent: sync seq=1791394295137 listed=7 dropped=5 tasks=7 via=poll
+/private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/run_sim.sh: line 13: 38053 Terminated: 15          "$PY" "$WT/server/scripts/agent_sim_device.py" --base $BASE --ws $WS --device $DEV "$@"
+
+## sim device run dev2 (agent_sim_device.py)
+1791394299.584 18:31:39 agent sim device boot=1565544314 device=7c:0c:5f:42:4b:fc
+1791394299.621 18:31:39 poll 200 speak=False urgent=False items=8 header=0
+1791394299.621 18:31:39 agent: chat=c_R1 task=t_R1_s1 state=unread seq=1791394268063 tier=when_idle speaks=0 result=applied via=poll
+1791394299.621 18:31:39 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=applied via=poll
+1791394299.621 18:31:39 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=applied via=poll
+1791394299.621 18:31:39 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=applied via=poll
+1791394299.621 18:31:39 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=applied via=poll
+1791394299.621 18:31:39 agent: chat=c_R1 task=t_R1_b2 state=working seq=1791394283248 tier=silent speaks=0 result=applied via=poll
+1791394299.621 18:31:39 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=applied via=poll
+1791394299.621 18:31:39 agent: sync seq=1791394299598 listed=7 dropped=0 tasks=7 via=poll
+1791394301.622 18:31:41 agent agent_response: {"v": 1, "boot": 1565544314, "seq": 1, "kind": "approve", "chat_id": "c_R1", "task_id": "t_R1_ap", "via": "loopback", "card_id": "i_R1_ap", "option_id": "approve"}
+1791394301.623 18:31:41 agent agent_response: {"v": 1, "boot": 1565544314, "seq": 2, "kind": "answer", "chat_id": "c_R1", "task_id": "t_R1_cl", "via": "loopback", "card_id": "i_R1_cl", "option_id": "hall"}
+1791394301.623 18:31:41 agent agent_response: {"v": 1, "boot": 1565544314, "seq": 3, "kind": "ack_seen", "chat_id": "c_R1", "task_id": "t_R1_ur", "via": "loopback"}
+1791394302.206 18:31:42 device event sent (own session)
+1791394302.217 18:31:42 device event sent (own session)
+1791394302.238 18:31:42 device event sent (own session)
+1791394315.565 18:31:55 poll 200 speak=True urgent=False items=0 header=1791394299598
+1791394315.603 18:31:55 session opened (proactive) id=c1b6a7b1-ef6a-42df-abd8-abdf27c4969d
+1791394315.615 18:31:55 agent: chat=c_R1 task=t_R1_s1 state=unread seq=1791394268063 tier=when_idle speaks=0 result=duplicate via=push
+1791394315.615 18:31:55 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=duplicate via=push
+1791394315.615 18:31:55 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=duplicate via=push
+1791394315.615 18:31:55 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=duplicate via=push
+1791394315.616 18:31:55 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=duplicate via=push
+1791394315.616 18:31:55 agent: chat=c_R1 task=t_R1_b2 state=working seq=1791394283248 tier=silent speaks=0 result=duplicate via=push
+1791394315.616 18:31:55 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=duplicate via=push
+1791394315.617 18:31:55 agent: sync seq=1791394315582 listed=7 dropped=0 tasks=7 via=push
+1791394315.618 18:31:55 << {"type": "tts", "state": "start"}
+1791394315.634 18:31:55 << {"type": "tts", "state": "sentence_start", "text": "Do you want me to keep the hall light on?"}
+1791394315.817 18:31:55 agent agent_response: {"v": 1, "boot": 1565544314, "seq": 4, "kind": "shown", "ack_upto": 1791394315582, "via": "tap"}
+1791394318.185 18:31:58 << {"type": "tts", "state": "stop"}
+1791394318.596 18:31:58 agent: chat=c_R2 task=t_R2_busy state=unread seq=1791394318570 tier=when_idle speaks=1 result=applied via=push
+1791394318.797 18:31:58 agent agent_response: {"v": 1, "boot": 1565544314, "seq": 5, "kind": "shown", "ack_upto": 1791394318570, "via": "tap"}
+1791394326.257 18:32:06 state: idle (session closed)
+1791394326.267 18:32:06 poll 200 speak=True urgent=False items=0 header=1791394318570
+1791394326.329 18:32:06 session opened (proactive) id=f74d92d8-30d2-4b65-a4ba-9cf07addcbb1
+1791394326.342 18:32:06 agent: chat=c_R1 task=t_R1_s1 state=unread seq=1791394268063 tier=when_idle speaks=0 result=duplicate via=push
+1791394326.342 18:32:06 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=duplicate via=push
+1791394326.343 18:32:06 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=duplicate via=push
+1791394326.343 18:32:06 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=duplicate via=push
+1791394326.343 18:32:06 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=duplicate via=push
+1791394326.343 18:32:06 agent: chat=c_R1 task=t_R1_b2 state=working seq=1791394283248 tier=silent speaks=0 result=duplicate via=push
+1791394326.343 18:32:06 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=duplicate via=push
+1791394326.344 18:32:06 agent: chat=c_R2 task=t_R2_busy state=unread seq=1791394318570 tier=when_idle speaks=1 result=duplicate via=push
+1791394326.344 18:32:06 agent: sync seq=1791394326307 listed=8 dropped=0 tasks=8 via=push
+1791394326.345 18:32:06 << {"type": "tts", "state": "start", "sentence_id": "5666f1ffe7b9418e8b49d664a4ebaa7b", "ack": true}
+1791394326.345 18:32:06 agent: tracking playback of sentence 5666f1ffe7b9418e8b49d664a4ebaa7b
+1791394326.353 18:32:06 << {"type": "tts", "state": "sentence_start", "text": "I saved the hall light routine", "sentence_id": "5666f1ffe7b9418e8b49d664a4ebaa7b", "ack": true}
+1791394326.545 18:32:06 agent agent_response: {"v": 1, "boot": 1565544314, "seq": 6, "kind": "shown", "ack_upto": 1791394326307, "via": "tap"}
+1791394328.240 18:32:08 << {"type": "tts", "state": "stop", "sentence_id": "5666f1ffe7b9418e8b49d664a4ebaa7b", "ack": true}
+1791394328.292 18:32:08 agent played: sentence=5666f1ffe7b9418e8b49d664a4ebaa7b complete=1 played_ms=1800
+1791394328.292 18:32:08 agent played: {"v": 1, "boot": 1565544314, "seq": 7, "sentence_id": "5666f1ffe7b9418e8b49d664a4ebaa7b", "complete": true}
+1791394328.348 18:32:08 state: idle (session closed)
+1791394342.840 18:32:22 poll 200 speak=True urgent=False items=2 header=1791394326307
+1791394342.840 18:32:22 agent: chat=c_R3 task=t_R3_sp1 state=unread seq=1791394342815 tier=when_idle speaks=1 result=applied via=poll
+1791394342.840 18:32:22 agent: chat=c_R3 task=t_R3_sp2 state=failed seq=1791394342819 tier=interrupt speaks=1 result=applied via=poll
+1791394342.862 18:32:22 session opened (proactive) id=189f634b-96af-4a0c-bc01-1ebe4bd8fab1
+1791394342.878 18:32:22 agent: chat=c_R1 task=t_R1_s1 state=unread seq=1791394268063 tier=when_idle speaks=0 result=duplicate via=push
+1791394342.878 18:32:22 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=duplicate via=push
+1791394342.878 18:32:22 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=duplicate via=push
+1791394342.878 18:32:22 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=duplicate via=push
+1791394342.879 18:32:22 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=duplicate via=push
+1791394342.879 18:32:22 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=duplicate via=push
+1791394342.879 18:32:22 agent: chat=c_R2 task=t_R2_busy state=unread seq=1791394318570 tier=when_idle speaks=1 result=duplicate via=push
+1791394342.880 18:32:22 agent: chat=c_R3 task=t_R3_sp1 state=unread seq=1791394342815 tier=when_idle speaks=1 result=duplicate via=push
+1791394342.880 18:32:22 agent: sync seq=1791394342845 listed=8 dropped=2 tasks=8 via=push
+1791394342.882 18:32:22 << {"type": "tts", "state": "start", "sentence_id": "93ddbfc07a274ee3b7095881ca9384a6", "ack": true}
+1791394342.882 18:32:22 agent: tracking playback of sentence 93ddbfc07a274ee3b7095881ca9384a6
+1791394342.896 18:32:22 << {"type": "tts", "state": "sentence_start", "text": "The washer has finished", "sentence_id": "93ddbfc07a274ee3b7095881ca9384a6", "ack": true}
+1791394343.081 18:32:23 agent agent_response: {"v": 1, "boot": 1565544314, "seq": 8, "kind": "shown", "ack_upto": 1791394342845, "via": "tap"}
+1791394344.359 18:32:24 << {"type": "tts", "state": "stop", "sentence_id": "93ddbfc07a274ee3b7095881ca9384a6", "ack": true}
+1791394344.402 18:32:24 agent played: sentence=93ddbfc07a274ee3b7095881ca9384a6 complete=1 played_ms=1380
+1791394344.402 18:32:24 agent played: {"v": 1, "boot": 1565544314, "seq": 9, "sentence_id": "93ddbfc07a274ee3b7095881ca9384a6", "complete": true}
+1791394344.465 18:32:24 state: idle (session closed)
+1791394344.469 18:32:24 poll 200 speak=True urgent=True items=0 header=1791394342845
+1791394344.528 18:32:24 session opened (proactive) id=0b3aacd2-756c-4521-ad8c-22bc1903203a
+1791394344.542 18:32:24 agent: chat=c_R1 task=t_R1_s1 state=unread seq=1791394268063 tier=when_idle speaks=0 result=duplicate via=push
+1791394344.542 18:32:24 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=duplicate via=push
+1791394344.543 18:32:24 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=duplicate via=push
+1791394344.543 18:32:24 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=duplicate via=push
+1791394344.543 18:32:24 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=duplicate via=push
+1791394344.543 18:32:24 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=duplicate via=push
+1791394344.544 18:32:24 agent: chat=c_R2 task=t_R2_busy state=unread seq=1791394318570 tier=when_idle speaks=1 result=duplicate via=push
+1791394344.544 18:32:24 agent: chat=c_R3 task=t_R3_sp1 state=unread seq=1791394342815 tier=when_idle speaks=1 result=duplicate via=push
+1791394344.545 18:32:24 agent: sync seq=1791394344511 listed=8 dropped=0 tasks=8 via=push
+1791394344.546 18:32:24 << {"type": "tts", "state": "start", "sentence_id": "fbc9937b661d4365b6d53ccd16c88c7f", "ack": true}
+1791394344.546 18:32:24 agent: tracking playback of sentence fbc9937b661d4365b6d53ccd16c88c7f
+1791394344.562 18:32:24 << {"type": "tts", "state": "sentence_start", "text": "The leak sensor is offline", "sentence_id": "fbc9937b661d4365b6d53ccd16c88c7f", "ack": true}
+1791394344.743 18:32:24 agent agent_response: {"v": 1, "boot": 1565544314, "seq": 10, "kind": "shown", "ack_upto": 1791394344511, "via": "tap"}
+1791394346.210 18:32:26 << {"type": "tts", "state": "stop", "sentence_id": "fbc9937b661d4365b6d53ccd16c88c7f", "ack": true}
+1791394346.275 18:32:26 agent played: sentence=fbc9937b661d4365b6d53ccd16c88c7f complete=1 played_ms=1560
+1791394346.275 18:32:26 agent played: {"v": 1, "boot": 1565544314, "seq": 11, "sentence_id": "fbc9937b661d4365b6d53ccd16c88c7f", "complete": true}
+1791394346.323 18:32:26 state: idle (session closed)
+/private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/run_sim.sh: line 13: 39365 Terminated: 15          "$PY" "$WT/server/scripts/agent_sim_device.py" --base $BASE --ws $WS --device $DEV "$@"
+
+## sim device run dev3 (agent_sim_device.py)
+1791394348.613 18:32:28 agent sim device boot=1538332414 device=7c:0c:5f:42:4b:fc
+1791394348.633 18:32:28 poll 200 speak=False urgent=False items=8 header=0
+1791394348.633 18:32:28 agent: chat=c_R1 task=t_R1_s1 state=unread seq=1791394268063 tier=when_idle speaks=0 result=applied via=poll
+1791394348.633 18:32:28 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=applied via=poll
+1791394348.633 18:32:28 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=applied via=poll
+1791394348.633 18:32:28 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=applied via=poll
+1791394348.633 18:32:28 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=applied via=poll
+1791394348.633 18:32:28 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=applied via=poll
+1791394348.633 18:32:28 agent: chat=c_R2 task=t_R2_busy state=unread seq=1791394318570 tier=when_idle speaks=1 result=applied via=poll
+1791394348.633 18:32:28 agent: chat=c_R3 task=t_R3_sp1 state=unread seq=1791394342815 tier=when_idle speaks=1 result=applied via=poll
+1791394350.636 18:32:30 agent agent_response: {"v": 1, "boot": 1538332414, "seq": 1, "kind": "approve", "chat_id": "c_R1", "task_id": "t_R1_ap", "via": "loopback", "card_id": "i_R1_ap", "option_id": "approve"}
+1791394350.640 18:32:30 agent agent_response: {"v": 1, "boot": 1538332414, "seq": 2, "kind": "answer", "chat_id": "c_R1", "task_id": "t_R1_cl", "via": "loopback", "card_id": "i_R1_cl", "option_id": "hall"}
+1791394350.640 18:32:30 agent agent_response: {"v": 1, "boot": 1538332414, "seq": 3, "kind": "ack_seen", "chat_id": "c_R1", "task_id": "t_R1_ur", "via": "loopback"}
+1791394351.258 18:32:31 device event sent (own session)
+1791394351.274 18:32:31 device event sent (own session)
+1791394351.275 18:32:31 device event sent (own session)
+1791394351.608 18:32:31 poll 200 speak=True urgent=False items=2 header=1791394342815
+1791394351.609 18:32:31 agent: chat=c_R4 task=t_R4_sp1 state=unread seq=1791394351590 tier=when_idle speaks=1 result=applied via=poll
+1791394351.609 18:32:31 agent: chat=c_R4 task=t_R4_sp2 state=failed seq=1791394351591 tier=interrupt speaks=1 result=applied via=poll
+1791394351.651 18:32:31 session opened (proactive) id=61e61850-d2d7-4b08-82a9-9b9b44e05313
+1791394351.670 18:32:31 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=duplicate via=push
+1791394351.670 18:32:31 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=duplicate via=push
+1791394351.670 18:32:31 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=duplicate via=push
+1791394351.670 18:32:31 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=duplicate via=push
+1791394351.671 18:32:31 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=duplicate via=push
+1791394351.671 18:32:31 agent: chat=c_R2 task=t_R2_busy state=unread seq=1791394318570 tier=when_idle speaks=1 result=duplicate via=push
+1791394351.671 18:32:31 agent: chat=c_R3 task=t_R3_sp1 state=unread seq=1791394342815 tier=when_idle speaks=1 result=duplicate via=push
+1791394351.671 18:32:31 agent: chat=c_R4 task=t_R4_sp1 state=unread seq=1791394351590 tier=when_idle speaks=1 result=duplicate via=push
+1791394351.672 18:32:31 agent: sync seq=1791394351640 listed=8 dropped=2 tasks=8 via=push
+1791394351.677 18:32:31 << {"type": "tts", "state": "start", "sentence_id": "8ded8d2e5bcc46a1af95f287c7eb1703", "ack": true}
+1791394351.677 18:32:31 agent: tracking playback of sentence 8ded8d2e5bcc46a1af95f287c7eb1703
+1791394351.679 18:32:31 << {"type": "tts", "state": "sentence_start", "text": "The washer has finished", "sentence_id": "8ded8d2e5bcc46a1af95f287c7eb1703", "ack": true}
+1791394351.872 18:32:31 agent agent_response: {"v": 1, "boot": 1538332414, "seq": 4, "kind": "shown", "ack_upto": 1791394351640, "via": "tap"}
+1791394352.470 18:32:32 agent played: {"v": 1, "boot": 1538332414, "seq": 5, "sentence_id": "8ded8d2e5bcc46a1af95f287c7eb1703", "complete": false, "cut_at_ms": 778, "reason": "wake"}
+1791394352.478 18:32:32 << {"type": "tts", "state": "stop"}
+1791394352.528 18:32:32 state: idle (session closed)
+1791394352.532 18:32:32 poll 200 speak=True urgent=True items=0 header=1791394351640
+1791394352.565 18:32:32 session opened (proactive) id=9b8465a5-fa5c-4be3-9c78-f6ee01d85fe9
+1791394352.583 18:32:32 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=duplicate via=push
+1791394352.583 18:32:32 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=duplicate via=push
+1791394352.583 18:32:32 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=duplicate via=push
+1791394352.583 18:32:32 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=duplicate via=push
+1791394352.583 18:32:32 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=duplicate via=push
+1791394352.583 18:32:32 agent: chat=c_R2 task=t_R2_busy state=unread seq=1791394318570 tier=when_idle speaks=1 result=duplicate via=push
+1791394352.584 18:32:32 agent: chat=c_R3 task=t_R3_sp1 state=unread seq=1791394342815 tier=when_idle speaks=1 result=duplicate via=push
+1791394352.584 18:32:32 agent: chat=c_R4 task=t_R4_sp1 state=unread seq=1791394351590 tier=when_idle speaks=1 result=duplicate via=push
+1791394352.584 18:32:32 agent: sync seq=1791394352550 listed=8 dropped=0 tasks=8 via=push
+1791394352.585 18:32:32 << {"type": "tts", "state": "start", "sentence_id": "3c2f3c85ee5d47e0a867c14272241b7b", "ack": true}
+1791394352.585 18:32:32 agent: tracking playback of sentence 3c2f3c85ee5d47e0a867c14272241b7b
+1791394352.604 18:32:32 << {"type": "tts", "state": "sentence_start", "text": "The leak sensor is offline", "sentence_id": "3c2f3c85ee5d47e0a867c14272241b7b", "ack": true}
+1791394352.785 18:32:32 agent agent_response: {"v": 1, "boot": 1538332414, "seq": 6, "kind": "shown", "ack_upto": 1791394352550, "via": "tap"}
+1791394353.384 18:32:33 agent played: {"v": 1, "boot": 1538332414, "seq": 7, "sentence_id": "3c2f3c85ee5d47e0a867c14272241b7b", "complete": false, "cut_at_ms": 779, "reason": "wake"}
+1791394353.391 18:32:33 << {"type": "tts", "state": "stop"}
+1791394353.415 18:32:33 state: idle (session closed)
+/private/tmp/claude-502/-Users-jwang14-Projects-weixue/e75780a4-9b9a-4053-a1b8-927cb6ee40c7/scratchpad/run_sim.sh: line 13: 40543 Terminated: 15          "$PY" "$WT/server/scripts/agent_sim_device.py" --base $BASE --ws $WS --device $DEV "$@"
+
+## sim device run dev4 (agent_sim_device.py)
+1791394363.381 18:32:43 agent sim device boot=3304438704 device=7c:0c:5f:42:4b:fc
+1791394363.505 18:32:43 session opened (user) id=80c1302b-9ee0-433f-9eec-90977abd56bf
+1791394363.520 18:32:43 agent: chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=0 result=applied via=push
+1791394363.520 18:32:43 agent: chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=0 result=applied via=push
+1791394363.521 18:32:43 agent: chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=0 result=applied via=push
+1791394363.521 18:32:43 agent: chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=0 result=applied via=push
+1791394363.521 18:32:43 agent: chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=0 result=applied via=push
+1791394363.521 18:32:43 agent: chat=c_R2 task=t_R2_busy state=unread seq=1791394318570 tier=when_idle speaks=1 result=applied via=push
+1791394363.521 18:32:43 agent: chat=c_R3 task=t_R3_sp1 state=unread seq=1791394342815 tier=when_idle speaks=1 result=applied via=push
+1791394363.521 18:32:43 agent: chat=c_R4 task=t_R4_sp1 state=unread seq=1791394351590 tier=when_idle speaks=1 result=applied via=push
+1791394363.521 18:32:43 agent: sync seq=1791394363492 listed=8 dropped=0 tasks=8 via=push
+1791394363.722 18:32:43 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 1, "kind": "shown", "ack_upto": 1791394363492, "via": "tap"}
+1791394365.522 18:32:45 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 2, "kind": "approve", "chat_id": "c_R1", "task_id": "t_R1_ap", "via": "loopback", "card_id": "i_R1_ap", "option_id": "approve"}
+1791394365.522 18:32:45 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 3, "kind": "answer", "chat_id": "c_R1", "task_id": "t_R1_cl", "via": "loopback", "card_id": "i_R1_cl", "option_id": "hall"}
+1791394365.522 18:32:45 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 4, "kind": "ack_seen", "chat_id": "c_R1", "task_id": "t_R1_ur", "via": "loopback"}
+1791394366.332 18:32:46 agent: chat=c_R5 task=t_R5_s1 state=working seq=1791394366312 tier=when_idle speaks=0 result=applied via=push
+1791394366.534 18:32:46 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 5, "kind": "shown", "ack_upto": 1791394366312, "via": "tap"}
+1791394366.663 18:32:46 agent: chat=c_R5 task=t_R5_s1 state=interrupted seq=1791394366647 tier=silent speaks=0 result=applied via=push
+1791394366.866 18:32:46 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 6, "kind": "shown", "ack_upto": 1791394366647, "via": "tap"}
+1791394366.998 18:32:46 agent: chat=c_R5 task=t_R5_s1 state=needs_input seq=1791394366983 tier=interrupt speaks=0 result=applied via=push
+1791394367.200 18:32:47 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 7, "kind": "shown", "ack_upto": 1791394366983, "via": "tap"}
+1791394367.362 18:32:47 agent: chat=c_R5 task=t_R5_s1 state=unread seq=1791394367346 tier=when_idle speaks=0 result=applied via=push
+1791394367.564 18:32:47 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 8, "kind": "shown", "ack_upto": 1791394367346, "via": "tap"}
+1791394367.760 18:32:47 agent: chat=c_R5 task=t_R5_s2 state=needs_approval seq=1791394367745 tier=silent speaks=0 result=applied via=push
+1791394367.962 18:32:47 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 9, "kind": "shown", "ack_upto": 1791394367745, "via": "tap"}
+1791394368.107 18:32:48 agent: chat=c_R5 task=t_R5_s2 state=done seq=1791394368090 tier=interrupt speaks=0 result=applied via=push
+1791394368.308 18:32:48 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 10, "kind": "shown", "ack_upto": 1791394368090, "via": "tap"}
+1791394368.488 18:32:48 agent: chat=c_R5 task=t_R5_s3 state=failed seq=1791394368474 tier=when_idle speaks=0 result=applied via=push
+1791394368.690 18:32:48 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 11, "kind": "shown", "ack_upto": 1791394368474, "via": "tap"}
+1791394368.854 18:32:48 agent: chat=c_R5 task=t_R5_s4 state=cancelled seq=1791394368837 tier=silent speaks=0 result=applied via=push
+1791394369.056 18:32:49 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 12, "kind": "shown", "ack_upto": 1791394368837, "via": "tap"}
+1791394369.195 18:32:49 agent: chat=c_R5 task=t_R5_s5 state=stopped seq=1791394369177 tier=interrupt speaks=0 result=applied via=push
+1791394369.397 18:32:49 agent agent_response: {"v": 1, "boot": 3304438704, "seq": 13, "kind": "shown", "ack_upto": 1791394369177, "via": "tap"}
+1791394383.506 18:33:03 user session ends
+1791394383.509 18:33:03 state: idle (session closed)
+
+## fixture output (JSON lines, in scenario order)
+{"t": 1791394266.381, "event": "scenario", "name": "states", "prefix": "R1", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394266.414, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_8bf5c2db01f74ae0a87dfc04", "seq": 1791394266390, "task_id": "t_R1_s1"}], "dropped": []}}
+{"t": 1791394266.986, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_03129bec88034c3f9805b6ba", "seq": 1791394266963, "task_id": "t_R1_s1"}], "dropped": []}}
+{"t": 1791394267.542, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_b1f8039c684d473ead08e68d", "seq": 1791394267516, "task_id": "t_R1_s1"}], "dropped": []}}
+{"t": 1791394268.087, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_da92aaf292084c18ba0d769e", "seq": 1791394268063, "task_id": "t_R1_s1"}], "dropped": []}}
+{"t": 1791394268.684, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_a9a84dd3e45c461c81cb7b5d", "seq": 1791394268657, "task_id": "t_R1_s2"}], "dropped": []}}
+{"t": 1791394269.22, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_0e7ef1aac69345358a2f0819", "seq": 1791394269196, "task_id": "t_R1_s2"}], "dropped": []}}
+{"t": 1791394269.766, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_23aa2a1299f6447e9e3eda13", "seq": 1791394269741, "task_id": "t_R1_s3"}], "dropped": []}}
+{"t": 1791394270.338, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_a08a4d95b48849f9b17fe275", "seq": 1791394270314, "task_id": "t_R1_s4"}], "dropped": []}}
+{"t": 1791394270.904, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_0023f85d2fb7441ea1a834ce", "seq": 1791394270878, "task_id": "t_R1_s5"}], "dropped": []}}
+{"t": 1791394271.433, "event": "item", "seq": 1791394266390, "task_id": "t_R1_s1", "delivery_id": "fx_8bf5c2db01f74ae0a87dfc04", "acks": [{"outcome": "shown", "received_at": 1791394266.6, "seq": 1791394266390, "via": "poll"}]}
+{"t": 1791394271.433, "event": "item", "seq": 1791394266963, "task_id": "t_R1_s1", "delivery_id": "fx_03129bec88034c3f9805b6ba", "acks": [{"outcome": "shown", "received_at": 1791394267.173, "seq": 1791394266963, "via": "poll"}]}
+{"t": 1791394271.433, "event": "item", "seq": 1791394267516, "task_id": "t_R1_s1", "delivery_id": "fx_b1f8039c684d473ead08e68d", "acks": [{"outcome": "shown", "received_at": 1791394267.725, "seq": 1791394267516, "via": "poll"}]}
+{"t": 1791394271.433, "event": "item", "seq": 1791394268063, "task_id": "t_R1_s1", "delivery_id": "fx_da92aaf292084c18ba0d769e", "acks": [{"outcome": "shown", "received_at": 1791394268.279, "seq": 1791394268063, "via": "poll"}]}
+{"t": 1791394271.433, "event": "item", "seq": 1791394268657, "task_id": "t_R1_s2", "delivery_id": "fx_a9a84dd3e45c461c81cb7b5d", "acks": [{"outcome": "shown", "received_at": 1791394268.868, "seq": 1791394268657, "via": "poll"}]}
+{"t": 1791394271.433, "event": "item", "seq": 1791394269196, "task_id": "t_R1_s2", "delivery_id": "fx_0e7ef1aac69345358a2f0819", "acks": [{"outcome": "shown", "received_at": 1791394269.415, "seq": 1791394269196, "via": "poll"}]}
+{"t": 1791394271.433, "event": "item", "seq": 1791394269741, "task_id": "t_R1_s3", "delivery_id": "fx_23aa2a1299f6447e9e3eda13", "acks": [{"outcome": "shown", "received_at": 1791394269.951, "seq": 1791394269741, "via": "poll"}]}
+{"t": 1791394271.433, "event": "item", "seq": 1791394270314, "task_id": "t_R1_s4", "delivery_id": "fx_a08a4d95b48849f9b17fe275", "acks": [{"outcome": "shown", "received_at": 1791394270.525, "seq": 1791394270314, "via": "poll"}]}
+{"t": 1791394271.433, "event": "item", "seq": 1791394270878, "task_id": "t_R1_s5", "delivery_id": "fx_0023f85d2fb7441ea1a834ce", "acks": [{"outcome": "shown", "received_at": 1791394271.088, "seq": 1791394270878, "via": "poll"}]}
+{"t": 1791394271.433, "event": "responses", "responses": []}
+{"t": 1791394271.433, "event": "device", "acked_upto": 1791394270878, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_R1_s1", "seq": 1791394268063, "state": "unread", "delivery_id": "fx_da92aaf292084c18ba0d769e"}, {"task_id": "t_R1_s2", "seq": 1791394269196, "state": "done", "delivery_id": "fx_0e7ef1aac69345358a2f0819"}, {"task_id": "t_R1_s3", "seq": 1791394269741, "state": "failed", "delivery_id": "fx_23aa2a1299f6447e9e3eda13"}, {"task_id": "t_R1_s4", "seq": 1791394270314, "state": "cancelled", "delivery_id": "fx_a08a4d95b48849f9b17fe275"}, {"task_id": "t_R1_s5", "seq": 1791394270878, "state": "stopped", "delivery_id": "fx_0023f85d2fb7441ea1a834ce"}], "unacked": []}
+{"t": 1791394271.526, "event": "scenario", "name": "approval", "prefix": "R1", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394271.571, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_88b0b077ca3949119701516b", "seq": 1791394271546, "task_id": "t_R1_ap"}], "dropped": []}}
+{"t": 1791394273.696, "event": "item", "seq": 1791394271546, "task_id": "t_R1_ap", "delivery_id": "fx_88b0b077ca3949119701516b", "acks": [{"outcome": "shown", "received_at": 1791394271.755, "seq": 1791394271546, "via": "poll"}]}
+{"t": 1791394273.696, "event": "responses", "responses": [{"device": "7c:0c:5f:42:4b:fc", "received_at": 1791394273.647, "boot": 929464353, "seq": 1, "kind": "approve", "chat_id": "c_R1", "task_id": "t_R1_ap", "card_id": "i_R1_ap", "option_id": "approve", "via": "loopback"}]}
+{"t": 1791394273.697, "event": "device", "acked_upto": 1791394271546, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_R1_s1", "seq": 1791394268063, "state": "unread", "delivery_id": "fx_da92aaf292084c18ba0d769e"}, {"task_id": "t_R1_s2", "seq": 1791394269196, "state": "done", "delivery_id": "fx_0e7ef1aac69345358a2f0819"}, {"task_id": "t_R1_s3", "seq": 1791394269741, "state": "failed", "delivery_id": "fx_23aa2a1299f6447e9e3eda13"}, {"task_id": "t_R1_s4", "seq": 1791394270314, "state": "cancelled", "delivery_id": "fx_a08a4d95b48849f9b17fe275"}, {"task_id": "t_R1_s5", "seq": 1791394270878, "state": "stopped", "delivery_id": "fx_0023f85d2fb7441ea1a834ce"}, {"task_id": "t_R1_ap", "seq": 1791394271546, "state": "needs_approval", "delivery_id": "fx_88b0b077ca3949119701516b"}], "unacked": []}
+{"t": 1791394273.801, "event": "scenario", "name": "clarify", "prefix": "R1", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394273.831, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_405bb475eb104e80b2399f83", "seq": 1791394273807, "task_id": "t_R1_cl"}], "dropped": []}}
+{"t": 1791394275.914, "event": "item", "seq": 1791394273807, "task_id": "t_R1_cl", "delivery_id": "fx_405bb475eb104e80b2399f83", "acks": [{"outcome": "shown", "received_at": 1791394274.02, "seq": 1791394273807, "via": "poll"}]}
+{"t": 1791394275.914, "event": "responses", "responses": [{"device": "7c:0c:5f:42:4b:fc", "received_at": 1791394275.855, "boot": 929464353, "seq": 2, "kind": "answer", "chat_id": "c_R1", "task_id": "t_R1_cl", "card_id": "i_R1_cl", "option_id": "hall", "via": "loopback"}]}
+{"t": 1791394275.914, "event": "device", "acked_upto": 1791394273807, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_R1_s1", "seq": 1791394268063, "state": "unread", "delivery_id": "fx_da92aaf292084c18ba0d769e"}, {"task_id": "t_R1_s2", "seq": 1791394269196, "state": "done", "delivery_id": "fx_0e7ef1aac69345358a2f0819"}, {"task_id": "t_R1_s3", "seq": 1791394269741, "state": "failed", "delivery_id": "fx_23aa2a1299f6447e9e3eda13"}, {"task_id": "t_R1_s4", "seq": 1791394270314, "state": "cancelled", "delivery_id": "fx_a08a4d95b48849f9b17fe275"}, {"task_id": "t_R1_s5", "seq": 1791394270878, "state": "stopped", "delivery_id": "fx_0023f85d2fb7441ea1a834ce"}, {"task_id": "t_R1_ap", "seq": 1791394271546, "state": "needs_approval", "delivery_id": "fx_88b0b077ca3949119701516b"}, {"task_id": "t_R1_cl", "seq": 1791394273807, "state": "needs_input", "delivery_id": "fx_405bb475eb104e80b2399f83"}], "unacked": []}
+{"t": 1791394276.02, "event": "scenario", "name": "unread", "prefix": "R1", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394276.062, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_012659ac88e64cb29f4d40df", "seq": 1791394276038, "task_id": "t_R1_ur"}], "dropped": []}}
+{"t": 1791394278.146, "event": "item", "seq": 1791394276038, "task_id": "t_R1_ur", "delivery_id": "fx_012659ac88e64cb29f4d40df", "acks": [{"outcome": "shown", "received_at": 1791394276.251, "seq": 1791394276038, "via": "poll"}, {"outcome": "user_ack", "received_at": 1791394278.097, "seq": 1791394276038}]}
+{"t": 1791394278.146, "event": "responses", "responses": [{"device": "7c:0c:5f:42:4b:fc", "received_at": 1791394278.097, "boot": 929464353, "seq": 3, "kind": "ack_seen", "chat_id": "c_R1", "task_id": "t_R1_ur", "via": "loopback"}]}
+{"t": 1791394278.146, "event": "device", "acked_upto": 1791394276038, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_R1_s1", "seq": 1791394268063, "state": "unread", "delivery_id": "fx_da92aaf292084c18ba0d769e"}, {"task_id": "t_R1_s2", "seq": 1791394269196, "state": "done", "delivery_id": "fx_0e7ef1aac69345358a2f0819"}, {"task_id": "t_R1_s3", "seq": 1791394269741, "state": "failed", "delivery_id": "fx_23aa2a1299f6447e9e3eda13"}, {"task_id": "t_R1_s4", "seq": 1791394270314, "state": "cancelled", "delivery_id": "fx_a08a4d95b48849f9b17fe275"}, {"task_id": "t_R1_s5", "seq": 1791394270878, "state": "stopped", "delivery_id": "fx_0023f85d2fb7441ea1a834ce"}, {"task_id": "t_R1_ap", "seq": 1791394271546, "state": "needs_approval", "delivery_id": "fx_88b0b077ca3949119701516b"}, {"task_id": "t_R1_cl", "seq": 1791394273807, "state": "needs_input", "delivery_id": "fx_405bb475eb104e80b2399f83"}, {"task_id": "t_R1_ur", "seq": 1791394276038, "state": "unread", "delivery_id": "fx_012659ac88e64cb29f4d40df"}], "unacked": []}
+{"t": 1791394278.245, "event": "scenario", "name": "burst", "prefix": "R1", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394278.311, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_604d84a56392487e9000acc5", "seq": 1791394283245, "task_id": "t_R1_b1"}, {"delivery_id": "fx_26e1179adb4e4ccdaa30edd8", "seq": 1791394283245, "task_id": "t_R1_b1"}, {"delivery_id": "fx_b57b327b201e472589911668", "seq": 1791394283247, "task_id": "t_R1_b1"}, {"delivery_id": "fx_825f95935f6647de9085bd2b", "seq": 1791394283246, "task_id": "t_R1_b1"}, {"delivery_id": "fx_e6c5e8e58f8b4144b1534d03", "raw": true, "bytes": 2228}, {"delivery_id": "fx_4995b7e37f35431e915f552a", "seq": 1791394283248, "task_id": "t_R1_b2"}], "dropped": []}}
+{"t": 1791394278.312, "event": "expect", "duplicate": 1791394283245, "stale": 1791394283246, "oversize_bytes": 2243}
+{"t": 1791394286.706, "event": "item", "seq": 1791394283245, "task_id": "t_R1_b1", "delivery_id": "fx_604d84a56392487e9000acc5", "acks": [{"outcome": "shown", "received_at": 1791394278.498, "seq": 1791394283245, "via": "poll"}]}
+{"t": 1791394286.707, "event": "item", "seq": 1791394283245, "task_id": "t_R1_b1", "delivery_id": "fx_26e1179adb4e4ccdaa30edd8", "acks": [{"outcome": "shown", "received_at": 1791394278.499, "seq": 1791394283245, "via": "poll"}]}
+{"t": 1791394286.707, "event": "item", "seq": 1791394283247, "task_id": "t_R1_b1", "delivery_id": "fx_b57b327b201e472589911668", "acks": [{"outcome": "shown", "received_at": 1791394278.499, "seq": 1791394283247, "via": "poll"}]}
+{"t": 1791394286.707, "event": "item", "seq": 1791394283246, "task_id": "t_R1_b1", "delivery_id": "fx_825f95935f6647de9085bd2b", "acks": [{"outcome": "shown", "received_at": 1791394278.499, "seq": 1791394283246, "via": "poll"}]}
+{"t": 1791394286.707, "event": "item", "seq": null, "task_id": null, "delivery_id": "fx_e6c5e8e58f8b4144b1534d03", "acks": []}
+{"t": 1791394286.707, "event": "item", "seq": 1791394283248, "task_id": "t_R1_b2", "delivery_id": "fx_4995b7e37f35431e915f552a", "acks": [{"outcome": "shown", "received_at": 1791394278.499, "seq": 1791394283248, "via": "poll"}]}
+{"t": 1791394286.707, "event": "responses", "responses": []}
+{"t": 1791394286.707, "event": "device", "acked_upto": 1791394283248, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_R1_s1", "seq": 1791394268063, "state": "unread", "delivery_id": "fx_da92aaf292084c18ba0d769e"}, {"task_id": "t_R1_s4", "seq": 1791394270314, "state": "cancelled", "delivery_id": "fx_a08a4d95b48849f9b17fe275"}, {"task_id": "t_R1_s5", "seq": 1791394270878, "state": "stopped", "delivery_id": "fx_0023f85d2fb7441ea1a834ce"}, {"task_id": "t_R1_ap", "seq": 1791394271546, "state": "needs_approval", "delivery_id": "fx_88b0b077ca3949119701516b"}, {"task_id": "t_R1_cl", "seq": 1791394273807, "state": "needs_input", "delivery_id": "fx_405bb475eb104e80b2399f83"}, {"task_id": "t_R1_ur", "seq": 1791394276038, "state": "unread", "delivery_id": "fx_012659ac88e64cb29f4d40df"}, {"task_id": "t_R1_b1", "seq": 1791394283247, "state": "needs_input", "delivery_id": "fx_b57b327b201e472589911668"}, {"task_id": "t_R1_b2", "seq": 1791394283248, "state": "working", "delivery_id": "fx_4995b7e37f35431e915f552a"}], "unacked": []}
+{"t": 1791394286.829, "event": "scenario", "name": "seed", "prefix": "R1", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394286.857, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_90ce40c59e44456881a12da2", "seq": 1791394286833, "task_id": "t_R1_keep"}, {"delivery_id": "fx_f0eff89a1e3c46db92310d4b", "seq": 1791394286834, "task_id": "t_R1_gone"}], "dropped": []}}
+{"t": 1791394287.906, "event": "item", "seq": 1791394286833, "task_id": "t_R1_keep", "delivery_id": "fx_90ce40c59e44456881a12da2", "acks": [{"outcome": "shown", "received_at": 1791394287.043, "seq": 1791394286833, "via": "poll"}]}
+{"t": 1791394287.906, "event": "item", "seq": 1791394286834, "task_id": "t_R1_gone", "delivery_id": "fx_f0eff89a1e3c46db92310d4b", "acks": [{"outcome": "shown", "received_at": 1791394287.043, "seq": 1791394286834, "via": "poll"}]}
+{"t": 1791394287.906, "event": "responses", "responses": []}
+{"t": 1791394287.906, "event": "device", "acked_upto": 1791394286834, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_R1_s1", "seq": 1791394268063, "state": "unread", "delivery_id": "fx_da92aaf292084c18ba0d769e"}, {"task_id": "t_R1_ap", "seq": 1791394271546, "state": "needs_approval", "delivery_id": "fx_88b0b077ca3949119701516b"}, {"task_id": "t_R1_cl", "seq": 1791394273807, "state": "needs_input", "delivery_id": "fx_405bb475eb104e80b2399f83"}, {"task_id": "t_R1_ur", "seq": 1791394276038, "state": "unread", "delivery_id": "fx_012659ac88e64cb29f4d40df"}, {"task_id": "t_R1_b1", "seq": 1791394283247, "state": "needs_input", "delivery_id": "fx_b57b327b201e472589911668"}, {"task_id": "t_R1_b2", "seq": 1791394283248, "state": "working", "delivery_id": "fx_4995b7e37f35431e915f552a"}, {"task_id": "t_R1_keep", "seq": 1791394286833, "state": "unread", "delivery_id": "fx_90ce40c59e44456881a12da2"}, {"task_id": "t_R1_gone", "seq": 1791394286834, "state": "working", "delivery_id": "fx_f0eff89a1e3c46db92310d4b"}], "unacked": []}
+{"t": 1791394295.097, "event": "scenario", "name": "drop", "prefix": "R1", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394295.163, "event": "dropped", "status": 202, "result": {"items": [], "dropped": ["t_R1_gone"]}}
+{"t": 1791394315.509, "event": "scenario", "name": "busy", "prefix": "R2", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394315.565, "event": "proactive", "status": 202, "result": {"id": "7d310c3110bf4b3aaf80ead8d7d6b638", "mode": "conversation", "status": "queued", "device": "7c:0c:5f:42:4b:fc", "attempts": 0, "created_at": "2026-10-07T17:31:55+00:00", "finished_at": null}}
+{"t": 1791394318.596, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_c6aa122aebfb438c8fabdbd4", "seq": 1791394318570, "task_id": "t_R2_busy", "speech_id": "a02145f08996499b"}], "dropped": []}}
+{"t": 1791394329.182, "event": "item", "seq": 1791394318570, "task_id": "t_R2_busy", "delivery_id": "fx_c6aa122aebfb438c8fabdbd4", "acks": [{"outcome": "accepted", "received_at": 1791394318.574, "proactive_id": "026afb8416f949e39ef880de8c11410e", "ttl_s": 600}, {"outcome": "shown", "received_at": 1791394318.786, "seq": 1791394318570, "via": "shown"}, {"outcome": "spoken", "received_at": 1791394328.275, "proactive_id": "026afb8416f949e39ef880de8c11410e"}, {"outcome": "played", "received_at": 1791394328.276, "sentence_id": "5666f1ffe7b9418e8b49d664a4ebaa7b", "boot": 1565544314, "device_seq": 7}]}
+{"t": 1791394329.182, "event": "responses", "responses": []}
+{"t": 1791394329.182, "event": "speeches", "speeches": [{"speech_id": "a02145f08996499b", "delivery_id": "fx_c6aa122aebfb438c8fabdbd4", "task_id": "t_R2_busy", "state": "played", "proactive_id": "026afb8416f949e39ef880de8c11410e", "sentence_id": "5666f1ffe7b9418e8b49d664a4ebaa7b", "attempt": 1, "played": {"boot": 1565544314, "seq": 7, "sentence_id": "5666f1ffe7b9418e8b49d664a4ebaa7b", "complete": true}}]}
+{"t": 1791394329.182, "event": "device", "acked_upto": 1791394326307, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_R1_s1", "seq": 1791394268063, "state": "unread", "delivery_id": "fx_da92aaf292084c18ba0d769e"}, {"task_id": "t_R1_ap", "seq": 1791394271546, "state": "needs_approval", "delivery_id": "fx_88b0b077ca3949119701516b"}, {"task_id": "t_R1_cl", "seq": 1791394273807, "state": "needs_input", "delivery_id": "fx_405bb475eb104e80b2399f83"}, {"task_id": "t_R1_ur", "seq": 1791394276038, "state": "unread", "delivery_id": "fx_012659ac88e64cb29f4d40df"}, {"task_id": "t_R1_b1", "seq": 1791394283247, "state": "needs_input", "delivery_id": "fx_b57b327b201e472589911668"}, {"task_id": "t_R1_b2", "seq": 1791394283248, "state": "working", "delivery_id": "fx_4995b7e37f35431e915f552a"}, {"task_id": "t_R1_keep", "seq": 1791394286833, "state": "unread", "delivery_id": "fx_90ce40c59e44456881a12da2"}, {"task_id": "t_R2_busy", "seq": 1791394318570, "state": "unread", "delivery_id": "fx_c6aa122aebfb438c8fabdbd4"}], "unacked": []}
+{"t": 1791394342.808, "event": "scenario", "name": "spoken", "prefix": "R3", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394342.84, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_a314117570e34e249646465c", "seq": 1791394342815, "task_id": "t_R3_sp1", "speech_id": "2f16b53d460648d1"}, {"delivery_id": "fx_98275cd79c8648139df87c6b", "seq": 1791394342819, "task_id": "t_R3_sp2", "speech_id": "1c6bdbedeb2140ed"}], "dropped": []}}
+{"t": 1791394347.086, "event": "item", "seq": 1791394342815, "task_id": "t_R3_sp1", "delivery_id": "fx_a314117570e34e249646465c", "acks": [{"outcome": "accepted", "received_at": 1791394342.819, "proactive_id": "bb89788ad8b747169ed0b071c1f8098f", "ttl_s": 600}, {"outcome": "shown", "received_at": 1791394343.082, "seq": 1791394342815, "via": "shown"}, {"outcome": "spoken", "received_at": 1791394344.392, "proactive_id": "bb89788ad8b747169ed0b071c1f8098f"}, {"outcome": "played", "received_at": 1791394344.393, "sentence_id": "93ddbfc07a274ee3b7095881ca9384a6", "boot": 1565544314, "device_seq": 9}]}
+{"t": 1791394347.086, "event": "item", "seq": 1791394342819, "task_id": "t_R3_sp2", "delivery_id": "fx_98275cd79c8648139df87c6b", "acks": [{"outcome": "accepted", "received_at": 1791394342.82, "proactive_id": "3d30afa5bbf6483f8583cf1705a65c14", "ttl_s": 600}, {"outcome": "shown", "received_at": 1791394343.082, "seq": 1791394342819, "via": "shown"}, {"outcome": "spoken", "received_at": 1791394346.265, "proactive_id": "3d30afa5bbf6483f8583cf1705a65c14"}, {"outcome": "played", "received_at": 1791394346.265, "sentence_id": "fbc9937b661d4365b6d53ccd16c88c7f", "boot": 1565544314, "device_seq": 11}]}
+{"t": 1791394347.086, "event": "responses", "responses": []}
+{"t": 1791394347.086, "event": "speeches", "speeches": [{"speech_id": "2f16b53d460648d1", "delivery_id": "fx_a314117570e34e249646465c", "task_id": "t_R3_sp1", "state": "played", "proactive_id": "bb89788ad8b747169ed0b071c1f8098f", "sentence_id": "93ddbfc07a274ee3b7095881ca9384a6", "attempt": 1, "played": {"boot": 1565544314, "seq": 9, "sentence_id": "93ddbfc07a274ee3b7095881ca9384a6", "complete": true}}, {"speech_id": "1c6bdbedeb2140ed", "delivery_id": "fx_98275cd79c8648139df87c6b", "task_id": "t_R3_sp2", "state": "played", "proactive_id": "3d30afa5bbf6483f8583cf1705a65c14", "sentence_id": "fbc9937b661d4365b6d53ccd16c88c7f", "attempt": 1, "played": {"boot": 1565544314, "seq": 11, "sentence_id": "fbc9937b661d4365b6d53ccd16c88c7f", "complete": true}}]}
+{"t": 1791394347.086, "event": "device", "acked_upto": 1791394344511, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_R1_s1", "seq": 1791394268063, "state": "unread", "delivery_id": "fx_da92aaf292084c18ba0d769e"}, {"task_id": "t_R1_ap", "seq": 1791394271546, "state": "needs_approval", "delivery_id": "fx_88b0b077ca3949119701516b"}, {"task_id": "t_R1_cl", "seq": 1791394273807, "state": "needs_input", "delivery_id": "fx_405bb475eb104e80b2399f83"}, {"task_id": "t_R1_ur", "seq": 1791394276038, "state": "unread", "delivery_id": "fx_012659ac88e64cb29f4d40df"}, {"task_id": "t_R1_b1", "seq": 1791394283247, "state": "needs_input", "delivery_id": "fx_b57b327b201e472589911668"}, {"task_id": "t_R1_keep", "seq": 1791394286833, "state": "unread", "delivery_id": "fx_90ce40c59e44456881a12da2"}, {"task_id": "t_R2_busy", "seq": 1791394318570, "state": "unread", "delivery_id": "fx_c6aa122aebfb438c8fabdbd4"}, {"task_id": "t_R3_sp1", "seq": 1791394342815, "state": "unread", "delivery_id": "fx_a314117570e34e249646465c"}], "unacked": []}
+{"t": 1791394351.575, "event": "scenario", "name": "spoken", "prefix": "R4", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394351.608, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_d296740e13ad4f9c96d711e1", "seq": 1791394351590, "task_id": "t_R4_sp1", "speech_id": "e2b41730af3d4e6d"}, {"delivery_id": "fx_6ea051e02f8e488ab26f333e", "seq": 1791394351591, "task_id": "t_R4_sp2", "speech_id": "1aedca9c331a43f8"}], "dropped": []}}
+{"t": 1791394353.712, "event": "item", "seq": 1791394351590, "task_id": "t_R4_sp1", "delivery_id": "fx_d296740e13ad4f9c96d711e1", "acks": [{"outcome": "accepted", "received_at": 1791394351.592, "proactive_id": "43b415e8ba9244369333acf5afe6c30d", "ttl_s": 600}, {"outcome": "shown", "received_at": 1791394351.866, "seq": 1791394351590, "via": "shown"}, {"outcome": "spoken", "received_at": 1791394352.463, "proactive_id": "43b415e8ba9244369333acf5afe6c30d"}, {"outcome": "cut_off", "received_at": 1791394352.463, "sentence_id": "8ded8d2e5bcc46a1af95f287c7eb1703", "boot": 1538332414, "device_seq": 5, "cut_at_ms": 778, "reason": "wake"}]}
+{"t": 1791394353.712, "event": "item", "seq": 1791394351591, "task_id": "t_R4_sp2", "delivery_id": "fx_6ea051e02f8e488ab26f333e", "acks": [{"outcome": "accepted", "received_at": 1791394351.592, "proactive_id": "21593d9773fa42d4864c2b29fd7b3024", "ttl_s": 600}, {"outcome": "shown", "received_at": 1791394351.867, "seq": 1791394351591, "via": "shown"}, {"outcome": "spoken", "received_at": 1791394353.376, "proactive_id": "21593d9773fa42d4864c2b29fd7b3024"}, {"outcome": "cut_off", "received_at": 1791394353.376, "sentence_id": "3c2f3c85ee5d47e0a867c14272241b7b", "boot": 1538332414, "device_seq": 7, "cut_at_ms": 779, "reason": "wake"}]}
+{"t": 1791394353.712, "event": "responses", "responses": []}
+{"t": 1791394353.712, "event": "speeches", "speeches": [{"speech_id": "e2b41730af3d4e6d", "delivery_id": "fx_d296740e13ad4f9c96d711e1", "task_id": "t_R4_sp1", "state": "cut_off", "proactive_id": "43b415e8ba9244369333acf5afe6c30d", "sentence_id": "8ded8d2e5bcc46a1af95f287c7eb1703", "attempt": 1, "played": {"boot": 1538332414, "seq": 5, "sentence_id": "8ded8d2e5bcc46a1af95f287c7eb1703", "complete": false, "cut_at_ms": 778, "reason": "wake"}}, {"speech_id": "1aedca9c331a43f8", "delivery_id": "fx_6ea051e02f8e488ab26f333e", "task_id": "t_R4_sp2", "state": "cut_off", "proactive_id": "21593d9773fa42d4864c2b29fd7b3024", "sentence_id": "3c2f3c85ee5d47e0a867c14272241b7b", "attempt": 1, "played": {"boot": 1538332414, "seq": 7, "sentence_id": "3c2f3c85ee5d47e0a867c14272241b7b", "complete": false, "cut_at_ms": 779, "reason": "wake"}}]}
+{"t": 1791394353.712, "event": "device", "acked_upto": 1791394352550, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_R1_ap", "seq": 1791394271546, "state": "needs_approval", "delivery_id": "fx_88b0b077ca3949119701516b"}, {"task_id": "t_R1_cl", "seq": 1791394273807, "state": "needs_input", "delivery_id": "fx_405bb475eb104e80b2399f83"}, {"task_id": "t_R1_ur", "seq": 1791394276038, "state": "unread", "delivery_id": "fx_012659ac88e64cb29f4d40df"}, {"task_id": "t_R1_b1", "seq": 1791394283247, "state": "needs_input", "delivery_id": "fx_b57b327b201e472589911668"}, {"task_id": "t_R1_keep", "seq": 1791394286833, "state": "unread", "delivery_id": "fx_90ce40c59e44456881a12da2"}, {"task_id": "t_R2_busy", "seq": 1791394318570, "state": "unread", "delivery_id": "fx_c6aa122aebfb438c8fabdbd4"}, {"task_id": "t_R3_sp1", "seq": 1791394342815, "state": "unread", "delivery_id": "fx_a314117570e34e249646465c"}, {"task_id": "t_R4_sp1", "seq": 1791394351590, "state": "unread", "delivery_id": "fx_d296740e13ad4f9c96d711e1"}], "unacked": []}
+{"t": 1791394366.295, "event": "scenario", "name": "states", "prefix": "R5", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791394366.332, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_068636b34e0e45b9b4c490e6", "seq": 1791394366312, "task_id": "t_R5_s1"}], "dropped": []}}
+{"t": 1791394366.664, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_2f9f347fb6dc474db61865cf", "seq": 1791394366647, "task_id": "t_R5_s1"}], "dropped": []}}
+{"t": 1791394366.998, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_f49d462439a341b589f17685", "seq": 1791394366983, "task_id": "t_R5_s1"}], "dropped": []}}
+{"t": 1791394367.362, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_acfb1919ed06472a80df24d1", "seq": 1791394367346, "task_id": "t_R5_s1"}], "dropped": []}}
+{"t": 1791394367.763, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_02a73dc56e4b4fffaa061a85", "seq": 1791394367745, "task_id": "t_R5_s2"}], "dropped": []}}
+{"t": 1791394368.108, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_9b96a3467a27402c9b334eb7", "seq": 1791394368090, "task_id": "t_R5_s2"}], "dropped": []}}
+{"t": 1791394368.488, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_5ac1166eca704788a9f7584a", "seq": 1791394368474, "task_id": "t_R5_s3"}], "dropped": []}}
+{"t": 1791394368.854, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_f7a1604a3891428eb1acdc72", "seq": 1791394368837, "task_id": "t_R5_s4"}], "dropped": []}}
+{"t": 1791394369.195, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_217c554065f04f4397ac810e", "seq": 1791394369177, "task_id": "t_R5_s5"}], "dropped": []}}
+{"t": 1791394369.532, "event": "item", "seq": 1791394366312, "task_id": "t_R5_s1", "delivery_id": "fx_068636b34e0e45b9b4c490e6", "acks": [{"outcome": "shown", "received_at": 1791394366.525, "seq": 1791394366312, "via": "shown"}]}
+{"t": 1791394369.532, "event": "item", "seq": 1791394366647, "task_id": "t_R5_s1", "delivery_id": "fx_2f9f347fb6dc474db61865cf", "acks": [{"outcome": "shown", "received_at": 1791394366.858, "seq": 1791394366647, "via": "shown"}]}
+{"t": 1791394369.532, "event": "item", "seq": 1791394366983, "task_id": "t_R5_s1", "delivery_id": "fx_f49d462439a341b589f17685", "acks": [{"outcome": "shown", "received_at": 1791394367.193, "seq": 1791394366983, "via": "shown"}]}
+{"t": 1791394369.533, "event": "item", "seq": 1791394367346, "task_id": "t_R5_s1", "delivery_id": "fx_acfb1919ed06472a80df24d1", "acks": [{"outcome": "shown", "received_at": 1791394367.557, "seq": 1791394367346, "via": "shown"}]}
+{"t": 1791394369.533, "event": "item", "seq": 1791394367745, "task_id": "t_R5_s2", "delivery_id": "fx_02a73dc56e4b4fffaa061a85", "acks": [{"outcome": "shown", "received_at": 1791394367.964, "seq": 1791394367745, "via": "shown"}]}
+{"t": 1791394369.533, "event": "item", "seq": 1791394368090, "task_id": "t_R5_s2", "delivery_id": "fx_9b96a3467a27402c9b334eb7", "acks": [{"outcome": "shown", "received_at": 1791394368.299, "seq": 1791394368090, "via": "shown"}]}
+{"t": 1791394369.533, "event": "item", "seq": 1791394368474, "task_id": "t_R5_s3", "delivery_id": "fx_5ac1166eca704788a9f7584a", "acks": [{"outcome": "shown", "received_at": 1791394368.682, "seq": 1791394368474, "via": "shown"}]}
+{"t": 1791394369.533, "event": "item", "seq": 1791394368837, "task_id": "t_R5_s4", "delivery_id": "fx_f7a1604a3891428eb1acdc72", "acks": [{"outcome": "shown", "received_at": 1791394369.051, "seq": 1791394368837, "via": "shown"}]}
+{"t": 1791394369.533, "event": "item", "seq": 1791394369177, "task_id": "t_R5_s5", "delivery_id": "fx_217c554065f04f4397ac810e", "acks": [{"outcome": "shown", "received_at": 1791394369.389, "seq": 1791394369177, "via": "shown"}]}
+{"t": 1791394369.533, "event": "responses", "responses": []}
+{"t": 1791394369.533, "event": "device", "acked_upto": 1791394369177, "agent_sessions": 1, "snapshot_due": false, "mirror": [{"task_id": "t_R1_ur", "seq": 1791394276038, "state": "unread", "delivery_id": "fx_012659ac88e64cb29f4d40df"}, {"task_id": "t_R1_b1", "seq": 1791394283247, "state": "needs_input", "delivery_id": "fx_b57b327b201e472589911668"}, {"task_id": "t_R1_keep", "seq": 1791394286833, "state": "unread", "delivery_id": "fx_90ce40c59e44456881a12da2"}, {"task_id": "t_R2_busy", "seq": 1791394318570, "state": "unread", "delivery_id": "fx_c6aa122aebfb438c8fabdbd4"}, {"task_id": "t_R3_sp1", "seq": 1791394342815, "state": "unread", "delivery_id": "fx_a314117570e34e249646465c"}, {"task_id": "t_R4_sp1", "seq": 1791394351590, "state": "unread", "delivery_id": "fx_d296740e13ad4f9c96d711e1"}, {"task_id": "t_R5_s1", "seq": 1791394367346, "state": "unread", "delivery_id": "fx_acfb1919ed06472a80df24d1"}, {"task_id": "t_R5_s5", "seq": 1791394369177, "state": "stopped", "delivery_id": "fx_217c554065f04f4397ac810e"}], "unacked": []}
+
+## server log (docker logs weixue-agentmsg-sim-server: agent gateway, proactive, device events)
+261007 17:24:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=7c:0c:5f:42:4b:fc seq=0: snapshot due
+261007 17:24:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791393886868] snapshot=True
+261007 17:29:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=7c:0c:5f:42:4b:fc seq=0: snapshot due
+261007 17:29:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394162697] snapshot=True
+261007 17:29:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_A task=t_A_s1 state=working seq=1791394166516 tier=when_idle speaks=False delivery=fx_4d72c14f4b4b4ebc84fa4eb5
+261007 17:29:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394166516] snapshot=False
+261007 17:29:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_4d72c14f4b4b4ebc84fa4eb5 device=7c:0c:5f:42:4b:fc seq=1791394166516 via=poll
+261007 17:29:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_A task=t_A_s1 state=interrupted seq=1791394167060 tier=silent speaks=False delivery=fx_0c7e630224b44c10b6f710fd
+261007 17:29:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394167060] snapshot=False
+261007 17:29:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_0c7e630224b44c10b6f710fd device=7c:0c:5f:42:4b:fc seq=1791394167060 via=poll
+261007 17:29:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_A task=t_A_s1 state=needs_input seq=1791394167597 tier=interrupt speaks=False delivery=fx_de84fd645f764ca29c7f0877
+261007 17:29:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394167597] snapshot=False
+261007 17:29:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_de84fd645f764ca29c7f0877 device=7c:0c:5f:42:4b:fc seq=1791394167597 via=poll
+261007 17:29:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_A task=t_A_s1 state=unread seq=1791394168150 tier=when_idle speaks=False delivery=fx_c5fdd0bf166641df99728387
+261007 17:29:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394168150] snapshot=False
+261007 17:29:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_c5fdd0bf166641df99728387 device=7c:0c:5f:42:4b:fc seq=1791394168150 via=poll
+261007 17:29:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_A task=t_A_s2 state=needs_approval seq=1791394168692 tier=silent speaks=False delivery=fx_d5dd356cdb2b4211aa199249
+261007 17:29:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394168692] snapshot=False
+261007 17:29:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_d5dd356cdb2b4211aa199249 device=7c:0c:5f:42:4b:fc seq=1791394168692 via=poll
+261007 17:29:29[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_A task=t_A_s2 state=done seq=1791394169224 tier=interrupt speaks=False delivery=fx_16fb9e2f4e3a4a0f86aca2c5
+261007 17:29:29[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394169224] snapshot=False
+261007 17:29:29[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_16fb9e2f4e3a4a0f86aca2c5 device=7c:0c:5f:42:4b:fc seq=1791394169224 via=poll
+261007 17:29:29[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_A task=t_A_s3 state=failed seq=1791394169759 tier=when_idle speaks=False delivery=fx_cf0d29a56c10452cbfa47a7f
+261007 17:29:29[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394169759] snapshot=False
+261007 17:29:29[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_cf0d29a56c10452cbfa47a7f device=7c:0c:5f:42:4b:fc seq=1791394169759 via=poll
+261007 17:29:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_A task=t_A_s4 state=cancelled seq=1791394170301 tier=silent speaks=False delivery=fx_a028aadb290b4c0db152e167
+261007 17:29:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394170301] snapshot=False
+261007 17:29:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_a028aadb290b4c0db152e167 device=7c:0c:5f:42:4b:fc seq=1791394170301 via=poll
+261007 17:29:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_A task=t_A_s5 state=stopped seq=1791394170862 tier=interrupt speaks=False delivery=fx_4ec6f20c6a59497fba0420d2
+261007 17:29:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394170862] snapshot=False
+261007 17:29:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_4ec6f20c6a59497fba0420d2 device=7c:0c:5f:42:4b:fc seq=1791394170862 via=poll
+261007 17:29:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_B task=t_B_ap state=needs_approval seq=1791394187302 tier=when_idle speaks=False delivery=fx_aa6456efa5f64546b5a6ee11
+261007 17:29:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394187302] snapshot=False
+261007 17:29:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_aa6456efa5f64546b5a6ee11 device=7c:0c:5f:42:4b:fc seq=1791394187302 via=poll
+261007 17:29:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_B task=t_B_cl state=needs_input seq=1791394188549 tier=when_idle speaks=False delivery=fx_93d208186c04462d82599bc4
+261007 17:29:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394188549] snapshot=False
+261007 17:29:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_93d208186c04462d82599bc4 device=7c:0c:5f:42:4b:fc seq=1791394188549 via=poll
+261007 17:29:49[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=7c:0c:5f:42:4b:fc chat=c_B task=t_B_ap card=i_B_ap option=approve via=loopback boot=164192776 seq=1
+261007 17:29:49[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 164192776, "card_id": "i_B_ap", "chat_id": "c_B", "kind": "approve", "option_id": "approve", "seq": 1, "task_id": "t_B_ap", "v": 1, "via": "loopback"}
+261007 17:29:49[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_B task=t_B_ur state=unread seq=1791394189785 tier=silent speaks=False delivery=fx_371c8e434206432882570ae3
+261007 17:29:49[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394189785] snapshot=False
+261007 17:29:49[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_371c8e434206432882570ae3 device=7c:0c:5f:42:4b:fc seq=1791394189785 via=poll
+261007 17:29:50[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response answer device=7c:0c:5f:42:4b:fc chat=c_B task=t_B_cl card=i_B_cl option=hall via=loopback boot=164192776 seq=2
+261007 17:29:50[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 164192776, "card_id": "i_B_cl", "chat_id": "c_B", "kind": "answer", "option_id": "hall", "seq": 2, "task_id": "t_B_cl", "v": 1, "via": "loopback"}
+261007 17:29:51[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response ack_seen device=7c:0c:5f:42:4b:fc chat=c_B task=t_B_ur card=None option=None via=loopback boot=164192776 seq=3
+261007 17:29:51[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack user_ack delivery=fx_371c8e434206432882570ae3 device=7c:0c:5f:42:4b:fc seq=1791394189785
+261007 17:29:51[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 164192776, "chat_id": "c_B", "kind": "ack_seen", "seq": 3, "task_id": "t_B_ur", "v": 1, "via": "loopback"}
+261007 17:30:15[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_A_s1 dropped from device=7c:0c:5f:42:4b:fc
+261007 17:30:15[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_C task=t_C_ur state=unread seq=1791394215964 tier=silent speaks=False delivery=fx_e1e483ee1de24356b00f9c1f
+261007 17:30:16[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=8 seqs=[1791394169224, 1791394169759, 1791394170301, 1791394170862, 1791394187302, 1791394188549, 1791394189785, 1791394215964] snapshot=False
+261007 17:30:16[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_e1e483ee1de24356b00f9c1f device=7c:0c:5f:42:4b:fc seq=1791394215964 via=poll
+261007 17:30:16[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394216227] snapshot=True
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response ack_seen device=7c:0c:5f:42:4b:fc chat=c_C task=t_C_ur card=None option=None via=loopback boot=164192776 seq=4
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack user_ack delivery=fx_e1e483ee1de24356b00f9c1f device=7c:0c:5f:42:4b:fc seq=1791394215964
+261007 17:30:18[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 164192776, "chat_id": "c_C", "kind": "ack_seen", "seq": 4, "task_id": "t_C_ur", "v": 1, "via": "loopback"}
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_A_s2 dropped from device=7c:0c:5f:42:4b:fc
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_D task=t_D_b1 state=working seq=1791394223231 tier=silent speaks=False delivery=fx_045cd050e8db4bee9a5d60d3
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_D task=t_D_b1 state=working seq=1791394223231 tier=silent speaks=False delivery=fx_cfde2061cdb74527b37a38bb
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_D task=t_D_b1 state=needs_input seq=1791394223233 tier=silent speaks=False delivery=fx_c4ec9646c8c345009281baaf
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_D task=t_D_b1 state=working seq=1791394223232 tier=silent speaks=False delivery=fx_a17c99a14b1a4ace8b54d0ae
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent raw item queued device=7c:0c:5f:42:4b:fc bytes=2226
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_A_s3 dropped from device=7c:0c:5f:42:4b:fc
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_D task=t_D_b2 state=working seq=1791394223234 tier=silent speaks=False delivery=fx_06e438f8b2494c1c9d786996
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=8 seqs=[1791394170301, 1791394170862, 1791394187302, 1791394188549, 1791394189785, 1791394215964, 1791394223233, 1791394223234] snapshot=False
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_045cd050e8db4bee9a5d60d3 device=7c:0c:5f:42:4b:fc seq=1791394223231 via=poll
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_cfde2061cdb74527b37a38bb device=7c:0c:5f:42:4b:fc seq=1791394223231 via=poll
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_c4ec9646c8c345009281baaf device=7c:0c:5f:42:4b:fc seq=1791394223233 via=poll
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_a17c99a14b1a4ace8b54d0ae device=7c:0c:5f:42:4b:fc seq=1791394223232 via=poll
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_06e438f8b2494c1c9d786996 device=7c:0c:5f:42:4b:fc seq=1791394223234 via=poll
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394223235] snapshot=True
+261007 17:30:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394223241] snapshot=False
+261007 17:31:02[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=7c:0c:5f:42:4b:fc seq=0: snapshot due
+261007 17:31:02[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394262452] snapshot=True
+261007 17:31:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_s1 state=working seq=1791394266390 tier=when_idle speaks=False delivery=fx_8bf5c2db01f74ae0a87dfc04
+261007 17:31:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394266390] snapshot=False
+261007 17:31:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_8bf5c2db01f74ae0a87dfc04 device=7c:0c:5f:42:4b:fc seq=1791394266390 via=poll
+261007 17:31:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_s1 state=interrupted seq=1791394266963 tier=silent speaks=False delivery=fx_03129bec88034c3f9805b6ba
+261007 17:31:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394266963] snapshot=False
+261007 17:31:07[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_03129bec88034c3f9805b6ba device=7c:0c:5f:42:4b:fc seq=1791394266963 via=poll
+261007 17:31:07[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_s1 state=needs_input seq=1791394267516 tier=interrupt speaks=False delivery=fx_b1f8039c684d473ead08e68d
+261007 17:31:07[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394267516] snapshot=False
+261007 17:31:07[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_b1f8039c684d473ead08e68d device=7c:0c:5f:42:4b:fc seq=1791394267516 via=poll
+261007 17:31:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_s1 state=unread seq=1791394268063 tier=when_idle speaks=False delivery=fx_da92aaf292084c18ba0d769e
+261007 17:31:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394268063] snapshot=False
+261007 17:31:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_da92aaf292084c18ba0d769e device=7c:0c:5f:42:4b:fc seq=1791394268063 via=poll
+261007 17:31:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_s2 state=needs_approval seq=1791394268657 tier=silent speaks=False delivery=fx_a9a84dd3e45c461c81cb7b5d
+261007 17:31:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394268657] snapshot=False
+261007 17:31:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_a9a84dd3e45c461c81cb7b5d device=7c:0c:5f:42:4b:fc seq=1791394268657 via=poll
+261007 17:31:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_s2 state=done seq=1791394269196 tier=interrupt speaks=False delivery=fx_0e7ef1aac69345358a2f0819
+261007 17:31:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394269196] snapshot=False
+261007 17:31:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_0e7ef1aac69345358a2f0819 device=7c:0c:5f:42:4b:fc seq=1791394269196 via=poll
+261007 17:31:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_s3 state=failed seq=1791394269741 tier=when_idle speaks=False delivery=fx_23aa2a1299f6447e9e3eda13
+261007 17:31:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394269741] snapshot=False
+261007 17:31:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_23aa2a1299f6447e9e3eda13 device=7c:0c:5f:42:4b:fc seq=1791394269741 via=poll
+261007 17:31:10[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_s4 state=cancelled seq=1791394270314 tier=silent speaks=False delivery=fx_a08a4d95b48849f9b17fe275
+261007 17:31:10[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394270314] snapshot=False
+261007 17:31:10[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_a08a4d95b48849f9b17fe275 device=7c:0c:5f:42:4b:fc seq=1791394270314 via=poll
+261007 17:31:10[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_s5 state=stopped seq=1791394270878 tier=interrupt speaks=False delivery=fx_0023f85d2fb7441ea1a834ce
+261007 17:31:10[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394270878] snapshot=False
+261007 17:31:11[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_0023f85d2fb7441ea1a834ce device=7c:0c:5f:42:4b:fc seq=1791394270878 via=poll
+261007 17:31:11[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_ap state=needs_approval seq=1791394271546 tier=when_idle speaks=False delivery=fx_88b0b077ca3949119701516b
+261007 17:31:11[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394271546] snapshot=False
+261007 17:31:11[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_88b0b077ca3949119701516b device=7c:0c:5f:42:4b:fc seq=1791394271546 via=poll
+261007 17:31:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_ap card=i_R1_ap option=approve via=loopback boot=929464353 seq=1
+261007 17:31:13[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 929464353, "card_id": "i_R1_ap", "chat_id": "c_R1", "kind": "approve", "option_id": "approve", "seq": 1, "task_id": "t_R1_ap", "v": 1, "via": "loopback"}
+261007 17:31:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_cl state=needs_input seq=1791394273807 tier=when_idle speaks=False delivery=fx_405bb475eb104e80b2399f83
+261007 17:31:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394273807] snapshot=False
+261007 17:31:14[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_405bb475eb104e80b2399f83 device=7c:0c:5f:42:4b:fc seq=1791394273807 via=poll
+261007 17:31:15[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response answer device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_cl card=i_R1_cl option=hall via=loopback boot=929464353 seq=2
+261007 17:31:15[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 929464353, "card_id": "i_R1_cl", "chat_id": "c_R1", "kind": "answer", "option_id": "hall", "seq": 2, "task_id": "t_R1_cl", "v": 1, "via": "loopback"}
+261007 17:31:16[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_ur state=unread seq=1791394276038 tier=silent speaks=False delivery=fx_012659ac88e64cb29f4d40df
+261007 17:31:16[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394276038] snapshot=False
+261007 17:31:16[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_012659ac88e64cb29f4d40df device=7c:0c:5f:42:4b:fc seq=1791394276038 via=poll
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response ack_seen device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_ur card=None option=None via=loopback boot=929464353 seq=3
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack user_ack delivery=fx_012659ac88e64cb29f4d40df device=7c:0c:5f:42:4b:fc seq=1791394276038
+261007 17:31:18[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 929464353, "chat_id": "c_R1", "kind": "ack_seen", "seq": 3, "task_id": "t_R1_ur", "v": 1, "via": "loopback"}
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R1_s2 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_b1 state=working seq=1791394283245 tier=silent speaks=False delivery=fx_604d84a56392487e9000acc5
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_b1 state=working seq=1791394283245 tier=silent speaks=False delivery=fx_26e1179adb4e4ccdaa30edd8
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_b1 state=needs_input seq=1791394283247 tier=silent speaks=False delivery=fx_b57b327b201e472589911668
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_b1 state=working seq=1791394283246 tier=silent speaks=False delivery=fx_825f95935f6647de9085bd2b
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent raw item queued device=7c:0c:5f:42:4b:fc bytes=2228
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R1_s3 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_b2 state=working seq=1791394283248 tier=silent speaks=False delivery=fx_4995b7e37f35431e915f552a
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=6 seqs=[1791394283245, 1791394283245, 1791394283247, 1791394283246, 1791394283255, 1791394283248] snapshot=False
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_604d84a56392487e9000acc5 device=7c:0c:5f:42:4b:fc seq=1791394283245 via=poll
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_26e1179adb4e4ccdaa30edd8 device=7c:0c:5f:42:4b:fc seq=1791394283245 via=poll
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_b57b327b201e472589911668 device=7c:0c:5f:42:4b:fc seq=1791394283247 via=poll
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_825f95935f6647de9085bd2b device=7c:0c:5f:42:4b:fc seq=1791394283246 via=poll
+261007 17:31:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_4995b7e37f35431e915f552a device=7c:0c:5f:42:4b:fc seq=1791394283248 via=poll
+261007 17:31:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R1_s4 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:31:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_keep state=unread seq=1791394286833 tier=silent speaks=False delivery=fx_90ce40c59e44456881a12da2
+261007 17:31:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R1_s5 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:31:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_gone state=working seq=1791394286834 tier=silent speaks=False delivery=fx_f0eff89a1e3c46db92310d4b
+261007 17:31:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=2 seqs=[1791394286833, 1791394286834] snapshot=False
+261007 17:31:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_90ce40c59e44456881a12da2 device=7c:0c:5f:42:4b:fc seq=1791394286833 via=poll
+261007 17:31:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_f0eff89a1e3c46db92310d4b device=7c:0c:5f:42:4b:fc seq=1791394286834 via=poll
+261007 17:31:35[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent tasks dropped device=7c:0c:5f:42:4b:fc: ['t_R1_gone']; snapshot due
+261007 17:31:35[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=8 seqs=[1791394268063, 1791394271546, 1791394273807, 1791394276038, 1791394283247, 1791394283248, 1791394286833, 1791394295137] snapshot=True
+261007 17:31:39[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=7c:0c:5f:42:4b:fc seq=0: snapshot due
+261007 17:31:39[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=8 seqs=[1791394268063, 1791394271546, 1791394273807, 1791394276038, 1791394283247, 1791394283248, 1791394286833, 1791394299598] snapshot=True
+261007 17:31:41[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_ap card=i_R1_ap option=approve via=loopback boot=1565544314 seq=1
+261007 17:31:41[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 1565544314, "card_id": "i_R1_ap", "chat_id": "c_R1", "kind": "approve", "option_id": "approve", "seq": 1, "task_id": "t_R1_ap", "v": 1, "via": "loopback"}
+261007 17:31:41[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response answer device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_cl card=i_R1_cl option=hall via=loopback boot=1565544314 seq=2
+261007 17:31:41[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 1565544314, "card_id": "i_R1_cl", "chat_id": "c_R1", "kind": "answer", "option_id": "hall", "seq": 2, "task_id": "t_R1_cl", "v": 1, "via": "loopback"}
+261007 17:31:41[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response ack_seen device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_ur card=None option=None via=loopback boot=1565544314 seq=3
+261007 17:31:41[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack user_ack delivery=fx_012659ac88e64cb29f4d40df device=7c:0c:5f:42:4b:fc seq=1791394276038
+261007 17:31:41[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 1565544314, "chat_id": "c_R1", "kind": "ack_seen", "seq": 3, "task_id": "t_R1_ur", "v": 1, "via": "loopback"}
+261007 17:31:55[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 7d310c3110bf4b3aaf80ead8d7d6b638 queued: mode=conversation device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+261007 17:31:55[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 7d310c3110bf4b3aaf80ead8d7d6b638 reserved for 7c:0c:5f:42:4b:fc urgent=False
+261007 17:31:55[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=7c:0c:5f:42:4b:fc session=c1b6a7b1-ef6a-42df-abd8-abdf27c4969d: snapshot of 7
+261007 17:31:55[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_s1 state=unread seq=1791394268063
+261007 17:31:55[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ap state=needs_approval seq=1791394271546
+261007 17:31:55[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_cl state=needs_input seq=1791394273807
+261007 17:31:55[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ur state=unread seq=1791394276038
+261007 17:31:55[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_b1 state=needs_input seq=1791394283247
+261007 17:31:55[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_b2 state=working seq=1791394283248
+261007 17:31:55[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_keep state=unread seq=1791394286833
+261007 17:31:55[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791394315582
+261007 17:31:55[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 7d310c3110bf4b3aaf80ead8d7d6b638 delivering: attempt=1 session=c1b6a7b1-ef6a-42df-abd8-abdf27c4969d invoked=True urgent=False
+261007 17:31:55[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394315582, "boot": 1565544314, "kind": "shown", "seq": 4, "v": 1, "via": "tap"}
+261007 17:31:58[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R2 task=t_R2_busy state=unread seq=1791394318570 tier=when_idle speaks=True delivery=fx_c6aa122aebfb438c8fabdbd4
+261007 17:31:58[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 026afb8416f949e39ef880de8c11410e queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+261007 17:31:58[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech a02145f08996499b handed off: delivery=fx_c6aa122aebfb438c8fabdbd4 proactive=026afb8416f949e39ef880de8c11410e urgent=False attempt=1 reason=busy
+261007 17:31:58[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=fx_c6aa122aebfb438c8fabdbd4 device=7c:0c:5f:42:4b:fc proactive_id=026afb8416f949e39ef880de8c11410e ttl_s=600
+261007 17:31:58[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=7c:0c:5f:42:4b:fc kind=agent task=t_R2_busy state=unread seq=1791394318570
+261007 17:31:58[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_c6aa122aebfb438c8fabdbd4 device=7c:0c:5f:42:4b:fc seq=1791394318570 via=shown
+261007 17:31:58[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394318570, "boot": 1565544314, "kind": "shown", "seq": 5, "v": 1, "via": "tap"}
+261007 17:32:06[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 7d310c3110bf4b3aaf80ead8d7d6b638 no_reply
+261007 17:32:06[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 026afb8416f949e39ef880de8c11410e reserved for 7c:0c:5f:42:4b:fc urgent=False
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=7c:0c:5f:42:4b:fc session=f74d92d8-30d2-4b65-a4ba-9cf07addcbb1: snapshot of 8
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_s1 state=unread seq=1791394268063
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ap state=needs_approval seq=1791394271546
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_cl state=needs_input seq=1791394273807
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ur state=unread seq=1791394276038
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_b1 state=needs_input seq=1791394283247
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_b2 state=working seq=1791394283248
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_keep state=unread seq=1791394286833
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R2_busy state=unread seq=1791394318570
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791394326307
+261007 17:32:06[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 026afb8416f949e39ef880de8c11410e delivering: attempt=1 session=f74d92d8-30d2-4b65-a4ba-9cf07addcbb1 invoked=True urgent=False
+261007 17:32:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech a02145f08996499b tts start sentence=5666f1ffe7b9418e8b49d664a4ebaa7b device=7c:0c:5f:42:4b:fc
+261007 17:32:06[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394326307, "boot": 1565544314, "kind": "shown", "seq": 6, "v": 1, "via": "tap"}
+261007 17:32:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech a02145f08996499b tts stop sentence=5666f1ffe7b9418e8b49d664a4ebaa7b
+261007 17:32:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech a02145f08996499b played: sentence=5666f1ffe7b9418e8b49d664a4ebaa7b cut_at_ms=None reason=None
+261007 17:32:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack spoken delivery=fx_c6aa122aebfb438c8fabdbd4 device=7c:0c:5f:42:4b:fc proactive_id=026afb8416f949e39ef880de8c11410e
+261007 17:32:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack played delivery=fx_c6aa122aebfb438c8fabdbd4 device=7c:0c:5f:42:4b:fc sentence_id=5666f1ffe7b9418e8b49d664a4ebaa7b boot=1565544314 device_seq=7
+261007 17:32:08[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/played device=7c:0c:5f:42:4b:fc params={"boot": 1565544314, "complete": true, "sentence_id": "5666f1ffe7b9418e8b49d664a4ebaa7b", "seq": 7, "v": 1}
+261007 17:32:08[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 026afb8416f949e39ef880de8c11410e delivered
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R1_b2 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R3 task=t_R3_sp1 state=unread seq=1791394342815 tier=when_idle speaks=True delivery=fx_a314117570e34e249646465c
+261007 17:32:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive bb89788ad8b747169ed0b071c1f8098f queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 2f16b53d460648d1 handed off: delivery=fx_a314117570e34e249646465c proactive=bb89788ad8b747169ed0b071c1f8098f urgent=False attempt=1 reason=-
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=fx_a314117570e34e249646465c device=7c:0c:5f:42:4b:fc proactive_id=bb89788ad8b747169ed0b071c1f8098f ttl_s=600
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R3_sp2 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R3 task=t_R3_sp2 state=failed seq=1791394342819 tier=interrupt speaks=True delivery=fx_98275cd79c8648139df87c6b
+261007 17:32:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3d30afa5bbf6483f8583cf1705a65c14 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=True ttl=600
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 1c6bdbedeb2140ed handed off: delivery=fx_98275cd79c8648139df87c6b proactive=3d30afa5bbf6483f8583cf1705a65c14 urgent=True attempt=1 reason=-
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=fx_98275cd79c8648139df87c6b device=7c:0c:5f:42:4b:fc proactive_id=3d30afa5bbf6483f8583cf1705a65c14 ttl_s=600
+261007 17:32:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive bb89788ad8b747169ed0b071c1f8098f reserved for 7c:0c:5f:42:4b:fc urgent=False
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=2 seqs=[1791394342815, 1791394342819] snapshot=False
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=7c:0c:5f:42:4b:fc session=189f634b-96af-4a0c-bc01-1ebe4bd8fab1: snapshot of 8
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_s1 state=unread seq=1791394268063
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ap state=needs_approval seq=1791394271546
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_cl state=needs_input seq=1791394273807
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ur state=unread seq=1791394276038
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_b1 state=needs_input seq=1791394283247
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_keep state=unread seq=1791394286833
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R2_busy state=unread seq=1791394318570
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R3_sp1 state=unread seq=1791394342815
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791394342845
+261007 17:32:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive bb89788ad8b747169ed0b071c1f8098f delivering: attempt=1 session=189f634b-96af-4a0c-bc01-1ebe4bd8fab1 invoked=True urgent=False
+261007 17:32:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 2f16b53d460648d1 tts start sentence=93ddbfc07a274ee3b7095881ca9384a6 device=7c:0c:5f:42:4b:fc
+261007 17:32:23[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_a314117570e34e249646465c device=7c:0c:5f:42:4b:fc seq=1791394342815 via=shown
+261007 17:32:23[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_98275cd79c8648139df87c6b device=7c:0c:5f:42:4b:fc seq=1791394342819 via=shown
+261007 17:32:23[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394342845, "boot": 1565544314, "kind": "shown", "seq": 8, "v": 1, "via": "tap"}
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 2f16b53d460648d1 tts stop sentence=93ddbfc07a274ee3b7095881ca9384a6
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 2f16b53d460648d1 played: sentence=93ddbfc07a274ee3b7095881ca9384a6 cut_at_ms=None reason=None
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack spoken delivery=fx_a314117570e34e249646465c device=7c:0c:5f:42:4b:fc proactive_id=bb89788ad8b747169ed0b071c1f8098f
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack played delivery=fx_a314117570e34e249646465c device=7c:0c:5f:42:4b:fc sentence_id=93ddbfc07a274ee3b7095881ca9384a6 boot=1565544314 device_seq=9
+261007 17:32:24[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/played device=7c:0c:5f:42:4b:fc params={"boot": 1565544314, "complete": true, "sentence_id": "93ddbfc07a274ee3b7095881ca9384a6", "seq": 9, "v": 1}
+261007 17:32:24[0.9.7_00000000000000][weixue_proactive]-INFO-proactive bb89788ad8b747169ed0b071c1f8098f delivered
+261007 17:32:24[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3d30afa5bbf6483f8583cf1705a65c14 reserved for 7c:0c:5f:42:4b:fc urgent=True
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=7c:0c:5f:42:4b:fc session=0b3aacd2-756c-4521-ad8c-22bc1903203a: snapshot of 8
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_s1 state=unread seq=1791394268063
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ap state=needs_approval seq=1791394271546
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_cl state=needs_input seq=1791394273807
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ur state=unread seq=1791394276038
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_b1 state=needs_input seq=1791394283247
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_keep state=unread seq=1791394286833
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R2_busy state=unread seq=1791394318570
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R3_sp1 state=unread seq=1791394342815
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791394344511
+261007 17:32:24[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3d30afa5bbf6483f8583cf1705a65c14 delivering: attempt=1 session=0b3aacd2-756c-4521-ad8c-22bc1903203a invoked=True urgent=True
+261007 17:32:24[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 1c6bdbedeb2140ed tts start sentence=fbc9937b661d4365b6d53ccd16c88c7f device=7c:0c:5f:42:4b:fc
+261007 17:32:24[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394344511, "boot": 1565544314, "kind": "shown", "seq": 10, "v": 1, "via": "tap"}
+261007 17:32:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 1c6bdbedeb2140ed tts stop sentence=fbc9937b661d4365b6d53ccd16c88c7f
+261007 17:32:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 1c6bdbedeb2140ed played: sentence=fbc9937b661d4365b6d53ccd16c88c7f cut_at_ms=None reason=None
+261007 17:32:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack spoken delivery=fx_98275cd79c8648139df87c6b device=7c:0c:5f:42:4b:fc proactive_id=3d30afa5bbf6483f8583cf1705a65c14
+261007 17:32:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack played delivery=fx_98275cd79c8648139df87c6b device=7c:0c:5f:42:4b:fc sentence_id=fbc9937b661d4365b6d53ccd16c88c7f boot=1565544314 device_seq=11
+261007 17:32:26[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/played device=7c:0c:5f:42:4b:fc params={"boot": 1565544314, "complete": true, "sentence_id": "fbc9937b661d4365b6d53ccd16c88c7f", "seq": 11, "v": 1}
+261007 17:32:26[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3d30afa5bbf6483f8583cf1705a65c14 delivered
+261007 17:32:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=7c:0c:5f:42:4b:fc seq=0: snapshot due
+261007 17:32:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=8 seqs=[1791394268063, 1791394271546, 1791394273807, 1791394276038, 1791394283247, 1791394286833, 1791394318570, 1791394342815] snapshot=False
+261007 17:32:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791394348617] snapshot=True
+261007 17:32:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_ap card=i_R1_ap option=approve via=loopback boot=1538332414 seq=1
+261007 17:32:30[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 1538332414, "card_id": "i_R1_ap", "chat_id": "c_R1", "kind": "approve", "option_id": "approve", "seq": 1, "task_id": "t_R1_ap", "v": 1, "via": "loopback"}
+261007 17:32:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response answer device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_cl card=i_R1_cl option=hall via=loopback boot=1538332414 seq=2
+261007 17:32:30[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 1538332414, "card_id": "i_R1_cl", "chat_id": "c_R1", "kind": "answer", "option_id": "hall", "seq": 2, "task_id": "t_R1_cl", "v": 1, "via": "loopback"}
+261007 17:32:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response ack_seen device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_ur card=None option=None via=loopback boot=1538332414 seq=3
+261007 17:32:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack user_ack delivery=fx_012659ac88e64cb29f4d40df device=7c:0c:5f:42:4b:fc seq=1791394276038
+261007 17:32:30[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 1538332414, "chat_id": "c_R1", "kind": "ack_seen", "seq": 3, "task_id": "t_R1_ur", "v": 1, "via": "loopback"}
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R1_s1 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R4 task=t_R4_sp1 state=unread seq=1791394351590 tier=when_idle speaks=True delivery=fx_d296740e13ad4f9c96d711e1
+261007 17:32:31[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 43b415e8ba9244369333acf5afe6c30d queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech e2b41730af3d4e6d handed off: delivery=fx_d296740e13ad4f9c96d711e1 proactive=43b415e8ba9244369333acf5afe6c30d urgent=False attempt=1 reason=-
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=fx_d296740e13ad4f9c96d711e1 device=7c:0c:5f:42:4b:fc proactive_id=43b415e8ba9244369333acf5afe6c30d ttl_s=600
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R4_sp2 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R4 task=t_R4_sp2 state=failed seq=1791394351591 tier=interrupt speaks=True delivery=fx_6ea051e02f8e488ab26f333e
+261007 17:32:31[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 21593d9773fa42d4864c2b29fd7b3024 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=True ttl=600
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 1aedca9c331a43f8 handed off: delivery=fx_6ea051e02f8e488ab26f333e proactive=21593d9773fa42d4864c2b29fd7b3024 urgent=True attempt=1 reason=-
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=fx_6ea051e02f8e488ab26f333e device=7c:0c:5f:42:4b:fc proactive_id=21593d9773fa42d4864c2b29fd7b3024 ttl_s=600
+261007 17:32:31[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 43b415e8ba9244369333acf5afe6c30d reserved for 7c:0c:5f:42:4b:fc urgent=False
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=2 seqs=[1791394351590, 1791394351591] snapshot=False
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=7c:0c:5f:42:4b:fc session=61e61850-d2d7-4b08-82a9-9b9b44e05313: snapshot of 8
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ap state=needs_approval seq=1791394271546
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_cl state=needs_input seq=1791394273807
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ur state=unread seq=1791394276038
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_b1 state=needs_input seq=1791394283247
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_keep state=unread seq=1791394286833
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R2_busy state=unread seq=1791394318570
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R3_sp1 state=unread seq=1791394342815
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R4_sp1 state=unread seq=1791394351590
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791394351640
+261007 17:32:31[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 43b415e8ba9244369333acf5afe6c30d delivering: attempt=1 session=61e61850-d2d7-4b08-82a9-9b9b44e05313 invoked=True urgent=False
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech e2b41730af3d4e6d tts start sentence=8ded8d2e5bcc46a1af95f287c7eb1703 device=7c:0c:5f:42:4b:fc
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_d296740e13ad4f9c96d711e1 device=7c:0c:5f:42:4b:fc seq=1791394351590 via=shown
+261007 17:32:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_6ea051e02f8e488ab26f333e device=7c:0c:5f:42:4b:fc seq=1791394351591 via=shown
+261007 17:32:31[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394351640, "boot": 1538332414, "kind": "shown", "seq": 4, "v": 1, "via": "tap"}
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech e2b41730af3d4e6d cut_off: sentence=8ded8d2e5bcc46a1af95f287c7eb1703 cut_at_ms=778 reason=wake
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack spoken delivery=fx_d296740e13ad4f9c96d711e1 device=7c:0c:5f:42:4b:fc proactive_id=43b415e8ba9244369333acf5afe6c30d
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack cut_off delivery=fx_d296740e13ad4f9c96d711e1 device=7c:0c:5f:42:4b:fc sentence_id=8ded8d2e5bcc46a1af95f287c7eb1703 boot=1538332414 device_seq=5 cut_at_ms=778 reason=wake
+261007 17:32:32[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/played device=7c:0c:5f:42:4b:fc params={"boot": 1538332414, "complete": false, "cut_at_ms": 778, "reason": "wake", "sentence_id": "8ded8d2e5bcc46a1af95f287c7eb1703", "seq": 5, "v": 1}
+261007 17:32:32[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 43b415e8ba9244369333acf5afe6c30d delivered
+261007 17:32:32[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 21593d9773fa42d4864c2b29fd7b3024 reserved for 7c:0c:5f:42:4b:fc urgent=True
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=7c:0c:5f:42:4b:fc session=9b8465a5-fa5c-4be3-9c78-f6ee01d85fe9: snapshot of 8
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ap state=needs_approval seq=1791394271546
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_cl state=needs_input seq=1791394273807
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ur state=unread seq=1791394276038
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_b1 state=needs_input seq=1791394283247
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_keep state=unread seq=1791394286833
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R2_busy state=unread seq=1791394318570
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R3_sp1 state=unread seq=1791394342815
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R4_sp1 state=unread seq=1791394351590
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791394352550
+261007 17:32:32[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 21593d9773fa42d4864c2b29fd7b3024 delivering: attempt=1 session=9b8465a5-fa5c-4be3-9c78-f6ee01d85fe9 invoked=True urgent=True
+261007 17:32:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 1aedca9c331a43f8 tts start sentence=3c2f3c85ee5d47e0a867c14272241b7b device=7c:0c:5f:42:4b:fc
+261007 17:32:32[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394352550, "boot": 1538332414, "kind": "shown", "seq": 6, "v": 1, "via": "tap"}
+261007 17:32:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 1aedca9c331a43f8 cut_off: sentence=3c2f3c85ee5d47e0a867c14272241b7b cut_at_ms=779 reason=wake
+261007 17:32:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack spoken delivery=fx_6ea051e02f8e488ab26f333e device=7c:0c:5f:42:4b:fc proactive_id=21593d9773fa42d4864c2b29fd7b3024
+261007 17:32:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack cut_off delivery=fx_6ea051e02f8e488ab26f333e device=7c:0c:5f:42:4b:fc sentence_id=3c2f3c85ee5d47e0a867c14272241b7b boot=1538332414 device_seq=7 cut_at_ms=779 reason=wake
+261007 17:32:33[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/played device=7c:0c:5f:42:4b:fc params={"boot": 1538332414, "complete": false, "cut_at_ms": 779, "reason": "wake", "sentence_id": "3c2f3c85ee5d47e0a867c14272241b7b", "seq": 7, "v": 1}
+261007 17:32:33[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 21593d9773fa42d4864c2b29fd7b3024 delivered
+261007 17:32:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=7c:0c:5f:42:4b:fc session=80c1302b-9ee0-433f-9eec-90977abd56bf: snapshot of 8
+261007 17:32:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ap state=needs_approval seq=1791394271546
+261007 17:32:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_cl state=needs_input seq=1791394273807
+261007 17:32:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_ur state=unread seq=1791394276038
+261007 17:32:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_b1 state=needs_input seq=1791394283247
+261007 17:32:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R1_keep state=unread seq=1791394286833
+261007 17:32:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R2_busy state=unread seq=1791394318570
+261007 17:32:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R3_sp1 state=unread seq=1791394342815
+261007 17:32:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_R4_sp1 state=unread seq=1791394351590
+261007 17:32:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791394363492
+261007 17:32:43[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394363492, "boot": 3304438704, "kind": "shown", "seq": 1, "v": 1, "via": "tap"}
+261007 17:32:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_ap card=i_R1_ap option=approve via=loopback boot=3304438704 seq=2
+261007 17:32:45[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 3304438704, "card_id": "i_R1_ap", "chat_id": "c_R1", "kind": "approve", "option_id": "approve", "seq": 2, "task_id": "t_R1_ap", "v": 1, "via": "loopback"}
+261007 17:32:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response answer device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_cl card=i_R1_cl option=hall via=loopback boot=3304438704 seq=3
+261007 17:32:45[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 3304438704, "card_id": "i_R1_cl", "chat_id": "c_R1", "kind": "answer", "option_id": "hall", "seq": 3, "task_id": "t_R1_cl", "v": 1, "via": "loopback"}
+261007 17:32:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response ack_seen device=7c:0c:5f:42:4b:fc chat=c_R1 task=t_R1_ur card=None option=None via=loopback boot=3304438704 seq=4
+261007 17:32:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack user_ack delivery=fx_012659ac88e64cb29f4d40df device=7c:0c:5f:42:4b:fc seq=1791394276038
+261007 17:32:45[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"boot": 3304438704, "chat_id": "c_R1", "kind": "ack_seen", "seq": 4, "task_id": "t_R1_ur", "v": 1, "via": "loopback"}
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R5_s1 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R5 task=t_R5_s1 state=working seq=1791394366312 tier=when_idle speaks=False delivery=fx_068636b34e0e45b9b4c490e6
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=7c:0c:5f:42:4b:fc kind=agent task=t_R5_s1 state=working seq=1791394366312
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_068636b34e0e45b9b4c490e6 device=7c:0c:5f:42:4b:fc seq=1791394366312 via=shown
+261007 17:32:46[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394366312, "boot": 3304438704, "kind": "shown", "seq": 5, "v": 1, "via": "tap"}
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R5_s1 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R5 task=t_R5_s1 state=interrupted seq=1791394366647 tier=silent speaks=False delivery=fx_2f9f347fb6dc474db61865cf
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=7c:0c:5f:42:4b:fc kind=agent task=t_R5_s1 state=interrupted seq=1791394366647
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_2f9f347fb6dc474db61865cf device=7c:0c:5f:42:4b:fc seq=1791394366647 via=shown
+261007 17:32:46[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394366647, "boot": 3304438704, "kind": "shown", "seq": 6, "v": 1, "via": "tap"}
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R1_ap no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R5 task=t_R5_s1 state=needs_input seq=1791394366983 tier=interrupt speaks=False delivery=fx_f49d462439a341b589f17685
+261007 17:32:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=7c:0c:5f:42:4b:fc kind=agent task=t_R5_s1 state=needs_input seq=1791394366983
+261007 17:32:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_f49d462439a341b589f17685 device=7c:0c:5f:42:4b:fc seq=1791394366983 via=shown
+261007 17:32:47[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394366983, "boot": 3304438704, "kind": "shown", "seq": 7, "v": 1, "via": "tap"}
+261007 17:32:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R5 task=t_R5_s1 state=unread seq=1791394367346 tier=when_idle speaks=False delivery=fx_acfb1919ed06472a80df24d1
+261007 17:32:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=7c:0c:5f:42:4b:fc kind=agent task=t_R5_s1 state=unread seq=1791394367346
+261007 17:32:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_acfb1919ed06472a80df24d1 device=7c:0c:5f:42:4b:fc seq=1791394367346 via=shown
+261007 17:32:47[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394367346, "boot": 3304438704, "kind": "shown", "seq": 8, "v": 1, "via": "tap"}
+261007 17:32:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R1_cl no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R5 task=t_R5_s2 state=needs_approval seq=1791394367745 tier=silent speaks=False delivery=fx_02a73dc56e4b4fffaa061a85
+261007 17:32:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=7c:0c:5f:42:4b:fc kind=agent task=t_R5_s2 state=needs_approval seq=1791394367745
+261007 17:32:47[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_02a73dc56e4b4fffaa061a85 device=7c:0c:5f:42:4b:fc seq=1791394367745 via=shown
+261007 17:32:47[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394367745, "boot": 3304438704, "kind": "shown", "seq": 9, "v": 1, "via": "tap"}
+261007 17:32:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R5 task=t_R5_s2 state=done seq=1791394368090 tier=interrupt speaks=False delivery=fx_9b96a3467a27402c9b334eb7
+261007 17:32:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=7c:0c:5f:42:4b:fc kind=agent task=t_R5_s2 state=done seq=1791394368090
+261007 17:32:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_9b96a3467a27402c9b334eb7 device=7c:0c:5f:42:4b:fc seq=1791394368090 via=shown
+261007 17:32:48[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394368090, "boot": 3304438704, "kind": "shown", "seq": 10, "v": 1, "via": "tap"}
+261007 17:32:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R5_s2 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R5 task=t_R5_s3 state=failed seq=1791394368474 tier=when_idle speaks=False delivery=fx_5ac1166eca704788a9f7584a
+261007 17:32:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=7c:0c:5f:42:4b:fc kind=agent task=t_R5_s3 state=failed seq=1791394368474
+261007 17:32:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_5ac1166eca704788a9f7584a device=7c:0c:5f:42:4b:fc seq=1791394368474 via=shown
+261007 17:32:48[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394368474, "boot": 3304438704, "kind": "shown", "seq": 11, "v": 1, "via": "tap"}
+261007 17:32:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R5_s3 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R5 task=t_R5_s4 state=cancelled seq=1791394368837 tier=silent speaks=False delivery=fx_f7a1604a3891428eb1acdc72
+261007 17:32:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=7c:0c:5f:42:4b:fc kind=agent task=t_R5_s4 state=cancelled seq=1791394368837
+261007 17:32:49[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_f7a1604a3891428eb1acdc72 device=7c:0c:5f:42:4b:fc seq=1791394368837 via=shown
+261007 17:32:49[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394368837, "boot": 3304438704, "kind": "shown", "seq": 12, "v": 1, "via": "tap"}
+261007 17:32:49[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_R5_s4 no longer mirrored for device=7c:0c:5f:42:4b:fc
+261007 17:32:49[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_R5 task=t_R5_s5 state=stopped seq=1791394369177 tier=interrupt speaks=False delivery=fx_217c554065f04f4397ac810e
+261007 17:32:49[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=7c:0c:5f:42:4b:fc kind=agent task=t_R5_s5 state=stopped seq=1791394369177
+261007 17:32:49[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_217c554065f04f4397ac810e device=7c:0c:5f:42:4b:fc seq=1791394369177 via=shown
+261007 17:32:49[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=7c:0c:5f:42:4b:fc params={"ack_upto": 1791394369177, "boot": 3304438704, "kind": "shown", "seq": 13, "v": 1, "via": "tap"}

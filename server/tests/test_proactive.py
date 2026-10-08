@@ -924,7 +924,7 @@ async def test_http_poll(client):
     assert resp.status == 200
     body = await resp.json()
     item = client.proactive.messages[created["id"]]
-    assert body == {"pending": True, "urgent": False, "id": created["id"], "lease": item.lease}
+    assert body == {"pending": True, "speak": True, "urgent": False, "id": created["id"], "lease": item.lease}
     assert item.reserved_for == DEVICE and len(item.lease) == 32
 
 
@@ -1005,3 +1005,42 @@ async def test_speak_reports_closed_session():
     p = make()
     _, body = p.submit(fields(), "ha")
     assert await wp.speak(conn, p.messages[body["id"]], close_after=True) == "closed"
+
+
+async def test_speak_marks_the_sentence_of_an_agent_item(monkeypatch):
+    import queue
+
+    import core.handle.sendAudioHandle as send_audio
+
+    seen = []
+
+    async def send_tts_message(conn, state, text=None):
+        seen.append((state, getattr(conn, "_weixue_ack_sentence", None), conn.sentence_id))
+
+    class TTS:
+        def __init__(self):
+            self.tts_text_queue = queue.Queue()
+
+        def store_tts_text(self, sentence_id, text):
+            pass
+
+        def tts_one_sentence(self, conn, content_type, content_detail=None, sentence_id=None):
+            pass
+
+    monkeypatch.setattr(send_audio, "send_tts_message", send_tts_message)
+    p = make()
+    _, body = p.submit({**fields(message="Lights are on."), "agent": {"speech": "sp1"}}, "weixue-agent")
+    item = p.messages[body["id"]]
+    conn = Conn()
+    conn.tts = TTS()
+
+    async def finish():
+        await asyncio.sleep(0.2)
+        record = conn.weixue_playback[conn.sentence_id]
+        record.frames = 3
+        record.done.set()
+
+    asyncio.create_task(finish())
+    assert await wp.speak(conn, item, close_after=False) == "spoken"
+    assert seen == [("start", item.agent["sentence_id"], item.agent["sentence_id"])]
+    assert conn._weixue_ack_sentence is None

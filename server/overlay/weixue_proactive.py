@@ -91,6 +91,8 @@ class Message:
     leased_at: float = 0.0
     claim: Optional[str] = None
     retry_at: float = 0.0
+    # Delivery tag of an agent speech item (weixue_agent_delivery); speak() adds its sentence_id.
+    agent: Optional[dict] = None
 
     def public(self, reason=""):
         out = {
@@ -272,6 +274,8 @@ class Proactive:
         self._event = asyncio.Event()
         self._dispatcher = None
         self._delivery = None
+        # weixue_agent_delivery.AgentGateway when installed: agent poll items, speech hold, routes.
+        self.agent = None
 
     def configure_auth(self, config):
         self.auth = DeviceAuth.from_config(config)
@@ -441,6 +445,7 @@ class Proactive:
             created=now,
             expires=now + fields["ttl"],
             created_wall=self.wall(),
+            agent=fields.get("agent"),
         )
         self.messages[item.id] = item
         if item.key:
@@ -531,6 +536,8 @@ class Proactive:
                     item = self.reserve(device)
                     if item is not None:
                         return item
+                if self.agent is not None and self.agent.poll_ready(device):
+                    return None
                 remaining = deadline - self.clock()
                 if remaining <= 0:
                     return None
@@ -637,7 +644,8 @@ class Proactive:
         )
         heard = False
         try:
-            outcome = await self.speaker(conn, item, close_after=invoked and item.mode == "announce")
+            tagged = item.agent is not None and self.agent is not None
+            outcome = await self.speaker(conn, item, close_after=invoked and item.mode == "announce" and not tagged)
             if item.claim != claim:
                 return
             if outcome in PARTIAL:
@@ -648,6 +656,10 @@ class Proactive:
                 return
             heard = True
             if item.mode == "announce":
+                if tagged:
+                    await self.agent.await_played(item, conn)
+                    if invoked and not conn.stop_event.is_set():
+                        await conn.close()
                 self._finish(item, "delivered")
                 return
             await self._await_reply(conn, item, invoked, claim)
@@ -717,6 +729,9 @@ async def speak(conn, item, close_after):
     conn.dialogue.put(conn._weixue_anchor)
     sentence_id = uuid.uuid4().hex
     playback = weixue_patches.track_playback(conn, sentence_id)
+    if item.agent is not None:
+        item.agent["sentence_id"] = sentence_id
+        conn._weixue_ack_sentence = sentence_id
     try:
         return await _play_tracked(conn, item, close_after, sentence_id, playback, send_tts_message)
     except Exception as e:
@@ -724,6 +739,8 @@ async def speak(conn, item, close_after):
         return "partial" if playback.frames > 0 else "error"
     finally:
         weixue_patches.untrack_playback(conn, sentence_id)
+        if getattr(conn, "_weixue_ack_sentence", None) == sentence_id:
+            conn._weixue_ack_sentence = None
 
 
 async def _play_tracked(conn, item, close_after, sentence_id, playback, send_tts_message):
@@ -841,18 +858,29 @@ def add_routes(app, proactive):
         device = proactive.auth.device(request.headers)
         if device is None:
             return web.json_response({"error": "unauthorized device"}, status=401)
+        if proactive.agent is not None:
+            proactive.agent.on_poll(device, request.headers.get("X-Weixue-Agent-Seq"))
         try:
             item = await proactive.poll(device)
         except RequestError as e:
             return web.json_response(e.body, status=e.status, headers={"Retry-After": str(e.body["retry_after"])})
-        if item is not None:
-            return web.json_response({"pending": True, "urgent": item.urgent, "id": item.id, "lease": item.lease})
+        body = {"pending": True, "speak": item is not None, "urgent": bool(item and item.urgent),
+                "id": item.id if item else None, "lease": item.lease if item else None}
+        cards = proactive.agent.poll_items(device) if proactive.agent is not None else []
+        if cards:
+            body["agent"] = cards
+        if item is not None or cards:
+            return web.json_response(body)
         return web.Response(status=204)
 
     async def start_dispatcher(_app):
         proactive.start()
+        if proactive.agent is not None:
+            proactive.agent.start()
 
     app.on_startup.append(start_dispatcher)
+    if proactive.agent is not None:
+        proactive.agent.add_routes(app, guarded)
     app.add_routes(
         [
             web.get("/weixue/proactive/poll", poll),

@@ -1,0 +1,188 @@
+--- a/main/application.h
++++ b/main/application.h
+@@ -103,7 +103,8 @@
+     void Alert(const char* status, const char* message, const char* emotion = "", const std::string_view& sound = "");
+     void DismissAlert();
+ 
+-    void AbortSpeaking(AbortReason reason);
++    // cut_reason labels an agent playback ack (see WeixueAgent::OnPlaybackCut); nullptr = from reason.
++    void AbortSpeaking(AbortReason reason, const char* cut_reason = nullptr);
+ 
+     /**
+      * Toggle chat state (event-based, thread-safe)
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -12,6 +12,7 @@
+ #include "text_glyph_payload.h"
+ #include "websocket_protocol.h"
+ #include "weixue_clock.h"
++#include "boards/waveshare/esp32-s3-touch-amoled-1.75/weixue_agent.h"
+ 
+ #include <driver/gpio.h>
+ #include <esp_log.h>
+@@ -28,6 +29,7 @@
+ // Long-poll endpoint on the OTA host: 200 = proactive message pending, 204 = none.
+ static constexpr const char* kProactivePollPath = "/weixue/proactive/poll";
+ static constexpr const char* kProactiveWakeText = "weixue:proactive";
++static constexpr const char* kAgentSeqHeader = "X-Weixue-Agent-Seq";
+ static constexpr int kProactivePollTimeoutMs = 40000;  // exceeds the server's hold time
+ static constexpr int kProactiveRetryMinMs = 5000;
+ static constexpr int kProactiveRetryMaxMs = 60000;
+@@ -120,6 +122,7 @@
+         notify_player_.OnPlaybackProgress(playback_id, media_position_ms);
+     };
+     audio_service_.SetCallbacks(callbacks);
++    WeixueAgent::GetInstance().Start();
+ 
+     // Add state change listeners
+     state_machine_.AddStateChangeListener([this](DeviceState old_state, DeviceState new_state) {
+@@ -609,6 +612,7 @@
+         channel_open_ = false;
+         board.SetPowerSaveLevel(PowerSaveLevel::LOW_POWER);
+         Schedule([this]() {
++            WeixueAgent::GetInstance().OnPlaybackCut("closed");
+             auto display = Board::GetInstance().GetDisplay();
+             display->SetChatMessage("system", "");
+             SetDeviceState(kDeviceStateIdle);
+@@ -661,22 +665,28 @@
+                 return;
+             }
+             const uint32_t generation = mute_fence_.generation();
++            auto sentence_json = cJSON_GetObjectItem(root, "sentence_id");
++            std::string sentence_id = cJSON_IsString(sentence_json) ? sentence_json->valuestring : "";
++            bool ack = cJSON_IsTrue(cJSON_GetObjectItem(root, "ack"));
+             if (strcmp(state->valuestring, "start") == 0) {
+-                Schedule([this, generation]() {
++                Schedule([this, generation, sentence_id, ack]() {
+                     if (!mute_fence_.AcceptTtsStart(mic_muted_, generation)) {
+                         ESP_LOGW(TAG, "Ignoring tts start (muted, or sent before a mute)");
++                        WeixueAgent::GetInstance().OnTtsRefused(sentence_id, ack);
+                         return;
+                     }
+                     aborted_ = false;
+                     ++reply_count_;
+                     SetDeviceState(kDeviceStateSpeaking);
++                    WeixueAgent::GetInstance().OnTtsStart(sentence_id, ack);
+                 });
+             } else if (strcmp(state->valuestring, "stop") == 0) {
+-                Schedule([this, generation]() {
++                Schedule([this, generation, sentence_id]() {
+                     if (!mute_fence_.AcceptTtsStop(generation)) {
+                         return;
+                     }
+                     ++tts_stop_count_;
++                    WeixueAgent::GetInstance().OnTtsStop(sentence_id);
+                     if (GetDeviceState() == kDeviceStateSpeaking) {
+                         if (listening_mode_ == kListeningModeManualStop) {
+                             SetDeviceState(kDeviceStateIdle);
+@@ -753,6 +763,11 @@
+ #if CONFIG_RECEIVE_CUSTOM_MESSAGE
+         } else if (strcmp(type->valuestring, "custom") == 0) {
+             auto payload = cJSON_GetObjectItem(root, "payload");
++            if (weixue_agent::IsAgentPayload(payload)) {
++                CJsonStringUniquePtr frame_json(cJSON_PrintUnformatted(root));
++                WeixueAgent::GetInstance().OnFrame(payload, frame_json ? strlen(frame_json.get()) : 0);
++                return;
++            }
+             CJsonStringUniquePtr root_json(cJSON_PrintUnformatted(root));
+             ESP_LOGI(TAG, "Received custom message: %s", root_json ? root_json.get() : "");
+             if (cJSON_IsObject(payload)) {
+@@ -868,7 +883,7 @@
+         }
+         SetListeningMode(mode);
+     } else if (state == kDeviceStateSpeaking) {
+-        AbortSpeaking(kAbortReasonNone);
++        AbortSpeaking(kAbortReasonNone, "tap");
+     } else if (state == kDeviceStateListening) {
+         protocol_->CloseAudioChannel();
+     }
+@@ -932,7 +947,7 @@
+         }
+         SetListeningMode(kListeningModeManualStop);
+     } else if (state == kDeviceStateSpeaking) {
+-        AbortSpeaking(kAbortReasonNone);
++        AbortSpeaking(kAbortReasonNone, "tap");
+         SetListeningMode(kListeningModeManualStop);
+     }
+ }
+@@ -977,7 +992,7 @@
+         StopNotification();
+         BeginWakeWordInvoke(wake_word, capture);
+     } else if (state == kDeviceStateSpeaking || state == kDeviceStateListening) {
+-        AbortSpeaking(kAbortReasonWakeWordDetected);
++        AbortSpeaking(kAbortReasonWakeWordDetected, "wake");
+         // Clear send queue to avoid sending residues to server
+         while (audio_service_.PopPacketFromSendQueue())
+             ;
+@@ -1317,6 +1332,8 @@
+         auto http = Board::GetInstance().GetNetwork()->CreateHttp(0);
+         http->SetTimeout(kProactivePollTimeoutMs);
+         http->SetHeader("Device-Id", SystemInfo::GetMacAddress());
++        http->SetHeader(kAgentSeqHeader, std::to_string(WeixueAgent::GetInstance().AppliedSeq()));
++        bool speak = true;
+         if (http->Open("GET", proactive_poll_url_)) {
+             auto code = http->GetStatusCode();
+             if (code) {
+@@ -1328,6 +1345,9 @@
+                 if (status == 200) {
+                     cJSON* root = cJSON_Parse(body.c_str());
+                     urgent = cJSON_IsTrue(cJSON_GetObjectItem(root, "urgent"));
++                    if (cJSON_IsObject(root)) {
++                        speak = WeixueAgent::GetInstance().OnPollBody(root);
++                    }
+                     cJSON_Delete(root);
+                 }
+             }
+@@ -1335,8 +1355,11 @@
+         }
+         poll_status_ = status;
+         poll_done_us_ = esp_timer_get_time();
+-        if (status == 200) {
++        if (status == 200 && !speak) {
+             retry_ms = kProactiveRetryMinMs;
++            vTaskDelay(pdMS_TO_TICKS(200));
++        } else if (status == 200) {
++            retry_ms = kProactiveRetryMinMs;
+             ESP_LOGI(TAG, "Proactive message pending (urgent=%d)", urgent);
+             Schedule([this, urgent]() { ProactiveInvoke(urgent); });
+             vTaskDelay(pdMS_TO_TICKS(2000));
+@@ -1394,9 +1417,11 @@
+     xEventGroupSetBits(event_group_, MAIN_EVENT_SCHEDULE);
+ }
+ 
+-void Application::AbortSpeaking(AbortReason reason) {
++void Application::AbortSpeaking(AbortReason reason, const char* cut_reason) {
+     ESP_LOGI(TAG, "Abort speaking");
+     aborted_ = true;
++    WeixueAgent::GetInstance().OnPlaybackCut(
++        cut_reason ? cut_reason : reason == kAbortReasonWakeWordDetected ? "wake" : "imu");
+     if (protocol_) {
+         protocol_->SendAbortSpeaking(reason);
+     }
+@@ -1415,6 +1440,7 @@
+         }
+         return;
+     }
++    WeixueAgent::GetInstance().OnPlaybackCut("mute");
+     audio_service_.EnableWakeWordDetection(false);
+     audio_service_.EnableVoiceProcessing(false);
+     EndWakeCapture();
+@@ -1548,7 +1574,7 @@
+             }
+         });
+     } else if (state == kDeviceStateSpeaking) {
+-        Schedule([this]() { AbortSpeaking(kAbortReasonNone); });
++        Schedule([this]() { AbortSpeaking(kAbortReasonNone, "wake"); });
+     } else if (state == kDeviceStateListening) {
+         Schedule([this]() {
+             if (protocol_) {
+--- a/main/protocols/websocket_protocol.cc
++++ b/main/protocols/websocket_protocol.cc
+@@ -206,6 +206,7 @@
+     cJSON_AddBoolToObject(features, "aec", true);
+ #endif
+     cJSON_AddBoolToObject(features, "mcp", true);
++    cJSON_AddNumberToObject(features, "agent", 1);
+     cJSON_AddItemToObject(root, "features", features);
+     AddTextFontCapabilities(root);
+     cJSON_AddStringToObject(root, "transport", "websocket");
