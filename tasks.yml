@@ -243,7 +243,7 @@ tasks:
     description: |
       DESIGN.md M2 feat-ui-agent-states，按设计稿 ~/Projects/research/reports/weixue-agent-ui-v1.md（final-*.svg 为版式真值）：空闲态的四种 agent 状态表现、整屏审批卡与澄清卡（按钮 + 语音作答经 response 回传；语音能否批准待 brief Q1，决定前语音只可拒绝/取消）、任务芯片；任务列表、chats 切换与 HA 状态/审批同在现有横滑的单一管理视图内（决定 27，无左滑任务列表、无上滑列表）、三档投递 INTERRUPT|WHEN_IDLE|SILENT 的呈现；烧屏预算与手势不冲突。实机端到端：四态可辨、卡片按钮与语音都能应答（音频部分在家）。
     depends_on: [feat-protocol-agent-msg, feat-ui-panel]
-    status: pending
+    status: in_progress
     retries: 0
     model: opus
   - id: feat-agent-monitor
@@ -259,7 +259,7 @@ tasks:
     name: "Session switcher UI (M2)"
     branch: feat/ui-sessions
     description: |
-      DESIGN.md M2 feat-ui-sessions：设备上在多个 agent 会话（chat）间切换——chats 在现有横滑进入的单一管理视图内选择（决定 27，不设独立会话页）：标题/最近活动/状态芯片/当前高亮、点按切换、新对话入口、语音同义指令；服务端按会话 resume SDK session；列表来自 agent 服务持久化的会话索引。依赖 agent 服务的会话 API。实机端到端验收见 DESIGN 行。
+      DESIGN.md M2 feat-ui-sessions：设备上在多个 agent 会话（chat）间切换——chats 在现有横滑进入的单一管理视图内选择（决定 27，不设独立会话页）：标题/最近活动/状态芯片/当前高亮、点按切换、新对话入口、语音同义指令；服务端按会话 resume SDK session；列表来自 agent 服务持久化的会话索引。依赖 agent 服务的会话 API。实机端到端验收见 DESIGN 行。 2026-10-08：设备侧（管理视图内的 chats 列表、切换/新建）在 feat-ui-agent-states 中实现（数据源先用网关镜像/fixture）；本任务只剩 agent 服务侧的 chats API 对接与实机验收，待 feat-agent-service。
     depends_on: [feat-ui-panel, feat-agent-service]
     status: pending
     retries: 0
