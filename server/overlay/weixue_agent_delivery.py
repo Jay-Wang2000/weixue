@@ -201,6 +201,7 @@ class AgentGateway:
         self.devices = {}
         self.speeches = OrderedDict()
         self.seen_events = OrderedDict()
+        self.card_decisions = OrderedDict()
         self._runner = None
         self._sources = {}
         self.service_url = ""
@@ -468,7 +469,21 @@ class AgentGateway:
                     f"card={event['card_id']} stale (current card={latest.payload.get('card_id')}): dropped"
                 )
                 return
-            latest.replied = True
+        if event["kind"] in wire.CARD_KINDS:
+            card = (device_id, event["card_id"])
+            first = self.card_decisions.get(card)
+            if first is not None:
+                self._log(
+                    f"agent response {event['kind']} device={device_id} task={event.get('task_id')} "
+                    f"card={event['card_id']} seq={event['seq']} duplicate decision (first {first[0]} "
+                    f"boot={first[1]} seq={first[2]}): dropped"
+                )
+                return
+            self.card_decisions[card] = (event["kind"], event["boot"], event["seq"])
+            while len(self.card_decisions) > DEDUP_KEEP:
+                self.card_decisions.popitem(last=False)
+            if latest is not None:
+                latest.replied = True
         self.sink.response(device_id, event)
         if event["kind"] == "ack_seen" and latest is not None:
             latest.replied = True

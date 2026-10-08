@@ -25,11 +25,9 @@ constexpr uint32_t kOkColor = 0x22B5C4;
 constexpr uint32_t kWarnColor = 0xC8963C;
 constexpr uint32_t kBadColor = 0xC05A50;
 constexpr uint32_t kCardColor = 0x2E6670;
-constexpr uint32_t kApproveColor = 0x22B5C4;
-constexpr uint32_t kDenyColor = 0xB0585A;
+constexpr uint32_t kDotOnColor = 0x9FB4BC;
 
 constexpr uint32_t kRefreshMs = 1000;
-constexpr uint32_t kRearmMs = 4000;
 constexpr uint32_t kSlideMs = 220;
 constexpr int64_t kPollFreshMs = 90000;
 
@@ -38,35 +36,32 @@ constexpr int32_t kStatusY = -168;
 constexpr int32_t kBackendY = -129;
 constexpr int32_t kHeardY = -90;
 constexpr int32_t kReplyY = -51;
-constexpr int32_t kTasksY = -12;
 constexpr int32_t kTextWidth = 270;
-constexpr int32_t kCardY = 100;
-constexpr int32_t kCardW = 300;
-constexpr int32_t kCardH = 172;
+constexpr int32_t kNextY = 60;
+constexpr int32_t kNextW = 320;
+constexpr int32_t kNextH = 120;
 constexpr int32_t kButtonW = 132;
 constexpr int32_t kButtonH = 68;
-
-const char* kCardId = "fixture-1";
-const char* kDecisions[2] = {"approve", "deny"};
+// Page dots at 3 o'clock, screen pixels.
+constexpr int32_t kDotX = 440;
+constexpr int32_t kDotY[2] = {223, 243};
 
 #if WEIXUE_FACE_DIAG
 constexpr int64_t kReplayStartMs = 40000;
 constexpr int64_t kReplayPeriodMs = 120000;
 constexpr int64_t kDiagValuesMinMs = 5000;
 
-// One replay step of `ms`: kSwipe drags from x0 to x1 on the centre line, kRelease lifts the
-// pointer, 0 or 1 presses the centre of the Approve or Deny button.
+// One replay step of `ms`: a drag from (x0, y0) to (x1, y1), or kRelease (x0) lifting the
+// pointer.
 struct ReplayStep {
     int64_t ms;
-    int button;
-    int32_t x0, x1;
+    int32_t x0, y0, x1, y1;
 };
-constexpr int kSwipe = -1;
-constexpr int kRelease = -2;
+constexpr int32_t kRelease = -1;
 constexpr ReplayStep kReplay[] = {
-    {300, kSwipe, 400, 66},  {4000, kRelease, 0, 0}, {120, 0, 0, 0},
-    {8000, kRelease, 0, 0},  {120, 1, 0, 0},         {8000, kRelease, 0, 0},
-    {300, kSwipe, 66, 400},
+    {300, 400, 233, 66, 233},  {6000, kRelease, 0, 0, 0}, {300, 233, 380, 233, 120},
+    {6000, kRelease, 0, 0, 0}, {300, 233, 120, 233, 380}, {6000, kRelease, 0, 0, 0},
+    {300, 66, 233, 400, 233},
 };
 #endif
 
@@ -126,8 +121,10 @@ const char* BackendLabel(const Application::BackendStatus& backend, bool muted, 
 }  // namespace
 
 MonitorPanel::MonitorPanel(lv_obj_t* screen, int32_t width, int32_t height,
-                           const lv_font_t* icon_font, std::function<void(bool)> on_cover)
-    : width_(width), icon_font_(icon_font), on_cover_(std::move(on_cover)) {
+                           const lv_font_t* icon_font, std::function<void(bool)> on_cover,
+                           std::function<void()> on_open_next)
+    : width_(width), icon_font_(icon_font), on_cover_(std::move(on_cover)),
+      on_open_next_(std::move(on_open_next)) {
     root_ = lv_obj_create(screen);
     lv_obj_remove_style_all(root_);
     lv_obj_remove_flag(root_, LV_OBJ_FLAG_SCROLLABLE);
@@ -137,9 +134,21 @@ MonitorPanel::MonitorPanel(lv_obj_t* screen, int32_t width, int32_t height,
     lv_obj_set_pos(root_, width, 0);
     lv_obj_add_flag(root_, LV_OBJ_FLAG_HIDDEN);
 
+    page1_ = lv_obj_create(root_);
+    Plain(page1_);
+    lv_obj_set_size(page1_, width, height);
+
     content_ = lv_obj_create(root_);
     Plain(content_);
     lv_obj_set_size(content_, width, height);
+    lv_obj_add_flag(content_, LV_OBJ_FLAG_HIDDEN);
+
+    for (int i = 0; i < 2; i++) {
+        dots_[i] = lv_obj_create(root_);
+        Plain(dots_[i]);
+        lv_obj_set_style_radius(dots_[i], LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_bg_opa(dots_[i], LV_OPA_COVER, 0);
+    }
 
     lv_obj_t* status = Row(kStatusY);
     lv_obj_set_style_pad_column(status, 12, 0);
@@ -175,22 +184,15 @@ MonitorPanel::MonitorPanel(lv_obj_t* screen, int32_t width, int32_t height,
         lv_obj_set_width(text, kTextWidth);
     }
 
-    row = Row(kTasksY);
-    Label(row, "任务", kLabelColor, nullptr);
-    Label(row, "Tasks", kSubColor, EnFont());
-    Chip(row, "日落", "Sunset 2/3");
-    Chip(row, nullptr, "+1");
-
-    BuildCard();
+    BuildNextUp();
     ApplyFonts();
+    SetPage(0);
 
     refresh_timer_ = lv_timer_create(RefreshCb, kRefreshMs, this);
     lv_timer_pause(refresh_timer_);
 #if WEIXUE_FACE_DIAG
     lv_timer_create(DiagBackendCb, kRefreshMs, this);
 #endif
-    rearm_timer_ = lv_timer_create(RearmCb, kRearmMs, this);
-    lv_timer_pause(rearm_timer_);
 }
 
 lv_obj_t* MonitorPanel::Row(int32_t y) {
@@ -212,69 +214,89 @@ lv_obj_t* MonitorPanel::Label(lv_obj_t* parent, const char* text, uint32_t color
     return label;
 }
 
-lv_obj_t* MonitorPanel::Chip(lv_obj_t* parent, const char* zh, const char* en) {
-    lv_obj_t* chip = lv_obj_create(parent);
-    Plain(chip);
-    Flex(chip, LV_FLEX_FLOW_ROW, 4);
-    lv_obj_set_style_radius(chip, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_border_width(chip, 1, 0);
-    lv_obj_set_style_border_color(chip, lv_color_hex(kCardColor), 0);
-    lv_obj_set_style_pad_hor(chip, 12, 0);
-    lv_obj_set_style_pad_ver(chip, 2, 0);
-    if (zh != nullptr) {
-        Label(chip, zh, kValueColor, nullptr);
-    }
-    Label(chip, en, kValueColor, EnFont());
-    return chip;
-}
+void MonitorPanel::BuildNextUp() {
+    lv_obj_t* box = lv_obj_create(content_);
+    Plain(box);
+    lv_obj_set_size(box, kNextW, kNextH);
+    lv_obj_align(box, LV_ALIGN_CENTER, 0, kNextY);
+    lv_obj_set_style_radius(box, 40, 0);
+    lv_obj_set_style_border_width(box, 2, 0);
+    lv_obj_set_style_border_color(box, lv_color_hex(kCardColor), 0);
 
-lv_obj_t* MonitorPanel::Button(lv_obj_t* parent, const char* zh, const char* en, uint32_t color) {
-    lv_obj_t* button = lv_obj_create(parent);
-    lv_obj_remove_style_all(button);
-    lv_obj_remove_flag(button, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_size(button, kButtonW, kButtonH);
-    lv_obj_set_flex_flow(button, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(button, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    lv_obj_set_style_radius(button, 20, 0);
-    lv_obj_set_style_border_width(button, 2, 0);
-    lv_obj_set_style_border_color(button, lv_color_hex(color), 0);
-    lv_obj_set_style_bg_color(button, lv_color_hex(color), 0);
-    lv_obj_set_style_bg_opa(button, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_bg_opa(button, LV_OPA_40, LV_STATE_PRESSED);
-    Label(button, zh, color, nullptr);
-    Label(button, en, color, EnFont());
-    lv_obj_add_event_cb(button, ButtonCb, LV_EVENT_CLICKED, this);
-    return button;
-}
-
-void MonitorPanel::BuildCard() {
-    card_ = lv_obj_create(content_);
-    Plain(card_);
-    lv_obj_set_size(card_, kCardW, kCardH);
-    lv_obj_align(card_, LV_ALIGN_CENTER, 0, kCardY);
-    lv_obj_set_style_radius(card_, 40, 0);
-    lv_obj_set_style_border_width(card_, 2, 0);
-    lv_obj_set_style_border_color(card_, lv_color_hex(kCardColor), 0);
-
-    lv_obj_t* header = lv_obj_create(card_);
+    lv_obj_t* header = lv_obj_create(box);
     Plain(header);
     Flex(header, LV_FLEX_FLOW_ROW, 6);
-    lv_obj_align(header, LV_ALIGN_TOP_MID, 0, 6);
-    Label(header, "待批", kLabelColor, nullptr);
-    Label(header, "Approval", kSubColor, EnFont());
-    card_status_ = Label(header, "fixture", kSubColor, EnFont());
+    lv_obj_align(header, LV_ALIGN_TOP_MID, 0, 8);
+    Label(header, "Next up", kLabelColor, EnFont());
+    next_state_ = Label(header, "", kWarnColor, EnFont());
 
-    lv_obj_t* text = lv_obj_create(card_);
-    Plain(text);
-    Flex(text, LV_FLEX_FLOW_ROW, 6);
-    lv_obj_align(text, LV_ALIGN_TOP_MID, 0, 42);
-    Label(text, "开客厅灯", kValueColor, nullptr);
-    Label(text, "Living room on", kSubColor, EnFont());
+    next_title_ = Label(box, "Nothing needs you", kSubColor, EnFont());
+    lv_label_set_long_mode(next_title_, LV_LABEL_LONG_MODE_DOTS);
+    lv_obj_set_width(next_title_, kNextW - kButtonW - 56);
+    lv_obj_align(next_title_, LV_ALIGN_LEFT_MID, 28, 14);
 
-    buttons_[0] = Button(card_, "批准", "Approve", kApproveColor);
-    buttons_[1] = Button(card_, "拒绝", "Deny", kDenyColor);
-    lv_obj_align(buttons_[0], LV_ALIGN_BOTTOM_MID, -(kButtonW / 2 + 6), -10);
-    lv_obj_align(buttons_[1], LV_ALIGN_BOTTOM_MID, kButtonW / 2 + 6, -10);
+    next_open_ = lv_obj_create(box);
+    lv_obj_remove_style_all(next_open_);
+    lv_obj_remove_flag(next_open_, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_size(next_open_, kButtonW, kButtonH);
+    lv_obj_align(next_open_, LV_ALIGN_RIGHT_MID, -18, 14);
+    lv_obj_set_style_radius(next_open_, 20, 0);
+    lv_obj_set_style_border_width(next_open_, 2, 0);
+    lv_obj_set_style_border_color(next_open_, lv_color_hex(kOkColor), 0);
+    lv_obj_set_style_bg_color(next_open_, lv_color_hex(kOkColor), 0);
+    lv_obj_set_style_bg_opa(next_open_, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_opa(next_open_, LV_OPA_40, LV_STATE_PRESSED);
+    lv_obj_t* open = Label(next_open_, "Open", kOkColor, nullptr);
+    lv_obj_center(open);
+    lv_obj_add_event_cb(next_open_, OpenCb, LV_EVENT_CLICKED, this);
+    lv_obj_add_flag(next_open_, LV_OBJ_FLAG_HIDDEN);
+}
+
+void MonitorPanel::SetNextUp(const std::string& title, const std::string& state, uint32_t state_color) {
+    bool has = !title.empty();
+    if (has == !lv_obj_has_flag(next_open_, LV_OBJ_FLAG_HIDDEN) &&
+        strcmp(lv_label_get_text(next_title_), has ? title.c_str() : "Nothing needs you") == 0 &&
+        strcmp(lv_label_get_text(next_state_), has ? state.c_str() : "") == 0) {
+        return;
+    }
+    SetText(next_title_, has ? title.c_str() : "Nothing needs you");
+    lv_obj_set_style_text_color(next_title_, lv_color_hex(has ? kValueColor : kSubColor), 0);
+    SetText(next_state_, has ? state.c_str() : "");
+    lv_obj_set_style_text_color(next_state_, lv_color_hex(state_color), 0);
+    if (has) {
+        lv_obj_remove_flag(next_open_, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(next_open_, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
+void MonitorPanel::OpenCb(lv_event_t* e) {
+    auto* self = static_cast<MonitorPanel*>(lv_event_get_user_data(e));
+    lv_indev_t* indev = lv_indev_active();
+    if (indev != nullptr && lv_indev_get_gesture_dir(indev) != LV_DIR_NONE) {
+        return;
+    }
+    if (self->on_open_next_) {
+        self->on_open_next_();
+    }
+}
+
+void MonitorPanel::SetPage(int page) {
+    page_ = page == 1 ? 1 : 0;
+    if (page_ == 0) {
+        lv_obj_remove_flag(page1_, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(content_, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(page1_, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(content_, LV_OBJ_FLAG_HIDDEN);
+    }
+    for (int i = 0; i < 2; i++) {
+        int32_t r = i == page_ ? 4 : 3;
+        lv_obj_set_size(dots_[i], 2 * r, 2 * r);
+        lv_obj_set_pos(dots_[i], kDotX - r, kDotY[i] - r);
+        lv_obj_set_style_bg_color(dots_[i], lv_color_hex(i == page_ ? kDotOnColor : kSubColor), 0);
+    }
+    ESP_LOGI(TAG, "page=%d", page_ + 1);
 }
 
 void MonitorPanel::ApplyFonts() {
@@ -290,6 +312,7 @@ void MonitorPanel::Show(bool show) {
     shown_ = show;
     lv_anim_delete(this, SlideCb);
     if (show) {
+        SetPage(0);
         lv_obj_remove_flag(root_, LV_OBJ_FLAG_HIDDEN);
         lv_obj_move_foreground(root_);
         Refresh();
@@ -352,8 +375,10 @@ void MonitorPanel::AddReply(const char* text, uint32_t reply) {
 }
 
 void MonitorPanel::SetShift(int32_t x, int32_t y) {
-    lv_obj_set_style_translate_x(content_, x, 0);
-    lv_obj_set_style_translate_y(content_, y, 0);
+    for (lv_obj_t* obj : {content_, dots_[0], dots_[1]}) {
+        lv_obj_set_style_translate_x(obj, x, 0);
+        lv_obj_set_style_translate_y(obj, y, 0);
+    }
 }
 
 void MonitorPanel::RefreshCb(lv_timer_t* timer) {
@@ -422,71 +447,6 @@ void MonitorPanel::DiagBackendCb(lv_timer_t* timer) {
 }
 #endif
 
-void MonitorPanel::SetCardState(CardState state) {
-    card_state_ = state;
-    char buf[32];
-    const char* text = buf;
-    uint32_t color = kSubColor;
-    switch (state) {
-        case CardState::kPending:
-            text = "fixture";
-            break;
-        case CardState::kSending:
-            text = "sending";
-            color = kValueColor;
-            break;
-        case CardState::kSent:
-            snprintf(buf, sizeof(buf), "%s sent", kDecisions[decision_]);
-            color = kOkColor;
-            break;
-        case CardState::kFailed:
-            snprintf(buf, sizeof(buf), "%s not sent", kDecisions[decision_]);
-            color = kBadColor;
-            break;
-    }
-    SetText(card_status_, text);
-    lv_obj_set_style_text_color(card_status_, lv_color_hex(color), 0);
-}
-
-void MonitorPanel::ButtonCb(lv_event_t* e) {
-    auto* self = static_cast<MonitorPanel*>(lv_event_get_user_data(e));
-    lv_indev_t* indev = lv_indev_active();
-    if (indev != nullptr && lv_indev_get_gesture_dir(indev) != LV_DIR_NONE) {
-        return;
-    }
-    lv_obj_t* target = lv_event_get_target_obj(e);
-    self->OnDecision(target == self->buttons_[0] ? 0 : 1);
-}
-
-void MonitorPanel::OnDecision(int button) {
-    if (card_state_ == CardState::kSending) {
-        return;
-    }
-    uint32_t seq = ++event_seq_;
-    char payload[256];
-    snprintf(payload, sizeof(payload),
-             "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/weixue/panel\",\"params\":"
-             "{\"event\":\"approval_decision\",\"card_id\":\"%s\",\"decision\":\"%s\","
-             "\"fixture\":true,\"seq\":%lu}}",
-             kCardId, kDecisions[button], (unsigned long)seq);
-    ESP_LOGI(TAG, "card %s %s (seq %lu)", kCardId, kDecisions[button], (unsigned long)seq);
-    decision_ = button;
-    SetCardState(CardState::kSending);
-    lv_timer_pause(rearm_timer_);
-    Application::GetInstance().SendDeviceEvent(payload, [this](bool sent) {
-        DisplayLockGuard lock(Board::GetInstance().GetDisplay());
-        SetCardState(sent ? CardState::kSent : CardState::kFailed);
-        lv_timer_reset(rearm_timer_);
-        lv_timer_resume(rearm_timer_);
-    });
-}
-
-void MonitorPanel::RearmCb(lv_timer_t* timer) {
-    auto* self = static_cast<MonitorPanel*>(lv_timer_get_user_data(timer));
-    lv_timer_pause(timer);
-    self->SetCardState(CardState::kPending);
-}
-
 #if WEIXUE_FACE_DIAG
 void MonitorPanel::StartTouchReplay() {
     replay_start_us_ = esp_timer_get_time() + kReplayStartMs * 1000;
@@ -507,21 +467,14 @@ void MonitorPanel::ReplayReadCb(lv_indev_t* indev, lv_indev_data_t* data) {
         return;
     }
     t %= kReplayPeriodMs;
-    const int32_t mid = lv_obj_get_height(self->root_) / 2;
     for (const ReplayStep& step : kReplay) {
         if (t >= step.ms) {
             t -= step.ms;
             continue;
         }
-        if (step.button == kSwipe) {
+        if (step.x0 != kRelease) {
             data->point.x = step.x0 + (step.x1 - step.x0) * t / step.ms;
-            data->point.y = mid;
-            data->state = LV_INDEV_STATE_PRESSED;
-        } else if (step.button >= 0) {
-            lv_area_t area;
-            lv_obj_get_coords(self->buttons_[step.button], &area);
-            data->point.x = (area.x1 + area.x2) / 2;
-            data->point.y = (area.y1 + area.y2) / 2;
+            data->point.y = step.y0 + (step.y1 - step.y0) * t / step.ms;
             data->state = LV_INDEV_STATE_PRESSED;
         }
         last = data->point;

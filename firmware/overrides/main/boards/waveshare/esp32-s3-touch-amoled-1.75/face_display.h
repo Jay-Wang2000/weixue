@@ -1,6 +1,7 @@
 #ifndef WEIXUE_FACE_DISPLAY_H
 #define WEIXUE_FACE_DISPLAY_H
 
+#include "agent_ui.h"
 #include "bedside_schedule.h"
 #include "device_state.h"
 #include "face_diag.h"
@@ -9,9 +10,15 @@
 #include "voice_ring.h"
 
 #include <atomic>
+#include <functional>
 #include <cstdint>
+#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
+class AgentView;
+class LvglFont;
 class MonitorPanel;
 
 #if WEIXUE_FACE_DIAG
@@ -23,7 +30,8 @@ class MonitorPanel;
 // The pose follows the device state (idle, listening, thinking, speaking) and the
 // last emotion; chat text stays available as a caption below the eyes. A ring at the
 // screen edge shows the voice state; at night the idle screen is a dim red clock page.
-// Swiping left opens the monitor panel, swiping right returns to the face.
+// Agent tasks (WeixueAgent store) shrink the idle face and show a complication, ring cues
+// and full-screen cards. Swiping left opens the management view, swiping right returns.
 class FaceDisplay : public SpiLcdDisplay {
 public:
     FaceDisplay(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_handle_t panel, int width,
@@ -36,6 +44,7 @@ public:
     void SetChatMessage(const char* role, const char* content) override;
     void SetTheme(Theme* theme) override;
     void SetStatus(const char* status) override;
+    void SetPowerSaveMode(bool on) override;
 
     // Server night hint ("night", "day", "auto"); any task. False for an unknown hint.
     bool SetBedsideHint(const char* hint);
@@ -64,6 +73,8 @@ private:
         int32_t x, y, w, h, r, lid_left, lid_right, cut;
         bool operator==(const EyeBox& o) const;
     };
+
+    using Pose = agent_ui::Pose;
 
     lv_obj_t* face_root_ = nullptr;
     lv_obj_t* eyes_[2] = {nullptr, nullptr};
@@ -115,6 +126,37 @@ private:
     int local_minute_ = -1;
     char clock_text_[6] = "--:--";
 
+    // Agent UI (face_display_agent.cc).
+    struct Switching {
+        bool active = false;
+        bool new_chat = false;
+        std::string chat_id;
+        std::string title;
+        int64_t start_ms = 0;
+    };
+    std::unique_ptr<AgentView> agent_view_;
+    agent_ui::Model agent_;
+    std::vector<weixue_agent::Task> agent_pending_;
+    int64_t agent_pending_seq_ = 0;
+    bool agent_dirty_ = false;
+    int64_t agent_drawn_ms_ = 0;
+    int64_t idle_since_us_ = 0;
+    Pose pose_ = Pose::kFull;
+    int64_t hop_until_us_ = 0;
+    int64_t nod_until_us_ = 0;
+    int last_step_ = -1;
+    std::string last_top_;
+    std::vector<std::pair<uint32_t, uint32_t>> card_sends_;  // decision token, outbox id
+    uint32_t switch_send_id_ = 0;
+    Switching switching_;
+    std::string transient_title_, transient_summary_;
+    uint32_t transient_color_ = 0;
+    int64_t transient_until_ms_ = 0;
+    int chats_focus_ = 0;
+    std::atomic<bool> dimmed_{false};
+    std::atomic<int64_t> woke_us_{0};
+    std::shared_ptr<LvglFont> zh_font_;
+
     static void TickCb(lv_timer_t* timer);
     static void GestureCb(lv_event_t* e);
     static void EyeDrawCb(lv_event_t* e);
@@ -142,6 +184,28 @@ private:
     void DrawEye(lv_layer_t* layer, lv_obj_t* obj, int i) const;
     void StyleChrome();
     void ShowPanel(bool show);
+
+    void SetupAgent(lv_obj_t* screen);
+    void LoadZhFont();
+    void OnAgentStore(const weixue_agent::Store& store);
+    void UpdateAgent(int64_t now_us, DeviceState state);
+    void ApplyArrivals(const std::vector<agent_ui::Arrival>& arrivals, int64_t now_ms);
+    void RenderAgent(int64_t now_ms);
+    bool AgentRing(int64_t now_ms, RingState& s, const char** kind);
+    void AgentPose(EyeShape out[2]) const;
+    void OpenAgentCard(const std::string& task_id);
+    void CloseAgentCard();
+    void AgentCardTap(int index);
+    void AgentTapTask(const std::string& task_id);
+    void AgentChatTap(const std::string& chat_id);
+    void AgentChatsToggle();
+    void AgentChatsScroll(int delta);
+    void SetTransient(const std::string& title, const std::string& summary, uint32_t color, int64_t until_ms);
+    void SendAgent(weixue_agent::Response r, std::function<void(bool)> done,
+                   std::function<void(uint32_t)> queued);
+    void CancelCardSend(uint32_t token);
+    void PlayEarcon(agent_ui::Earcon earcon, bool interrupt);
+    std::string LocalHhmm() const;
 
 #if WEIXUE_FACE_DIAG
     int64_t diag_window_us_ = 0;

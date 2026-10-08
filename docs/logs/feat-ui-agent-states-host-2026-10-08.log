@@ -1,0 +1,57 @@
+# feat-ui-agent-states host checks, 2026-10-08 (board not on USB: no flash, no device run)
+
+## firmware/tests/run.sh
+PASS read failure is not a pick-up: pick_up=0 face_down=0 face_up=0 (want 0/0/0)
+PASS read failures: 1 (want 1)
+PASS read failure resyncs: 2 (want 2)
+OK (0 failures)
+ring_bedside_test: all passed
+OK (0 failures)
+PASS failure from before the pause shows checking
+PASS failure after the resume is offline
+OK (0 failures)
+OK: 0 failure(s)
+OK: 0 failure(s)
+PASS row status: needs your OK + countdown
+agent_ui_test: 0 failure(s)
+Ran 23 tests in 0.188s
+OK
+
+## firmware/tests/render/render.sh (host LVGL, Latin fonts; lit = pixels inside the circle with a channel > 8, share of 466x466)
+agent-idle-working     lit=6.36% screen
+agent-idle-unread      lit=3.52% screen
+agent-needs-approval   lit=8.77% screen
+agent-approval-card    lit=7.83% screen
+agent-approval-sending lit=12.16% screen
+agent-approval-approved lit=1.41% screen
+agent-approval-irreversible lit=6.45% screen
+agent-clarification-2  lit=6.94% screen
+agent-clarification-3  lit=7.90% screen
+agent-clarification-4  lit=8.55% screen
+agent-management       lit=7.55% screen
+agent-management-chats lit=5.71% screen
+agent-new-chat         lit=17.76% screen
+agent-chat-switched    lit=11.68% screen
+
+## firmware/tools/earcons.py --check
+needs_you: 440 ms, 1572 bytes
+approved: 340 ms, 1210 bytes
+denied: 410 ms, 1391 bytes
+done: 420 ms, 1572 bytes
+error: 550 ms, 1934 bytes
+chat_switch: 280 ms, 1029 bytes
+/Users/jwang14/Projects/weixue-wt-feat-ui-agent-states/firmware/tools/../overrides/main/boards/waveshare/esp32-s3-touch-amoled-1.75/agent_earcons.h matches
+
+## firmware/build.sh variants at 5f90b87 (xiaozhi.bin / generated_assets.bin bytes, incremental build seconds)
+release: 3119648 / 4273502, 61 s, 16 patches
+loopback: 3120416 / 4273502, 58 s, 16 patches
+diag: 3125520 / 4273502, 125 s, 16 patches
+baseline main: 3065328 / 2985927
+font_noto_sans_common_20_4.bin: 1287460 bytes (decision 26 budget 1.5 MB)
+
+## Review fix: card decisions (record per card_id, callback matching, captured-card taps, touch guard, hard timeout, gateway dedupe)
+firmware/tests/run.sh: 383 PASS, 0 FAIL (agent_ui_test: 0 failure(s)); python unittest: 23 OK
+server: python -m pytest: 715 passed, 12 skipped (live tests off)
+render.sh: lit shares unchanged (approval-sending 12.16 %, approval-approved 1.41 %)
+release: 3122400 / 4273502, 125 s
+loopback: 3123168 / 4273502, 57 s

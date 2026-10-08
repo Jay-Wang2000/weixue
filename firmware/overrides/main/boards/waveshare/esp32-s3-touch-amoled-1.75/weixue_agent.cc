@@ -157,7 +157,9 @@ void WeixueAgent::Apply(const Message& message, const char* via) {
     int64_t seq = store_.max_seq();
     while (seq > seen && !applied_seq_.compare_exchange_weak(seen, seq)) {
     }
-    QueueShown();
+    if (!render_ack_) {
+        QueueShown(store_.max_seq());
+    }
     Notify();
 }
 
@@ -169,14 +171,16 @@ void WeixueAgent::Notify() {
 
 void WeixueAgent::Subscribe(Listener listener) { listeners_.push_back(std::move(listener)); }
 
+void WeixueAgent::OnRendered(int64_t upto) { QueueShown(std::min(upto, store_.max_seq())); }
+
 // `shown` goes only over an open audio channel; an idle device acks through its next poll.
-void WeixueAgent::QueueShown() {
-    if (!Application::GetInstance().GetBackendStatus().channel_open || store_.max_seq() == 0) {
+void WeixueAgent::QueueShown(int64_t upto) {
+    if (!Application::GetInstance().GetBackendStatus().channel_open || upto <= 0) {
         return;
     }
     Response r;
     r.kind = "shown";
-    r.ack_upto = store_.max_seq();
+    r.ack_upto = upto;
     r.via = "tap";
     for (size_t i = in_flight_ ? 1 : 0; i < outbox_.size(); ++i) {
         if (outbox_[i].shown) {
@@ -190,26 +194,38 @@ void WeixueAgent::QueueShown() {
     outbox_.back().due_us = NowUs() + kShownDelayUs;
 }
 
-bool WeixueAgent::SendResponse(Response response) {
+uint32_t WeixueAgent::SendResponse(Response response, std::function<void(bool)> done) {
     if (!IsResponseKind(response.kind) || response.kind == "shown") {
         ESP_LOGW(TAG, "agent: response kind %s refused", response.kind.c_str());
-        return false;
+        return 0;
     }
     if (NeedsCard(response.kind) && response.card_id.empty()) {
         ESP_LOGW(TAG, "agent: %s without card_id refused", response.kind.c_str());
-        return false;
+        return 0;
     }
     uint32_t seq = next_seq_++;
     std::string payload = BuildResponse(boot_, seq, response);
     if (payload.empty()) {
-        return false;
+        return 0;
     }
     ESP_LOGI(TAG, "agent response: kind=%s chat=%s task=%s card=%s option=%s via=%s seq=%lu",
              response.kind.c_str(), response.chat_id.c_str(), response.task_id.c_str(),
              response.card_id.c_str(), response.option_id.c_str(), response.via.c_str(),
              static_cast<unsigned long>(seq));
-    Enqueue(std::move(payload), response.kind + " " + response.task_id);
-    return true;
+    return Enqueue(std::move(payload), response.kind + " " + response.task_id, std::move(done));
+}
+
+void WeixueAgent::Cancel(uint32_t id) {
+    for (size_t i = in_flight_ ? 1 : 0; i < outbox_.size(); ++i) {
+        if (outbox_[i].id == id) {
+            ESP_LOGI(TAG, "agent outbox: cancelled %s", outbox_[i].label.c_str());
+            outbox_.erase(outbox_.begin() + i);
+            return;
+        }
+    }
+    if (in_flight_ && !outbox_.empty() && outbox_.front().id == id) {
+        outbox_.front().done = nullptr;
+    }
 }
 
 bool WeixueAgent::AckSeen(const std::string& task_id) {
@@ -223,22 +239,30 @@ bool WeixueAgent::AckSeen(const std::string& task_id) {
     r.task_id = task_id;
     store_.MarkSeen(task_id);
     Notify();
-    return SendResponse(std::move(r));
+    return SendResponse(std::move(r)) != 0;
 }
 
-void WeixueAgent::Enqueue(std::string payload, std::string label) {
+uint32_t WeixueAgent::Enqueue(std::string payload, std::string label, std::function<void(bool)> done) {
     if (outbox_.size() >= kOutboxSize) {
         size_t victim = in_flight_ ? 1 : 0;
         ESP_LOGW(TAG, "agent outbox full, dropped: %s", outbox_[victim].label.c_str());
+        auto dropped = std::move(outbox_[victim].done);
         outbox_.erase(outbox_.begin() + victim);
+        if (dropped) {
+            dropped(false);
+        }
     }
     Outgoing out;
     out.payload = std::move(payload);
     out.label = std::move(label);
     out.due_us = NowUs();
+    out.id = next_id_++;
+    out.done = std::move(done);
+    uint32_t id = out.id;
     outbox_.push_back(std::move(out));
     EnsureTicking();
     SendNext();
+    return id;
 }
 
 void WeixueAgent::SendNext() {
@@ -259,13 +283,18 @@ void WeixueAgent::SendNext() {
                 return;
             }
             Outgoing& done = outbox_.front();
-            if (sent) {
-                ESP_LOGI(TAG, "agent ack sent: %s (attempt %d)", done.label.c_str(), done.attempts);
+            if (sent || done.attempts >= kMaxAttempts) {
+                if (sent) {
+                    ESP_LOGI(TAG, "agent ack sent: %s (attempt %d)", done.label.c_str(), done.attempts);
+                } else {
+                    ESP_LOGW(TAG, "agent ack dropped after %d attempts: %s", done.attempts,
+                             done.label.c_str());
+                }
+                auto callback = std::move(done.done);
                 outbox_.pop_front();
-            } else if (done.attempts >= kMaxAttempts) {
-                ESP_LOGW(TAG, "agent ack dropped after %d attempts: %s", done.attempts,
-                         done.label.c_str());
-                outbox_.pop_front();
+                if (callback) {
+                    callback(sent);
+                }
             } else {
                 done.due_us = NowUs() + kRetryDelayUs[done.attempts - 1];
                 ESP_LOGW(TAG, "agent ack not sent (attempt %d), retry in %lld ms: %s", done.attempts,
