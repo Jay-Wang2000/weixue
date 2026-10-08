@@ -1,10 +1,12 @@
 #include "face_display.h"
 
+#include "agent_view.h"
 #include "application.h"
 #include "assets/lang_config.h"
 #include "lvgl_theme.h"
 #include "monitor_panel.h"
 #include "settings.h"
+#include "weixue_agent.h"
 
 #include <esp_heap_caps.h>
 #include <esp_log.h>
@@ -46,6 +48,9 @@ constexpr int kCaptionY = 128;
 constexpr float kShapeTau = 0.09f;
 constexpr float kGazeTau = 0.22f;
 constexpr int64_t kShiftPeriodUs = 60LL * 1000 * 1000;
+// Management view page 1 and the chats list return to the face after 30 s untouched, page 2
+// after 60 s.
+constexpr uint32_t kPage1ReturnMs = 30000;
 constexpr uint32_t kPanelReturnMs = 60000;
 constexpr int8_t kShiftPath[8][2] = {{0, 0},  {1, 0},  {1, 1},   {0, 1},
                                      {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}};
@@ -259,13 +264,23 @@ void FaceDisplay::SetupUI() {
     StyleChrome();
 
     auto* theme = static_cast<LvglTheme*>(current_theme_);
-    panel_ = new MonitorPanel(screen, width_, height_, theme->icon_font()->font(), [this](bool covered) {
-        if (covered) {
-            lv_obj_add_flag(face_root_, LV_OBJ_FLAG_HIDDEN);
-        } else {
-            lv_obj_remove_flag(face_root_, LV_OBJ_FLAG_HIDDEN);
-        }
-    });
+    panel_ = new MonitorPanel(
+        screen, width_, height_, theme->icon_font()->font(),
+        [this](bool covered) {
+            if (covered) {
+                lv_obj_add_flag(face_root_, LV_OBJ_FLAG_HIDDEN);
+            } else if (agent_view_ == nullptr || !agent_view_->CardShown()) {
+                lv_obj_remove_flag(face_root_, LV_OBJ_FLAG_HIDDEN);
+            }
+        },
+        [this]() {
+            const auto* next = agent_.NextUp(esp_timer_get_time() / 1000);
+            if (next != nullptr) {
+                OpenAgentCard(next->item.task_id);
+            }
+        });
+    SetupAgent(screen);
+    LoadZhFont();
     lv_obj_add_event_cb(screen, GestureCb, LV_EVENT_GESTURE, this);
 #if WEIXUE_FACE_DIAG
     panel_->StartTouchReplay();
@@ -321,6 +336,10 @@ void FaceDisplay::SetTheme(Theme* theme) {
         DisplayLockGuard lock(this);
         StyleChrome();
         panel_->ApplyFonts();
+        LoadZhFont();
+        if (agent_view_ != nullptr) {
+            agent_view_->Relayout();
+        }
     }
 }
 
@@ -391,16 +410,45 @@ std::string FaceDisplay::BedsideStateJson() {
 void FaceDisplay::GestureCb(lv_event_t* e) {
     auto* self = static_cast<FaceDisplay*>(lv_event_get_user_data(e));
     lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
+    // A card takes an explicit decision: only a right swipe (Later) closes it.
+    if (self->agent_view_ != nullptr && self->agent_view_->CardShown()) {
+        if (dir == LV_DIR_RIGHT) {
+            self->agent_.Later();
+            self->CloseAgentCard();
+        }
+        return;
+    }
+    if (self->panel_->IsShown()) {
+        bool chats = self->agent_view_ != nullptr && self->agent_view_->ChatsOpen();
+        if (dir == LV_DIR_RIGHT) {
+            self->ShowPanel(false);
+        } else if (dir == LV_DIR_TOP) {
+            if (chats) {
+                self->AgentChatsScroll(1);
+            } else {
+                self->panel_->SetPage(1);
+            }
+        } else if (dir == LV_DIR_BOTTOM) {
+            if (chats) {
+                self->AgentChatsScroll(-1);
+            } else {
+                self->panel_->SetPage(0);
+            }
+        }
+        return;
+    }
     if (dir == LV_DIR_LEFT) {
         self->ShowPanel(true);
-    } else if (dir == LV_DIR_RIGHT) {
-        self->ShowPanel(false);
     }
 }
 
 void FaceDisplay::ShowPanel(bool show) {
     if (show == panel_->IsShown()) {
         return;
+    }
+    if (show && agent_view_ != nullptr) {
+        agent_view_->SetHeader(agent_.CurrentTitle(), false);
+        RenderAgent(esp_timer_get_time() / 1000);
     }
     panel_->Show(show);
 #if WEIXUE_FACE_DIAG
@@ -432,6 +480,9 @@ void FaceDisplay::SetChatMessage(const char* role, const char* content) {
             }
             if (panel_ != nullptr) {
                 panel_->SetHeard(content);
+            }
+            if (agent_.card_open() && content != nullptr && content[0] != '\0') {
+                agent_.CardHeard(content, esp_timer_get_time() / 1000);
             }
         }
         SpiLcdDisplay::SetChatMessage(role, "");
@@ -471,17 +522,23 @@ void FaceDisplay::Tick() {
     if (state != last_state_) {
         if (state == kDeviceStateIdle) {
             thinking_.End();
+            idle_since_us_ = now;
         } else if (last_state_ == kDeviceStateIdle) {
             ShowPanel(false);
+            if (agent_.card_open()) {
+                agent_.TouchCard(now / 1000);
+            }
         }
         last_state_ = state;
     }
-    if (panel_->IsShown() && lv_display_get_inactive_time(display_) > kPanelReturnMs) {
+    uint32_t panel_return = panel_->page() == 0 ? kPage1ReturnMs : kPanelReturnMs;
+    if (panel_->IsShown() && lv_display_get_inactive_time(display_) > panel_return) {
         ShowPanel(false);
     }
 
     UpdateClock(now);
     UpdateBedside(now, state);
+    UpdateAgent(now, state);
 
     Mode mode = ModeFromState(state);
     if (mode != mode_ || mood_ != shown_mood_) {
@@ -558,6 +615,10 @@ void FaceDisplay::TargetShapes(EyeShape out[2], bool voice) const {
         for (int i = 0; i < 2; i++) {
             out[i] = {(i == 0 ? -1.0f : 1.0f) * kEyeSpacing, kBedsideEyesY, 84, 6, 3, 0, 0, 0};
         }
+        return;
+    }
+    if (pose_ != Pose::kFull && mode_ == Mode::kIdle) {
+        AgentPose(out);
         return;
     }
     EyeShape base = {0, 0, 100, 116, 30, 0, 0, 0};
@@ -637,14 +698,19 @@ void FaceDisplay::UpdateGaze(int64_t now, float dt) {
     } else if (now >= next_gaze_us_) {
         switch (mode_) {
             case Mode::kIdle:
-                if (Rand01() < 0.35f) {
+                if (pose_ == Pose::kAttentive || Rand01() < 0.35f) {
                     gaze_tx_ = 0;
                     gaze_ty_ = 0;
+                } else if (pose_ != Pose::kFull && Rand01() < 0.25f) {
+                    // Small face: a glance down at the complication.
+                    gaze_tx_ = 0;
+                    gaze_ty_ = 6;
                 } else {
-                    gaze_tx_ = RandRange(-22, 22);
-                    gaze_ty_ = RandRange(-12, 10);
+                    float k = pose_ == Pose::kFull ? 1.0f : 0.5f;
+                    gaze_tx_ = k * RandRange(-22, 22);
+                    gaze_ty_ = k * RandRange(-12, 10);
                 }
-                next_gaze_us_ = now + RandUs(1.8f, 5.5f);
+                next_gaze_us_ = now + (pose_ == Pose::kFull ? RandUs(1.8f, 5.5f) : RandUs(4.0f, 7.0f));
                 break;
             case Mode::kListening:
                 gaze_tx_ = RandRange(-4, 4);
@@ -725,6 +791,9 @@ void FaceDisplay::UpdateShift(int64_t now) {
         PlaceClock();
     }
     panel_->SetShift(shift_x_, shift_y_);
+    if (agent_view_ != nullptr) {
+        agent_view_->SetShift(shift_x_, shift_y_);
+    }
 #if WEIXUE_FACE_DIAG
     ESP_LOGI(TAG, "diag shift=%d,%d", shift_x_, shift_y_);
 #endif
@@ -967,6 +1036,7 @@ bool FaceDisplay::UpdateRing(int64_t now, float dt, DeviceState state) {
                           level_target > out_level_ ? kLevelAttackTau : kLevelReleaseTau);
 
     bool error = now < error_until_us_ || state == kDeviceStateFatalError;
+    const char* agent_kind = nullptr;
     if (error) {
         s.style = RingState::Style::kSolid;
         s.color = kErrorColor;
@@ -975,6 +1045,9 @@ bool FaceDisplay::UpdateRing(int64_t now, float dt, DeviceState state) {
     } else {
         switch (mode_) {
             case Mode::kIdle:
+                if (AgentRing(now / 1000, s, &agent_kind)) {
+                    s.width = kRingWidth;
+                }
                 break;
             case Mode::kListening: {
                 float wave = 0.5f + 0.5f * sinf(2 * kPi * kListenPulseHz * t);
@@ -1002,7 +1075,8 @@ bool FaceDisplay::UpdateRing(int64_t now, float dt, DeviceState state) {
 
     // Solid rings repaint at most every kSolidFrameUs, a spin every kSpinFrameUs; a new style
     // or colour repaints at once.
-    bool restyled = s.style != ring_.style || s.color != ring_.color;
+    bool restyled = s.style != ring_.style || s.color != ring_.color ||
+                    (s.style == RingState::Style::kArcs && s.n_arcs != ring_.n_arcs);
     int64_t gap = s.style == RingState::Style::kSpin ? kSpinFrameUs : kSolidFrameUs;
     bool repaint = restyled || now - ring_painted_us_ >= gap;
     if (repaint) {
@@ -1010,6 +1084,7 @@ bool FaceDisplay::UpdateRing(int64_t now, float dt, DeviceState state) {
         ring_painted_us_ = now;
     }
     const char* kind = error                                    ? "error"
+                       : agent_kind != nullptr                  ? agent_kind
                        : s.style == RingState::Style::kOff      ? "off"
                        : s.style == RingState::Style::kSpin     ? "spin"
                        : mode_ == Mode::kListening              ? "pulse"
@@ -1023,8 +1098,10 @@ bool FaceDisplay::UpdateRing(int64_t now, float dt, DeviceState state) {
         }
 #endif
     }
+    // Agent cues breathe at most every kSolidFrameUs: they do not need the fast tick.
+    bool voice_ring = s.style != RingState::Style::kOff && s.style != RingState::Style::kArcs;
     if (!repaint) {
-        return s.style != RingState::Style::kOff;
+        return voice_ring;
     }
     const int cx = width_ / 2, cy = height_ / 2;
     const int r_out = width_ / 2 - kRingInset;
@@ -1040,7 +1117,7 @@ bool FaceDisplay::UpdateRing(int64_t now, float dt, DeviceState state) {
         lv_area_t a = {b.x1, b.y1, b.x2, b.y2};
         lv_obj_invalidate_area(ring_obj_, &a);
     }
-    return s.style != RingState::Style::kOff;
+    return voice_ring;
 }
 
 // A8 coverage mask of the solid ring.
@@ -1101,6 +1178,18 @@ void FaceDisplay::DrawRing(lv_layer_t* layer) const {
                              dist2(clip.x2, clip.y2)});
     const int r_in = r_out - s.width - 1;
     if (far2 < int64_t(r_in) * r_in || dist2(nx, ny) > int64_t(r_out + 1) * (r_out + 1)) {
+        return;
+    }
+    if (s.style == RingState::Style::kArcs) {
+        for (int i = 0; i < s.n_arcs; i++) {
+            const RingArc& a = s.arcs[i];
+            arc.color = lv_color_hex(a.color);
+            arc.opa = a.opa;
+            arc.rounded = a.rounded ? 1 : 0;
+            arc.start_angle = a.start;
+            arc.end_angle = (a.start + a.span) % 360;
+            lv_draw_arc(layer, &arc);
+        }
         return;
     }
     if (s.style == RingState::Style::kSolid && ring_mask_ != nullptr) {
@@ -1275,7 +1364,10 @@ void FaceDisplay::DiagDump() {
     }
 
     uint32_t id = ++diag_dump_id_;
-    const char* mode = panel_->IsShown() ? "panel" : ModeName(mode_);
+    const char* mode = panel_->IsShown()                                 ? "panel"
+                       : agent_view_ != nullptr && agent_view_->CardShown() ? "card"
+                       : pose_ != Pose::kFull                                ? PoseName(pose_)
+                                                                             : ModeName(mode_);
     DiagDumpMsg msg = {id, w, h, lit, mode, MoodName(shown_mood_), nullptr, runs * 4};
     msg.data = static_cast<uint8_t*>(heap_caps_malloc(msg.size, MALLOC_CAP_SPIRAM));
     if (msg.data != nullptr) {

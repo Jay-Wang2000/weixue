@@ -1,0 +1,27 @@
+--- a/main/CMakeLists.txt
++++ b/main/CMakeLists.txt
+@@ -1291,6 +1291,15 @@
+ endif()
+ 
+ 
++# weixue: the 20 px common font (CJK sublabels) is an extra file of the assets partition.
++if(CONFIG_BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_75C AND NOT DEFAULT_ASSETS_EXTRA_FILES
++   AND EXISTS "${NOTO_FONTS_PATH}/cbin/font_noto_sans_common_20_4.bin")
++    set(DEFAULT_ASSETS_EXTRA_FILES "${CMAKE_BINARY_DIR}/weixue_extra_assets")
++    file(MAKE_DIRECTORY "${DEFAULT_ASSETS_EXTRA_FILES}")
++    configure_file("${NOTO_FONTS_PATH}/cbin/font_noto_sans_common_20_4.bin"
++                   "${DEFAULT_ASSETS_EXTRA_FILES}/font_noto_sans_common_20_4.bin" COPYONLY)
++endif()
++
+ # Function to build default assets based on configuration
+ function(build_default_assets_bin)
+     # Set output path for generated assets.bin
+@@ -1331,6 +1340,8 @@
+     # Add default assets extra files if defined
+     if(DEFAULT_ASSETS_EXTRA_FILES)
+         list(APPEND BUILD_ARGS "--extra_files" "${DEFAULT_ASSETS_EXTRA_FILES}")
++        file(GLOB DEFAULT_ASSETS_EXTRA_LIST "${DEFAULT_ASSETS_EXTRA_FILES}/*")
++        list(APPEND DEFAULT_ASSETS_DEPENDENCIES ${DEFAULT_ASSETS_EXTRA_LIST})
+     endif()
+ 
+     list(APPEND BUILD_ARGS "--esp_sr_model_path" "${ESP_SR_MODEL_PATH}")

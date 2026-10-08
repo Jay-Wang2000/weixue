@@ -23,7 +23,7 @@ vendor="${WEIXUE_VENDOR:-$HOME/Projects/weixue-vendor}"
 cjson="$(ls -d "$vendor"/fw-work/*/managed_components/espressif__cjson/cJSON 2>/dev/null | head -1 || true)"
 [ -n "$cjson" ] || { echo "error: no espressif__cjson under $vendor/fw-work (run firmware/build.sh once)" >&2; exit 1; }
 cc -std=c99 -O1 -c "$cjson/cJSON.c" -o "$out/cJSON.o"
-for test in agent_msg_test agent_store_test; do
+for test in agent_msg_test agent_store_test agent_ui_test; do
   c++ "${flags[@]}" \
     -I "$root/firmware/overrides/main/boards/waveshare/esp32-s3-touch-amoled-1.75" \
     -isystem "$cjson" \

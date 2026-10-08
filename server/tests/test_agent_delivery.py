@@ -250,6 +250,8 @@ async def test_device_events_dedup_validation_and_user_ack():
     gw.on_device_event(conn, wad.RESPONSE_METHOD, params)
     assert len(gw.sink.responses) == 1 and gw.sink.responses[0]["via"] == "loopback"
     gw.on_device_event(conn, wad.RESPONSE_METHOD, dict(params, boot=8))
+    assert len(gw.sink.responses) == 1, "a new boot is a new event, but the card is already decided"
+    gw.on_device_event(conn, wad.RESPONSE_METHOD, response(10, "cancel", boot=8, chat_id="c1", task_id="t1"))
     assert len(gw.sink.responses) == 2, "a new boot is a new event"
     gw.on_device_event(conn, wad.RESPONSE_METHOD, response(5, "ack_seen", chat_id="c1", task_id="t1"))
     assert gw.sink.acks[-1]["outcome"] == "user_ack"
@@ -556,6 +558,25 @@ async def test_stale_card_decisions_are_not_forwarded():
     assert len(gw.sink.responses) == 1, "a card on a task that moved on is stale"
     gw.on_device_event(conn, wad.RESPONSE_METHOD, response(5, "deny", chat_id="c1", task_id="t7", card_id="i9"))
     assert len(gw.sink.responses) == 2, "a task the gateway does not mirror is forwarded"
+
+
+async def test_one_decision_per_card_first_wins():
+    _, gw = make()
+    gw.submit(DEVICE, card("t1", "needs_approval", card_id="i1", options=APPROVAL))
+    conn = Conn()
+    gw.on_device_event(conn, wad.RESPONSE_METHOD, response(1, "approve", chat_id="c1", task_id="t1", card_id="i1"))
+    gw.on_device_event(conn, wad.RESPONSE_METHOD, response(2, "approve", chat_id="c1", task_id="t1", card_id="i1"))
+    assert len(gw.sink.responses) == 1, "a retry of the same decision with a new seq is a duplicate"
+    gw.on_device_event(conn, wad.RESPONSE_METHOD, response(3, "deny", chat_id="c1", task_id="t1", card_id="i1"))
+    gw.on_device_event(conn, wad.RESPONSE_METHOD,
+                       response(1, "deny", boot=8, chat_id="c1", task_id="t1", card_id="i1"))
+    assert [r["kind"] for r in gw.sink.responses] == ["approve"], "a later decision for the card never overrides"
+    gw.on_device_event(conn, wad.RESPONSE_METHOD, response(4, "deny", chat_id="c1", task_id="t7", card_id="i9"))
+    gw.on_device_event(conn, wad.RESPONSE_METHOD, response(5, "deny", chat_id="c1", task_id="t7", card_id="i9"))
+    assert len(gw.sink.responses) == 2, "dedupe also covers tasks the gateway does not mirror"
+    gw.on_device_event(Conn("aa:bb:cc:dd:ee:ff"), wad.RESPONSE_METHOD,
+                       response(1, "approve", chat_id="c1", task_id="t1", card_id="i1"))
+    assert len(gw.sink.responses) == 2, "an unverified device is ignored before dedupe"
 
 
 async def test_answered_debug_reply_is_not_replayed_in_a_snapshot():

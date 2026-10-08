@@ -52,9 +52,17 @@ public:
     // Main task: UI.
     void Subscribe(Listener listener);
     const weixue_agent::Store& store() const { return store_; }
-    bool SendResponse(weixue_agent::Response response);
+    // Queues a response; done(sent) runs on the main task once it reached the transport or was
+    // dropped after the last retry. Returns its outbox id, 0 when refused.
+    uint32_t SendResponse(weixue_agent::Response response, std::function<void(bool)> done = nullptr);
+    // Drops a queued response that is not in flight; its done callback never runs.
+    void Cancel(uint32_t id);
     // User ack of a task (tap on its card or complication).
     bool AckSeen(const std::string& task_id);
+    // With render acks on, `shown` waits for OnRendered (the UI drew the store) instead of the
+    // apply.
+    void SetRenderAck(bool on) { render_ack_ = on; }
+    void OnRendered(int64_t upto);
 
 private:
     WeixueAgent() = default;
@@ -65,6 +73,8 @@ private:
         int attempts = 0;
         int64_t due_us = 0;
         bool shown = false;
+        uint32_t id = 0;
+        std::function<void(bool)> done;
     };
     struct LoopbackReply {
         int64_t due_us;
@@ -76,6 +86,8 @@ private:
     std::atomic<int64_t> applied_seq_{0};
     uint32_t boot_ = 0;
     uint32_t next_seq_ = 1;
+    uint32_t next_id_ = 1;
+    bool render_ack_ = false;
 
     std::deque<Outgoing> outbox_;
     bool in_flight_ = false;
@@ -92,8 +104,8 @@ private:
     void ScheduleApply(weixue_agent::Message message, const char* via);
     void Apply(const weixue_agent::Message& message, const char* via);
     void Notify();
-    void QueueShown();
-    void Enqueue(std::string payload, std::string label);
+    void QueueShown(int64_t upto);
+    uint32_t Enqueue(std::string payload, std::string label, std::function<void(bool)> done = nullptr);
     void FinishPlayback(bool complete, const char* reason);
     void Tick();
     void SendNext();

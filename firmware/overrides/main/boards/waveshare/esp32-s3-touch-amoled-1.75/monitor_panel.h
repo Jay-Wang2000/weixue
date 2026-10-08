@@ -10,18 +10,25 @@
 #include <functional>
 #include <string>
 
-// Full-screen monitor page reached by swiping left from the face: backend, Wi-Fi, battery and
-// microphone state, the last transcript and reply, task chips and one approval card. Task chips
-// and the approval card show fixture data; the card's buttons send `notifications/weixue/panel`
-// to the server. All methods run with the display lock held.
+// Management view reached by swiping left from the face (weixue-agent-ui-v1 §4.9): page 1 holds
+// the current chat and the agent tasks (filled by AgentView through Page1()), page 2 the backend,
+// Wi-Fi, battery and microphone state, the last transcript and reply, and Next up (the most urgent
+// card, opened full-screen). Page dots at 3 o'clock. All methods run with the display lock held.
 class MonitorPanel {
 public:
-    // on_cover(true) runs once the page covers the screen, on_cover(false) before it uncovers.
+    // on_cover(true) runs once the view covers the screen, on_cover(false) before it uncovers;
+    // on_open_next opens the Next up card.
     MonitorPanel(lv_obj_t* screen, int32_t width, int32_t height, const lv_font_t* icon_font,
-                 std::function<void(bool)> on_cover);
+                 std::function<void(bool)> on_cover, std::function<void()> on_open_next);
 
+    // Showing always starts on page 1.
     void Show(bool show);
     bool IsShown() const { return shown_; }
+    lv_obj_t* Page1() const { return page1_; }
+    void SetPage(int page);
+    int page() const { return page_; }
+    // Next up row: empty title shows "Nothing needs you".
+    void SetNextUp(const std::string& title, const std::string& state, uint32_t state_color);
 
     void SetHeard(const char* text);
     // reply: Application::GetReplyCount() when the text arrived; a new value starts a new reply.
@@ -31,21 +38,26 @@ public:
     void ApplyFonts();
 
 #if WEIXUE_FACE_DIAG
-    // Replays swipe left, Approve tap, Deny tap and swipe right through a virtual pointer every
-    // kReplayPeriodMs, starting kReplayStartMs after the call.
+    // Replays swipe left, swipe up (page 2), swipe down (page 1) and swipe right through a virtual
+    // pointer every kReplayPeriodMs, starting kReplayStartMs after the call.
     void StartTouchReplay();
 #endif
 
 private:
-    enum class CardState : uint8_t { kPending, kSending, kSent, kFailed };
-
     int32_t width_;
     const lv_font_t* icon_font_;
     std::function<void(bool)> on_cover_;
+    std::function<void()> on_open_next_;
     bool shown_ = false;
+    int page_ = 0;
 
     lv_obj_t* root_ = nullptr;
+    lv_obj_t* page1_ = nullptr;
     lv_obj_t* content_ = nullptr;
+    lv_obj_t* dots_[2] = {nullptr, nullptr};
+    lv_obj_t* next_title_ = nullptr;
+    lv_obj_t* next_state_ = nullptr;
+    lv_obj_t* next_open_ = nullptr;
     lv_obj_t* wifi_icon_ = nullptr;
     lv_obj_t* wifi_value_ = nullptr;
     lv_obj_t* battery_icon_ = nullptr;
@@ -54,33 +66,21 @@ private:
     lv_obj_t* backend_value_ = nullptr;
     lv_obj_t* heard_text_ = nullptr;
     lv_obj_t* reply_text_ = nullptr;
-    lv_obj_t* card_ = nullptr;
-    lv_obj_t* card_status_ = nullptr;
-    lv_obj_t* buttons_[2] = {nullptr, nullptr};
     lv_timer_t* refresh_timer_ = nullptr;
-    lv_timer_t* rearm_timer_ = nullptr;
 
     static constexpr size_t kMaxReplyBytes = 240;
     ReplyText reply_{kMaxReplyBytes};
-    CardState card_state_ = CardState::kPending;
-    uint32_t event_seq_ = 0;
-    int decision_ = 0;
 
     lv_obj_t* Row(int32_t y);
     lv_obj_t* Label(lv_obj_t* parent, const char* text, uint32_t color, const lv_font_t* font);
-    lv_obj_t* Chip(lv_obj_t* parent, const char* zh, const char* en);
-    lv_obj_t* Button(lv_obj_t* parent, const char* zh, const char* en, uint32_t color);
-    void BuildCard();
+    void BuildNextUp();
     void Refresh();
     void SetText(lv_obj_t* label, const char* text);
-    void SetCardState(CardState state);
-    void OnDecision(int button);
 
     static void SlideCb(void* var, int32_t value);
     static void SlideDoneCb(lv_anim_t* anim);
     static void RefreshCb(lv_timer_t* timer);
-    static void RearmCb(lv_timer_t* timer);
-    static void ButtonCb(lv_event_t* e);
+    static void OpenCb(lv_event_t* e);
 
 #if WEIXUE_FACE_DIAG
     lv_indev_t* replay_indev_ = nullptr;

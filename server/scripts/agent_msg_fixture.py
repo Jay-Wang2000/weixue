@@ -7,7 +7,9 @@ device responses per item (docs/agent-protocol.md, Fixture).
 Scenarios: states (every state, card-only, all tiers), approval, clarify, unread (ack_seen),
 burst (duplicate, stale and oversize items), seed + drop (snapshot after a board reset),
 busy (WHEN_IDLE speech queued while a session is open), spoken (INTERRUPT and WHEN_IDLE speech),
-view (the gateway's deliveries view). Output is JSON lines; --log appends them to a file."""
+view (the gateway's deliveries view), ui (the device UI tour: three chats with titles, progress,
+a countdown approval, a 3-option question, an irreversible approval, unread, failed and stopped
+results, --gap seconds apart; card-only). Output is JSON lines; --log appends them to a file."""
 import argparse
 import json
 import os
@@ -104,9 +106,9 @@ class Fixture:
         return f"t_{self.prefix}_{name}"
 
 
-def item(fx, task, state, tier, summary, **extra):
-    fields = {"chat_id": f"c_{fx.prefix}", "task_id": fx.task(task), "state": state, "summary": summary,
-              "delivery": tier, "speaks": False}
+def item(fx, task, state, tier, summary, chat=None, **extra):
+    fields = {"chat_id": f"c_{fx.prefix}{'_' + chat if chat else ''}", "task_id": fx.task(task), "state": state,
+              "summary": summary, "delivery": tier, "speaks": False}
     fields.update(extra)
     return fields
 
@@ -204,13 +206,45 @@ def spoken(fx, args):
     fx.report(records, args.wait, final=True)
 
 
+def ui(fx, args):
+    """Device UI tour: every face state, both cards, the management rows and three chats."""
+    approve = [{"id": "approve", "label": "Approve"}, {"id": "deny", "label": "Deny"}]
+    plan = [
+        item(fx, "sun", "working", "silent", "Making the sunset automation", chat="home", title="Sunset lights",
+             progress={"step": 1, "total": 5}),
+        item(fx, "sun", "working", "silent", "Editing automations.yaml", chat="home", title="Sunset lights",
+             progress={"step": 2, "total": 5}),
+        item(fx, "hw", "working", "silent", "Checking the homework list", chat="kids", title="Kids' homework"),
+        item(fx, "lr", "needs_approval", "when_idle", "Turn on living room lights", chat="home",
+             title="Living room lights", card_id=f"i_{fx.prefix}_lr", risk="reversible", timeout_s=300,
+             options=approve),
+        item(fx, "tidy", "needs_input", "when_idle", "Which room should I start with?", chat="home",
+             title="Evening tidy-up", card_id=f"i_{fx.prefix}_tidy",
+             options=[{"id": "kitchen", "label": "Kitchen"}, {"id": "bedroom", "label": "Bedroom"},
+                      {"id": "hall", "label": "Hallway"}]),
+        item(fx, "door", "needs_approval", "silent", "Unlock the front door", chat="home", title="Front door",
+             card_id=f"i_{fx.prefix}_door", risk="irreversible", timeout_s=120, options=approve),
+        item(fx, "hw", "unread", "when_idle", "Homework list is ready", chat="kids", title="Kids' homework",
+             seen=False),
+        item(fx, "wr", "unread", "silent", "Weekly report is ready", chat="report", title="Weekly report", seen=False),
+        item(fx, "meter", "failed", "when_idle", "Meter API timed out", chat="report", title="Energy report",
+             seen=False),
+        item(fx, "fan", "stopped", "silent", "Stopped", chat="home", title="Fan schedule", seen=False),
+    ]
+    records = []
+    for it in plan:
+        records += fx.send([it])["items"]
+        time.sleep(args.gap)
+    fx.report(records, args.wait)
+
+
 def view(fx, _args):
     out = fx.view()
     fx.emit("view", device=out["devices"].get(fx.device), acks=out["acks"][-20:], responses=out["responses"][-10:],
             speeches=out["speeches"][-5:])
 
 
-SCENARIOS = {f.__name__: f for f in (states, approval, clarify, unread, burst, seed, drop, busy, spoken, view)}
+SCENARIOS = {f.__name__: f for f in (states, approval, clarify, unread, burst, seed, drop, busy, spoken, ui, view)}
 
 
 def main(argv=None):

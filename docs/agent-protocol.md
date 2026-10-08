@@ -83,7 +83,7 @@ At most 8 tasks; the current task per chat follows its latest item. An item appl
 
 | Ack | Sent | Gateway outcome |
 |---|---|---|
-| `shown` (`ack_upto`) | in session, 200 ms after an apply; idle devices ack through the next poll's header | `shown` |
+| `shown` (`ack_upto`) | in session, 200 ms after the UI drew the applied store; idle devices ack through the next poll's header | `shown` |
 | `played complete` | `tts stop` arrived and playback drained | `played` |
 | `played` cut | abort (wake, tap, IMU), mute, channel close before drain, new `tts start` with another `sentence_id`, `tts start` refused while muted | `cut_off` |
 | none within 30 s of playback end | — | `lost` |
@@ -98,7 +98,7 @@ The device outbox holds 8 entries in RAM and retries a send that did not reach t
 - **Push.** Items go at once to the newest live agent session; unacked items are resent after 3 s, up to 4 sends, then a snapshot is due.
 - **Poll.** Batches unacked items within the poll budget; a seq-0 poll or a drop makes the next poll a snapshot (mirror then `agent_sync`). The held poll answers as soon as agent items are pending.
 - **Speech.** A spoken item becomes a proactive `announce` (`urgent` = `interrupt`, `Idempotency-Key` `<delivery_id>:<attempt>`), so WHEN_IDLE speech waits for the device to be idle. Its tts frames carry `sentence_id` and `ack:true`, and the session is held until `played`, 8 s after `tts stop`, or close. `failed` before audio is resubmitted (3 attempts); `expired` is `dropped`.
-- **Responses.** `approve`/`deny`/`answer` whose `card_id` is not the mirrored task's current card are dropped (`… stale … dropped`); a task the gateway does not mirror is forwarded. The rest are logged as `agent response …`; in live mode posted to agent-service with `Idempotency-Key = uuid5(device:boot:seq)`: `approve`/`deny`/`answer` to the chat's routes (chat id URL-quoted), `cancel` to `interrupt{reason:"panel"}`, `switch_chat`/`new_chat`/`ack_seen` to the chat routes.
+- **Responses.** `approve`/`deny`/`answer` whose `card_id` is not the mirrored task's current card are dropped (`… stale … dropped`); a task the gateway does not mirror is forwarded. One decision per card: the first `approve`/`deny`/`answer` for a `card_id` (per device, last 1024 cards) wins, and any later one, a device retry with a new `seq` included, is dropped (`… duplicate decision … dropped`). The rest are logged as `agent response …`; in live mode posted to agent-service with `Idempotency-Key = uuid5(device:boot:seq)`: `approve`/`deny`/`answer` to the chat's routes (chat id URL-quoted), `cancel` to `interrupt{reason:"panel"}`, `switch_chat`/`new_chat`/`ack_seen` to the chat routes.
 - **Persistence.** Acks are logged (`agent ack <outcome> …`), kept at `GET /weixue/agent/deliveries`, and in live mode posted to `POST /v1/deliveries/{id}/ack`; the gateway writes no database.
 
 ## Fixture
@@ -107,4 +107,4 @@ The device outbox holds 8 entries in RAM and retries a send that did not reach t
 WEIXUE_PROACTIVE_TOKEN=... server/scripts/agent_msg_fixture.py --base http://<host>:8003 --device <mac> <scenario>
 ```
 
-Scenarios: `states`, `approval`, `clarify`, `unread`, `burst`, `seed` + `drop`, `busy`, `spoken`, `view`. A `WEIXUE_AGENT_LOOPBACK=1 firmware/build.sh` build answers `debug_reply` 2 s after an item applies (`via:"loopback"`) and plays at output volume 0 for that boot; release builds ignore `debug_reply`. Once the device answered an item, snapshots, polls and resends carry it without `debug_reply`, so a rebooted loopback build does not answer twice. `server/scripts/agent_sim_device.py` plays the device side without hardware.
+Scenarios: `states`, `approval`, `clarify`, `unread`, `burst`, `seed` + `drop`, `busy`, `spoken`, `ui` (the device UI tour across three chats), `view`. A `WEIXUE_AGENT_LOOPBACK=1 firmware/build.sh` build answers `debug_reply` 2 s after an item applies (`via:"loopback"`) and plays at output volume 0 for that boot; release builds ignore `debug_reply`. Once the device answered an item, snapshots, polls and resends carry it without `debug_reply`, so a rebooted loopback build does not answer twice. `server/scripts/agent_sim_device.py` plays the device side without hardware.

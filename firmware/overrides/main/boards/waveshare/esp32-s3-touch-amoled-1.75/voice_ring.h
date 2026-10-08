@@ -4,16 +4,35 @@
 #include <cmath>
 #include <cstdint>
 
-// What the voice-state ring shows. Angles are degrees clockwise from 3 o'clock. kSolid is the
-// whole ring in one colour; kSpin is a kSpinSpanDeg arc ending at head_deg whose opacity and
-// colour fade from the head (color) to the tail (tail_color) in kSpinSteps steps.
+// One arc of a kArcs ring: start and span in degrees clockwise from 3 o'clock.
+struct RingArc {
+    int16_t start = 0;
+    int16_t span = 0;
+    uint32_t color = 0;
+    uint8_t opa = 0;
+    bool rounded = false;
+
+    bool operator==(const RingArc& o) const {
+        return start == o.start && span == o.span && color == o.color && opa == o.opa &&
+               rounded == o.rounded;
+    }
+    bool operator!=(const RingArc& o) const { return !(*this == o); }
+};
+
+// What the ring shows. Angles are degrees clockwise from 3 o'clock. kSolid is the whole ring in
+// one colour; kSpin is a kSpinSpanDeg arc ending at head_deg whose opacity and colour fade from
+// the head (color) to the tail (tail_color) in kSpinSteps steps; kArcs is up to kMaxArcs separate
+// arcs (agent cues), drawn in order.
 struct RingState {
-    enum class Style : uint8_t { kOff, kSolid, kSpin };
+    enum class Style : uint8_t { kOff, kSolid, kSpin, kArcs };
 
     static constexpr int kTiles = 20;
     static constexpr int kTileDeg = 360 / kTiles;
     static constexpr int kSpinSpanDeg = 120;
     static constexpr int kSpinSteps = 12;
+    static constexpr int kMaxArcs = 5;
+    // A rounded cap reaches about half the band width past the arc's end.
+    static constexpr int kCapDeg = 2;
 
     Style style = Style::kOff;
     uint8_t opa = 0;
@@ -21,10 +40,22 @@ struct RingState {
     int16_t head_deg = 0;
     uint32_t color = 0;
     uint32_t tail_color = 0;
+    uint8_t n_arcs = 0;
+    RingArc arcs[kMaxArcs];
 
     bool operator==(const RingState& o) const {
-        return style == o.style && opa == o.opa && width == o.width && head_deg == o.head_deg &&
-               color == o.color && tail_color == o.tail_color;
+        if (style != o.style || opa != o.opa || width != o.width || head_deg != o.head_deg ||
+            color != o.color || tail_color != o.tail_color || n_arcs != o.n_arcs) {
+            return false;
+        }
+        for (int i = 0; i < n_arcs; i++) {
+            if (arcs[i] != o.arcs[i]) return false;
+        }
+        return true;
+    }
+
+    void AddArc(const RingArc& a) {
+        if (n_arcs < kMaxArcs && a.span > 0 && a.opa > 0) arcs[n_arcs++] = a;
     }
     bool operator!=(const RingState& o) const { return !(*this == o); }
 
@@ -38,6 +69,19 @@ struct RingState {
 
     // The part of this state drawn inside one tile; a tile whose view is unchanged needs no redraw.
     RingState TileView(int tile) const {
+        if (style == Style::kArcs) {
+            RingState view;
+            view.style = Style::kArcs;
+            view.width = width;
+            for (int i = 0; i < n_arcs; i++) {
+                const RingArc& a = arcs[i];
+                int pad = a.rounded ? kCapDeg : 0;
+                if (ArcsOverlap(tile * kTileDeg, kTileDeg, a.start - pad, a.span + 2 * pad)) {
+                    view.AddArc(a);
+                }
+            }
+            return view.n_arcs == 0 ? RingState() : view;
+        }
         if (style == Style::kOff || opa == 0 ||
             (style == Style::kSpin &&
              !ArcsOverlap(tile * kTileDeg, kTileDeg, head_deg - kSpinSpanDeg, kSpinSpanDeg))) {
