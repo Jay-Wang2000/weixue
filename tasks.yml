@@ -243,7 +243,7 @@ tasks:
     description: |
       DESIGN.md M2 feat-ui-agent-states，按设计稿 ~/Projects/research/reports/weixue-agent-ui-v1.md（final-*.svg 为版式真值）：空闲态的四种 agent 状态表现、整屏审批卡与澄清卡（按钮 + 语音作答经 response 回传；语音能否批准待 brief Q1，决定前语音只可拒绝/取消）、任务芯片；任务列表、chats 切换与 HA 状态/审批同在现有横滑的单一管理视图内（决定 27，无左滑任务列表、无上滑列表）、三档投递 INTERRUPT|WHEN_IDLE|SILENT 的呈现；烧屏预算与手势不冲突。实机端到端：四态可辨、卡片按钮与语音都能应答（音频部分在家）。
     depends_on: [feat-protocol-agent-msg, feat-ui-panel]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: feat-agent-monitor

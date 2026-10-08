@@ -83,6 +83,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 ## Device note 2026-10-08 morning
 - The board is not on USB (no /dev/cu.usbmodem*), so on-device checks (protocol loopback run, device reconciliation flash of main) wait until it is plugged back in.
 
+45. **Card resend rule** — orchestrator-level (our stack): after "Not sent", only the control the user first chose can resend; switching to the other answer on that card is blocked because a cancelled send may still arrive; the gateway keeps first-wins per card. Accepted.
+
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
 - Audio-only checks from fix-server-review-2 (barge-in / TTS cancel) and fix-wave3-server (announce playback, urgent conversation, wake cue → "Yes" for every cue, long reply with 0 self-aborts): run at home via the feat-voice-integration gate. Everything else passed in the 2026-10-07 live step.
