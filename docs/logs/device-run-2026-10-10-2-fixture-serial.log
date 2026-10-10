@@ -1,0 +1,1449 @@
+# step 2: fixture runs, capture 1 (ui, states, approval, clarify, burst; board reset by port open at the start)
+# source: serial_log.py
+
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40382d5a
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x544
+load:0x403c8700,len:0xd14
+load:0x403cb700,len:0x2eb4
+entry 0x403c88f4
+I (34) octal_psram: vendor id    : 0x0d (AP)
+I (34) octal_psram: dev id       : 0x02 (generation 3)
+I (34) octal_psram: density      : 0x03 (64 Mbit)
+I (36) octal_psram: good-die     : 0x01 (Pass)
+I (40) octal_psram: Latency      : 0x01 (Fixed)
+I (44) octal_psram: VCC          : 0x01 (3V)
+I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (67) octal_psram: DriveStrength: 0x00 (1/1)
+I (71) MSPI Timing: Enter psram timing tuning
+I (76) esp_psram: Found 8MB PSRAM device
+I (79) esp_psram: Speed: 80MHz
+I (82) cpu_start: Multicore app
+I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (96) cpu_start: Pro cpu start user code
+I (96) cpu_start: cpu freq: 240000000 Hz
+I (98) app_init: Application information:
+I (102) app_init: Project name:     xiaozhi
+I (106) app_init: App version:      2.5.1
+I (109) app_init: Compile time:     Oct  7 2026 05:42:06
+I (114) app_init: ELF file SHA256:  5637fb8a3...
+I (119) app_init: ESP-IDF:          v6.1
+I (122) efuse_init: Min chip rev:     v0.0
+I (126) efuse_init: Max chip rev:     v0.99 
+I (130) efuse_init: Chip rev:         v0.2
+I (134) heap_init: Initializing. RAM available for dynamic allocation:
+I (140) heap_init: At 3FCAB4A0 len 0003E270 (248 KiB): RAM
+I (145) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+I (161) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (168) spi_flash: detected chip: gd
+I (171) spi_flash: flash io: qio
+I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (180) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (187) main_task: Started on CPU0
+I (187) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+I (197) main_task: Calling app_main()
+I (367) Board: UUID=<UUID> SKU=esp32-s3-touch-amoled-1.75c-weixue
+I (367) button: IoT Button Version: 4.2.1
+I (367) PowerSaveTimer: Power save timer enabled
+I (367) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+I (377) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+W (387) spi_common: GPIO 0 is conflict with others and be overwritten
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+I (407) co5300: version: 2.2.0
+I (407) co5300_spi: LCD panel create success, version: 2.2.0
+W (577) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+I (1777) Display: Power management not supported
+I (1857) LcdDisplay: Turning display on
+I (1857) LcdDisplay: Initialize LVGL library
+I (1857) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+I (1857) LcdDisplay: Use 2MB of PSRAM for image cache
+I (1867) LcdDisplay: Initialize LVGL port
+I (1867) LcdDisplay: Adding LCD display
+I (1867) LVGL: Starting LVGL task
+I (1877) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+I (1877) Backlight: Set brightness to 75
+I (1887) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+I (1957) CST9217: Checkcode: 0x204ECACA
+I (1957) CST9217: Resolution X: 466, Y: 466
+I (1957) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+I (1957) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+I (1957) Qmi8658: QMI8658 found at 0x6B
+I (1987) Qmi8658: Reset result 0x80
+I (2007) MCP: Add tool: self.system.reconfigure_wifi
+I (2007) MCP: Add tool: self.screen.set_bedside
+I (2007) MCP: Add tool: self.imu.get_state
+I (2007) StateMachine: State: unknown -> starting
+I (2007) Application: Clock: stored TZ IST-1GMT0,M10.5.0,M3.5.0/1
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.178 y=-0.563 z=0.805 g
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+I (2077) MonitorPanel: page=1
+I (2167) Assets: The storage free size is 21568 KB
+I (2167) Assets: The assets map size is 4224 KB (partition 16384 KB)
+I (2407) Assets: The checksum calculation time is 245 ms
+I (2417) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+I (2417) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 382 ms without a sample (2)
+W (2517) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+I (2517) BoxAudioCodec: Duplex channels created
+I (2527) ES8311: Work in Slave mode
+I (2537) ES7210: Work in Slave mode
+I (2547) ES7210: Enable ES7210_INPUT_MIC1
+I (2547) ES7210: Enable ES7210_INPUT_MIC2
+I (2547) ES7210: Enable ES7210_INPUT_MIC3
+I (2557) ES7210: Enable ES7210_INPUT_MIC4
+I (2557) ES7210: Enable TDM mode
+I (2557) BoxAudioCodec: BoxAudioDevice initialized
+I (2557) AudioCodec: Audio codec started
+I (2567) Application: After board/audio init
+I (2567) SystemInfo: free sram: 187383 minimal sram: 85856
+I (2567) AudioCodec: Set output volume to 0
+W (2577) WeixueAgent: agent: loopback build, answers debug_reply after 2 s; output volume 0 (stored 100 kept)
+I (2577) WeixueAgent: agent: protocol v1, boot 3419484792
+I (2587) MCP: Add tool: self.get_device_status
+I (2587) MCP: Add tool: self.audio_speaker.set_volume
+I (2597) MCP: Add tool: self.screen.set_brightness
+I (2597) MCP: Add tool: self.screen.set_theme
+I (2607) MCP: Add tool: self.get_system_info [user]
+I (2607) MCP: Add tool: self.reboot [user]
+I (2617) MCP: Add tool: self.upgrade_firmware [user]
+I (2617) MCP: Add tool: self.screen.get_info [user]
+I (2617) MCP: Add tool: self.screen.snapshot [user]
+I (2627) MCP: Add tool: self.screen.preview_image [user]
+I (2627) MCP: Add tool: self.assets.set_download_url [user]
+I (2637) WifiManager: Initializing...
+I (2637) pp: pp rom version: e7ae62f
+I (2647) net80211: net80211 rom version: e7ae62f
+I (2657) wifi:wifi driver task: 3fce3d88, prio:23, stack:6656, core=0
+I (2657) wifi:wifi firmware version: e12a754
+I (2657) wifi:wifi certification version: v7.0
+I (2657) wifi:config NVS flash: disabled
+I (2667) wifi:config nano formatting: disabled
+I (2667) wifi:Init data frame dynamic rx buffer num: 6
+I (2677) wifi:Init dynamic rx mgmt buffer num: 5
+I (2677) wifi:Init management short buffer num: 32
+I (2687) wifi:Init dynamic tx buffer num: 32
+I (2687) wifi:Init static tx FG buffer num: 2
+I (2687) wifi:Init static rx buffer size: 1600
+I (2697) wifi:Init static rx buffer num: 3
+I (2697) wifi:Init dynamic rx buffer num: 6
+I (2707) wifi_init: rx ba win: 3
+I (2707) wifi_init: accept mbox: 6
+I (2707) wifi_init: tcpip mbox: 16
+I (2717) wifi_init: udp mbox: 6
+I (2717) wifi_init: tcp mbox: 6
+I (2717) wifi_init: tcp tx win: 5760
+I (2717) wifi_init: tcp rx win: 5760
+I (2727) wifi_init: tcp mss: 1440
+I (2727) WifiManager: Initialized
+I (2737) WifiBoard: Starting WiFi connection attempt
+I (2737) WifiManager: Starting station
+I (2737) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+I (2747) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (2787) wifi:mode : sta (<MAC>)
+I (2787) wifi:enable tsf
+I (2787) WifiStation: Scanning saved channel 6
+I (2787) WifiBoard: WiFi scanning
+I (2907) WifiStation: Found AP: <SSID>, BSSID: <MAC>, RSSI: -81, Channel: 6, Authmode: 3
+I (2907) WifiBoard: WiFi connecting to <SSID>
+W (2917) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+I (2977) wifi:new:<6,1>, old:<1,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+I (2977) wifi:state: init -> auth (0xb0)
+I (2987) wifi:state: auth -> init (0x8a0)
+I (2987) wifi:new:<6,0>, old:<6,1>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+I (2997) wifi:new:<6,1>, old:<6,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+I (2997) wifi:state: init -> auth (0xb0)
+I (3007) wifi:state: auth -> assoc (0x0)
+I (3017) wifi:state: assoc -> run (0x10)
+I (3037) wifi:connected with <SSID>, aid = 5, channel 6, 40U, bssid = <MAC>
+I (3047) wifi:security: WPA2-PSK, phy: bgn, rssi: -80, cipher(pairwise:0x3, group:0x3), pmf:0
+I (3047) wifi:pm start, type: 1
+
+I (3047) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+I (3057) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (3077) wifi:<ba-add>idx:0 (ifx:0, <MAC>), tid:7, ssn:0, winSize:64
+I (3237) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (3247) wifi:<ba-add>idx:1 (ifx:0, <MAC>), tid:0, ssn:0, winSize:64
+I (4107) esp_netif_handlers: sta ip: <IP>, mask: <IP>, gw: <IP>
+I (4107) WifiStation: Got IP: <IP>
+I (4107) WifiBoard: Connected to WiFi: <SSID>
+I (4107) Application: Network connected
+I (4107) StateMachine: State: starting -> activating
+I (4117) MODEL_LOADER: Successfully load srmodels
+I (4137) Assets: Refreshing display theme...
+I (4167) Ota: Current version: 2.5.1
+I (4167) EspTcp: Resolved <IP> -> <IP>
+I (4707) HttpClient: Established new connection to <IP>:8003 protocol=http cost=540
+E (5217) EspTcp: TCP receive failed: -1
+I (5217) HttpClient: HTTP connection closed
+I (5217) Ota: No mqtt section found !
+I (5217) Ota: Clock: TZ IST-1GMT0,M10.5.0,M3.5.0/1, UTC offset +60 min (January +0, July +60)
+I (5227) Ota: Current is the latest version
+I (5227) Ota: Running partition: ota_0
+I (5227) Application: Activation done
+I (5237) SystemInfo: free sram: 140199 minimal sram: 39812
+I (5237) StateMachine: State: activating -> idle
+I (5247) Application: Proactive poller: http://<IP>:8003/<path>
+I (5247) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (5247) EspTcp: Resolved <IP> -> <IP>
+I (5257) wifi:Set ps type: 2, coexist: 0
+
+I (5267) AfeAudioEngine: Model 0: wn9_jarvis_tts
+I (5267) WakeWordCache: Allocated 64000 bytes in PSRAM
+I (5277) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+I (5277) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+I (5287) AfeAudioEngine: Before AFE create: free=133999 min=39812 largest=90112
+MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+I (5387) AFE: AFE Version: (1MIC_V251128)
+I (5387) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (5397) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+I (5407) AFE: AFE Version: (1MIC_V251128)
+I (5407) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (5417) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+I (5427) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+I (5427) AfeAudioEngine: After AFE create: free=113267 min=33468 largest=69632
+I (5437) I2S_IF: Paired data: 0x3fcd4e08, current mode: playback, paired in_enable: 0, paired out_enable: 0
+I (5447) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+I (5457) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (5477) Adev_Codec: Open codec device OK
+I (5477) AudioCodec: Set output enable to true
+I (5477) WeixueAgent: agent: chat=c_214534_home task=t_214534_sun state=working seq=1791665134531 tier=silent speaks=0 result=applied via=poll
+I (5477) AudioService: Resampling audio from 16000 to 24000
+I (5487) WeixueAgent: agent: sync seq=1791665137335 listed=1 dropped=0 tasks=1 via=poll
+I (5487) I2S_IF: Peer mode playback need extend bits 32 to 64
+I (5487) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 208 ms without a sample (3)
+I (5517) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+I (5527) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (5527) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+I (5537) FaceDisplay: agent ui: task=t_214534_sun state=working tier=silent flash=0 earcon=none
+I (5537) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (5547) FaceDisplay: ring=progress bedside=0
+I (5557) ES7210: Bits 16
+I (5567) ES7210: Enable ES7210_INPUT_MIC1
+I (5567) ES7210: Enable ES7210_INPUT_MIC2
+I (5577) ES7210: Enable ES7210_INPUT_MIC3
+I (5577) ES7210: Enable ES7210_INPUT_MIC4
+I (5577) ES7210: Enable TDM mode
+I (5587) ES7210: Unmuted
+I (5587) Adev_Codec: Open codec device OK
+I (5587) AudioCodec: Set input enable to true
+I (5707) EspTcp: Resolved <IP> -> <IP>
+I (5707) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (6537) WeixueAgent: agent: chat=c_214534_home task=t_214534_sun state=working seq=1791665138541 tier=silent speaks=0 result=applied via=poll
+I (6737) EspTcp: Resolved <IP> -> <IP>
+I (6737) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (6907) FaceDisplay: agent ui: pose=mini top=t_214534_sun
+I (11337) WeixueAgent: agent: chat=c_214534_kids task=t_214534_hw state=working seq=1791665142554 tier=silent speaks=0 result=applied via=poll
+I (11437) FaceDisplay: agent ui: task=t_214534_hw state=working tier=silent flash=0 earcon=none
+I (11537) EspTcp: Resolved <IP> -> <IP>
+I (11547) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (14587) SystemInfo: free sram: 117255 minimal sram: 33468
+I (14717) WeixueAgent: agent: chat=c_214534_home task=t_214534_lr state=needs_approval seq=1791665146569 tier=when_idle speaks=0 result=applied via=poll
+I (14817) FaceDisplay: agent ui: task=t_214534_lr state=needs_approval tier=when_idle flash=2 earcon=needs_you
+I (14817) FaceDisplay: earcon=needs_you
+I (14837) FaceDisplay: agent ui: card open task=t_214534_lr
+I (14837) FaceDisplay: agent ui: pose=full top=t_214534_lr
+I (14837) FaceDisplay: ring=flash bedside=0
+I (14927) EspTcp: Resolved <IP> -> <IP>
+I (14937) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (15227) FaceDisplay: ring=off bedside=0
+I (15417) FaceDisplay: ring=flash bedside=0
+I (15807) FaceDisplay: ring=off bedside=0
+I (16057) FaceDisplay: ring=ears bedside=0
+I (18547) WeixueAgent: agent: chat=c_214534_home task=t_214534_tidy state=needs_input seq=1791665150585 tier=when_idle speaks=0 result=applied via=poll
+I (18567) FaceDisplay: agent ui: task=t_214534_tidy state=needs_input tier=when_idle flash=2 earcon=needs_you
+I (18567) FaceDisplay: earcon=needs_you
+I (18587) FaceDisplay: ring=flash bedside=0
+I (18757) EspTcp: Resolved <IP> -> <IP>
+I (18767) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (18977) FaceDisplay: ring=off bedside=0
+I (19227) FaceDisplay: ring=flash bedside=0
+I (19477) FaceDisplay: ring=off bedside=0
+I (19797) FaceDisplay: ring=ears bedside=0
+I (23107) WeixueAgent: agent: chat=c_214534_home task=t_214534_door state=needs_approval seq=1791665154594 tier=silent speaks=0 result=applied via=poll
+I (23157) FaceDisplay: agent ui: task=t_214534_door state=needs_approval tier=silent flash=0 earcon=none
+I (23317) EspTcp: Resolved <IP> -> <IP>
+I (23327) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (24587) SystemInfo: free sram: 116835 minimal sram: 33468
+I (26587) WeixueAgent: agent: chat=c_214534_kids task=t_214534_hw state=unread seq=1791665158607 tier=when_idle speaks=0 result=applied via=poll
+I (26607) FaceDisplay: agent ui: task=t_214534_hw state=unread tier=when_idle flash=2 earcon=done
+I (26607) FaceDisplay: earcon=done
+I (26617) FaceDisplay: ring=flash bedside=0
+I (26797) EspTcp: Resolved <IP> -> <IP>
+I (26807) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (26937) FaceDisplay: ring=off bedside=0
+I (27257) FaceDisplay: ring=flash bedside=0
+I (27527) FaceDisplay: ring=off bedside=0
+I (27837) FaceDisplay: ring=ears bedside=0
+I (30697) WeixueAgent: agent: chat=c_214534_report task=t_214534_wr state=unread seq=1791665162619 tier=silent speaks=0 result=applied via=poll
+I (30697) HttpClient: HTTP connection closed
+I (30717) FaceDisplay: agent ui: task=t_214534_wr state=unread tier=silent flash=0 earcon=none
+I (30897) EspTcp: Resolved <IP> -> <IP>
+I (30897) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (34587) SystemInfo: free sram: 117435 minimal sram: 33468
+I (34887) WeixueAgent: agent: chat=c_214534_report task=t_214534_meter state=failed seq=1791665166635 tier=when_idle speaks=0 result=applied via=poll
+I (34897) FaceDisplay: agent ui: task=t_214534_meter state=failed tier=when_idle flash=1 earcon=none
+I (34897) FaceDisplay: ring=flash bedside=0
+I (35087) EspTcp: Resolved <IP> -> <IP>
+I (35087) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (35217) FaceDisplay: ring=off bedside=0
+I (35537) FaceDisplay: ring=ears bedside=0
+I (40007) Application: Clock: resynced from the backend Date header (was +2 s)
+I (40007) WeixueAgent: agent: chat=c_214534_home task=t_214534_fan state=stopped seq=1791665170649 tier=silent speaks=0 result=applied via=poll
+I (40027) FaceDisplay: agent ui: task=t_214534_fan state=stopped tier=silent flash=0 earcon=none
+I (40217) EspTcp: Resolved <IP> -> <IP>
+I (40227) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (44587) SystemInfo: free sram: 116403 minimal sram: 33468
+I (52607) WeixueAgent: agent: chat=c_214623 task=t_214623_s1 state=working seq=1791665183859 tier=when_idle speaks=0 result=applied via=poll
+I (52627) FaceDisplay: agent ui: task=t_214623_s1 state=working tier=when_idle flash=0 earcon=none
+I (52807) EspTcp: Resolved <IP> -> <IP>
+I (52817) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (54587) SystemInfo: free sram: 117271 minimal sram: 33468
+I (55897) WeixueAgent: agent: chat=c_214623 task=t_214623_s1 state=interrupted seq=1791665186873 tier=silent speaks=0 result=applied via=poll
+I (55957) FaceDisplay: agent ui: task=t_214623_s1 state=interrupted tier=silent flash=0 earcon=none
+I (56097) EspTcp: Resolved <IP> -> <IP>
+I (56107) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (64587) SystemInfo: free sram: 116259 minimal sram: 33468
+I (67967) Application: Clock: resynced from the backend Date header (was +8 s)
+I (67977) WeixueAgent: agent: chat=c_214623 task=t_214623_s1 state=needs_input seq=1791665189883 tier=interrupt speaks=0 result=applied via=poll
+I (67987) FaceDisplay: agent ui: task=t_214623_s1 state=needs_input tier=interrupt flash=3 earcon=needs_you
+I (67987) FaceDisplay: earcon=needs_you
+I (68017) FaceDisplay: ring=flash bedside=0
+I (68177) EspTcp: Resolved <IP> -> <IP>
+I (68187) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (68287) FaceDisplay: ring=off bedside=0
+I (68607) FaceDisplay: ring=flash bedside=0
+I (68917) FaceDisplay: ring=off bedside=0
+I (69237) FaceDisplay: ring=flash bedside=0
+I (69557) FaceDisplay: ring=off bedside=0
+I (69877) FaceDisplay: ring=ears bedside=0
+I (74587) SystemInfo: free sram: 116891 minimal sram: 33468
+I (74847) FaceDisplay: agent ui: card closed
+I (74847) FaceDisplay: agent ui: pose=attentive top=t_214534_door
+I (75057) FaceDisplay: agent ui: card open task=t_214623_s1
+I (75257) FaceDisplay: agent ui: pose=full top=t_214534_door
+I (84587) SystemInfo: free sram: 115943 minimal sram: 33468
+E (90657) EspTcp: TCP receive failed: -1
+I (94587) SystemInfo: free sram: 121511 minimal sram: 33468
+I (104587) SystemInfo: free sram: 120547 minimal sram: 33468
+E (108187) HttpClient: Wait for HTTP headers receive timeout
+W (108187) Application: Proactive poll failed (status 0), retry in 5000 ms
+I (113187) EspTcp: Resolved <IP> -> <IP>
+I (113197) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (114627) SystemInfo: free sram: 115979 minimal sram: 33468
+I (124597) SystemInfo: free sram: 115999 minimal sram: 33468
+I (128367) PowerSaveTimer: Enabling power save mode
+I (128367) Backlight: Set brightness to 20
+I (128417) FaceDisplay: mode=idle mood=sleepy
+I (134587) SystemInfo: free sram: 117139 minimal sram: 33468
+I (135077) FaceDisplay: agent ui: card closed
+I (135257) FaceDisplay: agent ui: pose=attentive top=t_214534_door
+E (136877) EspTcp: TCP receive failed: -1
+I (144587) SystemInfo: free sram: 120939 minimal sram: 33468
+E (153197) HttpClient: Wait for HTTP headers receive timeout
+W (153197) Application: Proactive poll failed (status 0), retry in 10000 ms
+I (154587) SystemInfo: free sram: 121903 minimal sram: 33468
+I (163197) EspTcp: Resolved <IP> -> <IP>
+I (163207) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (164587) SystemInfo: free sram: 116303 minimal sram: 33468
+I (170597) Application: Clock: resynced from the backend Date header (was -4 s)
+I (174587) SystemInfo: free sram: 116527 minimal sram: 33468
+I (184587) SystemInfo: free sram: 115599 minimal sram: 33468
+E (192907) EspTcp: TCP receive failed: -1
+E (192907) HttpClient: Connection closed prematurely, expected 2519 bytes but only received 1260 bytes
+E (192907) HttpClient: Cannot read all data: Server disconnected (server_disconnected)
+I (192917) Application: Proactive message pending (urgent=0)
+I (192927) StateMachine: State: idle -> connecting
+I (192947) PowerSaveTimer: Exiting power save mode
+I (192947) Backlight: Set brightness to 75
+I (192947) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (192947) wifi:Set ps type: 0, coexist: 0
+
+I (192957) WS: Connecting to websocket server: ws://<IP>:8000/<path> with version: 1
+I (192967) EspTcp: Resolved <IP> -> <IP>
+I (193017) WebSocket: WebSocket handshake done, cost=50 tcp=20 handshake=30
+I (193027) WS: Session ID: <UUID>
+I (193027) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (193027) wifi:Set ps type: 0, coexist: 0
+
+W (193037) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (193037) FaceDisplay: mode=listening mood=neutral
+I (193047) Application: Proactive session opened
+I (193057) FaceDisplay: ring=pulse bedside=0
+I (193057) StateMachine: State: connecting -> listening
+I (193297) FaceDisplay: agent ui: pose=full top=t_214534_lr
+I (198267) WeixueAgent: agent: chat=c_214534_home task=t_214534_lr state=needs_approval seq=1791665146569 tier=when_idle speaks=0 result=duplicate via=push
+I (198327) WeixueAgent: agent: chat=c_214534_home task=t_214534_tidy state=needs_input seq=1791665150585 tier=when_idle speaks=0 result=duplicate via=push
+I (198337) WeixueAgent: agent: chat=c_214534_home task=t_214534_door state=needs_approval seq=1791665154594 tier=silent speaks=0 result=duplicate via=push
+I (198347) WeixueAgent: agent: chat=c_214623 task=t_214623_s1 state=unread seq=1791665192901 tier=when_idle speaks=0 result=applied via=push
+I (198357) WeixueAgent: agent: chat=c_214711 task=t_214711_ap state=needs_approval seq=1791665231544 tier=when_idle speaks=0 result=applied via=push
+I (198377) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3419484792,"seq":1,"kind":"shown","ack_upto":1791665189883,"via":"tap"}}
+I (198387) WeixueAgent: agent ack sent: shown upto 1791665189883 (attempt 1)
+I (198397) FaceDisplay: agent ui: task=t_214623_s1 state=unread tier=when_idle flash=2 earcon=done
+I (198407) FaceDisplay: agent ui: task=t_214711_ap state=needs_approval tier=when_idle flash=2 earcon=needs_you
+I (198417) FaceDisplay: earcon=needs_you skipped: device busy or muted
+I (198427) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3419484792,"seq":2,"kind":"shown","ack_upto":1791665231544,"via":"tap"}}
+I (198437) WeixueAgent: agent ack sent: shown upto 1791665231544 (attempt 1)
+I (198477) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 152 ms without a sample (4)
+I (200377) WeixueAgent: agent response: kind=approve chat=c_214711 task=t_214711_ap card=i_214711_ap option=approve via=loopback seq=3
+I (200377) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3419484792,"seq":3,"kind":"approve","chat_id":"c_214711","task_id":"t_214711_ap","card_id":"i_214711_ap","option_id":"approve","via":"loopback"}}
+I (200397) WeixueAgent: agent ack sent: approve t_214711_ap (attempt 1)
+I (200437) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (1)
+I (202617) SystemInfo: free sram: 115895 minimal sram: 33468
+I (202987) WeixueAgent: agent: chat=c_214731 task=t_214731_cl state=needs_input seq=1791665252017 tier=when_idle speaks=0 result=applied via=push
+I (202987) WeixueAgent: agent: chat=c_214752 task=t_214752_b1 state=needs_input seq=1791665277379 tier=silent speaks=0 result=applied via=push
+W (202997) WeixueAgent: agent: dropped frame of 2264 bytes (limit 2048)
+I (202997) WeixueAgent: agent: chat=c_214752 task=t_214752_b2 state=working seq=1791665277380 tier=silent speaks=0 result=applied via=push
+I (203007) WS: Websocket disconnected
+I (203007) FaceDisplay: agent ui: task=t_214731_cl state=needs_input tier=when_idle flash=2 earcon=needs_you
+I (203027) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (203027) FaceDisplay: agent ui: task=t_214752_b1 state=needs_input tier=silent flash=0 earcon=none
+I (203037) wifi:Set ps type: 2, coexist: 0
+
+I (203047) WeixueAgent: agent: sync seq=1791665325065 listed=8 dropped=0 tasks=8 via=push
+I (203057) FaceDisplay: earcon=needs_you skipped: device busy or muted
+I (203067) StateMachine: State: listening -> idle
+I (203067) FaceDisplay: agent ui: task=t_214752_b2 state=working tier=silent flash=0 earcon=none
+I (203077) FaceDisplay: mode=idle mood=neutral
+I (203077) FaceDisplay: ring=flash bedside=0
+I (203317) FaceDisplay: ring=off bedside=0
+I (203677) FaceDisplay: ring=flash bedside=0
+I (203927) EspTcp: Resolved <IP> -> <IP>
+I (203927) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (203937) FaceDisplay: ring=off bedside=0
+I (204237) FaceDisplay: ring=ears bedside=0
+I (204667) FaceDisplay: agent ui: card open task=t_214534_tidy
+I (204987) WeixueAgent: agent response: kind=answer chat=c_214731 task=t_214731_cl card=i_214731_cl option=hall via=loopback seq=4
+I (204987) EspTcp: Resolved <IP> -> <IP>
+I (205587) WebSocket: WebSocket handshake done, cost=600 tcp=10 handshake=590
+E (206117) EspTcp: TCP receive failed: -1
+I (206117) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3419484792,"seq":4,"kind":"answer","chat_id":"c_214731","task_id":"t_214731_cl","card_id":"i_214731_cl","option_id":"hall","via":"loopback"}}
+I (206127) WeixueAgent: agent ack sent: answer t_214731_cl (attempt 1)
+I (212587) SystemInfo: free sram: 112835 minimal sram: 33468
+I (222587) SystemInfo: free sram: 112835 minimal sram: 33468
+I (230387) Application: Clock: resynced from the backend Date header (was -7 s)
+I (231397) EspTcp: Resolved <IP> -> <IP>
+I (231397) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (232587) SystemInfo: free sram: 112827 minimal sram: 33468
+I (242727) SystemInfo: free sram: 112827 minimal sram: 33468
+I (252597) SystemInfo: free sram: 112791 minimal sram: 33468
+I (257797) EspTcp: Resolved <IP> -> <IP>
+I (257807) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (262367) PowerSaveTimer: Enabling power save mode
+I (262367) Backlight: Set brightness to 20
+I (262387) FaceDisplay: mode=idle mood=sleepy
+I (262587) SystemInfo: free sram: 112831 minimal sram: 33468
+I (264717) FaceDisplay: agent ui: card closed
+I (264907) FaceDisplay: agent ui: pose=attentive top=t_214711_ap
+I (272587) SystemInfo: free sram: 112979 minimal sram: 33468
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x421c6354
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x544
+load:0x403c8700,len:0xd14
+load:0x403cb700,len:0x2eb4
+entry 0x403c88f4
+I (34) octal_psram: vendor id    : 0x0d (AP)
+I (34) octal_psram: dev id       : 0x02 (generation 3)
+I (34) octal_psram: density      : 0x03 (64 Mbit)
+I (36) octal_psram: good-die     : 0x01 (Pass)
+I (40) octal_psram: Latency      : 0x01 (Fixed)
+I (44) octal_psram: VCC          : 0x01 (3V)
+I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (67) octal_psram: DriveStrength: 0x00 (1/1)
+I (71) MSPI Timing: Enter psram timing tuning
+I (76) esp_psram: Found 8MB PSRAM device
+I (79) esp_psram: Speed: 80MHz
+I (82) cpu_start: Multicore app
+I (98) app_init: Application information:
+I (106) app_init: App version:      2.5.1
+I (114) app_init: ELF file SHA256:  5637fb8a3...
+I (119) app_init: ESP-IDF:          v6.1
+I (122) efuse_init: Min chip rev:     v0.0
+I (126) efuse_init: Max chip rev:     v0.99 
+I (140) heap_init: At 3FCAB4A0 len 0003E270 (248 KiB): RAM
+I (145) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+allocator
+I (168) spi_flash: detected chip: gd
+I (171) spi_flash: flash io: qio
+I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+figuration
+I (187) main_task: Started on CPU0
+I (187) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+I (197) main_task: Calling app_main()
+I (1777) Display: Power management not supported
+I (2007) MCP: Add tool: self.system.reconfigure_wifi
+I (2007) MCP: Add tool: self.screen.set_bedside
+I (2007) MCP: Add tool: self.imu.get_state
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.169 y=-0.561 z=0.786 g
+I (2167) Assets: The storage free size is 21568 KB
+I (2167) Assets: The assets map size is 4224 KB (partition 16384 KB)
+I (2737) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+I (2787) wifi:mode : sta (<MAC>)
+I (2787) wifi:enable tsf
+I (2907) WifiStation: Found AP: <SSID>, BSSID: <MAC>, RSSI: -84, Channel: 6, Authmode: 3
+W (2907) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+I (3207) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (6647) Ota: Running partition: ota_0
+I (6657) SystemInfo: free sram: 140815 minimal sram: 39812
+I (6657) StateMachine: State: activating -> idle
+I (6667) Application: Proactive poller: http://<IP>:8003/<path>
+I (6697) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (6707) AfeAudioEngine: Model 0: wn9_jarvis_tts
+I (6707) WakeWordCache: Allocated 64000 bytes in PSRAM
+I (6707) AfeAudioEngine: Before AFE create: free=134607 min=39812 largest=90112
+MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+I (6807) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (6827) AFE: AFE Version: (1MIC_V251128)
+I (6827) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (6837) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+result=applied via=poll
+esult=applied via=poll
+I (7987) WeixueAgent: agent: chat=c_214534_home task=t_214534_door state=needs_approval seq=1791665154594 tier=silent speaks=0 rI (8337) EspTcp: Resolved <IP> -> <IP>
+I (8467) FaceDisplay: ring=off bedside=0
+I (8787) FaceDisplay: ring=flash bedside=0
+I (10057) WeixueAgent: agent response: kind=approve chat=c_214711 task=t_214711_ap card=i_214711_ap option=approve via=loopback seq=1
+I (10787) WebSocket: WebSocket handshake done, cost=730 tcp=10 handshake=720
+I (11317) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3431005088,"seq":1,"kind":"approve","chat_id":"c_214711","task_id":"t_214711_ap","card_id":"i_214711_ap","option_I (11327) WeixueAgent: agent ack sent: approve t_214711_ap (attempt 1)
+I (16587) SystemInfo: free sram: 115067 minimal sram: 33468
+I (36587) SystemInfo: free sram: 119199 minimal sram: 33468
+I (37507) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (43107) EspTcp: Resolved <IP> -> <IP>
+E (46247) EspTcp: TCP receive failed: -1
+I (46247) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3431005088,"seq":2,"kind":"ack_seen","chat_id":"c_215053","task_id":"t_215053_ur","via":"loopback"}}
+I (46587) SystemInfo: free sram: 115679 minimal sram: 33468
+
+# capture 2 (reset; view, unread, approval x2 same card, clarify, burst, burst after dropping the mirror)
+# source: 
+
+I (134) heap_init: Initializing. RAM available for dynamic allocation:
+I (161) esp_psram: Adding pool of 8192K of PSRAM memory to heap I (180) sleep_gpio: Enable automatic switching of GPIO sleep conI (377) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+I (407) co5300: version: 2.2.0
+W (577) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+I (1957) CST9217: Checkcode: 0x204ECACA
+I (1957) CST9217: Resolution X: 466, Y: 466
+I (1957) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+I (1957) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+I (1987) Qmi8658: Reset result 0x80
+I (2007) StateMachine: State: unknown -> starting
+I (2007) Application: Clock: stored TZ IST-1GMT0,M10.5.0,M3.5.0/1
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+I (2087) MonitorPanel: page=1
+I (2407) Assets: The checksum calculation time is 245 ms
+I (2417) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 382 ms without a sample (2)
+I (3057) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (3077) wifi:<ba-add>idx:0 (ifx:0, <MAC>), tid:7, ssn:0, winSize:64
+I (3207) wifi:<ba-add>idx:1 (ifx:0, <MAC>), tid:0, ssn:0, winSize:64
+I (4097) WifiStation: Got IP: <IP>
+I (4097) WifiBoard: Connected to WiFi: <SSID>
+I (4127) Assets: Refreshing display theme...
+I (4157) Ota: Current version: 2.5.1
+I (5267) HttpClient: Established new connection to <IP>:8003 protocol=http cost=1110
+I (6967) ES7210: Enable ES7210_INPUT_MIC4
+I (6967) Adev_Codec: Open codec device OK
+I (6977) AudioCodec: Set input enable to true
+I (7967) WeixueAgent: agent: chat=c_214534_home task=t_214534_lr state=needs_approval seq=1791665146569 tier=when_idle speaks=0 I (7967) WeixueAgent: agent: chat=c_214534_home task=t_214534_tidy state=needs_input seq=1791665150585 tier=when_idle speaks=0 rI (8147) FaceDisplay: agent ui: task=t_214752_b2 state=working tier=silent flash=0 earcon=none
+I (8147) FaceDisplay: earcon=needs_you
+I (8187) FaceDisplay: agent ui: card open task=t_214534_lr
+I (8367) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+I (8997) FaceDisplay: ring=off bedside=0
+I (9317) FaceDisplay: ring=ears bedside=0
+I (10057) EspTcp: Resolved <IP> -> <IP>
+I (10077) WeixueAgent: agent: sync seq=1791665422446 listed=8 dropped=0 tasks=8 via=poll
+I (10297) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (26587) SystemInfo: free sram: 115995 minimal sram: 33468
+I (41307) EspTcp: Resolved <IP> -> <IP>
+I (41307) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (43107) WeixueAgent: agent response: kind=ack_seen chat=c_215053 task=t_215053_ur card= option= via=loopback seq=2
+I (45707) WebSocket: WebSocket handshake done, cost=2600 tcp=10 handshake=2590
+I (46267) WeixueAgent: agent ack sent: ack_seen t_215053_ur (attempt 1)
+I (53287) WeixueAgent: agent: chat=c_dd1 task=t_dd1_ap state=needs_approval seq=1791665465872 tier=when_idle speaks=0 result=applied via=poll
+I (53327) FaceDisplay: agent ui: task=t_dd1_ap state=needs_approval tier=when_idle flash=2 earcon=needs_you
+I (53327) FaceDisplay: earcon=needs_you
+I (53327) FaceDisplay: ring=flash bedside=0
+I (53497) EspTcp: Resolved <IP> -> <IP>
+I (53497) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (53637) FaceDisplay: ring=off bedside=0
+I (53987) FaceDisplay: ring=flash bedside=0
+I (54297) FaceDisplay: ring=off bedside=0
+I (54617) FaceDisplay: ring=ears bedside=0
+I (55297) WeixueAgent: agent response: kind=approve chat=c_dd1 task=t_dd1_ap card=i_dd1_ap option=approve via=loopback seq=3
+I (55297) EspTcp: Resolved <IP> -> <IP>
+I (56587) SystemInfo: free sram: 100655 minimal sram: 33468
+I (58407) WebSocket: WebSocket handshake done, cost=3110 tcp=10 handshake=3100
+E (58937) EspTcp: TCP receive failed: -1
+I (58937) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3431005088,"seq":3,"kind":"approve","chat_id":"c_dd1","task_id":"t_dd1_ap","card_id":"i_dd1_ap","option_id":"approve","via":"loopback"}}
+I (58957) WeixueAgent: agent ack sent: approve t_dd1_ap (attempt 1)
+I (66587) SystemInfo: free sram: 114843 minimal sram: 33468
+I (68147) Application: Clock: resynced from the backend Date header (was +8 s)
+I (68147) WeixueAgent: agent: chat=c_dd1 task=t_dd1_ap state=needs_approval seq=1791665472273 tier=when_idle speaks=0 result=applied via=poll
+I (68247) FaceDisplay: agent ui: card closed
+I (68247) FaceDisplay: agent ui: pose=attentive top=t_dd1_ap
+I (68357) EspTcp: Resolved <IP> -> <IP>
+I (68447) FaceDisplay: agent ui: card open task=t_214534_tidy
+I (68627) FaceDisplay: agent ui: pose=full top=t_dd1_ap
+I (70157) WeixueAgent: agent response: kind=approve chat=c_dd1 task=t_dd1_ap card=i_dd1_ap option=approve via=loopback seq=4
+I (70157) EspTcp: Resolved <IP> -> <IP>
+I (70187) HttpClient: Established new connection to <IP>:8003 protocol=http cost=1830
+I (70227) WebSocket: WebSocket handshake done, cost=70 tcp=30 handshake=40
+E (70737) EspTcp: TCP receive failed: -1
+I (70737) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3431005088,"seq":4,"kind":"approve","chat_id":"c_dd1","task_id":"t_dd1_ap","card_id":"i_dd1_ap","option_id":"approve","via":"loopback"}}
+I (70747) WeixueAgent: agent ack sent: approve t_dd1_ap (attempt 1)
+I (71827) Application: Clock: resynced from the backend Date header (was -8 s)
+I (71827) WeixueAgent: agent: chat=c_215123 task=t_215123_cl state=needs_input seq=1791665483555 tier=when_idle speaks=0 result=applied via=poll
+I (71907) FaceDisplay: agent ui: task=t_215123_cl state=needs_input tier=when_idle flash=2 earcon=needs_you
+I (71907) FaceDisplay: earcon=needs_you
+I (71927) FaceDisplay: ring=flash bedside=0
+I (72037) EspTcp: Resolved <IP> -> <IP>
+I (72077) HttpClient: Established new connection to <IP>:8003 protocol=http cost=40
+I (72297) FaceDisplay: ring=off bedside=0
+I (72617) FaceDisplay: ring=flash bedside=0
+I (72837) FaceDisplay: ring=off bedside=0
+I (73157) FaceDisplay: ring=ears bedside=0
+I (73837) WeixueAgent: agent response: kind=answer chat=c_215123 task=t_215123_cl card=i_215123_cl option=hall via=loopback seq=5
+I (73837) EspTcp: Resolved <IP> -> <IP>
+I (73897) WebSocket: WebSocket handshake done, cost=60 tcp=10 handshake=50
+E (74407) EspTcp: TCP receive failed: -1
+I (74407) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3431005088,"seq":5,"kind":"answer","chat_id":"c_215123","task_id":"t_215123_cl","card_id":"i_215123_cl","option_id":"hall","via":"loopback"}}
+I (74427) WeixueAgent: agent ack sent: answer t_215123_cl (attempt 1)
+W (74447) WeixueAgent: agent: dropped poll item of 2236 bytes
+I (74457) HttpClient: HTTP connection closed
+I (74657) EspTcp: Resolved <IP> -> <IP>
+I (74687) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+I (76637) SystemInfo: free sram: 113199 minimal sram: 33468
+I (86607) SystemInfo: free sram: 113235 minimal sram: 33468
+I (96587) SystemInfo: free sram: 113235 minimal sram: 33468
+I (100877) EspTcp: Resolved <IP> -> <IP>
+I (100897) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (106587) SystemInfo: free sram: 114199 minimal sram: 33468
+I (116587) SystemInfo: free sram: 113235 minimal sram: 33468
+I (126607) SystemInfo: free sram: 117039 minimal sram: 33468
+I (127517) EspTcp: Resolved <IP> -> <IP>
+I (127537) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (128467) FaceDisplay: agent ui: card closed
+I (128627) FaceDisplay: agent ui: card open task=t_214711_ap
+I (131367) PowerSaveTimer: Enabling power save mode
+I (131367) Backlight: Set brightness to 20
+I (131387) FaceDisplay: mode=idle mood=sleepy
+I (132657) Application: Clock: resynced from the backend Date header (was -2 s)
+I (132657) WeixueAgent: agent: chat=c_dd1 task=t_dd1_ap state=needs_approval seq=1791665472273 tier=when_idle speaks=0 result=duplicate via=poll
+I (132667) WeixueAgent: agent: sync seq=1791665545297 listed=1 dropped=7 tasks=1 via=poll
+I (132867) EspTcp: Resolved <IP> -> <IP>
+I (132877) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (133687) FaceDisplay: agent ui: card closed
+I (133687) FaceDisplay: agent ui: pose=attentive top=t_dd1_ap
+I (136607) SystemInfo: free sram: 116263 minimal sram: 33468
+I (145977) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=working seq=1791665562554 tier=silent speaks=0 result=applied via=poll
+W (145987) WeixueAgent: agent: dropped poll item of 2236 bytes
+I (145987) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=working seq=1791665562554 tier=silent speaks=0 result=duplicate via=poll
+I (145997) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=needs_input seq=1791665562556 tier=silent speaks=0 result=applied via=poll
+I (146007) FaceDisplay: agent ui: task=t_215237_b1 state=working tier=silent flash=0 earcon=none
+I (146057) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=working seq=1791665562555 tier=silent speaks=0 result=stale via=poll
+I (146067) WeixueAgent: agent: chat=c_215237 task=t_215237_b2 state=working seq=1791665562557 tier=silent speaks=0 result=applied via=poll
+I (146107) FaceDisplay: agent ui: task=t_215237_b1 state=needs_input tier=silent flash=0 earcon=none
+I (146107) FaceDisplay: agent ui: task=t_215237_b2 state=working tier=silent flash=0 earcon=none
+I (146277) EspTcp: Resolved <IP> -> <IP>
+I (146287) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (146587) SystemInfo: free sram: 116139 minimal sram: 33468
+I (156607) SystemInfo: free sram: 115175 minimal sram: 33468
+I (166587) SystemInfo: free sram: 116315 minimal sram: 33468
+I (172567) EspTcp: Resolved <IP> -> <IP>
+I (172577) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (176587) SystemInfo: free sram: 115387 minimal sram: 33468
+I (186587) SystemInfo: free sram: 116563 minimal sram: 33468
+I (196587) SystemInfo: free sram: 116023 minimal sram: 33468
+I (199287) EspTcp: Resolved <IP> -> <IP>
+I (199287) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (206587) SystemInfo: free sram: 116955 minimal sram: 33468
+I (210797) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (1)
+
+# capture 3 (reset: snapshot rebuild; spoken, busy, seed)
+# source: 
+
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIPESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x421c745a
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x544
+load:0x403c8700,len:0xd14
+load:0x403cb700,len:0x2eb4
+entry 0x403c88f4
+I (34) octal_psram: vendor id    : 0x0d (AP)
+I (34) octal_psram: dev id       : 0x02 (generation 3)
+I (34) octal_psram: density      : 0x03 (64 Mbit)
+I (36) octal_psram: good-die     : 0x01 (Pass)
+I (40) octal_psram: Latency      : 0x01 (Fixed)
+I (44) octal_psram: VCC          : 0x01 (3V)
+I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (67) octal_psram: DriveStrength: 0x00 (1/1)
+I (71) MSPI Timing: Enter psram timing tuning
+I (76) esp_psram: Found 8MB PSRAM device
+I (79) esp_psram: Speed: 80MHz
+I (82) cpu_start: Multicore app
+I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (96) cpu_start: Pro cpu start user code
+I (96) cpu_start: cpu freq: 240000000 Hz
+I (98) app_init: Application information:
+I (102) app_init: Project name:     xiaozhi
+I (106) app_init: App version:      2.5.1
+I (109) app_init: Compile time:     Oct  7 2026 05:42:06
+I (114) app_init: ELF file SHA256:  5637fb8a3...
+I (119) app_init: ESP-IDF:          v6.1
+I (122) efuse_init: Min chip rev:     v0.0
+I (126) efuse_init: Max chip rev:     v0.99 
+I (130) efuse_init: Chip rev:         v0.2
+I (134) heap_init: Initializing. RAM available for dynamic allocation:
+I (140) heap_init: At 3FCAB4A0 len 0003E270 (248 KiB): RAM
+I (145) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+I (161) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (168) spi_flash: detected chip: gd
+I (171) spi_flash: flash io: qio
+I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (180) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (187) main_task: Started on CPU0
+I (187) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+I (197) main_task: Calling app_main()
+I (367) Board: UUID=<UUID> SKU=esp32-s3-touch-amoled-1.75c-weixue
+I (367) button: IoT Button Version: 4.2.1
+I (367) PowerSaveTimer: Power save timer enabled
+I (367) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+I (377) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+W (387) spi_common: GPIO 0 is conflict with others and be overwritten
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+I (407) co5300: version: 2.2.0
+I (407) co5300_spi: LCD panel create success, version: 2.2.0
+W (577) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+I (1777) Display: Power management not supported
+I (1857) LcdDisplay: Turning display on
+I (1857) LcdDisplay: Initialize LVGL library
+I (1857) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+I (1857) LcdDisplay: Use 2MB of PSRAM for image cache
+I (1867) LcdDisplay: Initialize LVGL port
+I (1867) LcdDisplay: Adding LCD display
+I (1867) LVGL: Starting LVGL task
+I (1877) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+I (1877) Backlight: Set brightness to 75
+I (1887) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+I (1957) CST9217: Checkcode: 0x204ECACA
+I (1957) CST9217: Resolution X: 466, Y: 466
+I (1957) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+I (1957) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+I (1957) Qmi8658: QMI8658 found at 0x6B
+I (1987) Qmi8658: Reset result 0x80
+I (2007) MCP: Add tool: self.system.reconfigure_wifi
+I (2007) MCP: Add tool: self.screen.set_bedside
+I (2007) MCP: Add tool: self.imu.get_state
+I (2007) StateMachine: State: unknown -> starting
+I (2007) Application: Clock: stored TZ IST-1GMT0,M10.5.0,M3.5.0/1
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.175 y=-0.565 z=0.809 g
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+I (2077) MonitorPanel: page=1
+I (2167) Assets: The storage free size is 21568 KB
+I (2167) Assets: The assets map size is 4224 KB (partition 16384 KB)
+I (2407) Assets: The checksum calculation time is 245 ms
+I (2417) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+I (2417) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 382 ms without a sample (2)
+W (2517) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+I (2517) BoxAudioCodec: Duplex channels created
+I (2527) ES8311: Work in Slave mode
+I (2537) ES7210: Work in Slave mode
+I (2547) ES7210: Enable ES7210_INPUT_MIC1
+I (2547) ES7210: Enable ES7210_INPUT_MIC2
+I (2547) ES7210: Enable ES7210_INPUT_MIC3
+I (2557) ES7210: Enable ES7210_INPUT_MIC4
+I (2557) ES7210: Enable TDM mode
+I (2557) BoxAudioCodec: BoxAudioDevice initialized
+I (2557) AudioCodec: Audio codec started
+I (2567) Application: After board/audio init
+I (2567) SystemInfo: free sram: 187383 minimal sram: 85856
+I (2567) AudioCodec: Set output volume to 0
+W (2587) WeixueAgent: agent: loopback build, answers debug_reply after 2 s; output volume 0 (stored 100 kept)
+I (2587) WeixueAgent: agent: protocol v1, boot 570998010
+I (2587) MCP: Add tool: self.get_device_status
+I (2587) MCP: Add tool: self.audio_speaker.set_volume
+I (2597) MCP: Add tool: self.screen.set_brightness
+I (2597) MCP: Add tool: self.screen.set_theme
+I (2607) MCP: Add tool: self.get_system_info [user]
+I (2607) MCP: Add tool: self.reboot [user]
+I (2617) MCP: Add tool: self.upgrade_firmware [user]
+I (2617) MCP: Add tool: self.screen.get_info [user]
+I (2627) MCP: Add tool: self.screen.snapshot [user]
+I (2627) MCP: Add tool: self.screen.preview_image [user]
+I (2637) MCP: Add tool: self.assets.set_download_url [user]
+I (2637) WifiManager: Initializing...
+I (2637) pp: pp rom version: e7ae62f
+I (2647) net80211: net80211 rom version: e7ae62f
+I (2657) wifi:wifi driver task: 3fce3d88, prio:23, stack:6656, core=0
+I (2657) wifi:wifi firmware version: e12a754
+I (2657) wifi:wifi certification version: v7.0
+I (2667) wifi:config NVS flash: disabled
+I (2667) wifi:config nano formatting: disabled
+I (2667) wifi:Init data frame dynamic rx buffer num: 6
+I (2677) wifi:Init dynamic rx mgmt buffer num: 5
+I (2677) wifi:Init management short buffer num: 32
+I (2687) wifi:Init dynamic tx buffer num: 32
+I (2687) wifi:Init static tx FG buffer num: 2
+I (2697) wifi:Init static rx buffer size: 1600
+I (2697) wifi:Init static rx buffer num: 3
+I (2697) wifi:Init dynamic rx buffer num: 6
+I (2707) wifi_init: rx ba win: 3
+I (2707) wifi_init: accept mbox: 6
+I (2707) wifi_init: tcpip mbox: 16
+I (2717) wifi_init: udp mbox: 6
+I (2717) wifi_init: tcp mbox: 6
+I (2717) wifi_init: tcp tx win: 5760
+I (2727) wifi_init: tcp rx win: 5760
+I (2727) wifi_init: tcp mss: 1440
+I (2727) WifiManager: Initialized
+I (2737) WifiBoard: Starting WiFi connection attempt
+I (2737) WifiManager: Starting station
+I (2737) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+I (2747) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (2787) wifi:mode : sta (<MAC>)
+I (2787) wifi:enable tsf
+I (2787) WifiStation: Scanning saved channel 6
+I (2787) WifiBoard: WiFi scanning
+I (2907) WifiStation: Found AP: <SSID>, BSSID: <MAC>, RSSI: -80, Channel: 6, Authmode: 3
+I (2907) WifiBoard: WiFi connecting to <SSID>
+W (2907) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+I (2987) wifi:new:<6,1>, old:<1,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+I (2987) wifi:state: init -> auth (0xb0)
+I (2987) wifi:state: auth -> init (0x8a0)
+I (2987) wifi:new:<6,0>, old:<6,1>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+I (2997) wifi:new:<6,1>, old:<6,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+I (3007) wifi:state: init -> auth (0xb0)
+I (3007) wifi:state: auth -> assoc (0x0)
+I (3017) wifi:state: assoc -> run (0x10)
+I (3047) wifi:connected with <SSID>, aid = 5, channel 6, 40U, bssid = <MAC>
+I (3047) wifi:security: WPA2-PSK, phy: bgn, rssi: -80, cipher(pairwise:0x3, group:0x3), pmf:0
+I (3047) wifi:pm start, type: 1
+
+I (3057) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+I (3057) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (3077) wifi:<ba-add>idx:0 (ifx:0, <MAC>), tid:7, ssn:0, winSize:64
+I (3147) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (3177) wifi:<ba-add>idx:1 (ifx:0, <MAC>), tid:0, ssn:0, winSize:64
+I (4127) esp_netif_handlers: sta ip: <IP>, mask: <IP>, gw: <IP>
+I (4127) WifiStation: Got IP: <IP>
+I (4127) WifiBoard: Connected to WiFi: <SSID>
+I (4127) Application: Network connected
+I (4127) StateMachine: State: starting -> activating
+I (4137) MODEL_LOADER: Successfully load srmodels
+I (4157) Assets: Refreshing display theme...
+I (4187) Ota: Current version: 2.5.1
+I (4187) EspTcp: Resolved <IP> -> <IP>
+I (4387) HttpClient: Established new connection to <IP>:8003 protocol=http cost=200
+I (4427) HttpClient: HTTP connection closed
+I (4427) Ota: No mqtt section found !
+I (4427) Ota: Clock: TZ IST-1GMT0,M10.5.0,M3.5.0/1, UTC offset +60 min (January +0, July +60)
+I (4437) Ota: Current is the latest version
+I (4437) Ota: Running partition: ota_0
+I (4447) Application: Activation done
+I (4447) SystemInfo: free sram: 149359 minimal sram: 39812
+I (4447) StateMachine: State: activating -> idle
+I (4457) Application: Proactive poller: http://<IP>:8003/<path>
+I (4457) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (4467) EspTcp: Resolved <IP> -> <IP>
+I (4467) wifi:Set ps type: 2, coexist: 0
+
+I (4487) AfeAudioEngine: Model 0: wn9_jarvis_tts
+I (4487) WakeWordCache: Allocated 64000 bytes in PSRAM
+I (4487) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+I (4487) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (4487) AfeAudioEngine: Before AFE create: free=134151 min=39812 largest=90112
+MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+I (4597) AFE: AFE Version: (1MIC_V251128)
+I (4597) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4607) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+I (4617) AFE: AFE Version: (1MIC_V251128)
+I (4617) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4627) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+I (4637) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+I (4637) AfeAudioEngine: After AFE create: free=111019 min=33468 largest=69632
+I (4647) I2S_IF: Paired data: 0x3fcd4e08, current mode: playback, paired in_enable: 0, paired out_enable: 0
+I (4657) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+I (4667) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4687) Adev_Codec: Open codec device OK
+I (4687) AudioCodec: Set output enable to true
+I (4687) WeixueAgent: agent: chat=c_dd1 task=t_dd1_ap state=needs_approval seq=1791665472273 tier=when_idle speaks=0 result=applied via=poll
+I (4697) AudioService: Resampling audio from 16000 to 24000
+I (4697) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=needs_input seq=1791665562556 tier=silent speaks=0 result=applied via=poll
+I (4697) I2S_IF: Peer mode playback need extend bits 32 to 64
+I (4697) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 212 ms without a sample (3)
+I (4717) FaceDisplay: agent ui: task=t_dd1_ap state=needs_approval tier=when_idle flash=2 earcon=needs_you
+I (4727) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+I (4737) FaceDisplay: ring=flash bedside=0
+I (4747) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4757) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+I (4767) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4777) WeixueAgent: agent: chat=c_215237 task=t_215237_b2 state=working seq=1791665562557 tier=silent speaks=0 result=applied via=poll
+I (4787) ES7210: Bits 16
+I (4777) FaceDisplay: agent ui: task=t_215237_b1 state=needs_input tier=silent flash=0 earcon=none
+I (4797) ES7210: Enable ES7210_INPUT_MIC1
+I (4807) ES7210: Enable ES7210_INPUT_MIC2
+I (4807) ES7210: Enable ES7210_INPUT_MIC3
+I (4807) WeixueAgent: agent: sync seq=1791665632870 listed=3 dropped=0 tasks=3 via=poll
+I (4817) FaceDisplay: agent ui: task=t_215237_b2 state=working tier=silent flash=0 earcon=none
+I (4817) ES7210: Enable ES7210_INPUT_MIC4
+I (4827) FaceDisplay: earcon=needs_you
+I (4837) ES7210: Enable TDM mode
+I (4837) ES7210: Unmuted
+I (4837) Adev_Codec: Open codec device OK
+I (4847) AudioCodec: Set input enable to true
+I (5027) EspTcp: Resolved <IP> -> <IP>
+I (5027) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (5107) FaceDisplay: ring=off bedside=0
+I (5327) FaceDisplay: ring=flash bedside=0
+I (5657) FaceDisplay: ring=off bedside=0
+I (5977) FaceDisplay: ring=ears bedside=0
+I (6197) FaceDisplay: agent ui: pose=attentive top=t_dd1_ap
+I (6697) WeixueAgent: agent response: kind=approve chat=c_dd1 task=t_dd1_ap card=i_dd1_ap option=approve via=loopback seq=1
+I (6697) EspTcp: Resolved <IP> -> <IP>
+I (6877) FaceDisplay: agent ui: card open task=t_dd1_ap
+I (6947) WebSocket: WebSocket handshake done, cost=250 tcp=10 handshake=240
+I (7017) FaceDisplay: agent ui: pose=full top=t_dd1_ap
+E (7467) EspTcp: TCP receive failed: -1
+I (7477) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":1,"kind":"approve","chat_id":"c_dd1","task_id":"t_dd1_ap","card_id":"i_dd1_ap","option_id":"approve","via":"loopback"}}
+I (7487) WeixueAgent: agent ack sent: approve t_dd1_ap (attempt 1)
+I (13587) SystemInfo: free sram: 115275 minimal sram: 33468
+I (23587) SystemInfo: free sram: 116203 minimal sram: 33468
+I (31917) EspTcp: Resolved <IP> -> <IP>
+I (33277) HttpClient: Established new connection to <IP>:8003 protocol=http cost=1360
+I (33597) SystemInfo: free sram: 115291 minimal sram: 33468
+I (43587) SystemInfo: free sram: 116247 minimal sram: 33468
+I (51287) WeixueAgent: agent: chat=c_215438 task=t_215438_sp1 state=unread seq=1791665678452 tier=when_idle speaks=1 result=applied via=poll
+I (51287) WeixueAgent: agent: chat=c_215438 task=t_215438_sp2 state=failed seq=1791665678453 tier=interrupt speaks=1 result=applied via=poll
+I (51307) Application: Proactive message pending (urgent=0)
+I (51307) StateMachine: State: idle -> connecting
+I (51337) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (51337) wifi:Set ps type: 0, coexist: 0
+
+I (51337) WS: Connecting to websocket server: ws://<IP>:8000/<path> with version: 1
+I (51337) FaceDisplay: agent ui: task=t_215438_sp1 state=unread tier=when_idle flash=2 earcon=none
+I (51337) EspTcp: Resolved <IP> -> <IP>
+I (51347) FaceDisplay: agent ui: task=t_215438_sp2 state=failed tier=interrupt flash=1 earcon=error
+I (51367) FaceDisplay: mode=listening mood=neutral
+I (51367) FaceDisplay: ring=pulse bedside=0
+I (51417) WebSocket: WebSocket handshake done, cost=80 tcp=50 handshake=30
+I (51427) WS: Session ID: <UUID>
+I (51427) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (51427) wifi:Set ps type: 0, coexist: 0
+
+W (51427) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (51447) Application: Proactive session opened
+I (51447) StateMachine: State: connecting -> listening
+I (51457) FaceDisplay: earcon=error skipped: device busy or muted
+I (51457) WeixueAgent: agent: chat=c_dd1 task=t_dd1_ap state=needs_approval seq=1791665472273 tier=when_idle speaks=0 result=duplicate via=push
+I (51517) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=needs_input seq=1791665562556 tier=silent speaks=0 result=duplicate via=push
+I (51517) WeixueAgent: agent: chat=c_215237 task=t_215237_b2 state=working seq=1791665562557 tier=silent speaks=0 result=duplicate via=push
+I (51527) WeixueAgent: agent: chat=c_215438 task=t_215438_sp1 state=unread seq=1791665678452 tier=when_idle speaks=1 result=duplicate via=push
+I (51547) WeixueAgent: agent: chat=c_215438 task=t_215438_sp2 state=failed seq=1791665678453 tier=interrupt speaks=1 result=duplicate via=push
+I (51557) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":2,"kind":"shown","ack_upto":1791665678453,"via":"tap"}}
+I (51577) WeixueAgent: agent ack sent: shown upto 1791665678453 (attempt 1)
+I (51577) WeixueAgent: agent: sync seq=1791665679782 listed=5 dropped=0 tasks=5 via=push
+I (51597) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":3,"kind":"shown","ack_upto":1791665678453,"via":"tap"}}
+I (51607) WeixueAgent: agent ack sent: shown upto 1791665678453 (attempt 1)
+I (51617) StateMachine: State: listening -> speaking
+I (51617) WeixueAgent: agent: tracking playback of sentence 30317b8717554baaa425f945c9f33990
+I (51607) Application: << The washer has finished
+I (51667) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 160 ms without a sample (4)
+I (51677) FaceDisplay: mode=speaking mood=neutral
+I (51677) FaceDisplay: ring=level bedside=0
+I (51857) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":5,"kind":"shown","ack_upto":1791665679782,"via":"tap"}}
+I (51867) WeixueAgent: agent ack sent: shown upto 1791665679782 (attempt 1)
+I (53477) StateMachine: State: speaking -> listening
+I (53547) FaceDisplay: mode=listening mood=neutral
+I (53547) FaceDisplay: ring=pulse bedside=0
+I (53577) WeixueAgent: agent played: sentence=30317b8717554baaa425f945c9f33990 complete=1 played_ms=1440 reason=-
+I (53577) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/played","params":{"v":1,"boot":570998010,"seq":6,"sentence_id":"30317b8717554baaa425f945c9f33990","complete":true}}
+I (53597) WeixueAgent: agent ack sent: played complete 30317b8717554baaa425f945c9f33990 (attempt 1)
+I (53677) WS: Websocket disconnected
+I (53677) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (53677) wifi:Set ps type: 2, coexist: 0
+
+I (53697) StateMachine: State: listening -> idle
+I (53727) FaceDisplay: mode=idle mood=neutral
+I (53727) FaceDisplay: ring=ears bedside=0
+I (54307) EspTcp: Resolved <IP> -> <IP>
+I (54317) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (63587) SystemInfo: free sram: 110503 minimal sram: 33468
+I (64197) HttpClient: HTTP connection closed
+I (64197) Application: Proactive message pending (urgent=1)
+I (64197) StateMachine: State: idle -> connecting
+I (64217) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (64217) wifi:Set ps type: 0, coexist: 0
+
+I (64217) WS: Connecting to websocket server: ws://<IP>:8000/<path> with version: 1
+I (64227) EspTcp: Resolved <IP> -> <IP>
+I (64247) FaceDisplay: mode=listening mood=neutral
+I (64247) FaceDisplay: ring=pulse bedside=0
+I (64267) WebSocket: WebSocket handshake done, cost=40 tcp=10 handshake=30
+I (64287) WS: Session ID: <UUID>
+I (64297) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (64297) wifi:Set ps type: 0, coexist: 0
+
+W (64297) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (64307) Application: Proactive session opened
+I (64317) StateMachine: State: connecting -> listening
+I (64327) WeixueAgent: agent: chat=c_dd1 task=t_dd1_ap state=needs_approval seq=1791665472273 tier=when_idle speaks=0 result=duplicate via=push
+I (64327) Application: << The leak sensor is offline
+I (64327) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=needs_input seq=1791665562556 tier=silent speaks=0 result=duplicate via=push
+I (64347) WeixueAgent: agent: chat=c_215237 task=t_215237_b2 state=working seq=1791665562557 tier=silent speaks=0 result=duplicate via=push
+I (64377) WeixueAgent: agent: chat=c_215438 task=t_215438_sp1 state=unread seq=1791665678452 tier=when_idle speaks=1 result=duplicate via=push
+I (64377) WeixueAgent: agent: chat=c_215438 task=t_215438_sp2 state=failed seq=1791665678453 tier=interrupt speaks=1 result=duplicate via=push
+I (64387) WeixueAgent: agent: sync seq=1791665692636 listed=5 dropped=0 tasks=5 via=push
+I (64397) StateMachine: State: listening -> speaking
+I (64397) WeixueAgent: agent: tracking playback of sentence 1fe20537c72d4647b2c9ed32061bec83
+I (64407) FaceDisplay: mode=speaking mood=neutral
+I (64407) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 146 ms without a sample (5)
+I (64417) FaceDisplay: ring=level bedside=0
+I (64427) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":7,"kind":"shown","ack_upto":1791665679782,"via":"tap"}}
+I (64447) WeixueAgent: agent ack sent: shown upto 1791665679782 (attempt 1)
+I (64707) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":8,"kind":"shown","ack_upto":1791665692636,"via":"tap"}}
+I (64717) WeixueAgent: agent ack sent: shown upto 1791665692636 (attempt 1)
+I (66937) StateMachine: State: speaking -> listening
+I (66977) FaceDisplay: mode=listening mood=neutral
+I (66977) FaceDisplay: ring=pulse bedside=0
+I (67037) WeixueAgent: agent played: sentence=1fe20537c72d4647b2c9ed32061bec83 complete=1 played_ms=2160 reason=-
+I (67037) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/played","params":{"v":1,"boot":570998010,"seq":9,"sentence_id":"1fe20537c72d4647b2c9ed32061bec83","complete":true}}
+I (67057) WeixueAgent: agent ack sent: played complete 1fe20537c72d4647b2c9ed32061bec83 (attempt 1)
+I (67137) WS: Websocket disconnected
+I (67137) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (67137) wifi:Set ps type: 2, coexist: 0
+
+I (67147) StateMachine: State: listening -> idle
+I (67157) FaceDisplay: mode=idle mood=neutral
+I (67157) FaceDisplay: ring=ears bedside=0
+I (67197) EspTcp: Resolved <IP> -> <IP>
+I (67197) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (76587) SystemInfo: free sram: 109595 minimal sram: 33468
+I (77717) WeixueAgent: agent: chat=c_215500 task=t_215500_busy state=unread seq=1791665703115 tier=when_idle speaks=1 result=applied via=poll
+I (77727) Application: Proactive message pending (urgent=0)
+I (77727) StateMachine: State: idle -> connecting
+I (77727) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (77737) wifi:Set ps type: 0, coexist: 0
+I (77737) FaceDisplay: agent ui: task=t_215500_busy state=unread tier=when_idle flash=2 earcon=none
+
+I (77747) WS: Connecting to websocket server: ws://<IP>:8000/<path> with version: 1
+I (77747) FaceDisplay: mode=listening mood=neutral
+I (77757) EspTcp: Resolved <IP> -> <IP>
+I (77757) FaceDisplay: ring=pulse bedside=0
+I (77807) WebSocket: WebSocket handshake done, cost=50 tcp=20 handshake=30
+I (77837) WS: Session ID: <UUID>
+I (77837) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (77837) wifi:Set ps type: 0, coexist: 0
+
+W (77837) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (77847) Application: Proactive session opened
+I (77857) StateMachine: State: connecting -> listening
+I (77867) WeixueAgent: agent: chat=c_dd1 task=t_dd1_ap state=needs_approval seq=1791665472273 tier=when_idle speaks=0 result=duplicate via=push
+I (77867) Application: << Do you want me to keep the hall light on?
+I (77867) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=needs_input seq=1791665562556 tier=silent speaks=0 result=duplicate via=push
+I (77937) WeixueAgent: agent: chat=c_215237 task=t_215237_b2 state=working seq=1791665562557 tier=silent speaks=0 result=duplicate via=push
+I (77937) WeixueAgent: agent: chat=c_215438 task=t_215438_sp1 state=unread seq=1791665678452 tier=when_idle speaks=1 result=duplicate via=push
+I (77957) WeixueAgent: agent: chat=c_215438 task=t_215438_sp2 state=failed seq=1791665678453 tier=interrupt speaks=1 result=duplicate via=push
+I (77967) WeixueAgent: agent: chat=c_215500 task=t_215500_busy state=unread seq=1791665703115 tier=when_idle speaks=1 result=duplicate via=push
+I (77977) WeixueAgent: agent: sync seq=1791665706174 listed=6 dropped=0 tasks=6 via=push
+I (77987) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":10,"kind":"shown","ack_upto":1791665703115,"via":"tap"}}
+I (78007) WeixueAgent: agent ack sent: shown upto 1791665703115 (attempt 1)
+I (78007) StateMachine: State: listening -> speaking
+I (78017) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":11,"kind":"shown","ack_upto":1791665703115,"via":"tap"}}
+I (78027) FaceDisplay: mode=speaking mood=neutral
+I (78037) WeixueAgent: agent ack sent: shown upto 1791665703115 (attempt 1)
+I (78037) FaceDisplay: ring=level bedside=0
+I (78267) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":13,"kind":"shown","ack_upto":1791665706174,"via":"tap"}}
+I (78267) WeixueAgent: agent ack sent: shown upto 1791665706174 (attempt 1)
+I (80117) StateMachine: State: speaking -> listening
+I (80127) FaceDisplay: mode=listening mood=neutral
+I (80127) FaceDisplay: ring=pulse bedside=0
+I (88097) WS: Websocket disconnected
+I (88097) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (88097) wifi:Set ps type: 2, coexist: 0
+
+I (88097) StateMachine: State: listening -> idle
+I (88107) FaceDisplay: mode=idle mood=neutral
+I (88107) FaceDisplay: ring=ears bedside=0
+I (88727) EspTcp: Resolved <IP> -> <IP>
+I (88737) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (97587) SystemInfo: free sram: 111255 minimal sram: 33468
+I (98907) HttpClient: HTTP connection closed
+I (98907) Application: Proactive message pending (urgent=0)
+I (98907) StateMachine: State: idle -> connecting
+I (98907) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (98917) wifi:Set ps type: 0, coexist: 0
+I (98917) FaceDisplay: mode=listening mood=neutral
+
+I (98927) FaceDisplay: ring=pulse bedside=0
+I (98927) WS: Connecting to websocket server: ws://<IP>:8000/<path> with version: 1
+I (98937) EspTcp: Resolved <IP> -> <IP>
+I (98987) WebSocket: WebSocket handshake done, cost=50 tcp=10 handshake=40
+I (99087) WS: Session ID: <UUID>
+I (99087) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+I (99087) wifi:Set ps type: 0, coexist: 0
+
+W (99097) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+I (99107) Application: Proactive session opened
+I (99107) StateMachine: State: connecting -> listening
+I (99117) WeixueAgent: agent: chat=c_dd1 task=t_dd1_ap state=needs_approval seq=1791665472273 tier=when_idle speaks=0 result=duplicate via=push
+I (99117) Application: << I saved the hall light routine
+I (99137) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=needs_input seq=1791665562556 tier=silent speaks=0 result=duplicate via=push
+I (99147) WeixueAgent: agent: chat=c_215237 task=t_215237_b2 state=working seq=1791665562557 tier=silent speaks=0 result=duplicate via=push
+I (99157) WeixueAgent: agent: chat=c_215438 task=t_215438_sp1 state=unread seq=1791665678452 tier=when_idle speaks=1 result=duplicate via=push
+I (99207) WeixueAgent: agent: chat=c_215438 task=t_215438_sp2 state=failed seq=1791665678453 tier=interrupt speaks=1 result=duplicate via=push
+I (99207) WeixueAgent: agent: chat=c_215500 task=t_215500_busy state=unread seq=1791665703115 tier=when_idle speaks=1 result=duplicate via=push
+I (99227) WeixueAgent: agent: sync seq=1791665727357 listed=6 dropped=0 tasks=6 via=push
+I (99237) StateMachine: State: listening -> speaking
+I (99237) WeixueAgent: agent: tracking playback of sentence fedb7e4c9ef54d529cde81a71ca5450f
+I (99247) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":14,"kind":"shown","ack_upto":1791665706174,"via":"tap"}}
+I (99257) FaceDisplay: mode=speaking mood=neutral
+I (99267) WeixueAgent: agent ack sent: shown upto 1791665706174 (attempt 1)
+I (99267) FaceDisplay: ring=level bedside=0
+I (99547) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":570998010,"seq":16,"kind":"shown","ack_upto":1791665727357,"via":"tap"}}
+I (99557) WeixueAgent: agent ack sent: shown upto 1791665727357 (attempt 1)
+I (101857) StateMachine: State: speaking -> listening
+I (101867) FaceDisplay: mode=listening mood=neutral
+I (101867) FaceDisplay: ring=pulse bedside=0
+I (101957) WeixueAgent: agent played: sentence=fedb7e4c9ef54d529cde81a71ca5450f complete=1 played_ms=2280 reason=-
+I (101957) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/played","params":{"v":1,"boot":570998010,"seq":17,"sentence_id":"fedb7e4c9ef54d529cde81a71ca5450f","complete":true}}
+I (101977) WeixueAgent: agent ack sent: played complete fedb7e4c9ef54d529cde81a71ca5450f (attempt 1)
+I (102067) WS: Websocket disconnected
+I (102067) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (102067) wifi:Set ps type: 2, coexist: 0
+
+I (102117) StateMachine: State: listening -> idle
+I (102127) FaceDisplay: mode=idle mood=neutral
+I (102127) FaceDisplay: ring=ears bedside=0
+I (102907) EspTcp: Resolved <IP> -> <IP>
+I (102907) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (111607) SystemInfo: free sram: 111295 minimal sram: 33468
+I (121587) SystemInfo: free sram: 115151 minimal sram: 33468
+I (122687) WeixueAgent: agent: chat=c_sd1 task=t_sd1_keep state=unread seq=1791665750796 tier=silent speaks=0 result=applied via=poll
+I (122687) WeixueAgent: agent: chat=c_sd1 task=t_sd1_gone state=working seq=1791665750797 tier=silent speaks=0 result=applied via=poll
+I (122697) FaceDisplay: agent ui: task=t_sd1_keep state=unread tier=silent flash=0 earcon=none
+I (122807) FaceDisplay: agent ui: task=t_sd1_gone state=working tier=silent flash=0 earcon=none
+I (122937) EspTcp: Resolved <IP> -> <IP>
+I (122937) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+
+# capture 4 (reset: snapshot rebuild; drop of one task)
+# source: 
+
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIPESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4037bb8a
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x544
+load:0x403c8700,len:0xd14
+load:0x403cb700,len:0x2eb4
+entry 0x403c88f4
+I (34) octal_psram: vendor id    : 0x0d (AP)
+I (34) octal_psram: dev id       : 0x02 (generation 3)
+I (34) octal_psram: density      : 0x03 (64 Mbit)
+I (36) octal_psram: good-die     : 0x01 (Pass)
+I (40) octal_psram: Latency      : 0x01 (Fixed)
+I (44) octal_psram: VCC          : 0x01 (3V)
+I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (67) octal_psram: DriveStrength: 0x00 (1/1)
+I (71) MSPI Timing: Enter psram timing tuning
+I (76) esp_psram: Found 8MB PSRAM device
+I (79) esp_psram: Speed: 80MHz
+I (82) cpu_start: Multicore app
+I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (96) cpu_start: Pro cpu start user code
+I (96) cpu_start: cpu freq: 240000000 Hz
+I (98) app_init: Application information:
+I (102) app_init: Project name:     xiaozhi
+I (106) app_init: App version:      2.5.1
+I (109) app_init: Compile time:     Oct  7 2026 05:42:06
+I (114) app_init: ELF file SHA256:  5637fb8a3...
+I (119) app_init: ESP-IDF:          v6.1
+I (122) efuse_init: Min chip rev:     v0.0
+I (126) efuse_init: Max chip rev:     v0.99 
+I (130) efuse_init: Chip rev:         v0.2
+I (134) heap_init: Initializing. RAM available for dynamic allocation:
+I (140) heap_init: At 3FCAB4A0 len 0003E270 (248 KiB): RAM
+I (145) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+I (161) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (168) spi_flash: detected chip: gd
+I (171) spi_flash: flash io: qio
+I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (180) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (187) main_task: Started on CPU0
+I (187) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+I (197) main_task: Calling app_main()
+I (367) Board: UUID=<UUID> SKU=esp32-s3-touch-amoled-1.75c-weixue
+I (367) button: IoT Button Version: 4.2.1
+I (367) PowerSaveTimer: Power save timer enabled
+I (367) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+I (377) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+W (387) spi_common: GPIO 0 is conflict with others and be overwritten
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+I (407) co5300: version: 2.2.0
+I (407) co5300_spi: LCD panel create success, version: 2.2.0
+W (577) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+I (1777) Display: Power management not supported
+I (1857) LcdDisplay: Turning display on
+I (1857) LcdDisplay: Initialize LVGL library
+I (1857) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+I (1857) LcdDisplay: Use 2MB of PSRAM for image cache
+I (1867) LcdDisplay: Initialize LVGL port
+I (1867) LcdDisplay: Adding LCD display
+I (1867) LVGL: Starting LVGL task
+I (1877) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+I (1877) Backlight: Set brightness to 75
+I (1887) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+I (1957) CST9217: Checkcode: 0x204ECACA
+I (1957) CST9217: Resolution X: 466, Y: 466
+I (1957) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+I (1957) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+I (1957) Qmi8658: QMI8658 found at 0x6B
+I (1987) Qmi8658: Reset result 0x80
+I (2007) MCP: Add tool: self.system.reconfigure_wifi
+I (2007) MCP: Add tool: self.screen.set_bedside
+I (2007) MCP: Add tool: self.imu.get_state
+I (2007) StateMachine: State: unknown -> starting
+I (2007) Application: Clock: stored TZ IST-1GMT0,M10.5.0,M3.5.0/1
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.172 y=-0.565 z=0.808 g
+I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+I (2087) MonitorPanel: page=1
+I (2167) Assets: The storage free size is 21568 KB
+I (2167) Assets: The assets map size is 4224 KB (partition 16384 KB)
+I (2407) Assets: The checksum calculation time is 245 ms
+I (2417) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+I (2417) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 382 ms without a sample (2)
+W (2517) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+I (2517) BoxAudioCodec: Duplex channels created
+I (2527) ES8311: Work in Slave mode
+I (2537) ES7210: Work in Slave mode
+I (2547) ES7210: Enable ES7210_INPUT_MIC1
+I (2547) ES7210: Enable ES7210_INPUT_MIC2
+I (2547) ES7210: Enable ES7210_INPUT_MIC3
+I (2557) ES7210: Enable ES7210_INPUT_MIC4
+I (2557) ES7210: Enable TDM mode
+I (2557) BoxAudioCodec: BoxAudioDevice initialized
+I (2557) AudioCodec: Audio codec started
+I (2567) Application: After board/audio init
+I (2567) SystemInfo: free sram: 187383 minimal sram: 85856
+I (2567) AudioCodec: Set output volume to 0
+W (2587) WeixueAgent: agent: loopback build, answers debug_reply after 2 s; output volume 0 (stored 100 kept)
+I (2587) WeixueAgent: agent: protocol v1, boot 4274692600
+I (2587) MCP: Add tool: self.get_device_status
+I (2587) MCP: Add tool: self.audio_speaker.set_volume
+I (2597) MCP: Add tool: self.screen.set_brightness
+I (2597) MCP: Add tool: self.screen.set_theme
+I (2607) MCP: Add tool: self.get_system_info [user]
+I (2607) MCP: Add tool: self.reboot [user]
+I (2617) MCP: Add tool: self.upgrade_firmware [user]
+I (2617) MCP: Add tool: self.screen.get_info [user]
+I (2627) MCP: Add tool: self.screen.snapshot [user]
+I (2627) MCP: Add tool: self.screen.preview_image [user]
+I (2637) MCP: Add tool: self.assets.set_download_url [user]
+I (2637) WifiManager: Initializing...
+I (2637) pp: pp rom version: e7ae62f
+I (2647) net80211: net80211 rom version: e7ae62f
+I (2657) wifi:wifi driver task: 3fce3d88, prio:23, stack:6656, core=0
+I (2657) wifi:wifi firmware version: e12a754
+I (2657) wifi:wifi certification version: v7.0
+I (2667) wifi:config NVS flash: disabled
+I (2667) wifi:config nano formatting: disabled
+I (2667) wifi:Init data frame dynamic rx buffer num: 6
+I (2677) wifi:Init dynamic rx mgmt buffer num: 5
+I (2677) wifi:Init management short buffer num: 32
+I (2687) wifi:Init dynamic tx buffer num: 32
+I (2687) wifi:Init static tx FG buffer num: 2
+I (2697) wifi:Init static rx buffer size: 1600
+I (2697) wifi:Init static rx buffer num: 3
+I (2697) wifi:Init dynamic rx buffer num: 6
+I (2707) wifi_init: rx ba win: 3
+I (2707) wifi_init: accept mbox: 6
+I (2707) wifi_init: tcpip mbox: 16
+I (2717) wifi_init: udp mbox: 6
+I (2717) wifi_init: tcp mbox: 6
+I (2717) wifi_init: tcp tx win: 5760
+I (2727) wifi_init: tcp rx win: 5760
+I (2727) wifi_init: tcp mss: 1440
+I (2727) WifiManager: Initialized
+I (2737) WifiBoard: Starting WiFi connection attempt
+I (2737) WifiManager: Starting station
+I (2737) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+I (2747) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (2787) wifi:mode : sta (<MAC>)
+I (2787) wifi:enable tsf
+I (2787) WifiStation: Scanning saved channel 6
+I (2787) WifiBoard: WiFi scanning
+I (2907) WifiStation: Found AP: <SSID>, BSSID: <MAC>, RSSI: -79, Channel: 6, Authmode: 3
+I (2907) WifiBoard: WiFi connecting to <SSID>
+W (2917) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+I (2987) wifi:new:<6,1>, old:<1,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+I (2987) wifi:state: init -> auth (0xb0)
+I (2997) wifi:state: auth -> init (0x8a0)
+I (2997) wifi:new:<6,0>, old:<6,1>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+I (2997) wifi:new:<6,1>, old:<6,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+I (3007) wifi:state: init -> auth (0xb0)
+I (3007) wifi:state: auth -> assoc (0x0)
+I (3017) wifi:state: assoc -> run (0x10)
+I (3057) wifi:connected with <SSID>, aid = 5, channel 6, 40U, bssid = <MAC>
+I (3057) wifi:security: WPA2-PSK, phy: bgn, rssi: -80, cipher(pairwise:0x3, group:0x3), pmf:0
+I (3057) wifi:pm start, type: 1
+
+I (3067) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+I (3067) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (3087) wifi:<ba-add>idx:0 (ifx:0, <MAC>), tid:7, ssn:0, winSize:64
+I (3187) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (3607) wifi:<ba-add>idx:1 (ifx:0, <MAC>), tid:0, ssn:0, winSize:64
+I (4117) esp_netif_handlers: sta ip: <IP>, mask: <IP>, gw: <IP>
+I (4117) WifiStation: Got IP: <IP>
+I (4117) WifiBoard: Connected to WiFi: <SSID>
+I (4127) Application: Network connected
+I (4127) StateMachine: State: starting -> activating
+I (4127) MODEL_LOADER: Successfully load srmodels
+I (4147) Assets: Refreshing display theme...
+I (4177) Ota: Current version: 2.5.1
+I (4177) EspTcp: Resolved <IP> -> <IP>
+I (4257) HttpClient: Established new connection to <IP>:8003 protocol=http cost=80
+I (4307) HttpClient: HTTP connection closed
+I (4307) Ota: No mqtt section found !
+I (4307) Ota: Clock: TZ IST-1GMT0,M10.5.0,M3.5.0/1, UTC offset +60 min (January +0, July +60)
+I (4307) Ota: Current is the latest version
+I (4317) Ota: Running partition: ota_0
+I (4317) Application: Activation done
+I (4317) SystemInfo: free sram: 140247 minimal sram: 39812
+I (4327) StateMachine: State: activating -> idle
+I (4327) Application: Proactive poller: http://<IP>:8003/<path>
+I (4337) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+I (4337) EspTcp: Resolved <IP> -> <IP>
+I (4347) wifi:Set ps type: 2, coexist: 0
+
+I (4357) AfeAudioEngine: Model 0: wn9_jarvis_tts
+I (4357) WakeWordCache: Allocated 64000 bytes in PSRAM
+I (4367) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+I (4367) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+I (4377) AfeAudioEngine: Before AFE create: free=134231 min=39812 largest=90112
+MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+I (4467) AFE: AFE Version: (1MIC_V251128)
+I (4467) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4477) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+I (4487) AFE: AFE Version: (1MIC_V251128)
+I (4487) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+I (4497) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+I (4507) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+I (4517) AfeAudioEngine: After AFE create: free=113231 min=33468 largest=69632
+I (4517) I2S_IF: Paired data: 0x3fcd4e08, current mode: playback, paired in_enable: 0, paired out_enable: 0
+I (4527) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+I (4537) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4557) Adev_Codec: Open codec device OK
+I (4557) AudioCodec: Set output enable to true
+I (4567) WeixueAgent: agent: chat=c_dd1 task=t_dd1_ap state=needs_approval seq=1791665472273 tier=when_idle speaks=0 result=applied via=poll
+I (4567) AudioService: Resampling audio from 16000 to 24000
+I (4567) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=needs_input seq=1791665562556 tier=silent speaks=0 result=applied via=poll
+I (4587) WeixueAgent: agent: chat=c_215237 task=t_215237_b2 state=working seq=1791665562557 tier=silent speaks=0 result=applied via=poll
+I (4597) WeixueAgent: agent: chat=c_215438 task=t_215438_sp1 state=unread seq=1791665678452 tier=when_idle speaks=1 result=applied via=poll
+I (4607) FaceDisplay: agent ui: task=t_dd1_ap state=needs_approval tier=when_idle flash=2 earcon=needs_you
+I (4567) I2S_IF: Peer mode playback need extend bits 32 to 64
+I (4617) FaceDisplay: agent ui: task=t_215237_b1 state=needs_input tier=silent flash=0 earcon=none
+I (4567) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 200 ms without a sample (3)
+I (4637) FaceDisplay: agent ui: task=t_215237_b2 state=working tier=silent flash=0 earcon=none
+I (4637) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+I (4657) FaceDisplay: ring=flash bedside=0
+I (4657) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4667) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+I (4677) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+I (4687) ES7210: Bits 16
+I (4697) WeixueAgent: agent: chat=c_215438 task=t_215438_sp2 state=failed seq=1791665678453 tier=interrupt speaks=1 result=applied via=poll
+I (4697) WeixueAgent: agent: chat=c_215500 task=t_215500_busy state=unread seq=1791665703115 tier=when_idle speaks=1 result=applied via=poll
+I (4707) FaceDisplay: agent ui: task=t_215438_sp1 state=unread tier=when_idle flash=2 earcon=none
+I (4717) ES7210: Enable ES7210_INPUT_MIC1
+I (4727) FaceDisplay: agent ui: task=t_215438_sp2 state=failed tier=interrupt flash=1 earcon=error
+I (4727) ES7210: Enable ES7210_INPUT_MIC2
+I (4747) ES7210: Enable ES7210_INPUT_MIC3
+I (4747) ES7210: Enable ES7210_INPUT_MIC4
+I (4747) WeixueAgent: agent: chat=c_sd1 task=t_sd1_keep state=unread seq=1791665750796 tier=silent speaks=0 result=applied via=poll
+I (4747) ES7210: Enable TDM mode
+I (4757) FaceDisplay: agent ui: task=t_215500_busy state=unread tier=when_idle flash=2 earcon=none
+I (4767) ES7210: Unmuted
+I (4767) Adev_Codec: Open codec device OK
+I (4777) AudioCodec: Set input enable to true
+I (4797) WeixueAgent: agent: chat=c_sd1 task=t_sd1_gone state=working seq=1791665750797 tier=silent speaks=0 result=applied via=poll
+I (4807) FaceDisplay: earcon=needs_you
+I (4807) FaceDisplay: agent ui: task=t_sd1_keep state=unread tier=silent flash=0 earcon=none
+I (4817) FaceDisplay: agent ui: task=t_sd1_gone state=working tier=silent flash=0 earcon=none
+I (5007) EspTcp: Resolved <IP> -> <IP>
+I (5027) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+I (5097) FaceDisplay: ring=off bedside=0
+I (5227) FaceDisplay: earcon=error
+I (5417) FaceDisplay: ring=flash bedside=0
+I (5677) FaceDisplay: ring=off bedside=0
+I (5987) FaceDisplay: agent ui: pose=attentive top=t_dd1_ap
+I (5997) FaceDisplay: ring=ears bedside=0
+I (6567) WeixueAgent: agent response: kind=approve chat=c_dd1 task=t_dd1_ap card=i_dd1_ap option=approve via=loopback seq=1
+I (6577) EspTcp: Resolved <IP> -> <IP>
+I (6647) WebSocket: WebSocket handshake done, cost=70 tcp=20 handshake=50
+I (6947) FaceDisplay: agent ui: card open task=t_dd1_ap
+I (6947) FaceDisplay: agent ui: pose=full top=t_dd1_ap
+E (7167) EspTcp: TCP receive failed: -1
+I (7167) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":4274692600,"seq":1,"kind":"approve","chat_id":"c_dd1","task_id":"t_dd1_ap","card_id":"i_dd1_ap","option_id":"approve","via":"loopback"}}
+I (7177) WeixueAgent: agent ack sent: approve t_dd1_ap (attempt 1)
+I (13587) SystemInfo: free sram: 117487 minimal sram: 33468
+I (23587) SystemInfo: free sram: 116523 minimal sram: 33468
+I (32367) EspTcp: Resolved <IP> -> <IP>
+I (32367) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+I (33587) SystemInfo: free sram: 117467 minimal sram: 33468
+I (43587) SystemInfo: free sram: 116503 minimal sram: 33468
+I (46007) WeixueAgent: agent: chat=c_dd1 task=t_dd1_ap state=needs_approval seq=1791665472273 tier=when_idle speaks=0 result=duplicate via=poll
+I (46017) WeixueAgent: agent: chat=c_215237 task=t_215237_b1 state=needs_input seq=1791665562556 tier=silent speaks=0 result=duplicate via=poll
+I (46027) WeixueAgent: agent: chat=c_215237 task=t_215237_b2 state=working seq=1791665562557 tier=silent speaks=0 result=duplicate via=poll
+I (46037) WeixueAgent: agent: chat=c_215438 task=t_215438_sp1 state=unread seq=1791665678452 tier=when_idle speaks=1 result=duplicate via=poll
+I (46047) WeixueAgent: agent: chat=c_215438 task=t_215438_sp2 state=failed seq=1791665678453 tier=interrupt speaks=1 result=duplicate via=poll
+I (46067) WeixueAgent: agent: chat=c_215500 task=t_215500_busy state=unread seq=1791665703115 tier=when_idle speaks=1 result=duplicate via=poll
+I (46077) WeixueAgent: agent: chat=c_sd1 task=t_sd1_keep state=unread seq=1791665750796 tier=silent speaks=0 result=duplicate via=poll
+I (46087) WeixueAgent: agent: sync seq=1791665801145 listed=7 dropped=1 tasks=7 via=poll
+I (46117) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 108 ms without a sample (4)
+I (46297) EspTcp: Resolved <IP> -> <IP>
+I (46307) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (53587) SystemInfo: free sram: 117559 minimal sram: 33468
+I (63597) SystemInfo: free sram: 117559 minimal sram: 33468
+I (66367) PowerSaveTimer: Enabling power save mode
+I (66367) Backlight: Set brightness to 20
+I (66457) FaceDisplay: mode=idle mood=sleepy
+I (66967) FaceDisplay: agent ui: card closed
+I (66967) FaceDisplay: agent ui: pose=attentive top=t_dd1_ap
+I (73157) EspTcp: Resolved <IP> -> <IP>
+I (73167) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+I (73587) SystemInfo: free sram: 117671 minimal sram: 33468

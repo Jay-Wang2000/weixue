@@ -1,0 +1,88 @@
+# device-run 2026-10-10: builds and flashes (main 6afeedb)
+
+## build-loopback
+face_diag: 0
+agent_loopback: 1
+xiaozhi.bin binary size 0x2fa7e0 bytes. Smallest app partition is 0x400000 bytes. 0x105820 bytes (26%) free.
+xiaozhi.bin binary size 0x2fa7e0 bytes. Smallest app partition is 0x400000 bytes. 0x105820 bytes (26%) free.
+build_seconds: 136
+size: build/xiaozhi.bin 3123168
+size: build/generated_assets.bin 4273502
+work_dir: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue
+exit=0
+
+## build-diag
+face_diag: 1
+agent_loopback: 1
+xiaozhi.bin binary size 0x2fbee0 bytes. Smallest app partition is 0x400000 bytes. 0x104120 bytes (25%) free.
+xiaozhi.bin binary size 0x2fbee0 bytes. Smallest app partition is 0x400000 bytes. 0x104120 bytes (25%) free.
+build_seconds: 84
+size: build/xiaozhi.bin 3129056
+size: build/generated_assets.bin 4273502
+work_dir: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue
+exit=0
+
+## build-release
+face_diag: 0
+agent_loopback: 0
+xiaozhi.bin binary size 0x2fa4e0 bytes. Smallest app partition is 0x400000 bytes. 0x105b20 bytes (26%) free.
+xiaozhi.bin binary size 0x2fa4e0 bytes. Smallest app partition is 0x400000 bytes. 0x105b20 bytes (26%) free.
+build_seconds: 131
+size: build/xiaozhi.bin 3122400
+size: build/generated_assets.bin 4273502
+work_dir: /Users/jwang14/Projects/weixue-vendor/fw-work/weixue
+exit=0
+
+## flash-loopback
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+esptool --chip esp32s3 --port /dev/cu.usbmodem2101 --baud 460800 --before default-reset --after hard-reset write-flash --flash-mode dio --flash-freq 80m --flash-size 32MB 0x0 bootloader/bootloader.bin 0x8000 partition_table/partition-table.bin 0x10d000 ota_data_initial.bin 0xa00000 generated_assets.bin 0x200000 xiaozhi.bin
+esptool v5.4.0
+Connected to ESP32-S3 on /dev/cu.usbmodem2101:
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+Wrote 16736 bytes (11597 compressed) at 0x00000000 in 0.2 seconds (546.5 kbit/s).
+Hash of data verified.
+Wrote 3072 bytes (158 compressed) at 0x00008000 in 0.0 seconds (614.9 kbit/s).
+Hash of data verified.
+Wrote 8192 bytes (31 compressed) at 0x0010d000 in 0.1 seconds (964.6 kbit/s).
+Hash of data verified.
+Wrote 4273504 bytes (2092437 compressed) at 0x00a00000 in 25.8 seconds (1323.0 kbit/s).
+Hash of data verified.
+Wrote 3123168 bytes (1845379 compressed) at 0x00200000 in 21.2 seconds (1177.6 kbit/s).
+Hash of data verified.
+Hard resetting via RTS pin...
+
+## flash-diag
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+esptool --chip esp32s3 --port /dev/cu.usbmodem2101 --baud 460800 --before default-reset --after hard-reset write-flash --flash-mode dio --flash-freq 80m --flash-size 32MB 0x0 bootloader/bootloader.bin 0x8000 partition_table/partition-table.bin 0x10d000 ota_data_initial.bin 0xa00000 generated_assets.bin 0x200000 xiaozhi.bin
+esptool v5.4.0
+Connected to ESP32-S3 on /dev/cu.usbmodem2101:
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+Wrote 16736 bytes (11597 compressed) at 0x00000000 in 0.2 seconds (542.1 kbit/s).
+Hash of data verified.
+Wrote 3072 bytes (158 compressed) at 0x00008000 in 0.0 seconds (614.7 kbit/s).
+Hash of data verified.
+Wrote 8192 bytes (31 compressed) at 0x0010d000 in 0.1 seconds (964.3 kbit/s).
+Hash of data verified.
+Wrote 4273504 bytes (2092437 compressed) at 0x00a00000 in 27.0 seconds (1267.6 kbit/s).
+Hash of data verified.
+Wrote 3129056 bytes (1849433 compressed) at 0x00200000 in 21.4 seconds (1171.9 kbit/s).
+Hash of data verified.
+Hard resetting via RTS pin...
+
+## flash-release
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+esptool --chip esp32s3 --port /dev/cu.usbmodem2101 --baud 460800 --before default-reset --after hard-reset write-flash --flash-mode dio --flash-freq 80m --flash-size 32MB 0x0 bootloader/bootloader.bin 0x8000 partition_table/partition-table.bin 0x10d000 ota_data_initial.bin 0xa00000 generated_assets.bin 0x200000 xiaozhi.bin
+esptool v5.4.0
+Connected to ESP32-S3 on /dev/cu.usbmodem2101:
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+Wrote 16736 bytes (11597 compressed) at 0x00000000 in 0.2 seconds (542.1 kbit/s).
+Hash of data verified.
+Wrote 3072 bytes (158 compressed) at 0x00008000 in 0.0 seconds (614.3 kbit/s).
+Hash of data verified.
+Wrote 8192 bytes (31 compressed) at 0x0010d000 in 0.1 seconds (963.5 kbit/s).
+Hash of data verified.
+Wrote 4273504 bytes (2092437 compressed) at 0x00a00000 in 27.0 seconds (1268.2 kbit/s).
+Hash of data verified.
+Wrote 3122400 bytes (1844694 compressed) at 0x00200000 in 21.1 seconds (1181.5 kbit/s).
+Hash of data verified.
+Hard resetting via RTS pin...
