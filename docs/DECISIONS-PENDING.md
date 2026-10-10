@@ -84,6 +84,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 45. **Card resend rule** — orchestrator-level (our stack): after "Not sent", only the control the user first chose can resend; switching to the other answer on that card is blocked because a cancelled send may still arrive; the gateway keeps first-wins per card. Accepted.
 
+47. **ha-mcp HTTP transport diagnostics** — needs Jay (ha-mcp config): the 2026-10-07 tools/list hangs have no proven cause (sessions ruled out; all three happened in tunnel mode; upstream issues #2367/#1644 describe a similar intermittent hang). Options: A = enable ha-mcp's opt-in HTTP transport diagnostics (byte counts and timing, no payloads) so the next hang is diagnosable (recommended); B = A plus switch ha-mcp from SSE streaming to single JSON responses; C = neither. The bridge now survives the hang on its cached tool list either way.
+
 ## Night run 2026-10-10 → 11 (Jay asleep)
 - Quiet mode: no `say`, device volume 0 for any test, no audible TTS; the full audio session runs after Jay wakes. Autonomous work continues through M2; anything user-facing in behaviour not already decided, external-service or security-related is parked here for the morning report.
 

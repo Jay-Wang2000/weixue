@@ -225,9 +225,18 @@ tasks:
     description: |
       2026-10-07 现象（三次）：bridge 多次重启后 ha-mcp 的 MCP 端点对大响应（tools/list ≈270 KB）挂起直到 ReadTimeout，initialize 与 REST（/api/policy/*，11 KB）仍正常；在 HA 里 Reload HA-MCP 后恢复。假设：bridge 每次连接都 initialize 一个新的 MCP streamable-HTTP 会话且从不终止（无 DELETE Mcp-Session-Id / 无会话复用），ha-mcp 累积会话后退化。要做：bridge 复用会话、退出/重连时发 DELETE 终止、记录 Mcp-Session-Id、对 tools/list 设独立超时与缓存（启动用缓存列表，后台刷新）；给 feat-agent-service 的 HA adapter 同样的会话纪律；在 scratch 中用 N 次连接复现并验证不再退化；监控台记录 ha-mcp 会话数/首字节延迟。
     depends_on: [fix-wave5-server]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
+  - id: fix-voice-policy-test
+    name: "render_voice_policy idempotence after the overlay was applied"
+    branch: fix/voice-policy-test
+    description: |
+      2026-10-10 应用 voice overlay 后 ha-agent 基线已包含 overlay 的结果，tests/test_voice_policy.py::test_overlay_applies_to_ha_agent_policy 因 remove_rules 找不到目标而失败。让 render_voice_policy.py 幂等：remove_rules 目标不存在且 add_rules 已存在时视为已应用并产出相同结果（打印 "already applied"），测试用冻结的基线快照而非实时 ha-agent 文件。host-only。
+    depends_on: [fix-wave5-server]
+    status: pending
+    retries: 0
+    model: sonnet
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
