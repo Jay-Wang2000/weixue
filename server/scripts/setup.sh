@@ -58,9 +58,25 @@ if [ "$PROFILES" != "$ENV_PROFILES" ]; then
 fi
 if [ -n "$PROFILES" ]; then export COMPOSE_PROFILES=$PROFILES; else unset COMPOSE_PROFILES; fi
 
+# agent-service: bearer token generated once into server/.env (never printed); its host is wg while the
+# service shares the tunnel namespace.
+if [ -z "${AGENT_SERVICE_TOKEN:-}" ]; then
+  AGENT_SERVICE_TOKEN=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
+  [ -z "$(tail -c 1 .env)" ] || echo >> .env
+  printf 'AGENT_SERVICE_TOKEN=%s\n' "$AGENT_SERVICE_TOKEN" >> .env
+  echo "generated AGENT_SERVICE_TOKEN in server/.env"
+fi
+export AGENT_SERVICE_TOKEN
+AGENT_HOST_WANT=$([ -n "$TUNNEL_SERVICES" ] && echo wg || true)
+if [ "$(sed -n 's/^AGENT_SERVICE_HOST=//p' .env | tail -n 1)" != "$AGENT_HOST_WANT" ]; then
+  ENV_REST=$(grep -v '^AGENT_SERVICE_HOST=' .env || true)
+  { printf '%s\n' "$ENV_REST"; [ -z "$AGENT_HOST_WANT" ] || echo "AGENT_SERVICE_HOST=$AGENT_HOST_WANT"; } > .env
+fi
+if [ -n "$AGENT_HOST_WANT" ]; then export AGENT_SERVICE_HOST=$AGENT_HOST_WANT; else unset AGENT_SERVICE_HOST; fi
+
 MODEL=data/models/SenseVoiceSmall/model.pt
 MODEL_URL=https://modelscope.cn/models/iic/SenseVoiceSmall/resolve/master/model.pt
-mkdir -p data/models/SenseVoiceSmall data/mcp-endpoint data/mcp-bridge/cache
+mkdir -p data/models/SenseVoiceSmall data/mcp-endpoint data/mcp-bridge/cache data/agent-service
 if [ -d "$MODEL" ]; then
   rmdir "$MODEL" 2>/dev/null || { echo "$MODEL is a non-empty directory; remove it"; exit 1; }
 fi
@@ -79,8 +95,8 @@ export UPSTREAM_COMMIT
 docker info >/dev/null 2>&1 || { echo "docker daemon is not running"; exit 1; }
 
 CONFIG=data/.config.yaml
-SERVICES=($TUNNEL_SERVICES mcp-bridge xiaozhi-esp32-server)
-IMAGES=(weixue/mcp-bridge:local weixue/xiaozhi-esp32-server:local)
+SERVICES=($TUNNEL_SERVICES mcp-bridge agent-service xiaozhi-esp32-server)
+IMAGES=(weixue/mcp-bridge:local weixue/agent-service:local weixue/xiaozhi-esp32-server:local)
 [ -z "$TUNNEL_SERVICES" ] || IMAGES+=(weixue/wg:local)
 ready_host() { if [ "$BIND_IP" = 0.0.0.0 ]; then echo 127.0.0.1; else echo "$BIND_IP"; fi; }
 
@@ -109,6 +125,9 @@ MCP_ENDPOINT_INTERNAL=$(echo "$MCP" | sed -E 's#^ws://[^/]+#ws://mcp-endpoint-se
 
 MCP_ENDPOINT=$MCP_ENDPOINT_INTERNAL python3 scripts/render_config.py config/config.template.yaml > "$STAGED"
 
+# A first deployment of agent-service has no previous version: a rollback removes it.
+AGENT_REQUIRED=1
+AGENT_PREVIOUS=$(docker image inspect weixue/agent-service:local >/dev/null 2>&1 && echo 1 || true)
 for image in "${IMAGES[@]}"; do
   if docker image inspect "$image" >/dev/null 2>&1; then
     docker tag "$image" "${image%:*}:rollback"
@@ -143,8 +162,9 @@ wait_for() {
 }
 
 # Deployment readiness: OTA and WebSocket banners, the tunnel (WG_TUNNEL=1: handshake and
-# boundary), the bridge's health file, and one read-only Home Assistant call made from the
-# server container through the endpoint, the bridge and ha-mcp (scripts/check_ha_path.py).
+# boundary), the bridge's health file, one read-only Home Assistant call made from the
+# server container through the endpoint, the bridge and ha-mcp (scripts/check_ha_path.py),
+# and agent-service's healthcheck (database, model API, ha-mcp ping).
 deploy_ready() {
   python3 scripts/check_ready.py "$(ready_host)" || return 1
   if [ "${WG_TUNNEL:-}" = 1 ]; then
@@ -153,7 +173,10 @@ deploy_ready() {
   wait_for mcp-bridge docker exec mcp-bridge python -m weixue_bridge.health || return 1
   wait_for "Home Assistant via the voice path" \
     sh -c 'docker exec -i xiaozhi-esp32-server python - --timeout 20 < scripts/check_ha_path.py' || return 1
-  echo "ready: bridge healthy$([ "${WG_TUNNEL:-}" != 1 ] || echo ", tunnel healthy"), Home Assistant answered via the voice path"
+  if [ -n "$AGENT_REQUIRED" ]; then
+    wait_for agent-service docker exec agent-service python -m weixue_agent.health || return 1
+  fi
+  echo "ready: bridge healthy$([ "${WG_TUNNEL:-}" != 1 ] || echo ", tunnel healthy"), Home Assistant answered via the voice path$([ -z "$AGENT_REQUIRED" ] || echo ", agent-service healthy")"
 }
 
 manual_restore() {
@@ -190,7 +213,12 @@ rollback() {
     set -a; . ./.env; set +a
     echo "server/.env restored from the last successful run; the attempted one is server/.env.failed"
   fi
-  local services=($endpoint mcp-bridge xiaozhi-esp32-server)
+  local services=($endpoint mcp-bridge agent-service xiaozhi-esp32-server)
+  if [ -z "$AGENT_PREVIOUS" ]; then
+    services=($endpoint mcp-bridge xiaozhi-esp32-server)
+    AGENT_REQUIRED=
+    docker rm -f agent-service >/dev/null 2>&1 || true
+  fi
   [ "${WG_TUNNEL:-}" != 1 ] || services=(wg "${services[@]}")
   if restore_images && docker compose up -d --force-recreate "${services[@]}"; then
     [ "${WG_TUNNEL:-}" = 1 ] || docker rm -f wg >/dev/null 2>&1 || true

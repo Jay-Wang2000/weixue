@@ -1,0 +1,113 @@
+{
+  "$defs": {
+    "Origin": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "voice",
+                "panel",
+                "sim",
+                "api",
+                "retry"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "gateway_session_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gateway Session Id"
+        },
+        "turn_seq": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Turn Seq"
+        }
+      },
+      "title": "Origin",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "device_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Device Id",
+      "type": "string"
+    },
+    "text": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "lang": {
+      "default": "auto",
+      "enum": [
+        "en",
+        "zh",
+        "auto"
+      ],
+      "title": "Lang",
+      "type": "string"
+    },
+    "origin": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Origin"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "retry_of": {
+      "anyOf": [
+        {
+          "pattern": "^tsk_[0-9A-HJKMNP-TV-Z]{26}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Retry Of"
+    }
+  },
+  "required": [
+    "device_id",
+    "text"
+  ],
+  "title": "MessageBody",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weixue.local/agent/v1/message.schema.json"
+}

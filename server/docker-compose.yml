@@ -16,6 +16,8 @@ services:
       - TZ=${TZ:-UTC}
       - WEIXUE_TZ=${TZ:-}
       - WEIXUE_PROACTIVE_TOKEN=${WEIXUE_PROACTIVE_TOKEN:-}
+      - AGENT_SERVICE_URL=http://${AGENT_SERVICE_HOST:-agent-service}:8010
+      - AGENT_SERVICE_TOKEN=${AGENT_SERVICE_TOKEN:-}
     ports:
       - "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8000:8000"
       - "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8003:8003"
@@ -62,6 +64,34 @@ services:
     depends_on:
       mcp-endpoint-server:
         condition: service_started
+      wg:
+        condition: service_healthy
+        required: false
+
+  agent-service:
+    image: weixue/agent-service:local
+    build:
+      context: ./agent-service
+      additional_contexts:
+        hamcp: ./weixue_hamcp
+    container_name: agent-service
+    restart: unless-stopped
+    network_mode: ${WG_TUNNEL:+service:wg}
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - HA_MCP_URL=${HA_MCP_URL:?set HA_MCP_URL in server/.env}
+      - AGENT_SERVICE_TOKEN=${AGENT_SERVICE_TOKEN:-}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./data/agent-service:/data
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "python", "-m", "weixue_agent.health"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    depends_on:
       wg:
         condition: service_healthy
         required: false

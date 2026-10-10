@@ -1,0 +1,167 @@
+# feat-agent-service end-to-end gate, 2026-10-10/11 (home LAN, live stack from the feat/agent-service worktree)
+# Runner: server/agent-service/tools/e2e_live.sh -> tools.e2e_conversation in a one-off weixue/agent-service:local
+# container on server_default (tools.sim_device as gateway + device, device id sim-device-01); `docker restart
+# agent-service` between restart-begin and restart-check. Live ha-mcp 8.6.0 (policy v14 unchanged), personal API key.
+# HA: read-only entities, the held probe input_boolean.weixue_e2e_probe (does not exist; denied via /api/policy/deny),
+# light.living_room_ceiling_lights toggled on then off (restored to its original state, off). No audio, no flash.
+# Final run below: all scenarios passed (`second` rerun on its own after chat A was changed to the long multi-day task,
+# because the original chat-A task finished before chat B's answer).
+# Earlier runs that day found and fixed: a 400 on Fable 5.1 when a steer's text followed tool results of a message that
+# carried an unpaired tool_search server_tool_use (now dropped from stored messages); a steer answer written only as a
+# progress note (now spoken, and the prompt asks for reply text); tasks reusing memory scratch notes (prompt: memory is
+# for durable facts only); scenario coupling through an open voice window (settle step); denying while the turn still ran.
+
+## run (2026-10-11 00:06-00:10 IST)
+Sun 11 Oct 2026 00:06:43 IST
+    0.03s == short
+    0.55s   device offer SILENT    chats  chats state=None speak=''
+    2.34s say 'Is the living room ceiling light on?' -> routed=new_task end=turn_done first_text=2.29s spoken='No, the living room ceiling lights are off right now.'
+    2.34s   ok: routed new_task
+    2.34s   ok: reply_end turn_done
+    2.34s   device offer SILENT    agent  task:tsk_01M4M1355YJZ688V0J9HQWM0EA state=done speak=''
+    2.35s   ok: quick mode only
+    2.35s   ok: HA reads only (['ha_search'])
+    2.35s   ok: done.speak null (spoken inline)
+    2.35s results {"short": {"service_first_text_ms": 670, "requests": 2, "outcome": "ok"}}
+    0.03s == free
+    0.03s   device offer SILENT    chats  chats state=None speak=''
+    0.17s   ok: light state read (off)
+    0.70s   device offer SILENT    chats  chats state=None speak=''
+    3.61s say 'Turn on the living room ceiling lights.' -> routed=new_task end=turn_done first_text=3.43s spoken='The living room ceiling lights are on.'
+    3.61s   device offer SILENT    agent  task:tsk_01M4M1383V69J9MWEZ497K67XJ state=done speak=''
+    3.69s   ok: ha_get_state confirms on
+    3.69s   ok: side_effects confirmed: [{'tool': 'ha_call_service', 'target': 'light.living_room_ceiling_lights', 'status': 'confirmed'}]
+    4.13s   device offer SILENT    chats  chats state=None speak=''
+    5.94s say 'Turn off the living room ceiling lights.' -> routed=new_task end=turn_done first_text=2.24s spoken='The living room ceiling lights are off.'
+    5.94s   device offer SILENT    agent  task:tsk_01M4M13BHP3ZE33T5J6Q11JDWS state=done speak=''
+    6.03s   ok: ha_get_state confirms off
+    6.03s   ok: side_effects confirmed: [{'tool': 'ha_call_service', 'target': 'light.living_room_ceiling_lights', 'status': 'confirmed'}]
+    6.10s   ok: state restored (off)
+    6.10s results {"free": {"original": "off", "outcomes": ["ok", "ok"]}}
+    0.03s == denied
+    0.03s   device offer SILENT    chats  chats state=None speak=''
+    0.55s   device offer SILENT    chats  chats state=None speak=''
+    9.38s say 'Please call ha_call_service with domain input_boolean, servi' -> routed=new_task end=question first_text=9.34s spoken='I need your OK on the panel to toggle input_boolean.weixue_e2e_probe.'
+    9.38s   device offer SILENT    agent  int:int_01M4M13QKC2TDC86W6PGZSAESP state=needs_approval speak=''
+    9.40s   device offer SILENT    agent  int:int_01M4M13QKC2TDC86W6PGZSAESP state=needs_approval speak=''
+   10.35s   device offer SILENT    agent  task:tsk_01M4M13EFWZPKRRB569XD9S18W state=progress speak=''
+   10.39s   ok: approval from ha-mcp
+   11.12s   device offer SILENT    agent  task:tsk_01M4M13EFWZPKRRB569XD9S18W state=progress speak=''
+   11.58s   device offer WHEN_IDLE agent  task:tsk_01M4M13EFWZPKRRB569XD9S18W state=done speak="The toggle was denied on the panel, so the test entity wasn'"
+   12.10s   device offer SILENT    chats  chats state=None speak=''
+   12.42s   ok: resolved{denied}
+   12.42s   ok: event turn ran
+   12.42s   ok: done{outcome:denied}
+   12.42s results {"denied": {"outcome": "denied"}}
+    0.03s == long
+    0.55s   device offer SILENT    chats  chats state=None speak=''
+    9.88s   device offer SILENT    chats  chats state=None speak=''
+   11.21s say "Look at the living room lights and today's sunset time, chec" -> routed=new_task end=hold_elapsed first_text=1.26s spoken="On it, I'll look at the lights and sunset.Sunset today is 18:40 local (17:40 UTC). Now the history."
+   11.21s   ok: reply_end within ack + hold (11.2s, hold_elapsed)
+   11.21s   ok: an acknowledgement was spoken
+   12.96s   device offer WHEN_IDLE agent  task:tsk_01M4M13VC7K6KBAPERN9AVN1A1 state=done speak='All done. The three living room ceiling lights are off right'
+   13.23s   ok: task done
+   13.24s   ok: switched to Fable (['claude-fable-5-1', 'claude-sonnet-5-5'])
+   13.24s   ok: >=3 HA calls (3)
+   13.47s   device offer SILENT    chats  chats state=None speak=''
+   18.48s   device offer WHEN_IDLE agent  task:tsk_01M4M13VC7K6KBAPERN9AVN1A1 state=done speak='All done. The three living room ceiling lights are off right'
+   19.27s   ok: WHEN_IDLE result within 10 s of idle (5.2s)
+   19.27s results {"long": {"total_s": 13.2, "ha_calls": 3, "cost_usd": 0.42099475000000003, "over_30s": false}}
+    0.03s == steer
+    0.56s   device offer SILENT    chats  chats state=None speak=''
+   11.30s say 'For light.living_room_ceiling_lights, light.living_room_dini' -> routed=new_task end=hold_elapsed first_text=1.84s spoken="On it.On it, I'll go through seven days of history for those five entities one by one.\n\nThe donut light is light.living_"
+   11.81s   device offer SILENT    chats  chats state=None speak=''
+   11.85s   device offer SILENT    agent  task:tsk_01M4M14ES8XWQ7RTR5MKGKARAW state=progress speak=''
+   21.97s say 'How is it going?' -> routed=steer end=hold_elapsed first_text=4.65s spoken="I'm three of thirty-five history lookups in, working through the ceiling lights day by day, and I'll carry on now."
+   21.97s   ok: routed steer
+   21.97s   ok: a progress reply was spoken
+   21.97s   ok: interrupted{steered} drain_ms=1802
+   22.05s   device offer SILENT    agent  task:tsk_01M4M14ES8XWQ7RTR5MKGKARAW state=cancelled speak=''
+   22.05s say 'stop' -> routed=cancel end=ack first_text=0.07s spoken='Stopped.'
+   22.05s   ok: routed cancel
+   22.05s   ok: spoke 'Stopped.'
+   22.06s   ok: cancelled within the cancel bound (0.1s incl. the stream)
+   22.06s   ok: side effects listed: []
+   22.50s   device offer SILENT    chats  chats state=None speak=''
+   27.06s   ok: no tool call after the stop
+   27.06s results {"steer": {"drain_ms": 1802, "side_effects": []}}
+    0.02s == second
+    0.54s   device offer SILENT    chats  chats state=None speak=''
+    7.32s say "Look at the living room lights and today's sunset time, chec" -> routed=new_task end=hold_elapsed first_text=0.92s spoken="On it, I'll check the lights and sunset.Sunset today is 17:40 UTC, i.e. 18:40 Dublin time. Now the history."
+    7.32s   ok: reply_end within ack + hold (7.3s, hold_elapsed)
+    7.32s   ok: an acknowledgement was spoken
+    7.84s   device offer SILENT    chats  chats state=None speak=''
+    9.23s   device offer WHEN_IDLE agent  task:tsk_01M4M159SBPW5R5D93EMDQW947 state=done speak='The living room has three working ceiling lights, all off ri'
+    9.74s   device offer SILENT    chats  chats state=None speak=''
+   16.16s say "What's the weather like in Dublin right now?" -> routed=new_task end=turn_done first_text=8.83s spoken='The results are from yesterday, so they may not match right now. They showed about thirteen degrees Celsius, mostly clou'
+   16.16s   ok: second chat answered with reply_end turn_done
+   16.16s   device offer SILENT    agent  task:tsk_01M4M15GXBBW9Q5RB6TNX50CNK state=done speak=''
+   16.17s   FAIL: chat A still working
+   16.17s results {}
+    0.03s == barge-in
+    0.03s   device offer SILENT    agent  task:tsk_01M4M15GXBBW9Q5RB6TNX50CNK state=done speak=''
+    0.04s   device offer SILENT    chats  chats state=None speak=''
+    0.55s   device offer SILENT    chats  chats state=None speak=''
+    1.10s say 'Tell me about the history of the Spire in Dublin, in detail.' -> routed=new_task end=text first_text=0.71s spoken="The Spire of Dublin, also called the Monument of Light, was finished in January 2003 on O'Connell Street, where Nelson's"
+    1.10s   ok: stream dropped mid-answer
+    1.63s   device offer SILENT    chats  chats state=None speak=''
+    2.44s say "Sorry, I meant the Ha'penny Bridge. Just one sentence." -> routed=steer end=turn_done first_text=0.94s spoken="The Ha'penny Bridge, opened in 1816 as the Wellington Bridge, is a cast iron footbridge over the River Liffey that got i"
+    2.44s   ok: correction routed steer
+    2.44s   device offer SILENT    agent  task:tsk_01M4M15T63SJ4EQD5N1KRCPY1D state=done speak=''
+    2.44s   ok: barge-in cancel 11 ms
+    2.45s   ok: no partial assistant message; the tail was rewritten with the correction
+    2.45s   ok: the reply follows the correction
+    2.45s results {"barge_in": {"cancel_ms": 11}}
+    0.03s == restart-begin
+    0.03s   device offer SILENT    chats  chats state=None speak=''
+    0.55s   device offer SILENT    chats  chats state=None speak=''
+   10.47s say 'For light.living_room_ceiling_lights, light.living_room_dini' -> routed=new_task end=hold_elapsed first_text=1.78s spoken="On it.On it, I'll go through seven days of history for each of those five entities one call at a time, then summarize."
+   10.47s   ok: a turn is in flight at the restart
+   10.48s restart now
+   10.48s results {}
+    0.03s == restart-check
+    0.03s   device offer WHEN_IDLE agent  task:tsk_01M4M15X42BMTJT861886P49A8 state=failed speak='I restarted while working on Seven-day history review, so it'
+    0.03s   ok: failed{service_restart}
+    0.03s   ok: notice 'I restarted while working on Seven-day history review, so it may not have finished.'
+    0.04s   ok: chats list unchanged
+    0.06s   device offer SILENT    chats  chats state=None speak=''
+    0.57s   device offer SILENT    chats  chats state=None speak=''
+    1.82s say 'Did anything interrupt you just now? Answer in one sentence,' -> routed=new_task end=turn_done first_text=1.78s spoken="Yes, the service restarted partway through, so the history review didn't finish: I'd only covered the last two days of t"
+    1.83s   device offer SILENT    agent  task:tsk_01M4M16AY50DH3SJCCBDM1DWZ2 state=done speak=''
+    1.83s   ok: same transcript continued (9 -> 12 rows)
+    1.83s   ok: the reply knows the work was cut off ("yes, the service restarted partway through, so the history review didn't finish:")
+    1.83s results {"restart": {"reply": "yes, the service restarted partway through, so the history review didn't finish: i'd only covered the last two days of the living room ceiling lights."}}
+    0.03s == disconnect
+    0.03s   device offer SILENT    chats  chats state=None speak=''
+    0.55s   device offer SILENT    chats  chats state=None speak=''
+   11.08s say 'For light.living_room_ceiling_lights, light.living_room_dini' -> routed=new_task end=hold_elapsed first_text=1.46s spoken="On it.On it, this will take a while since I'm checking each entity day by day. I'll report back when done.\n\nStarting wit"
+   11.08s   ok: routed new_task
+   11.08s device disconnected
+  129.17s   ok: task done after 129s without a device
+  129.18s   ok: snapshot carries the result card
+  129.19s   device offer WHEN_IDLE agent  task:tsk_01M4M16D8M7THE9KEYR3F7VTF1 state=done speak="All done, and here's the picture. The two ceiling lights mov"
+  129.20s   device offer SILENT    chats  chats state=None speak=''
+  130.18s   ok: result tier WHEN_IDLE
+  130.18s results {"disconnect": {"duration_s": 130, "cost_usd": 1.10563785}}
+exit=1
+Sun 11 Oct 2026 00:10:40 IST
+
+## second, rerun (2026-10-11 00:10 IST)
+Sun 11 Oct 2026 00:10:51 IST
+    0.03s == second
+    0.55s   device offer SILENT    chats  chats state=None speak=''
+    9.69s say 'For light.living_room_ceiling_lights, light.living_room_dini' -> routed=new_task end=hold_elapsed first_text=1.81s spoken="On it.On it, I'll go through seven days of history for each of those five entities one call at a time, then sum up the p"
+   10.21s   device offer SILENT    chats  chats state=None speak=''
+   10.57s   device offer SILENT    agent  task:tsk_01M4M1AQMEJJ6KMF2XV47SPK8H state=progress speak=''
+   12.98s   device offer SILENT    agent  task:tsk_01M4M1AQMEJJ6KMF2XV47SPK8H state=progress speak=''
+   15.36s   device offer SILENT    agent  task:tsk_01M4M1AQMEJJ6KMF2XV47SPK8H state=progress speak=''
+   17.54s   device offer SILENT    agent  task:tsk_01M4M1AQMEJJ6KMF2XV47SPK8H state=progress speak=''
+   18.03s say "What's the weather like in Dublin right now?" -> routed=new_task end=turn_done first_text=8.3s spoken="The latest reading I found is from yesterday morning, so it's a bit stale. It showed Dublin mostly cloudy at about thirt"
+   18.03s   ok: second chat answered with reply_end turn_done
+   18.03s   device offer SILENT    agent  task:tsk_01M4M1B12E17Z8X94Z29EPHA3F state=done speak=''
+   18.03s   ok: chat A still working
+   18.03s   ok: two busy actors seen in status (max 2)
+   18.04s   ok: no interrupted in chat A
+   18.05s results {"second": {"chat_b_server_tools": ["code_execution", "web_search", "code_execution"]}}
+exit=0
+Sun 11 Oct 2026 00:11:09 IST

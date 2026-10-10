@@ -174,7 +174,7 @@ cp .env.example .env     # set LAN_IP, BIND_IP (Mac: 0.0.0.0), ALLOWED_DEVICES, 
 ./scripts/setup.sh
 ```
 
-Required `.env` keys: `LAN_IP`, `BIND_IP`, `ALLOWED_DEVICES`, `TZ`, `TZ_OFFSET`, `ANTHROPIC_API_KEY`, `GOOGLE_SA_FILE`, `HA_MCP_URL` (`REQUIRED_KEYS` in `setup.sh`).
+Required `.env` keys: `LAN_IP`, `BIND_IP`, `ALLOWED_DEVICES`, `TZ`, `TZ_OFFSET`, `ANTHROPIC_API_KEY`, `GOOGLE_SA_FILE`, `HA_MCP_URL` (`REQUIRED_KEYS` in `setup.sh`). After the pre-flight, `setup.sh` appends `AGENT_SERVICE_TOKEN` (32 random bytes, hex) when it is unset and never prints it, and keeps `AGENT_SERVICE_HOST=wg` in `.env` exactly while `WG_TUNNEL=1`.
 
 `setup.sh` is idempotent. In order: a pre-flight that fails before any build, publish or container change when a required key is unset or empty, `GOOGLE_SA_FILE` is missing, or `BIND_IP` is not accepted (Network boundary); downloads SenseVoiceSmall (~936 MB) if missing, checks the vendor clone, starts `mcp-endpoint-server`, renders `config/config.template.yaml` with `scripts/render_config.py` (values are escaped; `@@NAME?@@` is optional and renders empty when unset) to a mode-0600 temporary file next to `data/.config.yaml`, tags the current `mcp-bridge` and server images (and `weixue/wg:local` while `WG_TUNNEL=1`) `:rollback`, builds them, and validates the rendered file with `scripts/validate_config.py` inside the new server image (YAML, `server.websocket`, auth allow-list, selected modules, LLM key, `mcp_endpoint`; problems are printed without values). A failed render, build or validation exits with `data/.config.yaml` and the `:local` images unchanged. Then it renames the file over `data/.config.yaml` (the previous one is kept as `data/.config.yaml.rollback`), writes `data/mcp-bridge/endpoint-url` the same way, force-recreates the containers (`wg` too while `WG_TUNNEL=1`; otherwise it then removes the `wg` container) and checks deployment readiness:
 
@@ -182,14 +182,19 @@ Required `.env` keys: `LAN_IP`, `BIND_IP`, `ALLOWED_DEVICES`, `TZ`, `TZ_OFFSET`,
 2. While `WG_TUNNEL=1`, the `wg` healthcheck (handshake under 180 s old and the boundary chain hooked in), retried every 2 s for up to `DEPLOY_WAIT_S` (90 s).
 3. The bridge's healthcheck (`python -m weixue_bridge.health`: it connected to the endpoint and registered ha-mcp's tools, and its last ping succeeded), same bound.
 4. One read-only Home Assistant call along the voice path, made from the server container with the server's own endpoint URL: `scripts/check_ha_path.py` (`ha_get_state` for `zone.home` through the endpoint, the bridge, the tunnel when enabled, and ha-mcp; a state or `ENTITY_NOT_FOUND` counts as Home Assistant answering), same bound, 20 s per attempt. It prints one line and never a URL.
+5. agent-service's healthcheck (`python -m weixue_agent.health`: database writable, last model request not failed, a successful ha-mcp ping within 60 s), same bound. A rollback of the first deployment that adds agent-service removes it and skips this check.
 
-After all four pass it copies `.env` to `.env.deployed` (0600). If the recreate or any check fails, it restores the previous config, the endpoint unit (below) and images and, when `.env.deployed` exists, `.env` from it (the attempted file is kept as `.env.failed`, 0600), recreates the containers in that file's tunnel mode, runs the same checks against them and exits 1.
+After all five pass it copies `.env` to `.env.deployed` (0600). If the recreate or any check fails, it restores the previous config, the endpoint unit (below) and images and, when `.env.deployed` exists, `.env` from it (the attempted file is kept as `.env.failed`, 0600), recreates the containers in that file's tunnel mode, runs the same checks against them and exits 1.
 
 The endpoint key (`data/mcp-endpoint/.mcp-endpoint-server.cfg`), the URL derived from it and its two consumers (`mcp_endpoint` in `data/.config.yaml` and `data/mcp-bridge/endpoint-url`) are one deployment unit: `setup.sh` copies the key file and the URL file to `.rollback` (0600) before it starts `mcp-endpoint-server`; a rollback restores both with the config and, when the key changed during the attempt, recreates `mcp-endpoint-server` with the restored key. A successful run removes those two copies. If that second recreate also fails, the stack is down: it prints a `manual restore:` block (retag each `:rollback` image to `:local`, then `docker compose [--profile …] up -d --force-recreate …` from `server/`) and exits 1. `docker-compose.yml` is not rolled back; without `.env.deployed` (first run) neither is `.env`. Logs: `docker logs -f xiaozhi-esp32-server`.
 
 Providers: VAD SileroVAD, ASR `GoogleSTTStream` (batch `GoogleSTT` stays configured), LLM `AnthropicLLM`, TTS `GoogleTTS`. Upstream `FunASR` (SenseVoiceSmall, local), `EdgeTTS` and the OpenAI-compatible `StopgapLLM` (Groq, `LLM_*` in `.env`) stay configured and are selected by editing `selected_module`. `wakeup_words` adds `Jarvis` to the upstream list.
 
 Optional web console (MySQL + Redis + manager-web, port 8002): set `MYSQL_ROOT_PASSWORD` in `.env`, then `docker compose --profile console up -d`. Not validated.
+
+## Agent service
+
+Compose service `agent-service` (`docs/agent-service.md`): no host port; the server container reaches it at `AGENT_SERVICE_URL` (`http://agent-service:8010`, or `http://wg:8010` while `WG_TUNNEL=1`, where it shares the tunnel namespace like `mcp-bridge`) with the bearer `AGENT_SERVICE_TOKEN`, and the agent gateway (`docs/agent-protocol.md`) consumes its outbox for every device with an agent session. Its environment holds only `ANTHROPIC_API_KEY`, `HA_MCP_URL`, `AGENT_SERVICE_TOKEN` and `TZ`; data lives in `data/agent-service/`.
 
 ## Verification
 
@@ -199,7 +204,7 @@ Optional web console (MySQL + Redis + manager-web, port 8002): set `MYSQL_ROOT_P
 
 ## Office / off-LAN mode (WireGuard tunnel)
 
-When the Mac is off the home LAN, `mcp-bridge` reaches ha-mcp through a WireGuard client sidecar, compose service `wg` (profile `tunnel`, image `weixue/wg:local` built from `server/wg/`: pinned Alpine + `wireguard-tools`, kernel WireGuard). Only the bridge shares the sidecar's network namespace (`network_mode: service:wg`); the server, `mcp-endpoint-server` and the device path are unchanged. The bridge still reaches `ws://mcp-endpoint-server:8004` by name: the sidecar sits on the project network and keeps Docker's resolver.
+When the Mac is off the home LAN, `mcp-bridge` reaches ha-mcp through a WireGuard client sidecar, compose service `wg` (profile `tunnel`, image `weixue/wg:local` built from `server/wg/`: pinned Alpine + `wireguard-tools`, kernel WireGuard). The bridge and agent-service share the sidecar's network namespace (`network_mode: service:wg`); the server, `mcp-endpoint-server` and the device path are unchanged. The bridge still reaches `ws://mcp-endpoint-server:8004` by name: the sidecar sits on the project network and keeps Docker's resolver.
 
 Prerequisites:
 

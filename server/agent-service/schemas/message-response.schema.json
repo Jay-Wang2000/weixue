@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weixue.local/agent/v1/message-response.schema.json",
+  "type": "object",
+  "required": [
+    "chat_id",
+    "task_id",
+    "turn_id",
+    "routed",
+    "duplicate"
+  ],
+  "properties": {
+    "chat_id": {
+      "$ref": "defs.schema.json#/$defs/ChatId"
+    },
+    "task_id": {
+      "anyOf": [
+        {
+          "$ref": "defs.schema.json#/$defs/TaskId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "turn_id": {
+      "anyOf": [
+        {
+          "$ref": "defs.schema.json#/$defs/TurnId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "routed": {
+      "enum": [
+        "new_task",
+        "steer",
+        "continue",
+        "answer",
+        "approval",
+        "cancel"
+      ]
+    },
+    "duplicate": {
+      "type": "boolean"
+    }
+  }
+}

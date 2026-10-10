@@ -1,0 +1,18 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "device_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Device Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "device_id"
+  ],
+  "title": "DeviceRef",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weixue.local/agent/v1/device-ref.schema.json"
+}

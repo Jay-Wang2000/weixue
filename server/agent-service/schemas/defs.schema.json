@@ -1,0 +1,356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weixue.local/agent/v1/defs.schema.json",
+  "$defs": {
+    "TaskId": {
+      "type": "string",
+      "pattern": "^tsk_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "ChatId": {
+      "type": "string",
+      "pattern": "^cht_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "TurnId": {
+      "type": "string",
+      "pattern": "^trn_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "InteractionId": {
+      "type": "string",
+      "pattern": "^int_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "DeliveryId": {
+      "type": "string",
+      "pattern": "^dlv_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "DeviceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "TraceId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "Time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "Lang": {
+      "enum": [
+        "en",
+        "zh"
+      ]
+    },
+    "Tier": {
+      "enum": [
+        "INTERRUPT",
+        "WHEN_IDLE",
+        "SILENT"
+      ]
+    },
+    "TaskState": {
+      "enum": [
+        "progress",
+        "needs_input",
+        "needs_approval",
+        "done",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "TurnState": {
+      "enum": [
+        "running",
+        "completed",
+        "interrupted",
+        "failed"
+      ]
+    },
+    "Outcome": {
+      "enum": [
+        "ok",
+        "partial",
+        "denied",
+        "expired",
+        "unknown",
+        "none"
+      ]
+    },
+    "Progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase"
+      ],
+      "properties": {
+        "step": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "tool": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "phase": {
+          "enum": [
+            "thinking",
+            "tool",
+            "writing",
+            "retrying",
+            "waiting"
+          ]
+        }
+      }
+    },
+    "SideEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "status"
+      ],
+      "properties": {
+        "tool": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "target": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "failed",
+            "unknown",
+            "not_run"
+          ]
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "service_restart",
+            "api_error",
+            "rate_limit",
+            "auth",
+            "billing",
+            "refusal",
+            "max_turns",
+            "max_budget",
+            "sdk_error",
+            "agent_process",
+            "interrupt_timeout",
+            "timeout",
+            "busy",
+            "internal"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 300
+        }
+      }
+    },
+    "Option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 24
+        }
+      }
+    },
+    "Interaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interaction_id",
+        "task_id",
+        "chat_id",
+        "kind",
+        "source",
+        "state",
+        "created_at"
+      ],
+      "properties": {
+        "interaction_id": {
+          "$ref": "#/$defs/InteractionId"
+        },
+        "task_id": {
+          "$ref": "#/$defs/TaskId"
+        },
+        "chat_id": {
+          "$ref": "#/$defs/ChatId"
+        },
+        "turn_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TurnId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "enum": [
+            "input",
+            "approval"
+          ]
+        },
+        "source": {
+          "enum": [
+            "sdk",
+            "ha_mcp",
+            "text"
+          ]
+        },
+        "state": {
+          "enum": [
+            "pending",
+            "answered",
+            "approved",
+            "denied",
+            "expired",
+            "cancelled",
+            "uncorrelated"
+          ]
+        },
+        "question": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "header": {
+              "type": "string",
+              "maxLength": 12
+            },
+            "options": {
+              "type": "array",
+              "maxItems": 4,
+              "items": {
+                "$ref": "#/$defs/Option"
+              }
+            },
+            "multi_select": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "action": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text",
+            "tool"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "detail": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "tool": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "risk": {
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                null
+              ]
+            },
+            "reversible": {
+              "type": "boolean"
+            }
+          }
+        },
+        "voice_can_approve": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "decision": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "via": {
+          "enum": [
+            "panel",
+            "voice",
+            "api",
+            "timeout",
+            null
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "question"
+          ]
+        },
+        {
+          "required": [
+            "action"
+          ]
+        }
+      ]
+    }
+  }
+}

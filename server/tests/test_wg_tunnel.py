@@ -129,15 +129,17 @@ def test_setup_tunnel_on_writes_profile_and_recreates_wg(setup, existing, profil
     assert setup.env_file.stat().st_mode & 0o777 == 0o600
     calls = setup.compose_calls()
     assert calls and all(c.startswith(f"COMPOSE_PROFILES={profiles} ") for c in calls)
-    assert calls[-1].split("--force-recreate ")[1].split() == ["wg", "mcp-bridge", "xiaozhi-esp32-server"]
-    assert any(c.endswith(" compose build wg mcp-bridge xiaozhi-esp32-server") for c in calls)
+    assert calls[-1].split("--force-recreate ")[1].split() == ["wg", "mcp-bridge", "agent-service", "xiaozhi-esp32-server"]
+    assert any(c.endswith(" compose build wg mcp-bridge agent-service xiaozhi-esp32-server") for c in calls)
     assert not any(c.endswith(" rm -f wg") for c in setup.docker_calls())
     execs = [line.split(" exec ", 1)[1] for line in setup.docker_calls() if " exec " in line]
     assert execs == [
         "wg /usr/local/bin/healthcheck.sh",
         "mcp-bridge python -m weixue_bridge.health",
         "-i xiaozhi-esp32-server python - --timeout 20",
+        "agent-service python -m weixue_agent.health",
     ]
+    assert "AGENT_SERVICE_HOST=wg" in setup.env_file.read_text()
 
 
 @pytest.mark.parametrize(
@@ -157,12 +159,13 @@ def test_setup_tunnel_off_strips_profile_and_skips_wg(setup, existing, seen):
     assert "HA_MCP_URL=http://192.0.2.2:9584/secret" in setup.env_file.read_text()
     calls = setup.compose_calls()
     assert calls and all(c.startswith(f"COMPOSE_PROFILES={seen} ") for c in calls)
-    assert calls[-1].split("--force-recreate ")[1].split() == ["mcp-bridge", "xiaozhi-esp32-server"]
-    assert any(c.endswith(" compose build mcp-bridge xiaozhi-esp32-server") for c in calls)
+    assert calls[-1].split("--force-recreate ")[1].split() == ["mcp-bridge", "agent-service", "xiaozhi-esp32-server"]
+    assert any(c.endswith(" compose build mcp-bridge agent-service xiaozhi-esp32-server") for c in calls)
     docker_calls = setup.docker_calls()
     removed = next(i for i, c in enumerate(docker_calls) if c.endswith(" rm -f wg"))
     assert docker_calls[removed - 1] == calls[-1]
-    assert [c.split(" exec ", 1)[1].split()[0] for c in docker_calls[removed + 1:]] == ["mcp-bridge", "-i"]
+    assert [c.split(" exec ", 1)[1].split()[0] for c in docker_calls[removed + 1:]] == ["mcp-bridge", "-i", "agent-service"]
+    assert "AGENT_SERVICE_HOST" not in setup.env_file.read_text()
 
 
 def test_failed_up_and_rollback_print_the_manual_restore_with_the_profile(setup):
@@ -193,7 +196,7 @@ def test_rollback_recreates_in_the_previous_tunnel_mode(setup):
     assert setup.env_file.read_text() == deployed
     calls = setup.compose_calls()
     assert calls[-1].startswith("COMPOSE_PROFILES=tunnel ")
-    assert calls[-1].split("--force-recreate ")[1].split() == ["wg", "mcp-bridge", "xiaozhi-esp32-server"]
+    assert calls[-1].split("--force-recreate ")[1].split() == ["wg", "mcp-bridge", "agent-service", "xiaozhi-esp32-server"]
     assert not any(c.endswith(" rm -f wg") for c in setup.docker_calls())
 
 
@@ -366,3 +369,8 @@ def test_compose_profile_from_env_file_switches_bridge_namespace(tmp_path, tunne
     assert (bridge.get("network_mode") or None) == ("service:wg" if tunnel else None)
     assert bridge["depends_on"]["wg"] == {"condition": "service_healthy", "required": False}
     assert bridge["environment"]["TUNNEL_IFACE"] == ("wg0" if tunnel else "")
+    agent = services["agent-service"]
+    assert (agent.get("network_mode") or None) == ("service:wg" if tunnel else None)
+    assert agent["depends_on"]["wg"] == {"condition": "service_healthy", "required": False}
+    assert set(agent["environment"]) == {"ANTHROPIC_API_KEY", "HA_MCP_URL", "AGENT_SERVICE_TOKEN", "TZ"}
+    assert "ports" not in agent and "env_file" not in agent

@@ -1,0 +1,27 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "decision_id": {
+      "pattern": "^[0-9a-fA-F-]{36}$",
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "reason": {
+      "enum": [
+        "voice",
+        "panel",
+        "api"
+      ],
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "decision_id",
+    "reason"
+  ],
+  "title": "Interrupt",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weixue.local/agent/v1/interrupt.schema.json"
+}

@@ -1,0 +1,64 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "interaction_id": {
+      "pattern": "^int_[0-9A-HJKMNP-TV-Z]{26}$",
+      "title": "Interaction Id",
+      "type": "string"
+    },
+    "decision_id": {
+      "pattern": "^[0-9a-fA-F-]{36}$",
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "option_ids": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Option Ids"
+    },
+    "text": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text"
+    },
+    "via": {
+      "enum": [
+        "panel",
+        "voice",
+        "api"
+      ],
+      "title": "Via",
+      "type": "string"
+    }
+  },
+  "required": [
+    "interaction_id",
+    "decision_id",
+    "via"
+  ],
+  "title": "Answer",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weixue.local/agent/v1/answer.schema.json"
+}

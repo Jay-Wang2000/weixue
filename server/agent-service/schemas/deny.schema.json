@@ -1,0 +1,33 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "interaction_id": {
+      "pattern": "^int_[0-9A-HJKMNP-TV-Z]{26}$",
+      "title": "Interaction Id",
+      "type": "string"
+    },
+    "decision_id": {
+      "pattern": "^[0-9a-fA-F-]{36}$",
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "via": {
+      "enum": [
+        "panel",
+        "voice",
+        "api"
+      ],
+      "title": "Via",
+      "type": "string"
+    }
+  },
+  "required": [
+    "interaction_id",
+    "decision_id",
+    "via"
+  ],
+  "title": "Decide",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weixue.local/agent/v1/deny.schema.json"
+}
