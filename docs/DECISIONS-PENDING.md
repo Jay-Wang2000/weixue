@@ -1,6 +1,5 @@
 # Decisions pending Jay's approval
 
-**2026-10-07 approvals (Jay: "decision looks good to me")**: items 1–4 confirmed as live; item 5 voice policy diff approved in principle (apply at home, after the drift fix); 5b drift fix approved (file edited locally in ha-agent, apply at home); 13 boundary = option C now, D with Ubuntu; ADR-9 reworked so the timeout lives in our bridge, no `wait_seconds` change (item 5's `wait_seconds` line is dropped). Still to do at home: apply policy, rotate secret path, enable event decisions + PIN in the HA-MCP panel (item 7), run the deferred device tests.
 
 
 Items here are external-service or user-only decisions (CLAUDE.md). Work continues on everything else. Reply inline or in chat; the orchestrator clears items as they are answered.
@@ -84,8 +83,6 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 - The board is not on USB (no /dev/cu.usbmodem*), so on-device checks (protocol loopback run, device reconciliation flash of main) wait until it is plugged back in.
 
 45. **Card resend rule** — orchestrator-level (our stack): after "Not sent", only the control the user first chose can resend; switching to the other answer on that card is blocked because a cancelled send may still arrive; the gateway keeps first-wins per card. Accepted.
-
-46. **ha-mcp secret-path rotation** — Jay 2026-10-10: skipped, accepted risk (one in-context exposure on 2026-10-07; never in files; LAN-only HA). Revisit on the Ubuntu move.
 
 ## Deferred to home (device audio needed; HA is reachable from the office via the WireGuard tunnel since 2026-10-07)
 - `fix-wave3-firmware` (one-breath wake capture, mute transport, IMU torn-read fix, thinking state, panel send, clock resync): code complete on branch, host tests pass; needs the 4×10 wake trials and mute/panel/TZ checks on the home LAN.
