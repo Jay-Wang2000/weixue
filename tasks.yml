@@ -201,6 +201,15 @@ tasks:
     status: done
     retries: 0
     model: opus
+  - id: tool-diag-injection
+    name: "Diag build: inject physical interactions over USB/MCP for unattended sessions"
+    branch: tool/diag-injection
+    description: |
+      Jay 2026-10-10：让语音/物理交互会话可由编排器独立完成。在 diag 构建中扩展现有 self.diag.* 设备 MCP 工具与面板的 replay_indev_：模拟 pick_up、face_down/face_up（已有）、double_tap、touch tap(x,y)、swipe left/right、BOOT 键，并提供串口侧触发（diag 构建监听 USB 串口一行命令，如 `diag gesture pick_up`、`diag touch 233 400`、`diag swipe left`），由 firmware/tools/diag_inject.py 封装；release 构建不含任何注入代码。配套 scripts/audio_session.sh：在家模式下用 macOS `say`（音量 55）驱动唤醒/对话脚本并结合注入手势，产出会话日志表（docs/logs/session-<date>.md）。验收：diag 构建上每种注入在串口日志中产生与真实手势相同的事件行；release 构建 strings 中无 diag 命令字符串；一次完整脚本跑通。
+    depends_on: [feat-ui-agent-states]
+    status: in_progress
+    retries: 0
+    model: opus
   - id: fix-hamcp-session-hygiene
     name: "ha-mcp session hygiene in the bridge (recurring tools/list hang)"
     branch: fix/hamcp-session-hygiene
