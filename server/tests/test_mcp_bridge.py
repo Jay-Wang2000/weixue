@@ -1,4 +1,6 @@
 """Unit tests for server/mcp-bridge: config parsing, voice filter, ha-mcp client, relay."""
+import asyncio
+import itertools
 import json
 import os
 import sys
@@ -14,6 +16,9 @@ PROPOSED_FILTER_FILE = FILTER_FILE.with_name("voice_bridge.proposed.json")
 sys.path.insert(0, str(BRIDGE_DIR))
 
 from weixue_bridge import bridge as bridge_mod  # noqa: E402
+from weixue_bridge import catalog as catalog_mod  # noqa: E402
+from weixue_bridge import hamcp as hamcp_mod  # noqa: E402
+from weixue_bridge.catalog import ToolCatalog  # noqa: E402
 from weixue_bridge.config import (  # noqa: E402
     ConfigError,
     VoiceFilter,
@@ -262,20 +267,23 @@ async def test_client_returns_matching_response_and_tracks_protocol():
     await client.aclose()
 
 
-async def test_client_echoes_session_id_and_accepts_json():
+async def test_client_echoes_session_id_from_initialize_and_accepts_json():
     seen = []
 
     def handler(request):
         seen.append(request)
         body = json.loads(request.content)
-        return httpx.Response(200, headers={"mcp-session-id": "sess-1"}, json={"jsonrpc": "2.0", "id": body["id"], "result": {}})
+        sid = "sess-1" if body["method"] == "initialize" else "sess-other"
+        return httpx.Response(200, headers={"mcp-session-id": sid}, json={"jsonrpc": "2.0", "id": body["id"], "result": {}})
 
     client = HaMcpClient(HA_URL, transport=httpx.MockTransport(handler))
-    await client.send({"jsonrpc": "2.0", "id": 1, "method": "ping"})
+    await client.send({"jsonrpc": "2.0", "id": 1, "method": "initialize"})
     await client.send({"jsonrpc": "2.0", "id": 2, "method": "ping"})
+    await client.send({"jsonrpc": "2.0", "id": 3, "method": "ping"})
     assert "mcp-session-id" not in seen[0].headers
     assert seen[1].headers["mcp-session-id"] == "sess-1"
-    await client.aclose()
+    assert seen[2].headers["mcp-session-id"] == "sess-1"
+    await client._client.aclose()
 
 
 @pytest.mark.parametrize(
@@ -314,8 +322,23 @@ class FakeHa:
         self.responses = responses or {}
         self.rpc_errors = rpc_errors or {}
         self.error = error
+        self.session_id = None
+        self.sessions_opened = 0
+        self.init_response = None
+        self.timings = {}
+        self.closed = False
 
-    async def send(self, message):
+    async def ensure_session(self):
+        if self.init_response is None:
+            self.init_response = await self.send({"jsonrpc": "2.0", "id": "init", "method": "initialize"})
+            self.sessions_opened += 1
+        return self.init_response
+
+    async def aclose(self):
+        self.closed = True
+
+    async def send(self, message, timeout_s=None):
+        self.timings[message.get("method")] = hamcp_mod.Timing(200, 1, 2, 3)
         self.sent.append(message)
         if self.error:
             raise self.error
@@ -326,24 +349,54 @@ class FakeHa:
         return {"jsonrpc": "2.0", "id": message["id"], "result": self.responses.get(message["method"], {})}
 
 
-def make_bridge(ha):
+TOOLS = {"tools": [{"name": "ha_get_state"}, {"name": "ha_config_set_automation"}, {"name": "ha_call_service"}]}
+INIT_RESULT = {"protocolVersion": "2024-11-05", "serverInfo": {"name": "ha-mcp"}}
+
+
+def ready_catalog(ha, tools=TOOLS):
+    catalog = ToolCatalog(ha)
+    catalog.init_result = INIT_RESULT
+    catalog.tools = list(tools["tools"])
+    catalog.fetched_at = time.time()
+    catalog.ready.set()
+    return catalog
+
+
+def make_bridge(ha, catalog=None):
     out = []
 
     async def send(raw):
         out.append(json.loads(raw))
 
-    return bridge_mod.Bridge(VOICE, ha, send), out
+    return bridge_mod.Bridge(VOICE, ha, catalog if catalog is not None else ToolCatalog(ha), send), out
 
 
-TOOLS = {"tools": [{"name": "ha_get_state"}, {"name": "ha_config_set_automation"}, {"name": "ha_call_service"}]}
-
-
-async def test_tools_list_is_filtered():
-    bridge, out = make_bridge(FakeHa({"tools/list": TOOLS}))
+async def test_tools_list_is_filtered_from_the_catalog():
+    ha = FakeHa()
+    bridge, out = make_bridge(ha, ready_catalog(ha))
     await bridge.handle(json.dumps({"jsonrpc": "2.0", "id": "u_2", "method": "tools/list"}))
     assert out == [
         {"jsonrpc": "2.0", "id": "u_2", "result": {"tools": [{"name": "ha_get_state"}, {"name": "ha_call_service"}]}}
     ]
+    assert ha.sent == []
+
+
+async def test_tools_list_without_catalog_fetches_once():
+    ha = FakeHa({"initialize": INIT_RESULT, "tools/list": TOOLS})
+    bridge, out = make_bridge(ha)
+    for request_id in ("u_1", "u_2"):
+        await bridge.handle(json.dumps({"jsonrpc": "2.0", "id": request_id, "method": "tools/list"}))
+    assert [m["method"] for m in ha.sent] == ["initialize", "tools/list"]
+    assert [[t["name"] for t in o["result"]["tools"]] for o in out] == [["ha_get_state", "ha_call_service"]] * 2
+
+
+async def test_endpoint_initialize_is_answered_without_a_new_session():
+    ha = FakeHa()
+    bridge, out = make_bridge(ha, ready_catalog(ha))
+    await bridge.handle(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}))
+    await bridge.handle(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}))
+    assert out == [{"jsonrpc": "2.0", "id": 1, "result": INIT_RESULT}]
+    assert ha.sent == []
 
 
 async def test_refused_call_is_not_forwarded():
@@ -365,7 +418,7 @@ async def test_refused_call_is_not_forwarded():
     assert "'lock' services" in out[0]["result"]["content"][0]["text"]
 
 
-async def test_allowed_call_is_forwarded_unchanged():
+async def test_allowed_calls_are_forwarded_unchanged_over_one_session():
     ha = FakeHa({"tools/call": {"content": [{"type": "text", "text": "done"}]}})
     bridge, out = make_bridge(ha)
     message = {
@@ -375,8 +428,10 @@ async def test_allowed_call_is_forwarded_unchanged():
         "params": {"name": "ha_call_service", "arguments": {"domain": "light", "service": "turn_on"}},
     }
     await bridge.handle(json.dumps(message))
-    assert ha.sent == [message]
-    assert out == [{"jsonrpc": "2.0", "id": "u_6", "result": {"content": [{"type": "text", "text": "done"}]}}]
+    await bridge.handle(json.dumps(message))
+    assert [m["method"] for m in ha.sent] == ["initialize", "tools/call", "tools/call"]
+    assert ha.sent[1] == message
+    assert out == [{"jsonrpc": "2.0", "id": "u_6", "result": {"content": [{"type": "text", "text": "done"}]}}] * 2
 
 
 ENTITY_NOT_FOUND = json.dumps({"success": False, "error": {"code": "ENTITY_NOT_FOUND", "message": "light.x not found"}})
@@ -436,7 +491,7 @@ class BridgeSocket:
     def __init__(self, ha, handler):
         self.client = None
         self._handler = handler
-        self._bridge = bridge_mod.Bridge(VOICE, ha, self._reply)
+        self._bridge = bridge_mod.Bridge(VOICE, ha, ToolCatalog(ha), self._reply)
 
     async def _reply(self, raw):
         await self._handler(self.client, raw)
@@ -486,8 +541,8 @@ async def test_server_hands_failure_text_to_llm(ha, tool, arguments, needle):
 async def test_notification_is_forwarded_without_reply():
     ha = FakeHa()
     bridge, out = make_bridge(ha)
-    await bridge.handle(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized", "params": {}}))
-    assert ha.sent[0]["method"] == "notifications/initialized"
+    await bridge.handle(json.dumps({"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {"requestId": 3}}))
+    assert ha.sent[-1]["method"] == "notifications/cancelled"
     assert out == []
 
 
@@ -511,14 +566,27 @@ async def test_non_requests_are_dropped(raw):
     assert ha.sent == [] and out == []
 
 
-async def test_announce_registers_filtered_tools():
-    ha = FakeHa({"initialize": {"protocolVersion": "2024-11-05", "serverInfo": {"name": "ha-mcp"}}, "tools/list": TOOLS})
-    bridge, out = make_bridge(ha)
+async def test_announce_registers_filtered_tools_from_the_catalog():
+    ha = FakeHa()
+    bridge, out = make_bridge(ha, ready_catalog(ha))
     assert await bridge.announce() == 2
-    assert [m["method"] for m in ha.sent] == ["initialize", "notifications/initialized", "tools/list"]
-    assert out[0]["id"] == bridge_mod.ANNOUNCE_INIT_ID
+    assert ha.sent == []
+    assert out[0] == {"jsonrpc": "2.0", "id": bridge_mod.ANNOUNCE_INIT_ID, "result": INIT_RESULT}
     assert out[1]["id"] == bridge_mod.ANNOUNCE_TOOLS_ID
     assert [t["name"] for t in out[1]["result"]["tools"]] == ["ha_get_state", "ha_call_service"]
+    assert bridge.announced
+
+
+async def test_announce_waits_for_the_first_refresh():
+    ha = FakeHa({"initialize": INIT_RESULT, "tools/list": TOOLS})
+    catalog = ToolCatalog(ha)
+    bridge, out = make_bridge(ha, catalog)
+    announce = asyncio.create_task(bridge.announce())
+    await asyncio.sleep(0)
+    assert not announce.done() and out == []
+    await catalog.refresh()
+    assert await announce == 2
+    assert out[0]["result"] == INIT_RESULT
 
 
 # --- health -------------------------------------------------------------------
@@ -563,7 +631,8 @@ class StopLoop(Exception):
 
 @pytest.fixture
 def reconnect(monkeypatch, tmp_path):
-    """Runs bridge.run against a scripted connect: each entry is an exception to raise or None to connect."""
+    """Runs bridge.run against a scripted connect: each entry is an exception to raise, a socket to
+    connect with, or None to connect with a socket that closes at once."""
     state = {
         "script": [],
         "default": OSError("unreachable"),
@@ -577,9 +646,9 @@ def reconnect(monkeypatch, tmp_path):
     def connect(url, **kwargs):
         state["connects"] += 1
         step = state["script"].pop(0) if state["script"] else state["default"]
-        if step is not None:
+        if isinstance(step, BaseException):
             raise step
-        return FakeWs()
+        return step if step is not None else FakeWs()
 
     async def sleep(seconds):
         if state["sleep_limit"] is not None and len(state["sleeps"]) >= state["sleep_limit"]:
@@ -650,6 +719,10 @@ class ScriptedHa:
 
     def __init__(self, steps):
         self.steps = list(steps)
+        self.timings = {}
+
+    async def ensure_session(self):
+        return {"result": {}}
 
     async def send(self, message):
         step = self.steps.pop(0)
@@ -756,3 +829,417 @@ def test_load_config_reads_the_tunnel_interface(tmp_path):
     env = {"HA_MCP_URL": HA_URL, "MCP_ENDPOINT": ENDPOINT, "VOICE_FILTER_FILE": str(FILTER_FILE), "TUNNEL_IFACE": "wg0"}
     assert load_config(env).tunnel_iface == "wg0"
     assert load_config({**env, "TUNNEL_IFACE": ""}).tunnel_iface == ""
+
+
+# --- ha-mcp session hygiene -------------------------------------------------------
+
+
+class FakeHaMcp:
+    """MockTransport handler for a Streamable HTTP MCP server that records sessions, DELETEs and methods.
+    Stateful: issues Mcp-Session-Id on initialize and answers 404 for unknown ids. Stateless (as ha-mcp's
+    embedded server): no session id, DELETE answers 405."""
+
+    def __init__(self, stateful=True, tools=TOOLS):
+        self.stateful = stateful
+        self.tools = tools
+        self.open = set()
+        self.max_open = 0
+        self.initializes = 0
+        self.deletes = []
+        self.methods = []
+        self._ids = itertools.count(1)
+
+    def _sse(self, message, headers=None):
+        body = f"event: message\r\ndata: {json.dumps(message)}\r\n\r\n"
+        return httpx.Response(200, headers={"content-type": "text/event-stream", **(headers or {})}, text=body)
+
+    def __call__(self, request):
+        sid = request.headers.get("mcp-session-id")
+        if request.method == "DELETE":
+            self.deletes.append(sid)
+            if not self.stateful:
+                return httpx.Response(405, json={"jsonrpc": "2.0", "id": None, "error": {"code": -32600}})
+            if sid not in self.open:
+                return httpx.Response(404)
+            self.open.discard(sid)
+            return httpx.Response(200)
+        body = json.loads(request.content)
+        method = body.get("method")
+        self.methods.append(method)
+        if method == "initialize":
+            self.initializes += 1
+            headers = {}
+            if self.stateful:
+                sid = f"{next(self._ids):08d}" + "f" * 24
+                self.open.add(sid)
+                self.max_open = max(self.max_open, len(self.open))
+                headers["mcp-session-id"] = sid
+            result = {"protocolVersion": "2024-11-05", "serverInfo": {"name": "fake-ha-mcp"}}
+            return self._sse({"jsonrpc": "2.0", "id": body["id"], "result": result}, headers)
+        if self.stateful and sid not in self.open:
+            return httpx.Response(404 if sid else 400)
+        if "id" not in body:
+            return httpx.Response(202)
+        if method == "tools/list":
+            return self._sse({"jsonrpc": "2.0", "id": body["id"], "result": self.tools})
+        if method == "tools/call":
+            result = {"content": [{"type": "text", "text": "on"}], "isError": False}
+            return self._sse({"jsonrpc": "2.0", "id": body["id"], "result": result})
+        return self._sse({"jsonrpc": "2.0", "id": body["id"], "result": {}})
+
+
+def fake_client(server):
+    return HaMcpClient(HA_URL, transport=httpx.MockTransport(server))
+
+
+ENDPOINT_SESSION = [
+    {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05"}},
+    {"jsonrpc": "2.0", "method": "notifications/initialized", "params": {}},
+    {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "ha_get_state", "arguments": {}}},
+]
+
+
+class ScriptedWs(FakeWs):
+    """Endpoint socket that delivers `messages`, then closes once `replies` messages came back."""
+
+    def __init__(self, messages, replies):
+        super().__init__()
+        self._messages = [json.dumps(m) for m in messages]
+        self._replies = replies
+        self._done = asyncio.Event()
+
+    async def send(self, raw):
+        self.sent.append(json.loads(raw))
+        if len(self.sent) >= self._replies:
+            self._done.set()
+
+    async def __anext__(self):
+        if self._messages:
+            return self._messages.pop(0)
+        await asyncio.wait_for(self._done.wait(), 5)
+        raise StopAsyncIteration
+
+
+async def test_client_reuses_one_session_and_deletes_it_on_close():
+    server = FakeHaMcp()
+    client = fake_client(server)
+    first = await client.ensure_session()
+    assert await client.ensure_session() is first
+    for _ in range(3):
+        assert bridge_mod.ping_ok(await client.send({"jsonrpc": "2.0", "id": bridge_mod.PING_ID, "method": "ping"}))
+    sid = client.session_id
+    assert server.initializes == 1 and server.open == {sid}
+    await client.aclose()
+    assert server.deletes == [sid] and server.open == set()
+
+
+async def test_stateless_server_gets_one_initialize_and_no_delete():
+    server = FakeHaMcp(stateful=False)
+    client = fake_client(server)
+    await client.ensure_session()
+    await client.ensure_session()
+    await client.send({"jsonrpc": "2.0", "id": "p", "method": "ping"})
+    assert client.session_id is None
+    assert hamcp_mod.session_label(client.session_id) == "stateless"
+    await client.aclose()
+    assert server.initializes == 1 and server.deletes == []
+
+
+async def test_expired_session_reopens_once_without_delete():
+    server = FakeHaMcp()
+    client = fake_client(server)
+    await client.ensure_session()
+    server.open.clear()
+    with pytest.raises(HaMcpError, match="session expired"):
+        await client.send({"jsonrpc": "2.0", "id": "p", "method": "ping"})
+    await client.ensure_session()
+    assert bridge_mod.ping_ok(await client.send({"jsonrpc": "2.0", "id": bridge_mod.PING_ID, "method": "ping"}))
+    assert server.initializes == 2 and server.deletes == [] and client.sessions_opened == 2
+    await client.aclose()
+
+
+async def test_failed_handshake_deletes_the_half_open_session():
+    server = FakeHaMcp()
+
+    def handler(request):
+        if request.content and json.loads(request.content).get("method") == "notifications/initialized":
+            return httpx.Response(500)
+        return server(request)
+
+    client = HaMcpClient(HA_URL, transport=httpx.MockTransport(handler))
+    with pytest.raises(HaMcpError):
+        await client.ensure_session()
+    half_open = next(iter(server.open))
+    with pytest.raises(HaMcpError):
+        await client.ensure_session()
+    assert half_open in server.deletes
+    await client.aclose()
+    assert server.open == set()
+
+
+async def test_tools_list_is_bounded_even_when_the_body_stalls(monkeypatch):
+    monkeypatch.setitem(hamcp_mod.METHOD_TIMEOUT_S, "tools/list", 0.2)
+
+    async def stalled_body():
+        yield b"event: message\r\ndata: {"
+        await asyncio.Event().wait()
+
+    async def handler(request):
+        body = json.loads(request.content)
+        if body["method"] == "tools/list":
+            return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=stalled_body())
+        return httpx.Response(200, json={"jsonrpc": "2.0", "id": body["id"], "result": {}})
+
+    client = HaMcpClient(HA_URL, transport=httpx.MockTransport(handler))
+    started = time.monotonic()
+    with pytest.raises(HaMcpError) as e:
+        await client.send({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+    assert str(e.value) == "tools/list timed out after 0.2 s"
+    assert time.monotonic() - started < 2
+    assert bridge_mod.ping_ok(await client.send({"jsonrpc": "2.0", "id": bridge_mod.PING_ID, "method": "ping"}))
+    await client._client.aclose()
+
+
+async def test_timings_record_first_byte_total_and_size():
+    client = fake_client(FakeHaMcp())
+    await client.ensure_session()
+    await client.send({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+    timing = client.timings["tools/list"]
+    assert timing.status == 200 and timing.size > 100
+    assert 0 <= timing.first_byte_ms <= timing.total_ms
+    await client.aclose()
+
+
+# --- tool catalog -------------------------------------------------------------------
+
+
+async def test_catalog_refresh_writes_cache_and_load_reads_it(tmp_path):
+    path = tmp_path / "cache" / "tools.json"
+    client = fake_client(FakeHaMcp())
+    catalog = ToolCatalog(client, str(path))
+    assert not catalog.load()
+    assert await catalog.refresh() is True
+    assert await catalog.refresh() is False
+    await client.aclose()
+    again = ToolCatalog(FakeHa(), str(path))
+    assert again.load() and again.ready.is_set()
+    assert again.tools == TOOLS["tools"]
+    assert again.init_result["serverInfo"]["name"] == "fake-ha-mcp"
+
+
+@pytest.mark.parametrize("content", ["{", "[]", json.dumps({"initialize": {}, "tools": "x", "fetched_at": 1})])
+def test_catalog_ignores_a_bad_cache(tmp_path, content):
+    path = tmp_path / "tools.json"
+    path.write_text(content)
+    catalog = ToolCatalog(FakeHa(), str(path))
+    assert not catalog.load() and not catalog.ready.is_set()
+
+
+async def test_catalog_follows_next_cursor():
+    pages = {None: {"tools": [{"name": "a"}], "nextCursor": "p2"}, "p2": {"tools": [{"name": "b"}]}}
+
+    class PagedHa(FakeHa):
+        async def send(self, message, timeout_s=None):
+            if message["method"] == "tools/list":
+                self.sent.append(message)
+                self.timings["tools/list"] = hamcp_mod.Timing(200, 1, 2, 3)
+                cursor = (message.get("params") or {}).get("cursor")
+                return {"jsonrpc": "2.0", "id": message["id"], "result": pages[cursor]}
+            return await super().send(message, timeout_s)
+
+    catalog = ToolCatalog(PagedHa({"initialize": INIT_RESULT}))
+    await catalog.refresh()
+    assert [t["name"] for t in catalog.tools] == ["a", "b"]
+
+
+async def test_refresh_loop_backs_off_without_storming(monkeypatch):
+    delays = []
+
+    async def sleep(seconds):
+        delays.append(seconds)
+        if len(delays) == 9:
+            raise StopLoop
+
+    monkeypatch.setattr(catalog_mod, "_sleep", sleep)
+    ha = FakeHa(error=HaMcpError("tools/list timed out after 20 s"))
+    with pytest.raises(StopLoop):
+        await catalog_mod.refresh_loop(ToolCatalog(ha), None)
+    assert delays == [5, 10, 20, 40, 80, 160, 300, 300, 300]
+    assert len(ha.sent) == 9
+
+
+async def test_refresh_loop_reannounces_only_on_change(monkeypatch):
+    delays, changes = [], []
+    lists = [TOOLS, TOOLS, {"tools": [{"name": "ha_get_state"}]}]
+
+    async def sleep(seconds):
+        delays.append(seconds)
+        if len(delays) == 3:
+            raise StopLoop
+
+    class ChangingHa(FakeHa):
+        async def send(self, message, timeout_s=None):
+            if message["method"] == "tools/list":
+                self.responses["tools/list"] = lists.pop(0)
+            return await super().send(message, timeout_s)
+
+    async def on_change():
+        changes.append(len(delays))
+
+    monkeypatch.setattr(catalog_mod, "_sleep", sleep)
+    with pytest.raises(StopLoop):
+        await catalog_mod.refresh_loop(ToolCatalog(ChangingHa({"initialize": INIT_RESULT})), on_change)
+    assert delays == [catalog_mod.TOOLS_REFRESH_S] * 3
+    assert changes == [0, 2]
+
+
+# --- restart cycles ------------------------------------------------------------------
+
+
+@pytest.fixture
+def idle_heartbeat(monkeypatch):
+    """The reconnect fixture's sleep returns at once; the heartbeat would ping in a tight loop."""
+
+    async def heartbeat(*args):
+        await asyncio.Event().wait()
+
+    monkeypatch.setattr(bridge_mod, "_heartbeat", heartbeat)
+
+
+async def test_fifty_endpoint_reconnects_share_one_ha_mcp_session(reconnect, idle_heartbeat, tmp_path):
+    server = FakeHaMcp()
+    client = fake_client(server)
+    sockets = [ScriptedWs(ENDPOINT_SESSION, replies=5) for _ in range(50)]
+    reconnect["script"] = list(sockets)
+    with pytest.raises(bridge_mod.BridgeExit):
+        await bridge_mod.run(reconnect["config"], client)
+    assert server.initializes == 1 and server.max_open == 1
+    assert server.methods.count("tools/list") == 1
+    assert server.methods.count("tools/call") == 50
+    assert server.open == set() and len(server.deletes) == 1
+    for ws in sockets:
+        assert {m["id"] for m in ws.sent} == {bridge_mod.ANNOUNCE_INIT_ID, bridge_mod.ANNOUNCE_TOOLS_ID, 1, 2, 3}
+
+
+async def test_fifty_bridge_restarts_keep_one_session_each_and_delete_it(reconnect, idle_heartbeat, tmp_path):
+    server = FakeHaMcp()
+    cache = tmp_path / "cache" / "ha-mcp-tools.json"
+    config = bridge_mod.BridgeConfig(HA_URL, ENDPOINT, VOICE, str(tmp_path / "healthy"), tools_cache=str(cache))
+    for cycle in range(50):
+        ws = ScriptedWs(ENDPOINT_SESSION[3:], replies=3)
+        reconnect["script"] = [ws]
+        initializes, deletes = server.initializes, len(server.deletes)
+        with pytest.raises(bridge_mod.BridgeExit):
+            await bridge_mod.run(config, fake_client(server))
+        assert server.initializes - initializes == 1, cycle
+        assert len(server.deletes) - deletes == 1, cycle
+        assert server.open == set(), cycle
+        ids = [m["id"] for m in ws.sent]
+        assert bridge_mod.ANNOUNCE_TOOLS_ID in ids and 3 in ids, cycle
+        if cycle:
+            assert ids[:2] == [bridge_mod.ANNOUNCE_INIT_ID, bridge_mod.ANNOUNCE_TOOLS_ID], cycle
+        assert cache.exists()
+    assert server.max_open == 1
+    assert len(set(server.deletes)) == 50
+
+
+async def test_cancelled_run_deletes_the_session(tmp_path):
+    server = FakeHaMcp()
+    client = fake_client(server)
+    await client.ensure_session()
+    config = bridge_mod.BridgeConfig(HA_URL, ENDPOINT, VOICE, str(tmp_path / "healthy"), tunnel_iface="wg-never")
+    task = asyncio.create_task(bridge_mod.run(config, client))
+    await asyncio.sleep(0.05)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert len(server.deletes) == 1 and server.open == set()
+
+
+async def test_stale_cache_registers_tools_while_tools_list_hangs(reconnect, idle_heartbeat, tmp_path, monkeypatch):
+    monkeypatch.setitem(hamcp_mod.METHOD_TIMEOUT_S, "tools/list", 0.2)
+    cache = tmp_path / "tools.json"
+    cache.write_text(json.dumps({"fetched_at": 1, "initialize": INIT_RESULT, "tools": TOOLS["tools"]}))
+    server = FakeHaMcp(stateful=False)
+
+    async def handler(request):
+        if request.content and json.loads(request.content).get("method") == "tools/list":
+            await asyncio.Event().wait()
+        return server(request)
+
+    client = HaMcpClient(HA_URL, transport=httpx.MockTransport(handler))
+    ws = ScriptedWs(ENDPOINT_SESSION, replies=5)
+    reconnect["script"] = [ws]
+    config = bridge_mod.BridgeConfig(HA_URL, ENDPOINT, VOICE, str(tmp_path / "healthy"), tools_cache=str(cache))
+    with pytest.raises(bridge_mod.BridgeExit):
+        await bridge_mod.run(config, client)
+    by_id = {m["id"]: m for m in ws.sent}
+    voice_tools = by_id[bridge_mod.ANNOUNCE_TOOLS_ID]["result"]["tools"]
+    assert [t["name"] for t in voice_tools] == ["ha_get_state", "ha_call_service"]
+    assert by_id[1]["result"] == INIT_RESULT
+    assert by_id[2]["result"]["tools"] == voice_tools
+    assert by_id[3]["result"]["content"][0]["text"] == "on"
+
+
+def test_stats_line_is_key_value():
+    ha = FakeHa()
+    ha.sessions_opened = 1
+    ha.timings["tools/list"] = hamcp_mod.Timing(200, 110, 127, 261685)
+    catalog = ready_catalog(ha)
+    line = bridge_mod.stats_line(ha, catalog, [100, 120, 300])
+    fields = dict(kv.split("=") for kv in line.removeprefix("ha-mcp stats ").split())
+    assert fields["session"] == "stateless" and fields["sessions_opened"] == "1"
+    assert fields["ping_first_byte_ms_p50"] == "120" and fields["ping_first_byte_ms_max"] == "300"
+    assert fields["tools_list_first_byte_ms"] == "110" and fields["tools_list_total_ms"] == "127"
+    assert fields["tools"] == "3" and int(fields["tools_age_s"]) <= 1
+
+
+async def test_heartbeat_marks_health_only_after_announce(monkeypatch, tmp_path):
+    path = tmp_path / "healthy"
+    ha = FakeHa()
+    bridge, _ = make_bridge(ha, ready_catalog(ha))
+    beats = {"n": 0}
+
+    async def sleep(_seconds):
+        beats["n"] += 1
+        if beats["n"] == 2:
+            assert not path.exists()
+            await bridge.announce()
+        if beats["n"] == 3:
+            raise StopLoop
+
+    monkeypatch.setattr(bridge_mod.asyncio, "sleep", sleep)
+    with pytest.raises(StopLoop):
+        await bridge_mod._heartbeat(ha, str(path), bridge)
+    assert path.exists()
+
+
+async def test_bridge_is_stale_only_after_a_later_change():
+    ha = FakeHa()
+    catalog = ready_catalog(ha)
+    bridge, out = make_bridge(ha, catalog)
+    assert not bridge.stale
+    await bridge.announce()
+    assert not bridge.stale
+    catalog.tools = [{"name": "ha_get_state"}]
+    assert bridge.stale
+    assert await bridge.announce_tools() == 1
+    assert not bridge.stale and len(out) == 3
+
+
+@pytest.mark.parametrize("ping_error, healthy_after", [(None, True), (HaMcpError("ping timed out after 10 s"), False)])
+async def test_announce_marks_health_only_when_ha_mcp_answers(tmp_path, ping_error, healthy_after):
+    path = tmp_path / "healthy"
+
+    class PingHa(FakeHa):
+        async def send(self, message, timeout_s=None):
+            if message["method"] == "ping" and ping_error:
+                raise ping_error
+            return await super().send(message, timeout_s)
+
+    ha = PingHa()
+    bridge, out = make_bridge(ha, ready_catalog(ha))
+    await bridge_mod._announce(bridge, ha, str(path))
+    assert path.exists() is healthy_after
+    assert [m["id"] for m in out] == [bridge_mod.ANNOUNCE_INIT_ID, bridge_mod.ANNOUNCE_TOOLS_ID]

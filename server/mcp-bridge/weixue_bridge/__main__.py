@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 
-from .bridge import BridgeExit, run
+from .bridge import BridgeExit, serve
 from .config import ConfigError, load_config
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -14,7 +14,7 @@ except ConfigError as e:
     log.error("config: %s", e)
     sys.exit(2)
 try:
-    asyncio.run(run(config))
+    asyncio.run(serve(config))
 except BridgeExit as e:
     log.error("exiting: %s", e)
     sys.exit(1)

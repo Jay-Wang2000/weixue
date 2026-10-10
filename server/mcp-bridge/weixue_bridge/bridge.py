@@ -3,9 +3,11 @@ import asyncio
 import json
 import logging
 import os
+import signal
 import socket
+import statistics
 import time
-from typing import Any, Awaitable, Callable, Dict, Optional, Set
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
 import websockets
 
@@ -18,7 +20,8 @@ from .config import (
     VoiceFilter,
     redact,
 )
-from .hamcp import HaMcpClient, HaMcpError
+from .catalog import ToolCatalog, refresh_loop
+from .hamcp import HaMcpClient, HaMcpError, session_label
 from .voice_filter import filter_tools, refusal
 
 log = logging.getLogger("weixue_bridge")
@@ -32,8 +35,8 @@ ANNOUNCE_INIT_ID = "weixue-bridge-init"
 ANNOUNCE_TOOLS_ID = "weixue-bridge-tools"
 PING_ID = "weixue-bridge-ping"
 RECONNECT_MAX_S = 30
-CLIENT_INFO = {"name": "weixue-mcp-bridge", "version": "1"}
-PROTOCOL_VERSION = "2024-11-05"
+# Pings per `ha-mcp stats` log line.
+STATS_EVERY_PINGS = 10
 
 
 TOOL_ERROR_PREFIX = "Tool error: "
@@ -85,39 +88,65 @@ def with_filtered_tools(response: Dict[str, Any], voice_filter: VoiceFilter) -> 
 
 
 class Bridge:
+    """One endpoint connection. initialize and tools/list are answered from the catalog, so endpoint
+    clients share the bridge's single ha-mcp session; everything else is forwarded over that session."""
+
     def __init__(
         self,
         voice_filter: VoiceFilter,
         ha: HaMcpClient,
+        catalog: ToolCatalog,
         send: Callable[[str], Awaitable[None]],
     ):
         self._filter = voice_filter
         self._ha = ha
+        self._catalog = catalog
         self._send_raw = send
         self._send_lock = asyncio.Lock()
+        self.announced = False
+        self._announced_tools: Optional[List[Dict[str, Any]]] = None
 
     async def _send(self, message: Dict[str, Any]) -> None:
         async with self._send_lock:
             await self._send_raw(json.dumps(message, ensure_ascii=False))
 
+    def _tools_response(self, request_id: Any) -> Dict[str, Any]:
+        response = {"jsonrpc": "2.0", "id": request_id, "result": {"tools": self._catalog.tools or []}}
+        return with_filtered_tools(response, self._filter)
+
+    @property
+    def stale(self) -> bool:
+        """Announced, and the catalog has changed since."""
+        return self.announced and self._announced_tools != self._catalog.tools
+
     async def announce(self) -> int:
-        """Initialize ha-mcp and register its filtered tool list with the endpoint."""
-        init = await self._ha.send(
-            {
-                "jsonrpc": "2.0",
-                "id": ANNOUNCE_INIT_ID,
-                "method": "initialize",
-                "params": {"protocolVersion": PROTOCOL_VERSION, "capabilities": {}, "clientInfo": CLIENT_INFO},
-            }
-        )
-        await self._ha.send({"jsonrpc": "2.0", "method": "notifications/initialized"})
-        tools = await self._ha.send({"jsonrpc": "2.0", "id": ANNOUNCE_TOOLS_ID, "method": "tools/list"})
-        if not tools or "result" not in tools or not init or "result" not in init:
-            raise HaMcpError("initialize or tools/list returned an error")
-        tools = with_filtered_tools(tools, self._filter)
-        await self._send(init)
+        """Once the catalog holds ha-mcp's tools, registers ha-mcp and its filtered tool list with the endpoint."""
+        await self._catalog.ready.wait()
+        await self._send({"jsonrpc": "2.0", "id": ANNOUNCE_INIT_ID, "result": self._catalog.init_result})
+        count = await self.announce_tools()
+        self.announced = True
+        return count
+
+    async def announce_tools(self) -> int:
+        self._announced_tools = self._catalog.tools
+        tools = self._tools_response(ANNOUNCE_TOOLS_ID)
         await self._send(tools)
-        return len(tools["result"].get("tools", []))
+        return len(tools["result"]["tools"])
+
+    async def _local(self, method: str, request_id: Any) -> None:
+        """initialize and tools/list without opening another ha-mcp session."""
+        try:
+            if method == "initialize":
+                result = self._catalog.init_result or (await self._ha.ensure_session())["result"]
+                await self._send({"jsonrpc": "2.0", "id": request_id, "result": result})
+                return
+            if not self._catalog.ready.is_set():
+                await self._catalog.refresh()
+        except HaMcpError as e:
+            log.warning("%s failed: %s", method, e)
+            await self._send(rpc_error(request_id, f"ha-mcp unavailable ({e})"))
+            return
+        await self._send(self._tools_response(request_id))
 
     async def handle(self, raw: str) -> None:
         try:
@@ -129,6 +158,12 @@ class Bridge:
             return
         method = message["method"]
         request_id = message.get("id")
+        if method == "notifications/initialized":
+            return
+        if method in ("initialize", "tools/list"):
+            if request_id is not None:
+                await self._local(method, request_id)
+            return
         tool = None
         if method == "tools/call":
             params = message.get("params") if isinstance(message.get("params"), dict) else {}
@@ -140,6 +175,7 @@ class Bridge:
                 return
         started = time.monotonic()
         try:
+            await self._ha.ensure_session()
             response = await self._ha.send(message)
         except HaMcpError as e:
             log.warning("%s %s failed: %s", method, tool or "", e)
@@ -152,8 +188,6 @@ class Bridge:
             return
         if response is None:
             return
-        if method == "tools/list":
-            response = with_filtered_tools(response, self._filter)
         if method == "tools/call":
             result = response.get("result") if isinstance(response.get("result"), dict) else {}
             outcome = "error" if "error" in response or result.get("isError") else "ok"
@@ -184,21 +218,54 @@ def ping_ok(response: Optional[Dict[str, Any]]) -> bool:
     )
 
 
-async def _heartbeat(ha: HaMcpClient, health_file: str) -> None:
-    """Every HEARTBEAT_S pings ha-mcp; only a matching success result refreshes the health file."""
+def stats_line(ha: HaMcpClient, catalog: ToolCatalog, ping_ms: List[int]) -> str:
+    """key=value summary of the ha-mcp session and latencies for the monitor."""
+    tools_list = ha.timings.get("tools/list")
+    fields = [
+        f"session={session_label(ha.session_id)}",
+        f"sessions_opened={ha.sessions_opened}",
+        f"ping_first_byte_ms_p50={round(statistics.median(ping_ms)) if ping_ms else -1}",
+        f"ping_first_byte_ms_max={max(ping_ms) if ping_ms else -1}",
+        f"tools_list_first_byte_ms={tools_list.first_byte_ms if tools_list else -1}",
+        f"tools_list_total_ms={tools_list.total_ms if tools_list else -1}",
+        f"tools={len(catalog.tools) if catalog.tools is not None else -1}",
+        f"tools_age_s={round(time.time() - catalog.fetched_at) if catalog.fetched_at else -1}",
+    ]
+    return "ha-mcp stats " + " ".join(fields)
+
+
+async def _ping(ha: HaMcpClient) -> Optional[str]:
+    """Pings ha-mcp over the held session; None on a matching success result, else the failure."""
+    try:
+        await ha.ensure_session()
+        response = await ha.send({"jsonrpc": "2.0", "id": PING_ID, "method": "ping"})
+    except HaMcpError as e:
+        return str(e)
+    if ping_ok(response):
+        return None
+    return "error result" if isinstance(response, dict) and "error" in response else "no result"
+
+
+async def _heartbeat(
+    ha: HaMcpClient, health_file: str, bridge: Optional[Bridge] = None, catalog: Optional[ToolCatalog] = None
+) -> None:
+    """Every HEARTBEAT_S pings ha-mcp. Success refreshes the health file once `bridge` has announced,
+    failure removes it; every STATS_EVERY_PINGS successful pings with a catalog log stats_line."""
+    ping_ms: List[int] = []
     while True:
         await asyncio.sleep(HEARTBEAT_S)
-        try:
-            response = await ha.send({"jsonrpc": "2.0", "id": PING_ID, "method": "ping"})
-        except HaMcpError as e:
-            log.warning("ha-mcp ping failed: %s", e)
-            _clear_health(health_file)
-            continue
-        if ping_ok(response):
-            _mark_healthy(health_file)
+        failure = await _ping(ha)
+        if failure is None:
+            if "ping" in ha.timings:
+                ping_ms.append(ha.timings["ping"].first_byte_ms)
+            if bridge is None or bridge.announced:
+                _mark_healthy(health_file)
         else:
-            log.warning("ha-mcp ping failed: %s", "error result" if isinstance(response, dict) and "error" in response else "no result")
+            log.warning("ha-mcp ping failed: %s", failure)
             _clear_health(health_file)
+        if catalog is not None and len(ping_ms) >= STATS_EVERY_PINGS:
+            log.info("%s", stats_line(ha, catalog, ping_ms))
+            ping_ms = []
 
 
 def _interface_names() -> Set[str]:
@@ -215,49 +282,95 @@ async def wait_for_interface(name: str) -> None:
         await asyncio.sleep(IFACE_POLL_S)
 
 
-async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None) -> None:
+async def _announce(bridge: Bridge, ha: HaMcpClient, health_file: str) -> None:
+    """Registers the tools, then marks the bridge healthy once ha-mcp answers a ping."""
+    try:
+        count = await bridge.announce()
+    except websockets.exceptions.WebSocketException:
+        return
+    log.info("connected; %d ha-mcp tools on the voice path", count)
+    failure = await _ping(ha)
+    if failure is None:
+        _mark_healthy(health_file)
+    else:
+        log.warning("ha-mcp ping failed: %s", failure)
+
+
+async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None, catalog: Optional[ToolCatalog] = None) -> None:
     """Keeps the endpoint connection up; raises BridgeExit after ENDPOINT_MAX_FAILURES consecutive failed
     connects, once NAMESPACE_IFACE, present at start, is gone, or once config.tunnel_iface is gone.
-    With config.tunnel_iface set nothing is connected before that interface exists."""
+    With config.tunnel_iface set nothing is connected before that interface exists.
+    One ha-mcp session serves every endpoint connection; it is ended when run returns or is cancelled."""
     ha = ha or HaMcpClient(config.ha_mcp_url)
+    catalog = catalog or ToolCatalog(ha, config.tools_cache)
     log.info("ha-mcp %s <-> endpoint %s", redact(config.ha_mcp_url), redact(config.endpoint_url))
-    if config.tunnel_iface:
-        await wait_for_interface(config.tunnel_iface)
-    watch_iface = NAMESPACE_IFACE in _interface_names()
-    backoff = 1
-    failures = 0
-    while True:
-        connected = False
-        try:
-            async with websockets.connect(config.endpoint_url, ping_interval=20, ping_timeout=20) as ws:
-                connected = True
-                bridge = Bridge(config.voice_filter, ha, ws.send)
-                count = await bridge.announce()
-                _mark_healthy(config.health_file)
-                log.info("connected; %d ha-mcp tools on the voice path", count)
-                backoff = 1
-                heartbeat = asyncio.create_task(_heartbeat(ha, config.health_file))
-                pending = set()
-                try:
-                    async for raw in ws:
-                        task = asyncio.create_task(bridge.handle(raw))
-                        pending.add(task)
-                        task.add_done_callback(pending.discard)
-                finally:
-                    heartbeat.cancel()
-                    for task in pending:
-                        task.cancel()
-            log.warning("endpoint closed the connection")
-        except (OSError, websockets.exceptions.WebSocketException, HaMcpError) as e:
-            log.warning("bridge down: %s", type(e).__name__ if not isinstance(e, HaMcpError) else e)
-        _clear_health(config.health_file)
-        names = _interface_names()
-        if watch_iface and NAMESPACE_IFACE not in names:
-            raise BridgeExit(f"{NAMESPACE_IFACE} is gone from the network namespace")
-        if config.tunnel_iface and config.tunnel_iface not in names:
-            raise BridgeExit(f"{config.tunnel_iface} is gone from the network namespace")
-        failures = 0 if connected else failures + 1
-        if failures >= ENDPOINT_MAX_FAILURES:
-            raise BridgeExit(f"endpoint unreachable for {failures} consecutive attempts")
-        await asyncio.sleep(backoff)
-        backoff = min(backoff * 2, RECONNECT_MAX_S)
+    catalog.load()
+    current: Dict[str, Optional[Bridge]] = {"bridge": None}
+
+    async def reannounce() -> None:
+        bridge = current["bridge"]
+        if bridge is not None and bridge.stale:
+            log.info("ha-mcp tool list changed; %d tools on the voice path", await bridge.announce_tools())
+
+    refresher: Optional[asyncio.Task] = None
+    try:
+        if config.tunnel_iface:
+            await wait_for_interface(config.tunnel_iface)
+        refresher = asyncio.create_task(refresh_loop(catalog, reannounce))
+        watch_iface = NAMESPACE_IFACE in _interface_names()
+        backoff = 1
+        failures = 0
+        while True:
+            connected = False
+            try:
+                async with websockets.connect(config.endpoint_url, ping_interval=20, ping_timeout=20) as ws:
+                    connected = True
+                    bridge = Bridge(config.voice_filter, ha, catalog, ws.send)
+                    current["bridge"] = bridge
+                    backoff = 1
+                    announcer = asyncio.create_task(_announce(bridge, ha, config.health_file))
+                    heartbeat = asyncio.create_task(_heartbeat(ha, config.health_file, bridge, catalog))
+                    pending = set()
+                    try:
+                        async for raw in ws:
+                            task = asyncio.create_task(bridge.handle(raw))
+                            pending.add(task)
+                            task.add_done_callback(pending.discard)
+                    finally:
+                        current["bridge"] = None
+                        tasks = [announcer, heartbeat, *pending]
+                        for task in tasks:
+                            task.cancel()
+                        await asyncio.gather(*tasks, return_exceptions=True)
+                log.warning("endpoint closed the connection")
+            except (OSError, websockets.exceptions.WebSocketException) as e:
+                log.warning("bridge down: %s", type(e).__name__)
+            _clear_health(config.health_file)
+            names = _interface_names()
+            if watch_iface and NAMESPACE_IFACE not in names:
+                raise BridgeExit(f"{NAMESPACE_IFACE} is gone from the network namespace")
+            if config.tunnel_iface and config.tunnel_iface not in names:
+                raise BridgeExit(f"{config.tunnel_iface} is gone from the network namespace")
+            failures = 0 if connected else failures + 1
+            if failures >= ENDPOINT_MAX_FAILURES:
+                raise BridgeExit(f"endpoint unreachable for {failures} consecutive attempts")
+            await asyncio.sleep(backoff)
+            backoff = min(backoff * 2, RECONNECT_MAX_S)
+    finally:
+        if refresher is not None:
+            refresher.cancel()
+            await asyncio.gather(refresher, return_exceptions=True)
+        await catalog.aclose()
+        await ha.aclose()
+
+
+async def serve(config: BridgeConfig) -> None:
+    """run() until SIGTERM or SIGINT."""
+    loop = asyncio.get_running_loop()
+    task = asyncio.current_task()
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, task.cancel)
+    try:
+        await run(config)
+    except asyncio.CancelledError:
+        log.info("stopped")
