@@ -234,7 +234,7 @@ tasks:
     description: |
       2026-10-10 应用 voice overlay 后 ha-agent 基线已包含 overlay 的结果，tests/test_voice_policy.py::test_overlay_applies_to_ha_agent_policy 因 remove_rules 找不到目标而失败。让 render_voice_policy.py 幂等：remove_rules 目标不存在且 add_rules 已存在时视为已应用并产出相同结果（打印 "already applied"），测试用冻结的基线快照而非实时 ha-agent 文件。host-only。
     depends_on: [fix-wave5-server]
-    status: pending
+    status: done
     retries: 0
     model: sonnet
   - id: feat-agent-service
