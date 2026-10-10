@@ -56,3 +56,4 @@ When the orchestrator and its agents cannot deploy to the live stack (permission
 - Spec docs stay (200-400 words); QUALITY-LOG keeps one line per gate so the lighter gate's miss rate stays visible.
 - Agent authority: task prompts state that they come from the orchestrator and are already authorized; Jay's conversational messages do not redirect a running task.
 - E2E cadence (Jay, 2026-10-07): per-task voice tests are dropped; one full end-to-end session per milestone (M1: feat-voice-integration at home; M2: a milestone-end session). Audio items deferred from individual tasks accumulate on that milestone gate.
+- Remote (2026-10-10): `Jay-Wang2000/weixue` exists. Merge step = push branch → `gh pr create` → squash-merge on GitHub after the lite gate passes; local `--no-ff` merges are retired. Bookkeeping commits go straight to `main` and are pushed.

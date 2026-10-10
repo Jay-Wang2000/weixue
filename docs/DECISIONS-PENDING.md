@@ -93,7 +93,7 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 9. Codex Wave 2 code review (`docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md`): fix-first verdict. Three fix tasks queued after Wave 3: `fix-server-review-2`, `fix-turn-isolation`, `fix-firmware-scripts-2`. Includes enabling `server.auth` with the device MAC allow-list and binding OTA/WS to needed interfaces only.
 
 ## Current network mode (2026-10-10)
-- Home: Mac 192.168.8.220 on the home LAN, WG_TUNNEL off (wg container removed by setup.sh), HA direct. Device re-provisioned over USB 2026-10-10 21:38 (ota_url override cleared, NVS backup kept): joined the home Wi-Fi, OTA 200 against 192.168.8.220 with the Dublin TZ applied by the new clock patch, idle. GitHub: personal account Jay-Wang2000 is now the active gh account; repo creation + push await Jay's explicit go.
+- Home: Mac 192.168.8.220 on the home LAN, WG_TUNNEL off (wg container removed by setup.sh), HA direct. Device re-provisioned over USB 2026-10-10 21:38 (ota_url override cleared, NVS backup kept): joined the home Wi-Fi, OTA 200 against 192.168.8.220 with the Dublin TZ applied by the new clock patch, idle. GitHub: `Jay-Wang2000/weixue` created (private) and `main` pushed on 2026-10-10 at Jay's instruction; PR workflow active.
 
 ## User-only test items
 
