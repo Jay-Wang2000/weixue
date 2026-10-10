@@ -10,8 +10,9 @@
 #include <string>
 #include <vector>
 
-// Agent wire contract v1 (docs/agent-protocol.md): parsing of server `agent` / `agent_sync`
-// payloads and building of device `agent_response` / `played` notifications. No ESP-IDF types.
+// Agent wire contract v1.1 (docs/agent-protocol.md): parsing of server `agent` / `agent_sync` /
+// `agent_ack` payloads and building of device `agent_response` / `played` notifications. No
+// ESP-IDF types.
 namespace weixue_agent {
 
 constexpr int kVersion = 1;
@@ -97,10 +98,23 @@ struct Sync {
     std::vector<std::string> task_ids;
 };
 
+// The server's receipt of the device response (boot, seq).
+struct Receipt {
+    uint32_t boot = 0;
+    uint32_t seq = 0;
+    std::string response;  // the response kind
+    std::string card_id;
+    std::string result;    // accepted|duplicate|stale
+    std::string decided;   // duplicate: the decision the server recorded for the card
+    // The server holds a decision for the card (this one or an earlier one).
+    bool Recorded() const { return result == "accepted" || result == "duplicate"; }
+};
+
 struct Message {
-    enum class Kind : uint8_t { kItem, kSync } kind = Kind::kItem;
+    enum class Kind : uint8_t { kItem, kSync, kReceipt } kind = Kind::kItem;
     Item item;
     Sync sync;
+    Receipt receipt;
 };
 
 struct ParseResult {
@@ -208,11 +222,11 @@ inline std::string TruncateLabel(const std::string& s, size_t max_width = kMaxLa
                               [](uint32_t cp) { return cp >= 0x1100 ? size_t{3} : size_t{1}; });
 }
 
-// The payload is an agent message (kind `agent` or `agent_sync`).
+// The payload is an agent message (kind `agent`, `agent_sync` or `agent_ack`).
 inline bool IsAgentPayload(const cJSON* payload) {
     const char* kind = cJSON_IsObject(payload) ? detail::String(payload, "kind") : nullptr;
-    return kind != nullptr &&
-           (std::strcmp(kind, "agent") == 0 || std::strcmp(kind, "agent_sync") == 0);
+    return kind != nullptr && (std::strcmp(kind, "agent") == 0 || std::strcmp(kind, "agent_sync") == 0 ||
+                               std::strcmp(kind, "agent_ack") == 0);
 }
 
 // Validates and normalises one payload. Unknown fields are ignored; an unknown kind or state,
@@ -245,6 +259,34 @@ inline ParseResult Parse(const cJSON* payload) {
     }
 
     Message m;
+    if (std::strcmp(kind, "agent_ack") == 0) {
+        m.kind = Message::Kind::kReceipt;
+        Receipt& rc = m.receipt;
+        int64_t boot = 0;
+        if (seq > 0xFFFFFFFFLL ||
+            !Integer(cJSON_GetObjectItemCaseSensitive(payload, "boot"), 0, 0xFFFFFFFFLL, &boot)) {
+            r.error = "bad boot or seq";
+            return r;
+        }
+        rc.boot = static_cast<uint32_t>(boot);
+        rc.seq = static_cast<uint32_t>(seq);
+        const char* response = String(payload, "response");
+        const char* result = String(payload, "result");
+        if (response == nullptr || result == nullptr ||
+            (std::strcmp(result, "accepted") != 0 && std::strcmp(result, "duplicate") != 0 &&
+             std::strcmp(result, "stale") != 0)) {
+            r.error = "bad response or result";
+            return r;
+        }
+        rc.response = response;
+        rc.result = result;
+        if (const char* card_id = String(payload, "card_id")) {
+            if (IsAsciiId(card_id, kMaxIdChars)) rc.card_id = card_id;
+        }
+        if (const char* decided = String(payload, "decided")) rc.decided = TruncateChars(decided, 16);
+        r.message = std::move(m);
+        return r;
+    }
     if (std::strcmp(kind, "agent_sync") == 0) {
         m.kind = Message::Kind::kSync;
         m.sync.seq = seq;
@@ -438,6 +480,28 @@ inline void AddIfSet(cJSON* obj, const char* key, const std::string& value) {
 }
 
 }  // namespace detail
+
+// Responses the server answers with an `agent_ack` receipt.
+inline bool NeedsReceipt(const std::string& kind) { return IsResponseKind(kind) && kind != "shown"; }
+
+// What the poll task does with a poll answer: open a session for the reserved message, poll
+// again at once (cards only), wait for the next poll (204), poll again soon (a 200 body that did
+// not arrive whole), or back off (no answer or another status).
+enum class PollStep : uint8_t { kInvoke, kRepoll, kWait, kRetrySoon, kBackoff };
+
+// A 200 body arrived whole: as long as its Content-Length (0 = none given).
+inline bool PollBodyComplete(size_t content_length, size_t received) {
+    return content_length == 0 || received == content_length;
+}
+
+// body_ok: the 200 body arrived whole and is a JSON object; speak: its `speak` (true when absent).
+inline PollStep NextPollStep(int status, bool body_ok, bool speak) {
+    if (status == 200) {
+        if (!body_ok) return PollStep::kRetrySoon;
+        return speak ? PollStep::kInvoke : PollStep::kRepoll;
+    }
+    return status == 204 ? PollStep::kWait : PollStep::kBackoff;
+}
 
 // The JSON-RPC notification for r, or "" when r is invalid or exceeds kMaxNotificationBytes
 // even with its text dropped.

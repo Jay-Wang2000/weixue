@@ -72,6 +72,18 @@ class Speaker:
         return self.outcome
 
 
+@pytest.fixture(autouse=True)
+def quick_drain(monkeypatch):
+    monkeypatch.setattr(wp, "DRAIN_QUIET_SECONDS", 0)
+
+
+async def drained(conn):
+    """Whether the rejected session's drain task closed conn."""
+    for _ in range(5):
+        await asyncio.sleep(0)
+    return conn.closed
+
+
 def make(clock=None, speaker=None, token=TOKEN, auth=None):
     return wp.Proactive(
         token,
@@ -305,7 +317,7 @@ async def test_newer_poll_from_the_device_ends_the_older_one(monkeypatch):
     older = asyncio.create_task(p.poll(DEVICE))
     await asyncio.sleep(0.05)
     newer = asyncio.create_task(p.poll(DEVICE))
-    assert await asyncio.wait_for(older, 1) is None
+    assert await asyncio.wait_for(older, 1) is wp.REPLACED
     assert not newer.done()
     p.submit(fields(), "ha")
     assert await asyncio.wait_for(newer, 1) is not None
@@ -392,7 +404,7 @@ async def test_invoke_with_a_wrong_binding_consumes_nothing(binding):
     conn = Conn()
     p.on_session_open(DEVICE, conn)
     await p.on_invoke(conn, f"{wp.INVOKE_TEXT}:" + binding.format(id=item.id, lease=item.lease))
-    assert conn.closed and p._delivery is None
+    assert await drained(conn) and p._delivery is None
     assert (item.status, item.attempts, item.reserved_for) == ("queued", 0, DEVICE)
 
 
@@ -412,11 +424,11 @@ async def test_delayed_invoke_does_not_consume_a_newer_lease():
     newer = p.reserve(DEVICE)
     assert newer.id == b["id"]
     await p.on_invoke(stale)
-    assert stale.closed and p._delivery is None
+    assert await drained(stale) and p._delivery is None
     bound = Conn(session_id="bound")
     p.on_session_open(DEVICE, bound)
     await p.on_invoke(bound, f"{wp.INVOKE_TEXT}:{first.id}:{a_lease}")
-    assert bound.closed and p._delivery is None
+    assert await drained(bound) and p._delivery is None
     assert (newer.status, newer.reserved_for, newer.attempts) == ("queued", DEVICE, 0)
     assert p.messages[a["id"]].status == "queued"
     fresh = Conn(session_id="fresh")
@@ -440,7 +452,7 @@ async def test_overlapping_polls_keep_each_invoke_to_its_own_lease():
     clock.t += 1
     p.on_session_open(DEVICE, conn)
     await p.on_invoke(conn, a_binding)
-    assert conn.closed and p._delivery is None and again.status == "queued"
+    assert await drained(conn) and p._delivery is None and again.status == "queued"
 
 
 async def test_invoke_delivers_the_reserved_message_with_its_urgency():
@@ -474,7 +486,7 @@ async def test_invoke_without_a_reservation_closes():
     p.submit(fields(), "ha")
     conn = Conn()
     await p.on_invoke(conn)
-    assert conn.closed and p._delivery is None and p.queue[0].status == "queued"
+    assert await drained(conn) and p._delivery is None and p.queue[0].status == "queued"
 
 
 async def test_invoke_while_muted_releases_a_normal_reservation():
@@ -485,7 +497,7 @@ async def test_invoke_while_muted_releases_a_normal_reservation():
     conn = Conn()
     p.on_session_open(DEVICE, conn)
     await p.on_invoke(conn)
-    assert conn.closed and item.status == "queued" and item.reserved_for is None and item.lease is None
+    assert await drained(conn) and item.status == "queued" and item.reserved_for is None and item.lease is None
 
 
 # Device identity
@@ -553,7 +565,7 @@ async def test_overlapping_invokes_deliver_once():
     assert p.messages[body["id"]].status == "delivering"
     await p._delivery
     assert speaker.calls == [(body["id"], True)] and p.messages[body["id"]].attempts == 1
-    assert second.closed
+    assert await drained(second)
 
 
 async def test_dispatch_claims_before_the_task_runs():
@@ -608,7 +620,7 @@ async def test_invoke_with_nothing_pending_closes():
     p = make()
     conn = Conn()
     await p.on_invoke(conn)
-    assert conn.closed and p._delivery is None
+    assert await drained(conn) and p._delivery is None
 
 
 async def test_invoke_does_not_block_the_session_loop():

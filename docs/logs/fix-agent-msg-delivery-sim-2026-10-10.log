@@ -1,0 +1,510 @@
+# fix-agent-msg-delivery: simulated device (server/scripts/agent_sim_device.py) against two scratch containers, 2026-10-10
+# main: weixue/xiaozhi-esp32-server:local as built from main (127.0.0.1:18300/18303); branch: same image with this branch's overlay mounted (18200/18203).
+# Sim server: tone TTS, scripted ASR, device aa:bb:cc:dd:ee:01. Live containers untouched. Fixture items: approval (debug_reply approve) + eight (8 full-size tasks).
+
+## d1-main: D1+D2 chain on main: --weak-link 1440 --old-firmware --no-receipts
+### sim device
+1791669150.578 22:52:30 agent sim device boot=2051346524 device=aa:bb:cc:dd:ee:01 receipts=False weak_link=1440 old_firmware=True
+1791669150.585 22:52:30 poll 200 body unreadable (1260 of 3295 bytes, response 3475 B, connection reset after 1440 B) header=0
+1791669150.585 22:52:30 Proactive message pending (urgent=0)
+1791669150.620 22:52:30 session opened (proactive) id=92658466-c926-48e5-b7b9-5ffb0ba82990
+1791669150.636 22:52:30 agent: chat=c_225230 task=t_225230_ap state=needs_approval seq=1791669150309 tier=when_idle speaks=0 result=applied via=push
+1791669150.636 22:52:30 agent: chat=c_225230_e0 task=t_225230_e0 state=needs_approval seq=1791669150408 tier=silent speaks=0 result=applied via=push
+1791669150.636 22:52:30 agent: chat=c_225230_e2 task=t_225230_e2 state=needs_approval seq=1791669150410 tier=silent speaks=0 result=applied via=push
+1791669150.636 22:52:30 agent: chat=c_225230_e0 task=t_225230_e3 state=working seq=1791669150411 tier=silent speaks=0 result=applied via=push
+1791669150.637 22:52:30 agent: chat=c_225230_e1 task=t_225230_e4 state=needs_approval seq=1791669150412 tier=silent speaks=0 result=applied via=push
+1791669150.637 22:52:30 agent: chat=c_225230_e2 task=t_225230_e5 state=working seq=1791669150413 tier=silent speaks=0 result=applied via=push
+1791669150.637 22:52:30 agent: chat=c_225230_e0 task=t_225230_e6 state=needs_approval seq=1791669150414 tier=silent speaks=0 result=applied via=push
+1791669150.637 22:52:30 agent: chat=c_225230_e1 task=t_225230_e7 state=working seq=1791669150415 tier=silent speaks=0 result=applied via=push
+1791669150.638 22:52:30 agent: sync seq=1791669150590 listed=8 dropped=0 tasks=8 via=push
+1791669150.640 22:52:30 state: idle (session closed)
+1791669150.842 22:52:30 agent agent_response: {"v": 1, "boot": 2051346524, "seq": 1, "kind": "shown", "ack_upto": 1791669150590, "via": "tap"}
+1791669151.397 22:52:31 device event sent (own session)
+1791669152.640 22:52:32 agent agent_response: {"v": 1, "boot": 2051346524, "seq": 2, "kind": "approve", "chat_id": "c_225230", "task_id": "t_225230_ap", "via": "loopback", "card_id": "i_225230_ap", "option_id": "approve"}
+1791669153.160 22:52:33 device event sent (own session)
+1791669177.660 22:52:57 done: tasks=['t_225230_ap', 't_225230_e0', 't_225230_e2', 't_225230_e3', 't_225230_e4', 't_225230_e5', 't_225230_e6', 't_225230_e7'] max_seq=1791669150590 stats={'bodies': 1, 'unreadable': 1, 'max_body': 3475, 'receipts': 0, 'dropped': 0} awaiting=[]
+### server
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225230 task=t_225230_ap state=needs_approval seq=1791669150309 tier=when_idle speaks=False delivery=fx_b4707e4cd2684cf48bf8e9b6
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225230_e0 task=t_225230_e0 state=needs_approval seq=1791669150408 tier=silent speaks=False delivery=fx_d4d18558ee7f40beb0d896dc
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225230_e1 task=t_225230_e1 state=working seq=1791669150409 tier=silent speaks=False delivery=fx_cf0f5c7fe41c409597fc1f73
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225230_e2 task=t_225230_e2 state=needs_approval seq=1791669150410 tier=silent speaks=False delivery=fx_e582f78074464f8fbe26899b
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225230_e0 task=t_225230_e3 state=working seq=1791669150411 tier=silent speaks=False delivery=fx_f2d1982e11874d398a3afee9
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225230_e1 task=t_225230_e4 state=needs_approval seq=1791669150412 tier=silent speaks=False delivery=fx_9a2d68dbdc784d7d8d28bbfb
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225230_e2 task=t_225230_e5 state=working seq=1791669150413 tier=silent speaks=False delivery=fx_e4385ba851ac4556883ec1a0
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225230_e0 task=t_225230_e6 state=needs_approval seq=1791669150414 tier=silent speaks=False delivery=fx_cb185d8f62d348cfb925fa52
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_225230_e1 no longer mirrored for device=aa:bb:cc:dd:ee:01
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225230_e1 task=t_225230_e7 state=working seq=1791669150415 tier=silent speaks=False delivery=fx_4d7f106de3eb4fabadcfbdbf
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=aa:bb:cc:dd:ee:01 seq=0: snapshot due
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=8 seqs=[1791669150309, 1791669150408, 1791669150410, 1791669150411, 1791669150412, 1791669150413, 1791669150414, 1791669150415] snapshot=False
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=aa:bb:cc:dd:ee:01 session=92658466-c926-48e5-b7b9-5ffb0ba82990: snapshot of 8
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225230_ap state=needs_approval seq=1791669150309
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225230_e0 state=needs_approval seq=1791669150408
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225230_e2 state=needs_approval seq=1791669150410
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225230_e3 state=working seq=1791669150411
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225230_e4 state=needs_approval seq=1791669150412
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225230_e5 state=working seq=1791669150413
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225230_e6 state=needs_approval seq=1791669150414
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225230_e7 state=working seq=1791669150415
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent_sync task=None state=None seq=1791669150590
+261010 21:52:30[0.9.7_00000000000000][weixue_proactive]-INFO-proactive session opened with no current lease for it; closing
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_b4707e4cd2684cf48bf8e9b6 device=aa:bb:cc:dd:ee:01 seq=1791669150309 via=poll
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_d4d18558ee7f40beb0d896dc device=aa:bb:cc:dd:ee:01 seq=1791669150408 via=poll
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_cf0f5c7fe41c409597fc1f73 device=aa:bb:cc:dd:ee:01 seq=1791669150409 via=poll
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_e582f78074464f8fbe26899b device=aa:bb:cc:dd:ee:01 seq=1791669150410 via=poll
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_f2d1982e11874d398a3afee9 device=aa:bb:cc:dd:ee:01 seq=1791669150411 via=poll
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_9a2d68dbdc784d7d8d28bbfb device=aa:bb:cc:dd:ee:01 seq=1791669150412 via=poll
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_e4385ba851ac4556883ec1a0 device=aa:bb:cc:dd:ee:01 seq=1791669150413 via=poll
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_cb185d8f62d348cfb925fa52 device=aa:bb:cc:dd:ee:01 seq=1791669150414 via=poll
+261010 21:52:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_4d7f106de3eb4fabadcfbdbf device=aa:bb:cc:dd:ee:01 seq=1791669150415 via=poll
+261010 21:52:30[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "3f13578c-5011-45de-8461-446317bbdc4c", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2051346524, "seq": 1, "kind": "shown", "ack_upto": 1791669150590, "via": "tap"}}}
+261010 21:52:30[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"ack_upto": 1791669150590, "boot": 2051346524, "kind": "shown", "seq": 1, "v": 1, "via": "tap"}
+261010 21:52:32[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "077c207f-1b5e-40c4-875a-c3fac0d7dc23", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2051346524, "seq": 2, "kind": "approve", "chat_id": "c_225230", "task_id": "t_225230_ap", "via": "loopback", "card_id": "i_225230_ap", "opt
+261010 21:52:32[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=aa:bb:cc:dd:ee:01 chat=c_225230 task=t_225230_ap card=i_225230_ap option=approve via=loopback boot=2051346524 seq=2
+261010 21:52:32[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 2051346524, "card_id": "i_225230_ap", "chat_id": "c_225230", "kind": "approve", "option_id": "approve", "seq": 2, "task_id": "t_225230_ap", "v": 1, "via": "loopback"}
+
+## d1-branch: D1 fixed: branch, --weak-link 1440, receipts (boot snapshot of 8 + approval)
+### sim device
+1791669583.412 22:59:43 agent sim device boot=3029354790 device=aa:bb:cc:dd:ee:01 receipts=True weak_link=1440 old_firmware=False
+1791669583.420 22:59:43 poll 200 speak=False urgent=False items=2 bytes=1180 header=0
+1791669583.420 22:59:43 agent: chat=c_225943 task=t_225943_ap state=needs_approval seq=1791669583137 tier=when_idle speaks=0 result=applied via=poll
+1791669583.420 22:59:43 agent: chat=c_225943_e0 task=t_225943_e0 state=needs_approval seq=1791669583246 tier=silent speaks=0 result=applied via=poll
+1791669583.629 22:59:43 poll 200 speak=False urgent=False items=2 bytes=1032 header=1791669583246
+1791669583.629 22:59:43 agent: chat=c_225943_e2 task=t_225943_e2 state=needs_approval seq=1791669583248 tier=silent speaks=0 result=applied via=poll
+1791669583.629 22:59:43 agent: chat=c_225943_e0 task=t_225943_e3 state=working seq=1791669583249 tier=silent speaks=0 result=applied via=poll
+1791669583.837 22:59:43 poll 200 speak=False urgent=False items=2 bytes=1032 header=1791669583249
+1791669583.837 22:59:43 agent: chat=c_225943_e1 task=t_225943_e4 state=needs_approval seq=1791669583250 tier=silent speaks=0 result=applied via=poll
+1791669583.837 22:59:43 agent: chat=c_225943_e2 task=t_225943_e5 state=working seq=1791669583251 tier=silent speaks=0 result=applied via=poll
+1791669584.045 22:59:44 poll 200 speak=False urgent=False items=2 bytes=1032 header=1791669583251
+1791669584.045 22:59:44 agent: chat=c_225943_e0 task=t_225943_e6 state=needs_approval seq=1791669583252 tier=silent speaks=0 result=applied via=poll
+1791669584.045 22:59:44 agent: chat=c_225943_e1 task=t_225943_e7 state=working seq=1791669583253 tier=silent speaks=0 result=applied via=poll
+1791669584.259 22:59:44 poll 200 speak=False urgent=False items=1 bytes=455 header=1791669583253
+1791669584.259 22:59:44 agent: sync seq=1791669584227 listed=8 dropped=0 tasks=8 via=poll
+1791669585.422 22:59:45 agent agent_response: {"v": 1, "boot": 3029354790, "seq": 1, "kind": "approve", "chat_id": "c_225943", "task_id": "t_225943_ap", "via": "loopback", "card_id": "i_225943_ap", "option_id": "approve"}
+1791669585.479 22:59:45 agent receipt: approve seq=1 card=i_225943_ap result=accepted
+1791669585.480 22:59:45 device event sent (own session)
+1791669585.480 22:59:45 agent ack received: approve seq 1 (attempt 1)
+1791669611.488 23:00:11 done: tasks=['t_225943_ap', 't_225943_e0', 't_225943_e2', 't_225943_e3', 't_225943_e4', 't_225943_e5', 't_225943_e6', 't_225943_e7'] max_seq=1791669584227 stats={'bodies': 5, 'unreadable': 0, 'max_body': 1180, 'receipts': 1, 'dropped': 0} awaiting=[]
+### server
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225943 task=t_225943_ap state=needs_approval seq=1791669583137 tier=when_idle speaks=False delivery=fx_f8baa24f1fd1468ab48f750c
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225943_e0 task=t_225943_e0 state=needs_approval seq=1791669583246 tier=silent speaks=False delivery=fx_88f7204873364607a952d6cb
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225943_e1 task=t_225943_e1 state=working seq=1791669583247 tier=silent speaks=False delivery=fx_3881b2df7d964cf5b0bb580a
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225943_e2 task=t_225943_e2 state=needs_approval seq=1791669583248 tier=silent speaks=False delivery=fx_a358307cf40b47cdbb731016
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225943_e0 task=t_225943_e3 state=working seq=1791669583249 tier=silent speaks=False delivery=fx_8c0a123ac60844858a0f465b
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225943_e1 task=t_225943_e4 state=needs_approval seq=1791669583250 tier=silent speaks=False delivery=fx_823ef3de25844145877e24ca
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225943_e2 task=t_225943_e5 state=working seq=1791669583251 tier=silent speaks=False delivery=fx_fb84ec5d0bfb43f4bce87feb
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225943_e0 task=t_225943_e6 state=needs_approval seq=1791669583252 tier=silent speaks=False delivery=fx_e56f171035c04db699d8553d
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_225943_e1 no longer mirrored for device=aa:bb:cc:dd:ee:01
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225943_e1 task=t_225943_e7 state=working seq=1791669583253 tier=silent speaks=False delivery=fx_46a182442264479ea0a9bbbe
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=aa:bb:cc:dd:ee:01 seq=0: snapshot due
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583137, 1791669583246] snapshot=False
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_f8baa24f1fd1468ab48f750c device=aa:bb:cc:dd:ee:01 seq=1791669583137 via=poll
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_88f7204873364607a952d6cb device=aa:bb:cc:dd:ee:01 seq=1791669583246 via=poll
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583248, 1791669583249] snapshot=False
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_3881b2df7d964cf5b0bb580a device=aa:bb:cc:dd:ee:01 seq=1791669583247 via=poll
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_a358307cf40b47cdbb731016 device=aa:bb:cc:dd:ee:01 seq=1791669583248 via=poll
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_8c0a123ac60844858a0f465b device=aa:bb:cc:dd:ee:01 seq=1791669583249 via=poll
+261010 21:59:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583250, 1791669583251] snapshot=False
+261010 21:59:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_823ef3de25844145877e24ca device=aa:bb:cc:dd:ee:01 seq=1791669583250 via=poll
+261010 21:59:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_fb84ec5d0bfb43f4bce87feb device=aa:bb:cc:dd:ee:01 seq=1791669583251 via=poll
+261010 21:59:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583252, 1791669583253] snapshot=False
+261010 21:59:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_e56f171035c04db699d8553d device=aa:bb:cc:dd:ee:01 seq=1791669583252 via=poll
+261010 21:59:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_46a182442264479ea0a9bbbe device=aa:bb:cc:dd:ee:01 seq=1791669583253 via=poll
+261010 21:59:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=1 seqs=[1791669584227] snapshot=True
+261010 21:59:45[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "26c8e4a1-965b-4a45-a8c4-e2b77e70772a", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 3029354790, "seq": 1, "kind": "approve", "chat_id": "c_225943", "task_id": "t_225943_ap", "via": "loopback", "card_id": "i_225943_ap", "opt
+261010 21:59:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=aa:bb:cc:dd:ee:01 chat=c_225943 task=t_225943_ap card=i_225943_ap option=approve via=loopback boot=3029354790 seq=1
+261010 21:59:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent receipt approve boot=3029354790 seq=1 card=i_225943_ap result=accepted
+261010 21:59:45[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 3029354790, "card_id": "i_225943_ap", "chat_id": "c_225943", "kind": "approve", "option_id": "approve", "seq": 1, "task_id": "t_225943_ap", "v": 1, "via": "loopback"}
+
+## d2-main: main, --weak-link 1440 --old-firmware --no-receipts --ws-delay 1 --ws-up-delay 12: the bare-invocation session blocks the server's message loop for the close handshake (10 s)
+### sim device
+1791669464.556 22:57:44 ws relay: server -> device 1.0 s, device -> server 12.0 s, port 59460
+1791669464.556 22:57:44 agent sim device boot=110800633 device=aa:bb:cc:dd:ee:01 receipts=False weak_link=1440 old_firmware=True
+1791669464.564 22:57:44 poll 200 body unreadable (1260 of 3295 bytes, response 3475 B, connection reset after 1440 B) header=0
+1791669464.564 22:57:44 Proactive message pending (urgent=0)
+1791669478.595 22:57:58 session opened (proactive) id=d165a85a-c25f-4396-91b0-ccc9246eabf0
+1791669478.607 22:57:58 agent: chat=c_225744 task=t_225744_ap state=needs_approval seq=1791669464297 tier=when_idle speaks=0 result=applied via=push
+1791669478.607 22:57:58 agent: chat=c_225744_e0 task=t_225744_e0 state=needs_approval seq=1791669464398 tier=silent speaks=0 result=applied via=push
+1791669478.607 22:57:58 agent: chat=c_225744_e2 task=t_225744_e2 state=needs_approval seq=1791669464400 tier=silent speaks=0 result=applied via=push
+1791669478.607 22:57:58 agent: chat=c_225744_e0 task=t_225744_e3 state=working seq=1791669464401 tier=silent speaks=0 result=applied via=push
+1791669478.607 22:57:58 agent: chat=c_225744_e1 task=t_225744_e4 state=needs_approval seq=1791669464402 tier=silent speaks=0 result=applied via=push
+1791669478.607 22:57:58 agent: chat=c_225744_e2 task=t_225744_e5 state=working seq=1791669464403 tier=silent speaks=0 result=applied via=push
+1791669478.607 22:57:58 agent: chat=c_225744_e0 task=t_225744_e6 state=needs_approval seq=1791669464404 tier=silent speaks=0 result=applied via=push
+1791669478.607 22:57:58 agent: chat=c_225744_e1 task=t_225744_e7 state=working seq=1791669464405 tier=silent speaks=0 result=applied via=push
+1791669478.607 22:57:58 agent: sync seq=1791669477561 listed=8 dropped=0 tasks=8 via=push
+1791669478.809 22:57:58 agent agent_response: {"v": 1, "boot": 110800633, "seq": 1, "kind": "shown", "ack_upto": 1791669477561, "via": "tap"}
+1791669480.607 22:58:00 agent agent_response: {"v": 1, "boot": 110800633, "seq": 2, "kind": "approve", "chat_id": "c_225744", "task_id": "t_225744_ap", "via": "loopback", "card_id": "i_225744_ap", "option_id": "approve"}
+1791669481.607 22:58:01 agent: chat=c_225744 task=t_225744_ap state=needs_approval seq=1791669464297 tier=when_idle speaks=0 result=duplicate via=push
+1791669481.607 22:58:01 agent: chat=c_225744_e0 task=t_225744_e0 state=needs_approval seq=1791669464398 tier=silent speaks=0 result=duplicate via=push
+1791669481.607 22:58:01 agent: chat=c_225744_e2 task=t_225744_e2 state=needs_approval seq=1791669464400 tier=silent speaks=0 result=duplicate via=push
+1791669481.607 22:58:01 agent: chat=c_225744_e0 task=t_225744_e3 state=working seq=1791669464401 tier=silent speaks=0 result=duplicate via=push
+1791669481.607 22:58:01 agent: chat=c_225744_e1 task=t_225744_e4 state=needs_approval seq=1791669464402 tier=silent speaks=0 result=duplicate via=push
+1791669481.607 22:58:01 agent: chat=c_225744_e2 task=t_225744_e5 state=working seq=1791669464403 tier=silent speaks=0 result=duplicate via=push
+1791669481.607 22:58:01 agent: chat=c_225744_e0 task=t_225744_e6 state=needs_approval seq=1791669464404 tier=silent speaks=0 result=duplicate via=push
+1791669481.607 22:58:01 agent: chat=c_225744_e1 task=t_225744_e7 state=working seq=1791669464405 tier=silent speaks=0 result=duplicate via=push
+1791669481.809 22:58:01 agent agent_response: {"v": 1, "boot": 110800633, "seq": 3, "kind": "shown", "ack_upto": 1791669477561, "via": "tap"}
+1791669484.645 22:58:04 agent: chat=c_225744 task=t_225744_ap state=needs_approval seq=1791669464297 tier=when_idle speaks=0 result=duplicate via=push
+1791669484.645 22:58:04 agent: chat=c_225744_e0 task=t_225744_e0 state=needs_approval seq=1791669464398 tier=silent speaks=0 result=duplicate via=push
+1791669484.645 22:58:04 agent: chat=c_225744_e2 task=t_225744_e2 state=needs_approval seq=1791669464400 tier=silent speaks=0 result=duplicate via=push
+1791669484.645 22:58:04 agent: chat=c_225744_e0 task=t_225744_e3 state=working seq=1791669464401 tier=silent speaks=0 result=duplicate via=push
+1791669484.645 22:58:04 agent: chat=c_225744_e1 task=t_225744_e4 state=needs_approval seq=1791669464402 tier=silent speaks=0 result=duplicate via=push
+1791669484.645 22:58:04 agent: chat=c_225744_e2 task=t_225744_e5 state=working seq=1791669464403 tier=silent speaks=0 result=duplicate via=push
+1791669484.645 22:58:04 agent: chat=c_225744_e0 task=t_225744_e6 state=needs_approval seq=1791669464404 tier=silent speaks=0 result=duplicate via=push
+1791669484.645 22:58:04 agent: chat=c_225744_e1 task=t_225744_e7 state=working seq=1791669464405 tier=silent speaks=0 result=duplicate via=push
+1791669484.847 22:58:04 agent agent_response: {"v": 1, "boot": 110800633, "seq": 4, "kind": "shown", "ack_upto": 1791669477561, "via": "tap"}
+1791669501.620 22:58:21 state: idle (session closed)
+1791669501.628 22:58:21 poll 200 body unreadable (1260 of 3235 bytes, response 3415 B, connection reset after 1440 B) header=1791669477561
+1791669501.628 22:58:21 Proactive message pending (urgent=0)
+1791669515.647 22:58:35 session opened (proactive) id=6abacb8e-50cb-4803-bd31-e8edb35be976
+1791669515.664 22:58:35 agent: chat=c_225744 task=t_225744_ap state=needs_approval seq=1791669464297 tier=when_idle speaks=0 result=duplicate via=push
+1791669515.664 22:58:35 agent: chat=c_225744_e0 task=t_225744_e0 state=needs_approval seq=1791669464398 tier=silent speaks=0 result=duplicate via=push
+1791669515.664 22:58:35 agent: chat=c_225744_e2 task=t_225744_e2 state=needs_approval seq=1791669464400 tier=silent speaks=0 result=duplicate via=push
+1791669515.664 22:58:35 agent: chat=c_225744_e0 task=t_225744_e3 state=working seq=1791669464401 tier=silent speaks=0 result=duplicate via=push
+1791669515.664 22:58:35 agent: chat=c_225744_e1 task=t_225744_e4 state=needs_approval seq=1791669464402 tier=silent speaks=0 result=duplicate via=push
+1791669515.664 22:58:35 agent: chat=c_225744_e2 task=t_225744_e5 state=working seq=1791669464403 tier=silent speaks=0 result=duplicate via=push
+1791669515.664 22:58:35 agent: chat=c_225744_e0 task=t_225744_e6 state=needs_approval seq=1791669464404 tier=silent speaks=0 result=duplicate via=push
+1791669515.664 22:58:35 agent: chat=c_225744_e1 task=t_225744_e7 state=working seq=1791669464405 tier=silent speaks=0 result=duplicate via=push
+1791669515.664 22:58:35 agent: sync seq=1791669514613 listed=8 dropped=0 tasks=8 via=push
+1791669515.865 22:58:35 agent agent_response: {"v": 1, "boot": 110800633, "seq": 5, "kind": "shown", "ack_upto": 1791669514613, "via": "tap"}
+1791669538.679 22:58:58 state: idle (session closed)
+1791669565.697 22:59:25 done: tasks=['t_225744_ap', 't_225744_e0', 't_225744_e2', 't_225744_e3', 't_225744_e4', 't_225744_e5', 't_225744_e6', 't_225744_e7'] max_seq=1791669514613 stats={'bodies': 2, 'unreadable': 2, 'max_body': 3475, 'receipts': 0, 'dropped': 0} awaiting=[]
+### server
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent tasks dropped device=aa:bb:cc:dd:ee:01: ['t_225718_ap', 't_225718_e0', 't_225718_e2', 't_225718_e3', 't_225718_e4', 't_225718_e5', 't_225718_e6', 't_225718_e7']; snapshot due
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225744 task=t_225744_ap state=needs_approval seq=1791669464297 tier=when_idle speaks=False delivery=fx_18732300d0cf4f25893418b7
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225744_e0 task=t_225744_e0 state=needs_approval seq=1791669464398 tier=silent speaks=False delivery=fx_69536e69eb2a48838bc1a38d
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225744_e1 task=t_225744_e1 state=working seq=1791669464399 tier=silent speaks=False delivery=fx_5f66998a115b466ea0efe450
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225744_e2 task=t_225744_e2 state=needs_approval seq=1791669464400 tier=silent speaks=False delivery=fx_3b6ec67f76354b47afec63ec
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225744_e0 task=t_225744_e3 state=working seq=1791669464401 tier=silent speaks=False delivery=fx_1a3ae941cf6346bc97dbbbf1
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225744_e1 task=t_225744_e4 state=needs_approval seq=1791669464402 tier=silent speaks=False delivery=fx_517ff4ba6eb0483a83461e21
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225744_e2 task=t_225744_e5 state=working seq=1791669464403 tier=silent speaks=False delivery=fx_caabf947a18741c78bd77346
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225744_e0 task=t_225744_e6 state=needs_approval seq=1791669464404 tier=silent speaks=False delivery=fx_f5bc430738374ae3b5ba9314
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_225744_e1 no longer mirrored for device=aa:bb:cc:dd:ee:01
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_225744_e1 task=t_225744_e7 state=working seq=1791669464405 tier=silent speaks=False delivery=fx_9540f659d71543e4b86b0049
+261010 21:57:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=8 seqs=[1791669464297, 1791669464398, 1791669464400, 1791669464401, 1791669464402, 1791669464403, 1791669464404, 1791669464405] snapshot=False
+261010 21:57:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=aa:bb:cc:dd:ee:01 session=d165a85a-c25f-4396-91b0-ccc9246eabf0: snapshot of 8
+261010 21:57:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_ap state=needs_approval seq=1791669464297
+261010 21:57:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e0 state=needs_approval seq=1791669464398
+261010 21:57:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e2 state=needs_approval seq=1791669464400
+261010 21:57:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e3 state=working seq=1791669464401
+261010 21:57:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e4 state=needs_approval seq=1791669464402
+261010 21:57:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e5 state=working seq=1791669464403
+261010 21:57:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e6 state=needs_approval seq=1791669464404
+261010 21:57:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e7 state=working seq=1791669464405
+261010 21:57:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent_sync task=None state=None seq=1791669477561
+261010 21:58:00[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_ap state=needs_approval seq=1791669464297
+261010 21:58:00[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e0 state=needs_approval seq=1791669464398
+261010 21:58:00[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e2 state=needs_approval seq=1791669464400
+261010 21:58:00[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e3 state=working seq=1791669464401
+261010 21:58:00[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e4 state=needs_approval seq=1791669464402
+261010 21:58:00[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e5 state=working seq=1791669464403
+261010 21:58:00[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e6 state=needs_approval seq=1791669464404
+261010 21:58:00[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e7 state=working seq=1791669464405
+261010 21:58:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_ap state=needs_approval seq=1791669464297
+261010 21:58:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e0 state=needs_approval seq=1791669464398
+261010 21:58:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e2 state=needs_approval seq=1791669464400
+261010 21:58:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e3 state=working seq=1791669464401
+261010 21:58:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e4 state=needs_approval seq=1791669464402
+261010 21:58:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e5 state=working seq=1791669464403
+261010 21:58:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e6 state=needs_approval seq=1791669464404
+261010 21:58:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent resend device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e7 state=working seq=1791669464405
+261010 21:58:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent seq=1791669464297 unacked after 4 sends device=aa:bb:cc:dd:ee:01: snapshot due
+261010 21:58:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent seq=1791669464398 unacked after 4 sends device=aa:bb:cc:dd:ee:01: snapshot due
+261010 21:58:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent seq=1791669464400 unacked after 4 sends device=aa:bb:cc:dd:ee:01: snapshot due
+261010 21:58:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent seq=1791669464401 unacked after 4 sends device=aa:bb:cc:dd:ee:01: snapshot due
+261010 21:58:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent seq=1791669464402 unacked after 4 sends device=aa:bb:cc:dd:ee:01: snapshot due
+261010 21:58:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent seq=1791669464403 unacked after 4 sends device=aa:bb:cc:dd:ee:01: snapshot due
+261010 21:58:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent seq=1791669464404 unacked after 4 sends device=aa:bb:cc:dd:ee:01: snapshot due
+261010 21:58:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent seq=1791669464405 unacked after 4 sends device=aa:bb:cc:dd:ee:01: snapshot due
+261010 21:58:10[0.9.7_00000000000000][weixue_proactive]-INFO-proactive session opened with no current lease for it; closing
+261010 21:58:20[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "d165a85a-c25f-4396-91b0-ccc9246eabf0", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 110800633, "seq": 1, "kind": "shown", "ack_upto": 1791669477561, "via": "tap"}}}
+261010 21:58:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_4c8ac799620f4a94acb86cd1 device=aa:bb:cc:dd:ee:01 seq=1791669438232 via=shown
+261010 21:58:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_5f66998a115b466ea0efe450 device=aa:bb:cc:dd:ee:01 seq=1791669464399 via=shown
+261010 21:58:20[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"ack_upto": 1791669477561, "boot": 110800633, "kind": "shown", "seq": 1, "v": 1, "via": "tap"}
+261010 21:58:20[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "d165a85a-c25f-4396-91b0-ccc9246eabf0", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 110800633, "seq": 2, "kind": "approve", "chat_id": "c_225744", "task_id": "t_225744_ap", "via": "loopback", "card_id": "i_225744_ap", "opti
+261010 21:58:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=aa:bb:cc:dd:ee:01 chat=c_225744 task=t_225744_ap card=i_225744_ap option=approve via=loopback boot=110800633 seq=2
+261010 21:58:20[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 110800633, "card_id": "i_225744_ap", "chat_id": "c_225744", "kind": "approve", "option_id": "approve", "seq": 2, "task_id": "t_225744_ap", "v": 1, "via": "loopback"}
+261010 21:58:20[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "d165a85a-c25f-4396-91b0-ccc9246eabf0", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 110800633, "seq": 3, "kind": "shown", "ack_upto": 1791669477561, "via": "tap"}}}
+261010 21:58:20[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"ack_upto": 1791669477561, "boot": 110800633, "kind": "shown", "seq": 3, "v": 1, "via": "tap"}
+261010 21:58:20[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "d165a85a-c25f-4396-91b0-ccc9246eabf0", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 110800633, "seq": 4, "kind": "shown", "ack_upto": 1791669477561, "via": "tap"}}}
+261010 21:58:20[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"ack_upto": 1791669477561, "boot": 110800633, "kind": "shown", "seq": 4, "v": 1, "via": "tap"}
+261010 21:58:21[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=8 seqs=[1791669464297, 1791669464398, 1791669464400, 1791669464401, 1791669464402, 1791669464403, 1791669464404, 1791669464405] snapshot=False
+261010 21:58:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=aa:bb:cc:dd:ee:01 session=6abacb8e-50cb-4803-bd31-e8edb35be976: snapshot of 8
+261010 21:58:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_ap state=needs_approval seq=1791669464297
+261010 21:58:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e0 state=needs_approval seq=1791669464398
+261010 21:58:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e2 state=needs_approval seq=1791669464400
+261010 21:58:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e3 state=working seq=1791669464401
+261010 21:58:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e4 state=needs_approval seq=1791669464402
+261010 21:58:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e5 state=working seq=1791669464403
+261010 21:58:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e6 state=needs_approval seq=1791669464404
+261010 21:58:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e7 state=working seq=1791669464405
+261010 21:58:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent_sync task=None state=None seq=1791669514613
+261010 21:58:47[0.9.7_00000000000000][weixue_proactive]-INFO-proactive session opened with no current lease for it; closing
+261010 21:58:57[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "6abacb8e-50cb-4803-bd31-e8edb35be976", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 110800633, "seq": 5, "kind": "shown", "ack_upto": 1791669514613, "via": "tap"}}}
+261010 21:58:57[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"ack_upto": 1791669514613, "boot": 110800633, "kind": "shown", "seq": 5, "v": 1, "via": "tap"}
+
+## cw-main: closing window on main: bare invocation, approval pushed into the session, loopback approve; v1 device (--no-receipts), --ws-delay 1 --ws-up-delay 1
+### sim device
+1791669677.100 23:01:17 ws relay: server -> device 1.0 s, device -> server 1.0 s, port 59655
+1791669677.100 23:01:17 agent sim device boot=2820655361 device=aa:bb:cc:dd:ee:01 receipts=False weak_link=0 old_firmware=False
+1791669677.114 23:01:17 poll 200 speak=False urgent=False items=8 bytes=3415 header=0
+1791669677.114 23:01:17 agent: chat=c_225744 task=t_225744_ap state=needs_approval seq=1791669464297 tier=when_idle speaks=0 result=applied via=poll
+1791669677.114 23:01:17 agent: chat=c_225744_e0 task=t_225744_e0 state=needs_approval seq=1791669464398 tier=silent speaks=0 result=applied via=poll
+1791669677.114 23:01:17 agent: chat=c_225744_e2 task=t_225744_e2 state=needs_approval seq=1791669464400 tier=silent speaks=0 result=applied via=poll
+1791669677.114 23:01:17 agent: chat=c_225744_e0 task=t_225744_e3 state=working seq=1791669464401 tier=silent speaks=0 result=applied via=poll
+1791669677.114 23:01:17 agent: chat=c_225744_e1 task=t_225744_e4 state=needs_approval seq=1791669464402 tier=silent speaks=0 result=applied via=poll
+1791669677.114 23:01:17 agent: chat=c_225744_e2 task=t_225744_e5 state=working seq=1791669464403 tier=silent speaks=0 result=applied via=poll
+1791669677.114 23:01:17 agent: chat=c_225744_e0 task=t_225744_e6 state=needs_approval seq=1791669464404 tier=silent speaks=0 result=applied via=poll
+1791669677.114 23:01:17 agent: chat=c_225744_e1 task=t_225744_e7 state=working seq=1791669464405 tier=silent speaks=0 result=applied via=poll
+1791669677.327 23:01:17 poll 200 speak=False urgent=False items=1 bytes=455 header=1791669464405
+1791669677.327 23:01:17 agent: sync seq=1791669677295 listed=8 dropped=0 tasks=8 via=poll
+1791669678.107 23:01:18 invoking without a current lease
+1791669681.170 23:01:21 session opened (proactive) id=091d9408-48f7-4d7c-a22a-fc9e3e6ef587
+1791669681.201 23:01:21 agent: chat=c_225744 task=t_225744_ap state=needs_approval seq=1791669464297 tier=when_idle speaks=0 result=duplicate via=push
+1791669681.201 23:01:21 agent: chat=c_225744_e0 task=t_225744_e0 state=needs_approval seq=1791669464398 tier=silent speaks=0 result=duplicate via=push
+1791669681.201 23:01:21 agent: chat=c_225744_e2 task=t_225744_e2 state=needs_approval seq=1791669464400 tier=silent speaks=0 result=duplicate via=push
+1791669681.201 23:01:21 agent: chat=c_225744_e1 task=t_225744_e4 state=needs_approval seq=1791669464402 tier=silent speaks=0 result=duplicate via=push
+1791669681.201 23:01:21 agent: chat=c_225744_e2 task=t_225744_e5 state=working seq=1791669464403 tier=silent speaks=0 result=duplicate via=push
+1791669681.201 23:01:21 agent: chat=c_225744_e0 task=t_225744_e6 state=needs_approval seq=1791669464404 tier=silent speaks=0 result=duplicate via=push
+1791669681.202 23:01:21 agent: chat=c_225744_e1 task=t_225744_e7 state=working seq=1791669464405 tier=silent speaks=0 result=duplicate via=push
+1791669681.202 23:01:21 agent: chat=c_230118 task=t_230118_ap state=needs_approval seq=1791669678581 tier=when_idle speaks=0 result=applied via=push
+1791669681.202 23:01:21 agent: sync seq=1791669680137 listed=8 dropped=1 tasks=8 via=push
+1791669681.401 23:01:21 agent agent_response: {"v": 1, "boot": 2820655361, "seq": 1, "kind": "shown", "ack_upto": 1791669680137, "via": "tap"}
+1791669683.204 23:01:23 agent agent_response: {"v": 1, "boot": 2820655361, "seq": 2, "kind": "approve", "chat_id": "c_230118", "task_id": "t_230118_ap", "via": "loopback", "card_id": "i_230118_ap", "option_id": "approve"}
+1791669685.203 23:01:25 state: idle (session closed)
+1791669685.206 23:01:25 event not sent: session closed
+1791669712.231 23:01:52 done: tasks=['t_225744_ap', 't_225744_e0', 't_225744_e2', 't_225744_e4', 't_225744_e5', 't_225744_e6', 't_225744_e7', 't_230118_ap'] max_seq=1791669680137 stats={'bodies': 2, 'unreadable': 0, 'max_body': 3415, 'receipts': 0, 'dropped': 0} awaiting=[]
+### server
+261010 22:01:17[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=aa:bb:cc:dd:ee:01 seq=0: snapshot due
+261010 22:01:17[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=8 seqs=[1791669464297, 1791669464398, 1791669464400, 1791669464401, 1791669464402, 1791669464403, 1791669464404, 1791669464405] snapshot=False
+261010 22:01:17[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=1 seqs=[1791669677295] snapshot=True
+261010 22:01:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_225744_e3 no longer mirrored for device=aa:bb:cc:dd:ee:01
+261010 22:01:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_230118 task=t_230118_ap state=needs_approval seq=1791669678581 tier=when_idle speaks=False delivery=fx_d6058f97a17344b2a32eef7d
+261010 22:01:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=1 seqs=[1791669678581] snapshot=False
+261010 22:01:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=aa:bb:cc:dd:ee:01 session=091d9408-48f7-4d7c-a22a-fc9e3e6ef587: snapshot of 8
+261010 22:01:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_ap state=needs_approval seq=1791669464297
+261010 22:01:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e0 state=needs_approval seq=1791669464398
+261010 22:01:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e2 state=needs_approval seq=1791669464400
+261010 22:01:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e4 state=needs_approval seq=1791669464402
+261010 22:01:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e5 state=working seq=1791669464403
+261010 22:01:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e6 state=needs_approval seq=1791669464404
+261010 22:01:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e7 state=working seq=1791669464405
+261010 22:01:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_230118_ap state=needs_approval seq=1791669678581
+261010 22:01:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent_sync task=None state=None seq=1791669680137
+261010 22:01:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive session opened with no current lease for it; closing
+261010 22:01:25[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_d6058f97a17344b2a32eef7d device=aa:bb:cc:dd:ee:01 seq=1791669678581 via=poll
+261010 22:01:26[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "091d9408-48f7-4d7c-a22a-fc9e3e6ef587", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2820655361, "seq": 1, "kind": "shown", "ack_upto": 1791669680137, "via": "tap"}}}
+261010 22:01:26[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"ack_upto": 1791669680137, "boot": 2820655361, "kind": "shown", "seq": 1, "v": 1, "via": "tap"}
+261010 22:01:26[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session 091d9408-48f7-4d7c-a22a-fc9e3e6ef587 of aa:bb:cc:dd:ee:01 did not answer a ping; closed
+
+## cw-branch: closing window on branch, receipts, same delays
+### sim device
+1791669627.806 23:00:27 ws relay: server -> device 1.0 s, device -> server 1.0 s, port 59595
+1791669627.806 23:00:27 agent sim device boot=2068474347 device=aa:bb:cc:dd:ee:01 receipts=True weak_link=0 old_firmware=False
+1791669627.813 23:00:27 poll 200 speak=False urgent=False items=2 bytes=1119 header=0
+1791669627.813 23:00:27 agent: chat=c_225943 task=t_225943_ap state=needs_approval seq=1791669583137 tier=when_idle speaks=0 result=applied via=poll
+1791669627.813 23:00:27 agent: chat=c_225943_e0 task=t_225943_e0 state=needs_approval seq=1791669583246 tier=silent speaks=0 result=applied via=poll
+1791669628.031 23:00:28 poll 200 speak=False urgent=False items=2 bytes=1032 header=1791669583246
+1791669628.031 23:00:28 agent: chat=c_225943_e2 task=t_225943_e2 state=needs_approval seq=1791669583248 tier=silent speaks=0 result=applied via=poll
+1791669628.031 23:00:28 agent: chat=c_225943_e0 task=t_225943_e3 state=working seq=1791669583249 tier=silent speaks=0 result=applied via=poll
+1791669628.244 23:00:28 poll 200 speak=False urgent=False items=2 bytes=1032 header=1791669583249
+1791669628.244 23:00:28 agent: chat=c_225943_e1 task=t_225943_e4 state=needs_approval seq=1791669583250 tier=silent speaks=0 result=applied via=poll
+1791669628.244 23:00:28 agent: chat=c_225943_e2 task=t_225943_e5 state=working seq=1791669583251 tier=silent speaks=0 result=applied via=poll
+1791669628.451 23:00:28 poll 200 speak=False urgent=False items=2 bytes=1032 header=1791669583251
+1791669628.451 23:00:28 agent: chat=c_225943_e0 task=t_225943_e6 state=needs_approval seq=1791669583252 tier=silent speaks=0 result=applied via=poll
+1791669628.451 23:00:28 agent: chat=c_225943_e1 task=t_225943_e7 state=working seq=1791669583253 tier=silent speaks=0 result=applied via=poll
+1791669628.659 23:00:28 poll 200 speak=False urgent=False items=1 bytes=455 header=1791669583253
+1791669628.659 23:00:28 agent: sync seq=1791669628627 listed=8 dropped=0 tasks=8 via=poll
+1791669628.807 23:00:28 invoking without a current lease
+1791669631.868 23:00:31 session opened (proactive) id=94ea02fa-98a4-4e10-8f35-1c6b1c00368b
+1791669631.882 23:00:31 agent: chat=c_225943 task=t_225943_ap state=needs_approval seq=1791669583137 tier=when_idle speaks=0 result=duplicate via=push
+1791669631.882 23:00:31 agent: chat=c_225943_e0 task=t_225943_e0 state=needs_approval seq=1791669583246 tier=silent speaks=0 result=duplicate via=push
+1791669631.882 23:00:31 agent: chat=c_225943_e2 task=t_225943_e2 state=needs_approval seq=1791669583248 tier=silent speaks=0 result=duplicate via=push
+1791669631.882 23:00:31 agent: chat=c_225943_e1 task=t_225943_e4 state=needs_approval seq=1791669583250 tier=silent speaks=0 result=duplicate via=push
+1791669631.882 23:00:31 agent: chat=c_225943_e2 task=t_225943_e5 state=working seq=1791669583251 tier=silent speaks=0 result=duplicate via=push
+1791669631.882 23:00:31 agent: chat=c_225943_e0 task=t_225943_e6 state=needs_approval seq=1791669583252 tier=silent speaks=0 result=duplicate via=push
+1791669631.882 23:00:31 agent: chat=c_225943_e1 task=t_225943_e7 state=working seq=1791669583253 tier=silent speaks=0 result=duplicate via=push
+1791669631.883 23:00:31 agent: chat=c_230029 task=t_230029_ap state=needs_approval seq=1791669629271 tier=when_idle speaks=0 result=applied via=push
+1791669631.883 23:00:31 agent: sync seq=1791669630831 listed=8 dropped=1 tasks=8 via=push
+1791669632.084 23:00:32 agent agent_response: {"v": 1, "boot": 2068474347, "seq": 1, "kind": "shown", "ack_upto": 1791669630831, "via": "tap"}
+1791669633.890 23:00:33 agent agent_response: {"v": 1, "boot": 2068474347, "seq": 2, "kind": "approve", "chat_id": "c_230029", "task_id": "t_230029_ap", "via": "loopback", "card_id": "i_230029_ap", "option_id": "approve"}
+1791669635.894 23:00:35 agent ack without receipt (attempt 1), resend in 1000 ms: approve seq 2
+1791669635.909 23:00:35 agent receipt: approve seq=2 card=i_230029_ap result=accepted
+1791669636.895 23:00:36 agent ack received: approve seq 2 (late)
+1791669639.987 23:00:39 state: idle (session closed)
+1791669667.020 23:01:07 done: tasks=['t_225943_ap', 't_225943_e0', 't_225943_e2', 't_225943_e4', 't_225943_e5', 't_225943_e6', 't_225943_e7', 't_230029_ap'] max_seq=1791669630831 stats={'bodies': 5, 'unreadable': 0, 'max_body': 1119, 'receipts': 1, 'dropped': 0} awaiting=[]
+### server
+261010 22:00:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=aa:bb:cc:dd:ee:01 seq=0: snapshot due
+261010 22:00:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583137, 1791669583246] snapshot=False
+261010 22:00:27[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583248, 1791669583249] snapshot=False
+261010 22:00:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583250, 1791669583251] snapshot=False
+261010 22:00:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583252, 1791669583253] snapshot=False
+261010 22:00:28[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=1 seqs=[1791669628627] snapshot=True
+261010 22:00:29[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_225943_e3 no longer mirrored for device=aa:bb:cc:dd:ee:01
+261010 22:00:29[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_230029 task=t_230029_ap state=needs_approval seq=1791669629271 tier=when_idle speaks=False delivery=fx_68ab2f8f51934c50b722a239
+261010 22:00:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=aa:bb:cc:dd:ee:01 session=94ea02fa-98a4-4e10-8f35-1c6b1c00368b: snapshot of 8
+261010 22:00:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_ap state=needs_approval seq=1791669583137
+261010 22:00:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e0 state=needs_approval seq=1791669583246
+261010 22:00:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e2 state=needs_approval seq=1791669583248
+261010 22:00:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e4 state=needs_approval seq=1791669583250
+261010 22:00:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e5 state=working seq=1791669583251
+261010 22:00:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e6 state=needs_approval seq=1791669583252
+261010 22:00:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e7 state=working seq=1791669583253
+261010 22:00:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_230029_ap state=needs_approval seq=1791669629271
+261010 22:00:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent_sync task=None state=None seq=1791669630831
+261010 22:00:32[0.9.7_00000000000000][weixue_proactive]-INFO-proactive session opened with no current lease for it; closing once the device is quiet
+261010 22:00:33[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "94ea02fa-98a4-4e10-8f35-1c6b1c00368b", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2068474347, "seq": 1, "kind": "shown", "ack_upto": 1791669630831, "via": "tap"}}}
+261010 22:00:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_68ab2f8f51934c50b722a239 device=aa:bb:cc:dd:ee:01 seq=1791669629271 via=shown
+261010 22:00:33[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"ack_upto": 1791669630831, "boot": 2068474347, "kind": "shown", "seq": 1, "v": 1, "via": "tap"}
+261010 22:00:34[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "94ea02fa-98a4-4e10-8f35-1c6b1c00368b", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2068474347, "seq": 2, "kind": "approve", "chat_id": "c_230029", "task_id": "t_230029_ap", "via": "loopback", "card_id": "i_230029_ap", "opt
+261010 22:00:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=aa:bb:cc:dd:ee:01 chat=c_230029 task=t_230029_ap card=i_230029_ap option=approve via=loopback boot=2068474347 seq=2
+261010 22:00:34[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent receipt approve boot=2068474347 seq=2 card=i_230029_ap result=accepted
+261010 22:00:34[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 2068474347, "card_id": "i_230029_ap", "chat_id": "c_230029", "kind": "approve", "option_id": "approve", "seq": 2, "task_id": "t_230029_ap", "v": 1, "via": "loopback"}
+261010 22:00:36[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: rejected session 94ea02fa-98a4-4e10-8f35-1c6b1c00368b closed after 4.1 s
+261010 22:00:40[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session 94ea02fa-98a4-4e10-8f35-1c6b1c00368b of aa:bb:cc:dd:ee:01 did not answer a ping; closed
+
+## cw-branch-v1dev: closing window on branch, v1 device (--no-receipts): the drain alone
+### sim device
+1791669722.994 23:02:02 ws relay: server -> device 1.0 s, device -> server 1.0 s, port 59692
+1791669722.994 23:02:02 agent sim device boot=2526804814 device=aa:bb:cc:dd:ee:01 receipts=False weak_link=0 old_firmware=False
+1791669723.001 23:02:03 poll 200 speak=False urgent=False items=2 bytes=1119 header=0
+1791669723.001 23:02:03 agent: chat=c_225943 task=t_225943_ap state=needs_approval seq=1791669583137 tier=when_idle speaks=0 result=applied via=poll
+1791669723.001 23:02:03 agent: chat=c_225943_e0 task=t_225943_e0 state=needs_approval seq=1791669583246 tier=silent speaks=0 result=applied via=poll
+1791669723.212 23:02:03 poll 200 speak=False urgent=False items=2 bytes=1192 header=1791669583246
+1791669723.212 23:02:03 agent: chat=c_225943_e2 task=t_225943_e2 state=needs_approval seq=1791669583248 tier=silent speaks=0 result=applied via=poll
+1791669723.212 23:02:03 agent: chat=c_225943_e1 task=t_225943_e4 state=needs_approval seq=1791669583250 tier=silent speaks=0 result=applied via=poll
+1791669723.419 23:02:03 poll 200 speak=False urgent=False items=2 bytes=1032 header=1791669583250
+1791669723.419 23:02:03 agent: chat=c_225943_e2 task=t_225943_e5 state=working seq=1791669583251 tier=silent speaks=0 result=applied via=poll
+1791669723.419 23:02:03 agent: chat=c_225943_e0 task=t_225943_e6 state=needs_approval seq=1791669583252 tier=silent speaks=0 result=applied via=poll
+1791669723.629 23:02:03 poll 200 speak=False urgent=False items=2 bytes=960 header=1791669583252
+1791669723.629 23:02:03 agent: chat=c_225943_e1 task=t_225943_e7 state=working seq=1791669583253 tier=silent speaks=0 result=applied via=poll
+1791669723.629 23:02:03 agent: chat=c_230029 task=t_230029_ap state=needs_approval seq=1791669629271 tier=when_idle speaks=0 result=applied via=poll
+1791669723.843 23:02:03 poll 200 speak=False urgent=False items=1 bytes=455 header=1791669629271
+1791669723.843 23:02:03 agent: sync seq=1791669723812 listed=8 dropped=0 tasks=8 via=poll
+1791669723.996 23:02:03 invoking without a current lease
+1791669727.033 23:02:07 session opened (proactive) id=fd9f2278-315c-4490-a990-1098e6c471c4
+1791669727.061 23:02:07 agent: chat=c_225943 task=t_225943_ap state=needs_approval seq=1791669583137 tier=when_idle speaks=0 result=duplicate via=push
+1791669727.061 23:02:07 agent: chat=c_225943_e0 task=t_225943_e0 state=needs_approval seq=1791669583246 tier=silent speaks=0 result=duplicate via=push
+1791669727.061 23:02:07 agent: chat=c_225943_e2 task=t_225943_e2 state=needs_approval seq=1791669583248 tier=silent speaks=0 result=duplicate via=push
+1791669727.061 23:02:07 agent: chat=c_225943_e1 task=t_225943_e4 state=needs_approval seq=1791669583250 tier=silent speaks=0 result=duplicate via=push
+1791669727.061 23:02:07 agent: chat=c_225943_e0 task=t_225943_e6 state=needs_approval seq=1791669583252 tier=silent speaks=0 result=duplicate via=push
+1791669727.061 23:02:07 agent: chat=c_225943_e1 task=t_225943_e7 state=working seq=1791669583253 tier=silent speaks=0 result=duplicate via=push
+1791669727.061 23:02:07 agent: chat=c_230029 task=t_230029_ap state=needs_approval seq=1791669629271 tier=when_idle speaks=0 result=duplicate via=push
+1791669727.061 23:02:07 agent: chat=c_230204 task=t_230204_ap state=needs_approval seq=1791669724447 tier=when_idle speaks=0 result=applied via=push
+1791669727.061 23:02:07 agent: sync seq=1791669726000 listed=8 dropped=1 tasks=8 via=push
+1791669727.265 23:02:07 agent agent_response: {"v": 1, "boot": 2526804814, "seq": 1, "kind": "shown", "ack_upto": 1791669726000, "via": "tap"}
+1791669729.063 23:02:09 agent agent_response: {"v": 1, "boot": 2526804814, "seq": 2, "kind": "approve", "chat_id": "c_230204", "task_id": "t_230204_ap", "via": "loopback", "card_id": "i_230204_ap", "option_id": "approve"}
+1791669731.077 23:02:11 agent receipt: approve seq=2 card=i_230204_ap result=accepted (no response waits for it)
+1791669735.140 23:02:15 state: idle (session closed)
+1791669762.164 23:02:42 done: tasks=['t_225943_ap', 't_225943_e0', 't_225943_e2', 't_225943_e4', 't_225943_e6', 't_225943_e7', 't_230029_ap', 't_230204_ap'] max_seq=1791669726000 stats={'bodies': 5, 'unreadable': 0, 'max_body': 1192, 'receipts': 1, 'dropped': 0} awaiting=[]
+### server
+261010 22:02:02[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=aa:bb:cc:dd:ee:01 seq=0: snapshot due
+261010 22:02:02[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583137, 1791669583246] snapshot=False
+261010 22:02:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583248, 1791669583250] snapshot=False
+261010 22:02:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583251, 1791669583252] snapshot=False
+261010 22:02:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=2 seqs=[1791669583253, 1791669629271] snapshot=False
+261010 22:02:03[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=1 seqs=[1791669723812] snapshot=True
+261010 22:02:04[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_225943_e5 no longer mirrored for device=aa:bb:cc:dd:ee:01
+261010 22:02:04[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_230204 task=t_230204_ap state=needs_approval seq=1791669724447 tier=when_idle speaks=False delivery=fx_4d76b4475a524f668430ebb7
+261010 22:02:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=aa:bb:cc:dd:ee:01 session=fd9f2278-315c-4490-a990-1098e6c471c4: snapshot of 8
+261010 22:02:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_ap state=needs_approval seq=1791669583137
+261010 22:02:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e0 state=needs_approval seq=1791669583246
+261010 22:02:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e2 state=needs_approval seq=1791669583248
+261010 22:02:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e4 state=needs_approval seq=1791669583250
+261010 22:02:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e6 state=needs_approval seq=1791669583252
+261010 22:02:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225943_e7 state=working seq=1791669583253
+261010 22:02:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_230029_ap state=needs_approval seq=1791669629271
+261010 22:02:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_230204_ap state=needs_approval seq=1791669724447
+261010 22:02:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent_sync task=None state=None seq=1791669726000
+261010 22:02:08[0.9.7_00000000000000][weixue_proactive]-INFO-proactive session opened with no current lease for it; closing once the device is quiet
+261010 22:02:08[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "fd9f2278-315c-4490-a990-1098e6c471c4", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2526804814, "seq": 1, "kind": "shown", "ack_upto": 1791669726000, "via": "tap"}}}
+261010 22:02:08[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_4d76b4475a524f668430ebb7 device=aa:bb:cc:dd:ee:01 seq=1791669724447 via=shown
+261010 22:02:08[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"ack_upto": 1791669726000, "boot": 2526804814, "kind": "shown", "seq": 1, "v": 1, "via": "tap"}
+261010 22:02:10[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "fd9f2278-315c-4490-a990-1098e6c471c4", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2526804814, "seq": 2, "kind": "approve", "chat_id": "c_230204", "task_id": "t_230204_ap", "via": "loopback", "card_id": "i_230204_ap", "opt
+261010 22:02:10[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=aa:bb:cc:dd:ee:01 chat=c_230204 task=t_230204_ap card=i_230204_ap option=approve via=loopback boot=2526804814 seq=2
+261010 22:02:10[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent receipt approve boot=2526804814 seq=2 card=i_230204_ap result=accepted
+261010 22:02:10[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 2526804814, "card_id": "i_230204_ap", "chat_id": "c_230204", "kind": "approve", "option_id": "approve", "seq": 2, "task_id": "t_230204_ap", "v": 1, "via": "loopback"}
+261010 22:02:12[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: rejected session fd9f2278-315c-4490-a990-1098e6c471c4 closed after 4.1 s
+261010 22:02:16[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session fd9f2278-315c-4490-a990-1098e6c471c4 of aa:bb:cc:dd:ee:01 did not answer a ping; closed
+
+## cw-main-receipts: closing window on main, receipts on the device: no receipts come back (v1 server)
+### sim device
+1791669762.386 23:02:42 ws relay: server -> device 1.0 s, device -> server 1.0 s, port 59759
+1791669762.386 23:02:42 agent sim device boot=2547214482 device=aa:bb:cc:dd:ee:01 receipts=True weak_link=0 old_firmware=False
+1791669762.396 23:02:42 poll 200 speak=False urgent=False items=8 bytes=3562 header=0
+1791669762.396 23:02:42 agent: chat=c_225744 task=t_225744_ap state=needs_approval seq=1791669464297 tier=when_idle speaks=0 result=applied via=poll
+1791669762.396 23:02:42 agent: chat=c_225744_e0 task=t_225744_e0 state=needs_approval seq=1791669464398 tier=silent speaks=0 result=applied via=poll
+1791669762.396 23:02:42 agent: chat=c_225744_e2 task=t_225744_e2 state=needs_approval seq=1791669464400 tier=silent speaks=0 result=applied via=poll
+1791669762.396 23:02:42 agent: chat=c_225744_e1 task=t_225744_e4 state=needs_approval seq=1791669464402 tier=silent speaks=0 result=applied via=poll
+1791669762.396 23:02:42 agent: chat=c_225744_e2 task=t_225744_e5 state=working seq=1791669464403 tier=silent speaks=0 result=applied via=poll
+1791669762.396 23:02:42 agent: chat=c_225744_e0 task=t_225744_e6 state=needs_approval seq=1791669464404 tier=silent speaks=0 result=applied via=poll
+1791669762.396 23:02:42 agent: chat=c_225744_e1 task=t_225744_e7 state=working seq=1791669464405 tier=silent speaks=0 result=applied via=poll
+1791669762.396 23:02:42 agent: chat=c_230118 task=t_230118_ap state=needs_approval seq=1791669678581 tier=when_idle speaks=0 result=applied via=poll
+1791669762.603 23:02:42 poll 200 speak=False urgent=False items=1 bytes=455 header=1791669678581
+1791669762.603 23:02:42 agent: sync seq=1791669762571 listed=8 dropped=0 tasks=8 via=poll
+1791669763.387 23:02:43 invoking without a current lease
+1791669764.398 23:02:44 agent agent_response: {"v": 1, "boot": 2547214482, "seq": 1, "kind": "approve", "chat_id": "c_230118", "task_id": "t_230118_ap", "via": "loopback", "card_id": "i_230118_ap", "option_id": "approve"}
+1791669766.430 23:02:46 session opened (proactive) id=8fe00f6a-361b-415d-bf12-d827077aa46a
+1791669766.441 23:02:46 agent: chat=c_225744 task=t_225744_ap state=needs_approval seq=1791669464297 tier=when_idle speaks=0 result=duplicate via=push
+1791669766.441 23:02:46 agent: chat=c_225744_e0 task=t_225744_e0 state=needs_approval seq=1791669464398 tier=silent speaks=0 result=duplicate via=push
+1791669766.441 23:02:46 agent: chat=c_225744_e2 task=t_225744_e2 state=needs_approval seq=1791669464400 tier=silent speaks=0 result=duplicate via=push
+1791669766.441 23:02:46 agent: chat=c_225744_e1 task=t_225744_e4 state=needs_approval seq=1791669464402 tier=silent speaks=0 result=duplicate via=push
+1791669766.441 23:02:46 agent: chat=c_225744_e0 task=t_225744_e6 state=needs_approval seq=1791669464404 tier=silent speaks=0 result=duplicate via=push
+1791669766.441 23:02:46 agent: chat=c_225744_e1 task=t_225744_e7 state=working seq=1791669464405 tier=silent speaks=0 result=duplicate via=push
+1791669766.441 23:02:46 agent: chat=c_230118 task=t_230118_ap state=needs_approval seq=1791669678581 tier=when_idle speaks=0 result=duplicate via=push
+1791669766.441 23:02:46 agent: chat=c_230243 task=t_230243_ap state=needs_approval seq=1791669763851 tier=when_idle speaks=0 result=applied via=push
+1791669766.441 23:02:46 agent: sync seq=1791669765394 listed=8 dropped=1 tasks=8 via=push
+1791669766.643 23:02:46 agent agent_response: {"v": 1, "boot": 2547214482, "seq": 2, "kind": "shown", "ack_upto": 1791669765394, "via": "tap"}
+1791669768.442 23:02:48 agent agent_response: {"v": 1, "boot": 2547214482, "seq": 3, "kind": "approve", "chat_id": "c_230243", "task_id": "t_230243_ap", "via": "loopback", "card_id": "i_230243_ap", "option_id": "approve"}
+1791669770.444 23:02:50 agent ack without receipt (attempt 1), resend in 1000 ms: approve seq 3
+1791669770.451 23:02:50 state: idle (session closed)
+1791669771.433 23:02:51 device event sent (own session)
+1791669773.435 23:02:53 agent ack without receipt (attempt 1), resend in 1000 ms: approve seq 1
+1791669778.480 23:02:58 device event sent (own session)
+1791669780.482 23:03:00 agent ack without receipt (attempt 2), resend in 3000 ms: approve seq 3
+1791669781.469 23:03:01 device event sent (own session)
+1791669783.474 23:03:03 agent ack without receipt (attempt 2), resend in 3000 ms: approve seq 1
+1791669790.513 23:03:10 device event sent (own session)
+1791669792.515 23:03:12 agent ack without receipt (attempt 3), resend in 9000 ms: approve seq 3
+1791669793.504 23:03:13 device event sent (own session)
+1791669795.507 23:03:15 agent ack without receipt (attempt 3), resend in 9000 ms: approve seq 1
+1791669797.481 23:03:17 done: tasks=['t_225744_ap', 't_225744_e0', 't_225744_e2', 't_225744_e4', 't_225744_e6', 't_225744_e7', 't_230118_ap', 't_230243_ap'] max_seq=1791669765394 stats={'bodies': 2, 'unreadable': 0, 'max_body': 3562, 'receipts': 0, 'dropped': 0} awaiting=[1, 3]
+### server
+261010 22:02:42[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=aa:bb:cc:dd:ee:01 seq=0: snapshot due
+261010 22:02:42[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=8 seqs=[1791669464297, 1791669464398, 1791669464400, 1791669464402, 1791669464403, 1791669464404, 1791669464405, 1791669678581] snapshot=False
+261010 22:02:42[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=1 seqs=[1791669762571] snapshot=True
+261010 22:02:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: t_225744_e5 no longer mirrored for device=aa:bb:cc:dd:ee:01
+261010 22:02:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=c_230243 task=t_230243_ap state=needs_approval seq=1791669763851 tier=when_idle speaks=False delivery=fx_b1915507f2434f40b33aa329
+261010 22:02:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=aa:bb:cc:dd:ee:01 items=1 seqs=[1791669763851] snapshot=False
+261010 22:02:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=aa:bb:cc:dd:ee:01 session=8fe00f6a-361b-415d-bf12-d827077aa46a: snapshot of 8
+261010 22:02:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_ap state=needs_approval seq=1791669464297
+261010 22:02:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e0 state=needs_approval seq=1791669464398
+261010 22:02:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e2 state=needs_approval seq=1791669464400
+261010 22:02:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e4 state=needs_approval seq=1791669464402
+261010 22:02:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e6 state=needs_approval seq=1791669464404
+261010 22:02:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_225744_e7 state=working seq=1791669464405
+261010 22:02:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_230118_ap state=needs_approval seq=1791669678581
+261010 22:02:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent task=t_230243_ap state=needs_approval seq=1791669763851
+261010 22:02:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=aa:bb:cc:dd:ee:01 kind=agent_sync task=None state=None seq=1791669765394
+261010 22:02:47[0.9.7_00000000000000][weixue_proactive]-INFO-proactive session opened with no current lease for it; closing
+261010 22:02:48[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "b0b4125d-0118-45d5-8d63-768cef93b667", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2547214482, "seq": 1, "kind": "approve", "chat_id": "c_230118", "task_id": "t_230118_ap", "via": "loopback", "card_id": "i_230118_ap", "opt
+261010 22:02:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=aa:bb:cc:dd:ee:01 chat=c_230118 task=t_230118_ap card=i_230118_ap option=approve via=loopback boot=2547214482 seq=1
+261010 22:02:48[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 2547214482, "card_id": "i_230118_ap", "chat_id": "c_230118", "kind": "approve", "option_id": "approve", "seq": 1, "task_id": "t_230118_ap", "v": 1, "via": "loopback"}
+261010 22:02:50[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_b1915507f2434f40b33aa329 device=aa:bb:cc:dd:ee:01 seq=1791669763851 via=poll
+261010 22:02:51[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "8fe00f6a-361b-415d-bf12-d827077aa46a", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2547214482, "seq": 2, "kind": "shown", "ack_upto": 1791669765394, "via": "tap"}}}
+261010 22:02:51[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"ack_upto": 1791669765394, "boot": 2547214482, "kind": "shown", "seq": 2, "v": 1, "via": "tap"}
+261010 22:02:51[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "8fe00f6a-361b-415d-bf12-d827077aa46a", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2547214482, "seq": 3, "kind": "approve", "chat_id": "c_230243", "task_id": "t_230243_ap", "via": "loopback", "card_id": "i_230243_ap", "opt
+261010 22:02:51[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=aa:bb:cc:dd:ee:01 chat=c_230243 task=t_230243_ap card=i_230243_ap option=approve via=loopback boot=2547214482 seq=3
+261010 22:02:51[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 2547214482, "card_id": "i_230243_ap", "chat_id": "c_230243", "kind": "approve", "option_id": "approve", "seq": 3, "task_id": "t_230243_ap", "v": 1, "via": "loopback"}
+261010 22:02:52[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session 8fe00f6a-361b-415d-bf12-d827077aa46a of aa:bb:cc:dd:ee:01 did not answer a ping; closed
+261010 22:02:52[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session b0b4125d-0118-45d5-8d63-768cef93b667 of aa:bb:cc:dd:ee:01 did not answer a ping; closed
+261010 22:02:55[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "7ce678fd-bf77-40a1-b857-915228e94c09", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2547214482, "seq": 3, "kind": "approve", "chat_id": "c_230243", "task_id": "t_230243_ap", "via": "loopback", "card_id": "i_230243_ap", "opt
+261010 22:02:55[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent event duplicate device=aa:bb:cc:dd:ee:01 boot=2547214482 seq=3
+261010 22:02:55[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 2547214482, "card_id": "i_230243_ap", "chat_id": "c_230243", "kind": "approve", "option_id": "approve", "seq": 3, "task_id": "t_230243_ap", "v": 1, "via": "loopback"}
+261010 22:02:58[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "d4c56063-f4fb-44a0-8e35-6f2dca08ca86", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2547214482, "seq": 1, "kind": "approve", "chat_id": "c_230118", "task_id": "t_230118_ap", "via": "loopback", "card_id": "i_230118_ap", "opt
+261010 22:02:58[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent event duplicate device=aa:bb:cc:dd:ee:01 boot=2547214482 seq=1
+261010 22:02:58[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 2547214482, "card_id": "i_230118_ap", "chat_id": "c_230118", "kind": "approve", "option_id": "approve", "seq": 1, "task_id": "t_230118_ap", "v": 1, "via": "loopback"}
+261010 22:03:07[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "4d09b5bf-6ea7-4b82-90c2-7e350783a193", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2547214482, "seq": 3, "kind": "approve", "chat_id": "c_230243", "task_id": "t_230243_ap", "via": "loopback", "card_id": "i_230243_ap", "opt
+261010 22:03:07[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent event duplicate device=aa:bb:cc:dd:ee:01 boot=2547214482 seq=3
+261010 22:03:07[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 2547214482, "card_id": "i_230243_ap", "chat_id": "c_230243", "kind": "approve", "option_id": "approve", "seq": 3, "task_id": "t_230243_ap", "v": 1, "via": "loopback"}
+261010 22:03:10[0.9.7_SiSiSiGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id": "ea3a29f7-95f8-4a29-91d8-bebc19f905e2", "type": "mcp", "payload": {"jsonrpc": "2.0", "method": "notifications/weixue/agent_response", "params": {"v": 1, "boot": 2547214482, "seq": 1, "kind": "approve", "chat_id": "c_230118", "task_id": "t_230118_ap", "via": "loopback", "card_id": "i_230118_ap", "opt
+261010 22:03:10[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent event duplicate device=aa:bb:cc:dd:ee:01 boot=2547214482 seq=1
+261010 22:03:10[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=aa:bb:cc:dd:ee:01 params={"boot": 2547214482, "card_id": "i_230118_ap", "chat_id": "c_230118", "kind": "approve", "option_id": "approve", "seq": 1, "task_id": "t_230118_ap", "v": 1, "via": "loopback"}

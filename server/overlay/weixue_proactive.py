@@ -52,8 +52,14 @@ REPLY_WINDOW_SECONDS = 8
 REPLY_ACTIVITY_SECONDS = 4
 REPLY_MAX_SECONDS = 20
 DISPATCH_INTERVAL_SECONDS = 0.5
+# A session opened without a current lease closes once no agent notification arrived for
+# DRAIN_QUIET_SECONDS, at most DRAIN_MAX_SECONDS after the invocation.
+DRAIN_QUIET_SECONDS = 2
+DRAIN_MAX_SECONDS = 8
 
 FINAL = ("delivered", "answered", "no_reply", "partial", "expired", "failed")
+# Proactive.poll's result for a poll a newer poll from the same device replaced.
+REPLACED = object()
 # Speaker outcomes after which the message counts as heard.
 HEARD = ("spoken", "interrupted")
 # Speaker outcomes that finish the message as partial, with their error.
@@ -518,8 +524,8 @@ class Proactive:
 
     async def poll(self, device):
         """Long-poll for a verified device: the message reserved for it once one is deliverable
-        and the device has no live session, else None after POLL_HOLD_SECONDS or when a newer
-        poll from the device replaces this one."""
+        and the device has no live session, None after POLL_HOLD_SECONDS or once agent items are
+        pending, REPLACED when a newer poll from the device replaced this one."""
         if device not in self.polls and len(self.polls) >= MAX_HELD_POLLS:
             raise RequestError(429, "too many polls", retry_after=5)
         ticket = object()
@@ -542,7 +548,7 @@ class Proactive:
                 if remaining <= 0:
                     return None
                 await self._wait_change(min(remaining, 1.0))
-            return None
+            return REPLACED
         finally:
             if self.polls.get(device) is ticket:
                 del self.polls[device]
@@ -562,8 +568,10 @@ class Proactive:
         """The device opened this session because a poll answered 200: the message leased to this
         verified device is delivered (`leased`; text INVOKE_TEXT + ":<id>:<lease>" names it).
         Anything else, including a stale or expired lease, closes the session and consumes
-        nothing. Delivery runs as a task: the caller is the session's message loop, which must
-        keep reading the device's audio."""
+        nothing; a verified device's session is rejected (no voice turn) and closes after the
+        agent notifications it is still sending were handled (_drain_and_close). Delivery and
+        the drain run as tasks: the caller is the session's message loop, which must keep reading
+        the device's messages."""
         conn._weixue_invoked = True
         conn.reset_audio_states()
         conn.last_activity_time = time.time() * 1000
@@ -577,12 +585,32 @@ class Proactive:
         if item is not None and self.muted() and not item.urgent:
             self._release(item)
             item = None
+        if item is None and device:
+            conn._weixue_busy = True
+            conn._weixue_rejected = True
+            self.logger.bind(tag=TAG).info(
+                "proactive session opened with no current lease for it; closing once the device is quiet")
+            asyncio.get_running_loop().create_task(self._drain_and_close(conn))
+            return
         if item is None:
-            why = "no current lease for it" if device else "unverified device"
-            self.logger.bind(tag=TAG).info(f"proactive session opened with {why}; closing")
+            self.logger.bind(tag=TAG).info("proactive session opened with unverified device; closing")
             await conn.close()
             return
         self.claim(conn, item)
+
+    async def _drain_and_close(self, conn):
+        """Closes a rejected session once no agent notification (conn._weixue_agent_event_at, set
+        by the agent gateway) arrived for DRAIN_QUIET_SECONDS, or DRAIN_MAX_SECONDS after start."""
+        start = self.clock()
+        while not conn.stop_event.is_set():
+            now = self.clock()
+            last = max(start, getattr(conn, "_weixue_agent_event_at", None) or start)
+            if now - last >= DRAIN_QUIET_SECONDS or now - start >= DRAIN_MAX_SECONDS:
+                break
+            await asyncio.sleep(0.1)
+        self.logger.bind(tag=TAG).info(
+            f"proactive: rejected session {getattr(conn, 'session_id', None)} closed after {self.clock() - start:.1f} s")
+        await _close_quietly(conn)
 
     def quiescent(self, conn):
         if getattr(conn, "_weixue_busy", False) or conn.stop_event.is_set() or conn.tts is None:
@@ -864,6 +892,8 @@ def add_routes(app, proactive):
             item = await proactive.poll(device)
         except RequestError as e:
             return web.json_response(e.body, status=e.status, headers={"Retry-After": str(e.body["retry_after"])})
+        if item is REPLACED:
+            return web.Response(status=204)
         body = {"pending": True, "speak": item is not None, "urgent": bool(item and item.urgent),
                 "id": item.id if item else None, "lease": item.lease if item else None}
         cards = proactive.agent.poll_items(device) if proactive.agent is not None else []

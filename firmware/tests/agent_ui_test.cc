@@ -187,7 +187,7 @@ void TestApprovalFlow() {
     Model::Decision d = r.model.Tap(0, 4000);
     Check(d.send && d.kind == "approve" && d.card_id == "i_a" && d.option_id == "approve" && d.chat_id == "c1",
           "tap Approve sends approve with card_id");
-    Check(Join(r.model.Card(4000).footer) == "Approved · sending", "two-step: sending");
+    Check(Join(r.model.Card(4000).footer) == "Approve · sending", "two-step: sending, not yet Approved");
     Check(!r.model.Tap(1, 4100).send, "no second decision while sending");
     Check(r.model.OnDecisionSent(d.card_id, d.token, true, 4200) == Earcon::kApproved, "approved earcon on delivery");
     v = r.model.Card(4300);
@@ -213,26 +213,26 @@ void TestNotSentAndRetry() {
     r.model.OpenCard("a", 0);
     Model::Decision d = r.model.Tap(1, 500);
     Check(d.send && d.kind == "deny", "deny sent");
-    Check(r.model.TickCard(4600).close == false && Join(r.model.Card(4600).footer) == "Denied · still sending",
+    Check(r.model.TickCard(4600).close == false && Join(r.model.Card(4600).footer) == "Deny · still sending",
           "4 s in flight: still sending, not Not sent");
-    Check(r.model.ExpireSends(14000).empty() && r.model.SendPending(d.token), "in flight until the hard timeout");
-    std::vector<uint32_t> expired = r.model.ExpireSends(15500);
-    Check(expired.size() == 1 && expired[0] == d.token && Join(r.model.Card(15500).footer) == "Not sent · tap to retry",
-          "15 s unresolved: Not sent, its outbox entry cancelled");
-    Check(r.model.Card(15500).pressed == 1, "Not sent keeps the chosen control marked");
-    Check(!r.model.Tap(0, 16000).send, "Not sent: a different decision is blocked");
-    Model::Decision retry = r.model.Tap(1, 16100);
+    Check(r.model.ExpireSends(29000).empty() && r.model.SendPending(d.token), "in flight until the hard timeout");
+    std::vector<uint32_t> expired = r.model.ExpireSends(30500);
+    Check(expired.size() == 1 && expired[0] == d.token && Join(r.model.Card(30500).footer) == "Not sent · tap to retry",
+          "30 s without a receipt: Not sent, its outbox entry cancelled");
+    Check(r.model.Card(30500).pressed == 1, "Not sent keeps the chosen control marked");
+    Check(!r.model.Tap(0, 31000).send, "Not sent: a different decision is blocked");
+    Model::Decision retry = r.model.Tap(1, 31100);
     Check(retry.send && retry.kind == "deny" && retry.card_id == d.card_id && retry.token != d.token,
           "retry reuses the decision record (same card_id, new send)");
-    Check(r.model.OnDecisionSent(d.card_id, d.token, true, 16200) == Earcon::kNone &&
-              Join(r.model.Card(16200).footer) == "Denied · sending",
+    Check(r.model.OnDecisionSent(d.card_id, d.token, true, 31200) == Earcon::kNone &&
+              Join(r.model.Card(31200).footer) == "Deny · sending",
           "late callback of the cancelled send changes nothing");
-    Check(r.model.OnDecisionSent(retry.card_id, retry.token, false, 16300) == Earcon::kNone &&
-              Join(r.model.Card(16300).footer) == "Not sent · tap to retry",
+    Check(r.model.OnDecisionSent(retry.card_id, retry.token, false, 31300) == Earcon::kNone &&
+              Join(r.model.Card(31300).footer) == "Not sent · tap to retry",
           "failed delivery: Not sent");
-    Model::Decision again = r.model.Tap(1, 17000);
-    Check(r.model.OnDecisionSent(again.card_id, again.token, true, 17100) == Earcon::kDenied &&
-              r.model.Card(17100).outcome == "Denied",
+    Model::Decision again = r.model.Tap(1, 32000);
+    Check(r.model.OnDecisionSent(again.card_id, again.token, true, 32100) == Earcon::kDenied &&
+              r.model.Card(32100).outcome == "Denied",
           "Denied after a successful retry");
 }
 
@@ -246,7 +246,7 @@ void TestLaterWhileSending() {
     Check(r.model.WantAutoOpen(IdleCtx(-10000), 10000).empty(), "no auto-open of a card with a decision in flight");
     Check(r.model.OpenCard("a", 1000), "reopen while sending");
     CardView v = r.model.Card(1000);
-    Check(v.phase == CardPhase::kSending && v.pressed == 0 && Join(v.footer) == "Approved · sending",
+    Check(v.phase == CardPhase::kSending && v.pressed == 0 && Join(v.footer) == "Approve · sending",
           "reopened card still shows the queued decision");
     Check(!r.model.Tap(1, 1500).send && !r.model.Tap(0, 1600).send, "no second decision for the card");
     r.model.Later();
@@ -284,7 +284,7 @@ void TestCallbackMatching() {
     Check(r.model.OnDecisionSent(da.card_id, da.token, true, 1300) == Earcon::kApproved, "card A resolves");
     CardView v = r.model.Card(1300);
     Check(v.card_id == "i_b" && v.phase == CardPhase::kSending && v.outcome.empty() &&
-              Join(v.footer) == "Denied · sending",
+              Join(v.footer) == "Deny · sending",
           "card A's callback leaves card B sending, no status shown on B");
     int more = 0;
     auto rows = r.model.Rows(1300, 3, &more);
@@ -523,12 +523,18 @@ void TestPriority() {
     Item other = MakeItem("o", State::kWorking, Tier::kSilent, "c2");
     other.title = "Other";
     r.Apply(other, 0);
+    Item trip = MakeItem("p", State::kWorking, Tier::kSilent, "c2");
+    trip.title = "Trip plan";
+    r.Apply(trip, 0);
     rows = r.model.Rows(5000, 8, &more);
-    bool suffixed = false;
+    std::string o_status, p_status;
     for (const auto& row : rows) {
-        if (row.task_id == "o") suffixed = Join(row.status).find(" · Other") != std::string::npos;
+        if (row.task_id == "o") o_status = Join(row.status);
+        if (row.task_id == "p") p_status = Join(row.status);
     }
-    Check(r.model.current_chat() == "c2" ? true : suffixed, "row of another chat names the chat");
+    Check(r.model.current_chat() != "c2" && o_status.find(" · Trip plan") != std::string::npos,
+          "row of another chat names the chat");
+    Check(p_status == "Working", "no chat suffix that repeats the row's own title");
 }
 
 void TestChats() {
@@ -572,6 +578,84 @@ void TestChats() {
         big.SetTasks(tasks, i * 1000, "");
     }
     Check(big.Chats(30000).size() == kMaxChats, "chat cache keeps 20");
+}
+
+// Page-1 state lines: the countdown survives a long chat suffix.
+void TestFitLine() {
+    auto width = [](const std::string& t) { return static_cast<int32_t>(t.size()) * 10; };
+    Line row = {{"Needs your OK", 1}, {" · 1:00", 2}, {" · Leak sensor", 3}};
+    Check(Join(FitLine(row, 400, width)) == "Needs your OK · 1:00 · Leak sensor", "fits: unchanged");
+    Check(Join(FitLine(row, 250, width)) == "Needs your OK · 1:00", "the third span goes first");
+    Check(Join(FitLine(row, 160, width)) == "Needs... · 1:00", "then the longest span is shortened");
+    Line face = {{"Living room lights", 1}, {" · 4:00", 2}};
+    Line fitted = FitLine(face, 150, width);
+    Check(Join(fitted) == "Livi... · 4:00" && fitted[1].color == 2, "complication keeps its countdown");
+    Line cjk = {{"周末菜单周末菜单", 1}};
+    Check(Join(FitLine(cjk, 100, width)) == "周末...", "UTF-8 safe");
+    Check(FitLine(Line{{"abc", 1}}, 0, width).empty(), "nothing fits: empty");
+}
+
+// Fixture items carry no title: the card's line above the controls must not repeat the summary.
+void TestCardLeadWithoutTitle() {
+    Rig r;
+    Item home = MakeItem("h", State::kWorking, Tier::kSilent, "c_home");
+    home.title = "Home dev";
+    r.Apply(home, 0);
+    Item ap = Approval("ap");
+    ap.chat_id = "c_lights";
+    ap.title.clear();
+    ap.summary = "Turn on the hall light";
+    r.Apply(ap, 100);
+    Check(r.model.current_chat() == "c_home", "current chat stays");
+    r.model.OpenCard("ap", 200);
+    CardView v = r.model.Card(200);
+    Check(v.body == "Turn on the hall light" && Join(v.context) == "reversible",
+          "no title, chat named after the summary: only the risk");
+    Item q = Question("q", 2);
+    q.chat_id = "c_q";
+    q.title.clear();
+    q.summary = "Which lights?";
+    r.Apply(q, 300);
+    r.model.Later();
+    r.model.OpenCard("q", 400);
+    v = r.model.Card(400);
+    Check(v.body == "Which lights?" && v.context.empty(), "question without title: no repeated summary");
+    Item titled = Approval("t");
+    titled.chat_id = "c_lights";
+    titled.title = "Hall";
+    r.Apply(titled, 500);
+    r.model.Later();
+    r.model.OpenCard("t", 600);
+    Check(Join(r.model.Card(600).context) == "Hall · reversible",
+          "title kept; the chat (named Hall after its newest task) not repeated");
+}
+
+// A snapshot that drops the current chat's tasks: the header does not keep their title.
+void TestChatPillAfterSync() {
+    Rig r;
+    Item leak = MakeItem("leak", State::kNeedsApproval, Tier::kSilent, "c_leak");
+    leak.title = "Leak sensor";
+    leak.card_id = "i_leak";
+    r.Apply(leak, 0);
+    Item tidy = MakeItem("tidy", State::kWorking, Tier::kSilent, "c_tidy");
+    tidy.title = "Evening tidy-up";
+    r.Apply(tidy, 100);
+    Check(r.model.CurrentTitle() == "Leak sensor", "current chat titled by its task");
+    r.store.Sync({"tidy"}, ++g_seq);
+    r.model.SetTasks(r.store.tasks(), 200, "09:40", r.store.synced_out());
+    Check(r.model.current_chat() == "c_tidy" && r.model.CurrentTitle() == "Evening tidy-up",
+          "dropped chat forgotten; the remaining task's chat is current");
+    Check(r.model.Chats(300).size() == 1, "chat list without the dropped chat");
+    r.store.Sync({}, ++g_seq);
+    r.model.SetTasks(r.store.tasks(), 400, "09:40", r.store.synced_out());
+    Check(r.model.CurrentTitle() == "New chat" && r.model.Chats(500).empty(), "empty mirror: no stale title");
+    Rig done;
+    Item d = MakeItem("d", State::kDone, Tier::kSilent, "c_done");
+    d.title = "Done task";
+    done.Apply(d, 0);
+    done.store.Sync({"d"}, ++g_seq);
+    done.model.SetTasks(done.store.tasks(), 100, "", done.store.synced_out());
+    Check(done.model.CurrentTitle() == "Done task", "a sync that keeps the task keeps the chat");
 }
 
 // Wire payloads (as the fixture's ui scenario sends them) through Parse, the store and the model.
@@ -651,6 +735,9 @@ int main() {
     TestPriority();
     TestChats();
     TestRingArcs();
+    TestFitLine();
+    TestCardLeadWithoutTitle();
+    TestChatPillAfterSync();
     TestWirePath();
     std::printf("agent_ui_test: %d failure(s)\n", failures);
     return failures == 0 ? 0 : 1;

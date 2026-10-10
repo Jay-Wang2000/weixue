@@ -192,6 +192,48 @@ void TestBuilders() {
           "played complete carries no cut fields");
 }
 
+void TestReceipt() {
+    auto r = ParseText(R"({"kind":"agent_ack","v":1,"boot":3419484792,"seq":3,"response":"approve",)"
+                       R"("card_id":"i_44c0","result":"accepted","future":1})");
+    Check(r.message && r.message->kind == Message::Kind::kReceipt, "agent_ack is a receipt");
+    if (r.message) {
+        const Receipt& rc = r.message->receipt;
+        Check(rc.boot == 3419484792u && rc.seq == 3 && rc.response == "approve" && rc.card_id == "i_44c0",
+              "receipt boot, seq, response, card_id");
+        Check(rc.Recorded(), "accepted is recorded");
+    }
+    r = ParseText(R"({"kind":"agent_ack","v":1,"boot":1,"seq":4,"response":"approve","result":"duplicate",)"
+                  R"("decided":"deny"})");
+    Check(r.message && r.message->receipt.Recorded() && r.message->receipt.decided == "deny",
+          "duplicate is recorded, with the card's decision");
+    r = ParseText(R"({"kind":"agent_ack","v":1,"boot":1,"seq":5,"response":"deny","result":"stale"})");
+    Check(r.message && !r.message->receipt.Recorded(), "stale is not recorded");
+    Check(!ParseText(R"({"kind":"agent_ack","v":1,"boot":1,"seq":5,"response":"deny","result":"maybe"})").message,
+          "unknown result dropped");
+    Check(!ParseText(R"({"kind":"agent_ack","v":1,"seq":5,"response":"deny","result":"stale"})").message,
+          "receipt without boot dropped");
+    Check(!ParseText(R"({"kind":"agent_ack","v":1,"boot":1,"seq":4294967296,"response":"deny","result":"stale"})")
+               .message,
+          "receipt seq beyond 32 bits dropped");
+    cJSON* p = cJSON_Parse(R"({"kind":"agent_ack"})");
+    Check(IsAgentPayload(p), "agent_ack is an agent payload");
+    cJSON_Delete(p);
+    Check(NeedsReceipt("approve") && NeedsReceipt("cancel") && NeedsReceipt("ack_seen") && !NeedsReceipt("shown"),
+          "every response but shown waits for a receipt");
+}
+
+void TestPollStep() {
+    Check(NextPollStep(200, true, true) == PollStep::kInvoke, "200 speak opens a session");
+    Check(NextPollStep(200, true, false) == PollStep::kRepoll, "200 cards only polls again");
+    Check(NextPollStep(200, false, true) == PollStep::kRetrySoon,
+          "200 with a truncated body polls again soon, no session");
+    Check(NextPollStep(204, false, true) == PollStep::kWait, "204 waits");
+    Check(NextPollStep(0, false, true) == PollStep::kBackoff && NextPollStep(503, false, true) == PollStep::kBackoff,
+          "no answer or another status backs off");
+    Check(PollBodyComplete(2519, 2519) && PollBodyComplete(0, 17), "whole body, or no Content-Length");
+    Check(!PollBodyComplete(2519, 1260) && !PollBodyComplete(2519, 0), "short body (1260 of 2519 bytes)");
+}
+
 }  // namespace
 
 int main() {
@@ -201,6 +243,8 @@ int main() {
     TestTruncation();
     TestSync();
     TestBuilders();
+    TestReceipt();
+    TestPollStep();
     std::printf("%s: %d failure(s)\n", failures ? "FAILED" : "OK", failures);
     return failures ? 1 : 0;
 }

@@ -9,7 +9,10 @@ burst (duplicate, stale and oversize items), seed + drop (snapshot after a board
 busy (WHEN_IDLE speech queued while a session is open), spoken (INTERRUPT and WHEN_IDLE speech),
 view (the gateway's deliveries view), ui (the device UI tour: three chats with titles, progress,
 a countdown approval, a 3-option question, an irreversible approval, unread, failed and stopped
-results, --gap seconds apart; card-only). Output is JSON lines; --log appends them to a file."""
+results, --gap seconds apart; card-only), eight (8 full-size tasks at once, for the paged poll
+and the snapshot after a board reset), closing (an announcement and an approval with a loopback
+approve, so the approve meets the session the server closes after the announcement). Output is
+JSON lines; --log appends them to a file."""
 import argparse
 import json
 import os
@@ -238,13 +241,37 @@ def ui(fx, args):
     fx.report(records, args.wait)
 
 
+def eight(fx, args):
+    approve = [{"id": "approve", "label": "Approve"}, {"id": "deny", "label": "Deny"}]
+    items = []
+    for i in range(8):
+        extra = {"title": f"Eight task {i} title text"[:24]}
+        if i % 2 == 0:
+            extra.update(card_id=f"i_{fx.prefix}_8_{i}", risk="reversible", timeout_s=600, options=approve)
+        state = "needs_approval" if i % 2 == 0 else "working"
+        items.append(item(fx, f"e{i}", state, "silent",
+                          f"Full-size summary for task number {i} of eight, sixty chars"[:60], chat=f"e{i % 3}", **extra))
+    records = fx.send(items)["items"]
+    fx.report(records, args.wait)
+
+
+def closing(fx, args):
+    fx.announce("Checking the closing window of this session.")
+    records = fx.send([item(fx, "cw", "needs_approval", "when_idle", "Turn on the porch light", card_id=f"i_{fx.prefix}_cw",
+                            risk="reversible", timeout_s=300,
+                            options=[{"id": "approve", "label": "Approve"}, {"id": "deny", "label": "Deny"}],
+                            debug_reply={"kind": "approve", "option_id": "approve"})])["items"]
+    fx.report(records, args.wait, responses=1)
+
+
 def view(fx, _args):
     out = fx.view()
     fx.emit("view", device=out["devices"].get(fx.device), acks=out["acks"][-20:], responses=out["responses"][-10:],
             speeches=out["speeches"][-5:])
 
 
-SCENARIOS = {f.__name__: f for f in (states, approval, clarify, unread, burst, seed, drop, busy, spoken, ui, view)}
+SCENARIOS = {f.__name__: f for f in (states, approval, clarify, unread, burst, seed, drop, busy, spoken, ui, eight,
+                                     closing, view)}
 
 
 def main(argv=None):
