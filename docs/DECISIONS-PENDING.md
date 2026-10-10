@@ -94,6 +94,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 51. **Spoken narration during the 6 s reply hold** — needs Jay (user-facing): when a quick ask turns into a task, Fable's interim progress text inside the 6 s hold is spoken (e.g. "Now the history."). Options: A = keep (brief rev 4 behaviour; you hear what it starts doing); B = end the spoken reply as soon as the task model takes over, after the acknowledgement sentence only. Recommendation: B for calmer interaction; A if you like the running commentary.
 52. **Held call approved in the HA panel instead of on the device** — FYI: the service replays only after its own approve; a call approved directly in HA while our row waits stays unexecuted until the row expires. Acceptable for v1 (device is the approval surface); revisit if you approve from the panel often.
 
+53. **Loopback test build can answer cards from the server** — needs Jay (security of test tooling): `WEIXUE_AGENT_LOOPBACK=1` builds honour a server-scripted `debug_reply` that approves/answers a card automatically (compiled out of release; used by the fixture runs). Now that the diag USB console can tap cards, recommendation: remove `debug_reply` entirely and let the session script tap via `diag tap` so no build ever has a server→card-answer path. Alternative: keep it, loopback builds only.
+
 ## Night run 2026-10-10 → 11 (Jay asleep)
 - Quiet mode: no `say`, device volume 0 for any test, no audible TTS; the full audio session runs after Jay wakes. Autonomous work continues through M2; anything user-facing in behaviour not already decided, external-service or security-related is parked here for the morning report.
 

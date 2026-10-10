@@ -243,7 +243,7 @@ tasks:
     description: |
       ADR-13 / 决定 50。固件：为设备 MCP 工具加可见性类别；tools/list 向后端只公布 agent 可见工具；`self.diag.*`、`self.system.reconfigure_wifi`、相机类从 MCP 服务器移除或标记仅运维（MCP 调用一律拒绝并记日志）；diag 注入只保留 USB 串口控制台路径（`diag ...`），且 release 构建仍无任何注入代码；网关/agent 侧 `device_action` 白名单 = agent 可见列表。测试：host 测试 tools/list 不含仅运维工具、MCP 调用 self.diag.* 被拒；实机 diag 构建上串口注入仍工作、经服务器调用被拒并记日志；release 构建 strings 无 diag。文档：docs/firmware.md 与 docs/agent-protocol.md。
     depends_on: [tool-diag-injection]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: feat-agent-service
