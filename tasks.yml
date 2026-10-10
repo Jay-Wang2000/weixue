@@ -216,7 +216,7 @@ tasks:
     description: |
       docs/logs/device-run-2026-10-10.md：D1 多条目 poll 响应在弱链路上被截断/丢失（2519 B 只收到 1260 B、TCP receive failed、header timeout；1–2 条始终到达）——固件 HttpClient 读取大 body 的方式与服务端分块/Content-Length 要核对，限制每次 poll 条目数（如 ≤2 或 ≤1200 B）并让服务端按设备 ack 继续发送；D2（更严重）在网关正在关闭的会话中发送的决定被静默丢弃（"proactive session opened with no current lease; closing" 窗口内的 approve 既未记录也未被判重复，设备却显示已发送）——决定必须有服务端回执（新增 agent_response 的 ack 或改经 poll/idle 通道发送），设备 outbox 在收到回执前持续重发，网关对会话关闭期间收到的消息仍要处理；cosmetic：无 title 时卡片副行重复 summary、chat pill 保留已删除任务标题、page-1 状态行倒计时被截断。验收：弱链路模拟（sim 限速/丢包）下 8 条目快照全部到达；会话关闭窗口内的决定被记录且 UI 在无回执时不显示 Approved；回归 host 测试 + 实机 fixture 重跑（白天，避开床头模式）。
     depends_on: [feat-ui-agent-states]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: fix-hamcp-session-hygiene
