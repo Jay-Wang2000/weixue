@@ -1,0 +1,1075 @@
+{
+  "wait_seconds": 180,
+  "approval_ttl_minutes": 10,
+  "version": 0,
+  "rules": [
+    {
+      "tool_name": "ha_bulk_control",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_event",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "not_in",
+          "value": [
+            "light",
+            "notify",
+            "switch",
+            "cover",
+            "media_player",
+            "climate"
+          ]
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.entity_id",
+          "op": "not_in",
+          "value": [
+            "switch.smart_switch_24110844476400510301c4e7ae0f5a9f_outlet",
+            "switch.living_room_donut_light_outlet"
+          ]
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.data.entity_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.data.area_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.data.device_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.data.floor_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "switch"
+        },
+        {
+          "path": "args.data.label_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.entity_id",
+          "op": "not_in",
+          "value": [
+            "cover.curtain_partner_1"
+          ]
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.data.entity_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.data.area_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.data.device_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.data.floor_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "cover"
+        },
+        {
+          "path": "args.data.label_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.service",
+          "op": "not_in",
+          "value": [
+            "turn_on",
+            "turn_off",
+            "set_temperature",
+            "set_hvac_mode"
+          ]
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.temperature",
+          "op": "gt",
+          "value": 26
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.temperature",
+          "op": "lt",
+          "value": 16
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.temperature",
+          "op": "regex",
+          "value": "."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_high",
+          "op": "gt",
+          "value": 26
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_high",
+          "op": "lt",
+          "value": 16
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_high",
+          "op": "regex",
+          "value": "."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_low",
+          "op": "gt",
+          "value": 26
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_low",
+          "op": "lt",
+          "value": 16
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_call_service",
+      "when": [
+        {
+          "path": "args.domain",
+          "op": "eq",
+          "value": "climate"
+        },
+        {
+          "path": "args.data.target_temp_low",
+          "op": "regex",
+          "value": "."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_delete_dashboard",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_delete_dashboard_resource",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_remove_automation",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_remove_calendar_event",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_remove_category",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_remove_group",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_remove_label",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_remove_scene",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_remove_script",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_calendar_event",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_category",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_dashboard",
+      "when": [
+        {
+          "path": "python_transform",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_dashboard_resource",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_group",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_helper",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_label",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_scene",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "python_transform",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.then.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.then.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.else.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.else.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.choose.*.sequence.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.choose.*.sequence.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.default.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.default.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.repeat.sequence.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.repeat.sequence.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.parallel.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.parallel.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.sequence.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_script",
+      "when": [
+        {
+          "path": "config.sequence.*.sequence.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_yaml",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_delete_file",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_blueprints",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_install_mcp_tools",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_app",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_backup",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_custom_tool",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_energy_prefs",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_hacs",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_pipeline",
+      "when": [
+        {
+          "path": "action",
+          "op": "regex",
+          "value": "^(?!list$).+$"
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_pipeline",
+      "when": [
+        {
+          "path": "args.action",
+          "op": "regex",
+          "value": "^(?!list$).+$"
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_radio",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_theme",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_updates",
+      "when": [
+        {
+          "path": "action",
+          "op": "regex",
+          "value": "^(install|skip|clear_skipped)$"
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_manage_updates",
+      "when": [
+        {
+          "path": "args.action",
+          "op": "regex",
+          "value": "^(install|skip|clear_skipped)$"
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_reload_core",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_remove_area_or_floor",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_remove_device",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_remove_entity",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_remove_helpers_integrations",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_remove_todo_item",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_remove_zone",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_restart",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_set_area_or_floor",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_set_device",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_set_entity",
+      "when": [
+        {
+          "path": "new_entity_id",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_set_integration_enabled",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_set_todo_item",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_set_zone",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_write_file",
+      "when": [],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_read_file",
+      "when": [
+        {
+          "path": "path",
+          "op": "regex",
+          "value": "secrets\\.yaml|\\.storage/auth|application_credentials|\\.storage/cloud"
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "python_transform",
+          "op": "exists",
+          "value": null
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.action.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.action.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.then.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.then.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.else.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.else.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.choose.*.sequence.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.choose.*.sequence.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.default.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.default.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.repeat.sequence.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.repeat.sequence.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.parallel.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.parallel.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.sequence.*.action",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    },
+    {
+      "tool_name": "ha_config_set_automation",
+      "when": [
+        {
+          "path": "config.actions.*.sequence.*.service",
+          "op": "regex",
+          "value": "shell_command|python_script|hassio|rest_command|command_line|homeassistant\\."
+        }
+      ],
+      "remember_minutes": 0
+    }
+  ]
+}

@@ -3,13 +3,17 @@ require_approval evaluation (`held`, after src/ha_mcp/policy/evaluator.py)."""
 import importlib.util
 import json
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
 SERVER_DIR = Path(__file__).resolve().parents[1]
 OVERLAY = json.loads((SERVER_DIR / "policy" / "voice_policy.proposed.json").read_text())
-HA_AGENT_POLICY = Path.home() / "Projects" / "ha-agent" / "policy" / "tool_policy.json"
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+HA_AGENT_PRE = json.loads((FIXTURES / "ha_agent_policy_pre_overlay.json").read_text())
+HA_AGENT_POST = json.loads((FIXTURES / "ha_agent_policy_post_overlay.json").read_text())
 
 _spec = importlib.util.spec_from_file_location("render_voice_policy", SERVER_DIR / "scripts" / "render_voice_policy.py")
 render = importlib.util.module_from_spec(_spec)
@@ -184,14 +188,45 @@ def test_overlay_rejects_any_wait_seconds(wait):
         render.apply_overlay(BASE, {**OVERLAY, "settings": {"wait_seconds": wait}})
 
 
-@pytest.mark.skipif(not HA_AGENT_POLICY.exists(), reason="ha-agent checkout not present")
 def test_overlay_applies_to_ha_agent_policy():
-    base = json.loads(HA_AGENT_POLICY.read_text())
+    base = HA_AGENT_PRE
+    assert len(base["rules"]) == 87
     merged = render.apply_overlay(base, OVERLAY)
     others = [r for r in base["rules"] if r["tool_name"] != "ha_call_service"]
     assert [r for r in merged["rules"] if r["tool_name"] != "ha_call_service"] == others
+    assert merged["wait_seconds"] == base["wait_seconds"]
+    assert merged["rules"] == HA_AGENT_POST["rules"]
     assert held(merged, "ha_call_service", call("lock", "unlock", "lock.front_door"))
     assert not held(merged, "ha_call_service", call("switch", "turn_on", MEROSS))
+
+
+def test_overlay_already_applied_leaves_base_unchanged():
+    assert render.is_applied(HA_AGENT_POST, OVERLAY)
+    assert not render.is_applied(HA_AGENT_PRE, OVERLAY)
+    assert render.apply_overlay(HA_AGENT_POST, OVERLAY) == HA_AGENT_POST
+    assert held(HA_AGENT_POST, "ha_call_service", call("lock", "unlock", "lock.front_door"))
+    assert not held(HA_AGENT_POST, "ha_call_service", call("switch", "turn_on", MEROSS))
+
+
+def test_overlay_rejects_partially_applied_base():
+    rules = [r for r in HA_AGENT_POST["rules"] if r not in OVERLAY["add_rules"][1:]]
+    with pytest.raises(ValueError, match="not in the base policy"):
+        render.apply_overlay({**HA_AGENT_POST, "rules": rules}, OVERLAY)
+
+
+def test_overlay_already_applied_still_rejects_wait_seconds():
+    with pytest.raises(ValueError, match="must not change wait_seconds"):
+        render.apply_overlay(HA_AGENT_POST, {**OVERLAY, "settings": {"wait_seconds": 8}})
+
+
+def test_cli_reports_already_applied(tmp_path):
+    base = tmp_path / "base.json"
+    base.write_text(json.dumps(HA_AGENT_POST))
+    script = SERVER_DIR / "scripts" / "render_voice_policy.py"
+    done = subprocess.run([sys.executable, str(script), str(base)], capture_output=True, text=True)
+    assert done.returncode == 0
+    assert "already applied" in done.stderr
+    assert json.loads(done.stdout) == HA_AGENT_POST
 
 
 def _bridge_domains(name):
@@ -201,10 +236,8 @@ def _bridge_domains(name):
 def test_live_bridge_domains_are_free_under_current_policy():
     for domain in _bridge_domains("voice_bridge.json"):
         assert not held(BASE, "ha_call_service", call(domain, "turn_on"))
-    if HA_AGENT_POLICY.exists():
-        base = json.loads(HA_AGENT_POLICY.read_text())
-        for domain in _bridge_domains("voice_bridge.json"):
-            assert not held(base, "ha_call_service", call(domain, "turn_on"))
+    for domain in _bridge_domains("voice_bridge.json"):
+        assert not held(HA_AGENT_PRE, "ha_call_service", call(domain, "turn_on"))
 
 
 def test_proposed_bridge_domains_match_overlay():

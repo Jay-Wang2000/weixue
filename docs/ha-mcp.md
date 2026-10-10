@@ -92,7 +92,7 @@ Applies only to the voice path; it can only narrow what ha-mcp allows.
 - `voice_bridge.proposed.json` (draft) widens `call_service_domains` to `light`, `switch`, `cover`, `media_player`, `climate`, the domains the overlay below frees. It goes live only together with the overlay. Still disabled after that: `lock`, `alarm_control_panel`, `hassio`, `shell_command`, `python_script`, `homeassistant` (restart/stop and generic `homeassistant.turn_*`), `script`, `automation`, `rest_command`, `notify` and every domain not listed. `tests/test_voice_policy.py` checks that the live filter's domains are free under the current policy and that the draft's domains are the overlay's free set.
 - `ws_command` (raw WebSocket commands through `ha_call_service`) is always refused.
 
-### ha-mcp policy overlay (`server/policy/voice_policy.proposed.json`, draft, not applied)
+### ha-mcp policy overlay (`server/policy/voice_policy.proposed.json`)
 
 ha-mcp has one policy for every client, so this overlay changes Claude Code's gates in `~/Projects/ha-agent` as well. Rules are `require_approval`: a call is held when any rule matches. The overlay replaces the single `ha_call_service` rule `domain not_in [light, notify]` of `~/Projects/ha-agent/policy/tool_policy.json`; `wait_seconds` and all other rules stay as in the base (ADR-9: timeouts live in our layer).
 
@@ -122,6 +122,6 @@ cd ~/Projects/weixue/server && git mv -f policy/voice_bridge.proposed.json polic
 docker compose up -d --force-recreate mcp-bridge
 ```
 
-`render_voice_policy.py` refuses an overlay whose removed rule is missing from the base or that sets `wait_seconds`. `tests/test_voice_policy.py` checks the merged rules against a model of the ha-mcp 8.6.0 evaluator.
+`render_voice_policy.py` refuses an overlay whose removed rule is missing from the base or that sets `wait_seconds`; on a base that already contains the overlay's added rules it prints "already applied" to stderr and emits the base unchanged. `tests/test_voice_policy.py` checks the merged rules against a model of the ha-mcp 8.6.0 evaluator, using frozen ha-agent snapshots (`tests/fixtures/ha_agent_policy_{pre,post}_overlay.json`).
 
 Before applying: the live policy (v13) gates `ha_manage_blueprints`, while `~/Projects/ha-agent/policy/tool_policy.json` still lists the old `ha_import_blueprint`. `apply-policy.sh` PUTs the repo file, so applying it unchanged drops the `ha_manage_blueprints` gate. Rename that rule in the base file first.
