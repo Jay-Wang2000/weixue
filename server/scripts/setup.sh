@@ -60,7 +60,7 @@ if [ -n "$PROFILES" ]; then export COMPOSE_PROFILES=$PROFILES; else unset COMPOS
 
 MODEL=data/models/SenseVoiceSmall/model.pt
 MODEL_URL=https://modelscope.cn/models/iic/SenseVoiceSmall/resolve/master/model.pt
-mkdir -p data/models/SenseVoiceSmall data/mcp-endpoint data/mcp-bridge
+mkdir -p data/models/SenseVoiceSmall data/mcp-endpoint data/mcp-bridge/cache
 if [ -d "$MODEL" ]; then
   rmdir "$MODEL" 2>/dev/null || { echo "$MODEL is a non-empty directory; remove it"; exit 1; }
 fi

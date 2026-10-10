@@ -52,6 +52,7 @@ services:
     volumes:
       - ./data/mcp-bridge/endpoint-url:/run/secrets/mcp-endpoint-url:ro
       - ./policy/voice_bridge.json:/app/policy/voice_bridge.json:ro
+      - ./data/mcp-bridge/cache:/app/cache
     healthcheck:
       test: ["CMD", "python", "-m", "weixue_bridge.health"]
       interval: 30s

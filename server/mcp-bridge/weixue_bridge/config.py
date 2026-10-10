@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlsplit
 DEFAULT_ENDPOINT_FILE = "/run/secrets/mcp-endpoint-url"
 DEFAULT_FILTER_FILE = "/app/policy/voice_bridge.json"
 DEFAULT_HEALTH_FILE = "/tmp/mcp-bridge.healthy"
+DEFAULT_TOOLS_CACHE = "/app/cache/ha-mcp-tools.json"
 HEARTBEAT_S = 30
 HEALTH_MAX_AGE_S = 3 * HEARTBEAT_S
 # Consecutive failed endpoint connects before the bridge exits.
@@ -34,6 +35,7 @@ class BridgeConfig:
     voice_filter: VoiceFilter
     health_file: str
     tunnel_iface: str = ""
+    tools_cache: str = ""
 
 
 def redact(url: str) -> str:
@@ -107,4 +109,5 @@ def load_config(env: Mapping[str, str] = os.environ) -> BridgeConfig:
         voice_filter=load_voice_filter(env.get("VOICE_FILTER_FILE", DEFAULT_FILTER_FILE)),
         health_file=env.get("BRIDGE_HEALTH_FILE", DEFAULT_HEALTH_FILE),
         tunnel_iface=env.get("TUNNEL_IFACE", "").strip(),
+        tools_cache=env.get("BRIDGE_TOOLS_CACHE", DEFAULT_TOOLS_CACHE).strip(),
     )
