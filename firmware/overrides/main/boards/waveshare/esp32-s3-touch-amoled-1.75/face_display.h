@@ -54,6 +54,12 @@ public:
     void OnTouch();
     // {"night":..,"showing":..,"hint":..,"window":"HH:MM-HH:MM","local_time":"HH:MM"|null}
     std::string BedsideStateJson();
+#if WEIXUE_FACE_DIAG
+    // {"mode":..,"mood":..,"ring":..,"bedside":..,"panel":..,"page":..,"card":..,"chats":..}; any task.
+    std::string DiagStateJson();
+    // Screen dump (FACEDUMP) at the next face tick, at most one per 2 s; any task.
+    void DiagRequestDump();
+#endif
 
     enum class Mode : uint8_t { kIdle, kListening, kThinking, kSpeaking };
     enum class Mood : uint8_t { kNeutral, kHappy, kSad, kSurprised, kSleepy, kConfused };

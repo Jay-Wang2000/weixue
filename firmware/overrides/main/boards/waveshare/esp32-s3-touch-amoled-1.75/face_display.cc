@@ -282,9 +282,6 @@ void FaceDisplay::SetupUI() {
     SetupAgent(screen);
     LoadZhFont();
     lv_obj_add_event_cb(screen, GestureCb, LV_EVENT_GESTURE, this);
-#if WEIXUE_FACE_DIAG
-    panel_->StartTouchReplay();
-#endif
 
     EyeShape initial[2];
     TargetShapes(initial, false);
@@ -1238,6 +1235,25 @@ void FaceDisplay::DrawRing(lv_layer_t* layer) const {
 }
 
 #if WEIXUE_FACE_DIAG
+std::string FaceDisplay::DiagStateJson() {
+    DisplayLockGuard lock(this);
+    bool card = agent_view_ != nullptr && agent_view_->CardShown();
+    bool chats = agent_view_ != nullptr && agent_view_->ChatsOpen();
+    char buf[200];
+    snprintf(buf, sizeof(buf),
+             "{\"mode\":\"%s\",\"mood\":\"%s\",\"ring\":\"%s\",\"bedside\":%s,\"panel\":%s,"
+             "\"page\":%d,\"card\":%s,\"chats\":%s}",
+             ModeName(mode_), MoodName(shown_mood_), ring_kind_, bedside_ ? "true" : "false",
+             panel_->IsShown() ? "true" : "false", panel_->page() + 1, card ? "true" : "false",
+             chats ? "true" : "false");
+    return buf;
+}
+
+void FaceDisplay::DiagRequestDump() {
+    DisplayLockGuard lock(this);
+    diag_dump_due_us_ = esp_timer_get_time();
+}
+
 void FaceDisplay::DiagRefrCb(lv_event_t* e) {
     auto* self = static_cast<FaceDisplay*>(lv_event_get_user_data(e));
     int64_t now = esp_timer_get_time();

@@ -47,22 +47,7 @@ constexpr int32_t kDotX = 440;
 constexpr int32_t kDotY[2] = {223, 243};
 
 #if WEIXUE_FACE_DIAG
-constexpr int64_t kReplayStartMs = 40000;
-constexpr int64_t kReplayPeriodMs = 120000;
 constexpr int64_t kDiagValuesMinMs = 5000;
-
-// One replay step of `ms`: a drag from (x0, y0) to (x1, y1), or kRelease (x0) lifting the
-// pointer.
-struct ReplayStep {
-    int64_t ms;
-    int32_t x0, y0, x1, y1;
-};
-constexpr int32_t kRelease = -1;
-constexpr ReplayStep kReplay[] = {
-    {300, 400, 233, 66, 233},  {6000, kRelease, 0, 0, 0}, {300, 233, 380, 233, 120},
-    {6000, kRelease, 0, 0, 0}, {300, 233, 120, 233, 380}, {6000, kRelease, 0, 0, 0},
-    {300, 66, 233, 400, 233},
-};
 #endif
 
 const lv_font_t* EnFont() { return &font_noto_sans_basic_20_4; }
@@ -443,42 +428,6 @@ void MonitorPanel::DiagBackendCb(lv_timer_t* timer) {
         self->diag_backend_ = text;
         ESP_LOGI(TAG, "diag backend=%s poll_status=%d poll_age_ms=%lld", text, backend.poll_status,
                  (long long)backend.poll_age_ms);
-    }
-}
-#endif
-
-#if WEIXUE_FACE_DIAG
-void MonitorPanel::StartTouchReplay() {
-    replay_start_us_ = esp_timer_get_time() + kReplayStartMs * 1000;
-    replay_indev_ = lv_indev_create();
-    lv_indev_set_type(replay_indev_, LV_INDEV_TYPE_POINTER);
-    lv_indev_set_read_cb(replay_indev_, ReplayReadCb);
-    lv_indev_set_user_data(replay_indev_, this);
-    lv_indev_set_display(replay_indev_, lv_obj_get_display(root_));
-}
-
-void MonitorPanel::ReplayReadCb(lv_indev_t* indev, lv_indev_data_t* data) {
-    static lv_point_t last = {0, 0};
-    auto* self = static_cast<MonitorPanel*>(lv_indev_get_user_data(indev));
-    data->point = last;
-    data->state = LV_INDEV_STATE_RELEASED;
-    int64_t t = (esp_timer_get_time() - self->replay_start_us_) / 1000;
-    if (t < 0) {
-        return;
-    }
-    t %= kReplayPeriodMs;
-    for (const ReplayStep& step : kReplay) {
-        if (t >= step.ms) {
-            t -= step.ms;
-            continue;
-        }
-        if (step.x0 != kRelease) {
-            data->point.x = step.x0 + (step.x1 - step.x0) * t / step.ms;
-            data->point.y = step.y0 + (step.y1 - step.y0) * t / step.ms;
-            data->state = LV_INDEV_STATE_PRESSED;
-        }
-        last = data->point;
-        return;
     }
 }
 #endif
