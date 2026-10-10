@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weixue.local/agent/v1/task.schema.json",
+  "type": "object",
+  "required": [
+    "task_id",
+    "chat_id",
+    "device_id",
+    "state",
+    "lang",
+    "pending",
+    "side_effects",
+    "turn_ids",
+    "created_at",
+    "updated_at",
+    "trace_id",
+    "retry_allowed"
+  ],
+  "properties": {
+    "task_id": {
+      "$ref": "defs.schema.json#/$defs/TaskId"
+    },
+    "chat_id": {
+      "$ref": "defs.schema.json#/$defs/ChatId"
+    },
+    "device_id": {
+      "$ref": "defs.schema.json#/$defs/DeviceId"
+    },
+    "state": {
+      "$ref": "defs.schema.json#/$defs/TaskState"
+    },
+    "title": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 32
+    },
+    "summary": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 60
+    },
+    "lang": {
+      "$ref": "defs.schema.json#/$defs/Lang"
+    },
+    "progress": {
+      "anyOf": [
+        {
+          "$ref": "defs.schema.json#/$defs/Progress"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "pending": {
+      "type": "array",
+      "items": {
+        "$ref": "defs.schema.json#/$defs/Interaction"
+      }
+    },
+    "outcome": {
+      "anyOf": [
+        {
+          "$ref": "defs.schema.json#/$defs/Outcome"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "defs.schema.json#/$defs/Error"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "side_effects": {
+      "type": "array",
+      "items": {
+        "$ref": "defs.schema.json#/$defs/SideEffect"
+      }
+    },
+    "turn_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "defs.schema.json#/$defs/TurnId"
+      }
+    },
+    "current_turn_id": {
+      "anyOf": [
+        {
+          "$ref": "defs.schema.json#/$defs/TurnId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "$ref": "defs.schema.json#/$defs/Time"
+    },
+    "updated_at": {
+      "$ref": "defs.schema.json#/$defs/Time"
+    },
+    "finished_at": {
+      "anyOf": [
+        {
+          "$ref": "defs.schema.json#/$defs/Time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "trace_id": {
+      "$ref": "defs.schema.json#/$defs/TraceId"
+    },
+    "retry_of": {
+      "anyOf": [
+        {
+          "$ref": "defs.schema.json#/$defs/TaskId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "retry_allowed": {
+      "type": "boolean"
+    }
+  }
+}

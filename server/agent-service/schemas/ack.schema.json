@@ -1,0 +1,151 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "lease_id": {
+      "pattern": "^[0-9a-fA-F-]{36}$",
+      "title": "Lease Id",
+      "type": "string"
+    },
+    "outcome": {
+      "enum": [
+        "accepted",
+        "spoken",
+        "played",
+        "cut_off",
+        "shown",
+        "user_ack",
+        "deferred",
+        "dropped",
+        "lost"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "proactive_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Proactive Id"
+    },
+    "ttl_s": {
+      "anyOf": [
+        {
+          "maximum": 3600,
+          "minimum": 10,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ttl S"
+    },
+    "retry_after_ms": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Retry After Ms"
+    },
+    "detail": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Detail"
+    },
+    "sentence_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Sentence Id"
+    },
+    "cut_at_ms": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cut At Ms"
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "maxLength": 32,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reason"
+    },
+    "boot": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Boot"
+    },
+    "device_seq": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Device Seq"
+    }
+  },
+  "required": [
+    "lease_id",
+    "outcome"
+  ],
+  "title": "Ack",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weixue.local/agent/v1/ack.schema.json"
+}

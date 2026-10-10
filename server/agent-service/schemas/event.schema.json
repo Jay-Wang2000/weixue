@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weixue.local/agent/v1/event.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "v",
+    "seq",
+    "chat_id",
+    "trace_id",
+    "ts",
+    "type",
+    "data"
+  ],
+  "properties": {
+    "v": {
+      "const": 1
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "chat_id": {
+      "$ref": "defs.schema.json#/$defs/ChatId"
+    },
+    "task_id": {
+      "anyOf": [
+        {
+          "$ref": "defs.schema.json#/$defs/TaskId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "turn_id": {
+      "anyOf": [
+        {
+          "$ref": "defs.schema.json#/$defs/TurnId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "trace_id": {
+      "$ref": "defs.schema.json#/$defs/TraceId"
+    },
+    "ts": {
+      "$ref": "defs.schema.json#/$defs/Time"
+    },
+    "type": {
+      "enum": [
+        "accepted",
+        "started",
+        "text",
+        "reply_end",
+        "progress",
+        "interrupted",
+        "needs_input",
+        "needs_approval",
+        "resolved",
+        "done",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "data": {
+      "type": "object"
+    }
+  }
+}

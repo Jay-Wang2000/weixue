@@ -232,6 +232,8 @@ if args[:1] == ["info"]:
     pass
 elif args[:2] == ["image", "inspect"]:
     code = 0 if args[2] in state["tags"] else 1
+elif args[:2] == ["rm", "-f"]:
+    state.setdefault("removed", []).extend(args[2:])
 elif args[:1] == ["tag"]:
     state["tags"][args[2]] = state["tags"][args[1]]
 elif args[:2] == ["logs", "mcp-endpoint-server"]:
@@ -245,6 +247,7 @@ elif args[:2] == ["compose", "build"]:
         code = 1
     else:
         state["tags"]["weixue/mcp-bridge:local"] = "bridge-new"
+        state["tags"]["weixue/agent-service:local"] = "agent-new"
         state["tags"]["weixue/xiaozhi-esp32-server:local"] = "server-new"
 elif args[:2] == ["compose", "up"]:
     if args[-1] == "mcp-endpoint-server" and "new-key" in fails:
@@ -377,8 +380,8 @@ def test_setup_publishes_validated_config_and_new_images(setup_tree):
     assert state["tags"]["weixue/xiaozhi-esp32-server:rollback"] == "server-old"
     assert _leftovers(server) == []
     assert "sk-test" not in result.stdout + result.stderr
-    assert state["execs"] == ["mcp-bridge", "xiaozhi-esp32-server"]
-    assert "ready: bridge healthy, Home Assistant answered via the voice path" in result.stdout
+    assert state["execs"] == ["mcp-bridge", "xiaozhi-esp32-server", "agent-service"]
+    assert "ready: bridge healthy, Home Assistant answered via the voice path, agent-service healthy" in result.stdout
     assert not list((server / "data").rglob("*.cfg.rollback")) and not (server / "data" / "mcp-bridge" / "endpoint-url.rollback").exists()
 
 
@@ -556,7 +559,7 @@ def test_unready_bridge_or_ha_path_rolls_back_and_keeps_the_deployed_env(setup_t
     assert message in result.stdout and "new version is not ready; rolling back" in result.stdout
     assert (server / ".env.deployed").read_text() == deployed
     assert (server / ".env").read_text() == deployed and (server / ".env.failed").read_text() == attempted
-    assert state["recreated"][-2:] == [["mcp-bridge", "xiaozhi-esp32-server"]] * 2
+    assert state["recreated"][-2:] == [["mcp-bridge", "agent-service", "xiaozhi-esp32-server"]] * 2
     assert "previous version is not ready" not in result.stdout
 
 
@@ -660,3 +663,40 @@ def test_check_ha_path_end_to_end_against_a_fake_endpoint(tmp_path):
     assert calls == ["initialize", "notifications/initialized", "tools/list", "tools/call"]
     assert down.returncode == 1 and "config unreadable" in down.stdout
     assert "secret-token" not in ok.stdout + ok.stderr
+
+
+def test_agent_service_token_is_generated_once_and_never_printed(setup_tree):
+    server, run = setup_tree
+    result, _ = run()
+    assert result.returncode == 0, result.stdout + result.stderr
+    tokens = [l.split("=", 1)[1] for l in (server / ".env").read_text().splitlines()
+              if l.startswith("AGENT_SERVICE_TOKEN=")]
+    assert len(tokens) == 1 and len(tokens[0]) == 64 and int(tokens[0], 16) >= 0
+    assert tokens[0] not in result.stdout + result.stderr
+    result, _ = run()
+    again = [l for l in (server / ".env").read_text().splitlines() if l.startswith("AGENT_SERVICE_TOKEN=")]
+    assert again == [f"AGENT_SERVICE_TOKEN={tokens[0]}"]
+
+
+def test_first_agent_service_deploy_rolls_back_without_it(setup_tree):
+    server, run = setup_tree
+    result, state = run(FAKE_FAIL="exec-agent-service", ATTEMPT="new")
+    assert result.returncode == 1
+    assert "agent-service not ready after 1s" in result.stdout and "rolling back" in result.stdout
+    assert state["recreated"][-1] == ["mcp-bridge", "xiaozhi-esp32-server"]
+    assert "agent-service" in state["removed"]
+    assert "previous version is not ready" not in result.stdout
+
+
+@pytest.mark.parametrize("tunnel, host", [("", None), ("1", "wg")])
+def test_agent_service_host_follows_the_tunnel_mode(setup_tree, tunnel, host):
+    server, run = setup_tree
+    if tunnel:
+        (server / ".secrets").mkdir()
+        (server / ".secrets" / "wg0.conf").write_text("[Interface]\n")
+        os.chmod(server / ".secrets" / "wg0.conf", 0o600)
+    run.set_env(WG_TUNNEL=tunnel or None)
+    result, _ = run()
+    assert result.returncode == 0, result.stdout + result.stderr
+    hosts = [l for l in (server / ".env").read_text().splitlines() if l.startswith("AGENT_SERVICE_HOST=")]
+    assert hosts == ([f"AGENT_SERVICE_HOST={host}"] if host else [])
