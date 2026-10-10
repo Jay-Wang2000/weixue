@@ -413,3 +413,9 @@ Answered: Q1 (31), Q2 (35, superseded by 36), Q3 (32), Q4/Q5 (orchestrator, sect
 - `sdk_options.py` → `models.py` (section 6); `weixue_tools.py` (`create_sdk_mcp_server`) → `app_tools.py`; `service.py` SDK/CLI version probes → anthropic/mcp versions.
 - `tests/fake_sdk.py` → the fake stream; `test_steer`, `test_cancel`, `test_reply`, `test_recovery`, `test_task_state` re-expected for boundary steer and stream cancel.
 - `tools/spike_s1.py` (SDK spike) → new S1 script; `workspace/CLAUDE.md` → `prompts/system.md`; `workspace/.claude/settings.json` dropped.
+
+## Follow-ups filed from the gateway brief (2026-10-10)
+
+- `device_action` tool: under the gateway's `nointent` mode the device MCP tools (bedside, volume, brightness) are unreachable from the model; the service exposes a `device_action {tool, args}` app tool emitted as an SSE event that the gateway executes on the device and acks back. Small follow-up after the first merge.
+- TextCoalescer holds the first delta up to 150 ms: make the first delta flush immediately (latency red line).
+- Barge-in contract with the gateway: SSE close = gateway_closed (drop partial, keep "the user heard:" note, resume the task after 10 s); `/interrupt` stays the explicit cancel.
