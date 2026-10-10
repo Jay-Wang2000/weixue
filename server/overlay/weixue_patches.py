@@ -195,9 +195,12 @@ def hold_wake_utterance(is_vad):
     """Wraps the VAD provider's is_vad(conn, pcm_frame) for the WAKE_HOLD_S after a wake's
     `listen start` (conn.weixue_live_since): an end of utterance is withheld, and voice
     heard after VAD_FLUSH_S sets conn.weixue_live_voice. The start of every utterance is kept
-    as conn.weixue_voice_onset (monotonic time)."""
+    as conn.weixue_voice_onset (monotonic time). A session the proactive gate rejected
+    (conn._weixue_rejected) hears no voice."""
 
     def wrapper(self, conn, pcm_frame):
+        if getattr(conn, "_weixue_rejected", False):
+            return False
         before = getattr(conn, "client_have_voice", False)
         have_voice = is_vad(self, conn, pcm_frame)
         if not before and getattr(conn, "client_have_voice", False):

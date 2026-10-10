@@ -3,6 +3,7 @@
 #include "face_display.h"
 
 #include "agent_earcons.h"
+#include "agent_loopback.h"
 #include "agent_view.h"
 #include "application.h"
 #include "assets.h"
@@ -66,6 +67,12 @@ void FaceDisplay::SetupAgent(lv_obj_t* screen) {
     // z-order: face, chrome, card, ring, management view.
     lv_obj_move_to_index(agent_view_->card_root(), lv_obj_get_index(ring_obj_));
 
+#if WEIXUE_AGENT_LOOPBACK
+    // Loopback test build: no bedside page this boot (RAM hint), so fixture runs do not depend
+    // on the hour.
+    bedside_schedule_.SetHint(BedsideSchedule::Hint::kDay, -1, 0);
+    ESP_LOGW(TAG, "agent ui: loopback build, bedside hint=day for this boot");
+#endif
     auto& agent = WeixueAgent::GetInstance();
     agent.SetRenderAck(true);
     agent.Subscribe([this](const weixue_agent::Store& store) { OnAgentStore(store); });
@@ -103,6 +110,10 @@ void FaceDisplay::OnAgentStore(const weixue_agent::Store& store) {
     DisplayLockGuard lock(this);
     agent_pending_ = store.tasks();
     agent_pending_seq_ = store.max_seq();
+    if (store.syncs() != agent_syncs_) {
+        agent_syncs_ = store.syncs();
+        agent_synced_out_.insert(agent_synced_out_.end(), store.synced_out().begin(), store.synced_out().end());
+    }
     agent_dirty_ = true;
 }
 
@@ -252,9 +263,9 @@ void FaceDisplay::AgentCardTap(int index) {
     r.option_id = d.option_id;
     std::string card_id = d.card_id;
     uint32_t token = d.token;
-    SendAgent(std::move(r), [this, card_id, token](bool sent) {
+    SendAgent(std::move(r), [this, card_id, token](bool recorded) {
         int64_t t = NowMs();
-        Earcon e = agent_.OnDecisionSent(card_id, token, sent, t);
+        Earcon e = agent_.OnDecisionSent(card_id, token, recorded, t);
         card_sends_.erase(std::remove_if(card_sends_.begin(), card_sends_.end(),
                                          [token](const auto& s) { return s.first == token; }),
                           card_sends_.end());
@@ -376,7 +387,8 @@ void FaceDisplay::UpdateAgent(int64_t now_us, DeviceState state) {
     int64_t now = now_us / 1000;
     if (agent_dirty_) {
         agent_dirty_ = false;
-        auto arrivals = agent_.SetTasks(agent_pending_, now, LocalHhmm());
+        auto arrivals = agent_.SetTasks(agent_pending_, now, LocalHhmm(), agent_synced_out_);
+        agent_synced_out_.clear();
         ApplyArrivals(arrivals, now);
         int64_t upto = agent_pending_seq_;
         Application::GetInstance().Schedule([upto]() { WeixueAgent::GetInstance().OnRendered(upto); });

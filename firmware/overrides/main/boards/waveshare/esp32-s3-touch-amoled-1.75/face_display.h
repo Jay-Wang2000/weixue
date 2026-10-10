@@ -144,6 +144,8 @@ private:
     agent_ui::Model agent_;
     std::vector<weixue_agent::Task> agent_pending_;
     int64_t agent_pending_seq_ = 0;
+    uint32_t agent_syncs_ = 0;
+    std::vector<std::string> agent_synced_out_;
     bool agent_dirty_ = false;
     int64_t agent_drawn_ms_ = 0;
     int64_t idle_since_us_ = 0;

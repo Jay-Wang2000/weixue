@@ -84,15 +84,20 @@ public:
         return ApplyResult::kApplied;
     }
 
-    // Ends a snapshot: tasks not listed are dropped. Returns how many were dropped.
+    // Ends a snapshot: tasks not listed are dropped (kept in synced_out()). Returns how many
+    // were dropped.
     size_t Sync(const std::vector<std::string>& task_ids, int64_t seq) {
         size_t before = tasks_.size();
+        synced_out_.clear();
         tasks_.erase(std::remove_if(tasks_.begin(), tasks_.end(),
                                     [&](const Task& t) {
-                                        return std::find(task_ids.begin(), task_ids.end(),
-                                                         t.item.task_id) == task_ids.end();
+                                        bool out = std::find(task_ids.begin(), task_ids.end(),
+                                                             t.item.task_id) == task_ids.end();
+                                        if (out) synced_out_.push_back(t.item.task_id);
+                                        return out;
                                     }),
                      tasks_.end());
+        ++syncs_;
         current_.erase(std::remove_if(current_.begin(), current_.end(),
                                       [&](const std::pair<std::string, std::string>& c) {
                                           return Find(c.second) == nullptr;
@@ -142,9 +147,14 @@ public:
     const std::vector<Task>& tasks() const { return tasks_; }
     // Highest seq applied since boot (0 = none): the poll's X-Weixue-Agent-Seq.
     int64_t max_seq() const { return max_seq_; }
+    // Syncs applied since boot, and the tasks the last one dropped.
+    uint32_t syncs() const { return syncs_; }
+    const std::vector<std::string>& synced_out() const { return synced_out_; }
 
 private:
     std::vector<Task> tasks_;
+    std::vector<std::string> synced_out_;
+    uint32_t syncs_ = 0;
     std::vector<std::pair<std::string, std::string>> current_;  // chat_id -> task_id
     int64_t max_seq_ = 0;
 

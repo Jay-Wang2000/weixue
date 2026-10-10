@@ -194,9 +194,21 @@ void AgentView::SetText(lv_obj_t* label, const std::string& text) {
     }
 }
 
+// Recolour markup makes LVGL's own dots cut early, so the line is fitted to the label first.
 void AgentView::SetLine(lv_obj_t* label, const agent_ui::Line& line) {
+    int32_t max_width = lv_obj_get_width(label);
+    for (const auto& p : placements_) {
+        if (p.label == label) max_width = p.width;
+    }
+    const lv_font_t* font = lv_obj_get_style_text_font(label, LV_PART_MAIN);
+    int32_t space = lv_obj_get_style_text_letter_space(label, LV_PART_MAIN);
+    auto width = [font, space](const std::string& plain) {
+        lv_point_t size;
+        lv_text_get_size(&size, plain.c_str(), font, space, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+        return size.x;
+    };
     std::string text;
-    for (const auto& span : line) {
+    for (const auto& span : agent_ui::FitLine(line, max_width - 2, width)) {
         if (span.text.empty()) continue;
         text += "#" + Hex(span.color) + " " + span.text + "#";
     }

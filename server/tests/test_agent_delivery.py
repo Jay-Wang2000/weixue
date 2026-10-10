@@ -154,24 +154,119 @@ async def test_poll_batches_items_and_header_acks():
     assert gw.sink.acks[-1]["outcome"] == "shown" and gw.sink.acks[-1]["via"] == "poll"
 
 
-async def test_poll_seq_zero_sends_snapshot_with_sync_within_limits():
+def body_bytes(agent):
+    body = {"pending": True, "speak": False, "urgent": False, "id": None, "lease": None, "agent": agent}
+    return len(json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode())
+
+
+def full_card(i):
+    return card(f"t{i}", "needs_approval", summary="x" * 60, title="y" * 24, card_id=f"i{i}", options=APPROVAL)
+
+
+def snapshot_walk(gw, header="0", lose=()):
+    """Polls like the device until agent_sync arrives: every body is checked against the cap; a
+    body whose index is in lose is dropped (the header does not move). Returns the applied
+    payloads, the bodies sent and the last header."""
+    applied, bodies = [], []
+    gw.on_poll(DEVICE, header)
+    for n in range(40):
+        items = gw.poll_items(DEVICE)
+        assert items, "a snapshot page is pending"
+        bodies.append(items)
+        assert len(items) <= wire.POLL_BODY_ENTRIES and body_bytes(items) <= wire.POLL_BODY_BYTES
+        if n not in lose:
+            applied += items
+            header = str(max(int(header), max(p["seq"] for p in items)))
+            if items[-1]["kind"] == "agent_sync":
+                gw.on_poll(DEVICE, header)
+                return applied, bodies, header
+        gw.on_poll(DEVICE, header)
+    raise AssertionError("snapshot never ended")
+
+
+async def test_poll_seq_zero_snapshot_pages_fit_one_segment():
     _, gw = make()
     for i in range(8):
-        gw.submit(DEVICE, card(f"t{i}", summary="x" * 60, title="y" * 24))
+        gw.submit(DEVICE, full_card(i))
+    applied, bodies, _ = snapshot_walk(gw)
+    assert sorted(p["task_id"] for p in applied if p["kind"] == "agent") == [f"t{i}" for i in range(8)]
+    assert applied[-1]["task_ids"] == [f"t{i}" for i in range(8)]
+    assert len(bodies) == 5 and not gw.poll_ready(DEVICE)
+
+
+async def test_lost_snapshot_pages_are_sent_again_keyed_by_the_applied_seq():
+    _, gw = make()
+    for i in range(8):
+        gw.submit(DEVICE, full_card(i))
+    applied, bodies, _ = snapshot_walk(gw, lose={1, 2, 5})
+    assert [p["seq"] for p in bodies[1]] == [p["seq"] for p in bodies[2]] == [p["seq"] for p in bodies[3]]
+    assert sorted(p["task_id"] for p in applied if p["kind"] == "agent") == [f"t{i}" for i in range(8)]
+    assert applied[-1]["kind"] == "agent_sync" and not gw.poll_ready(DEVICE)
+
+
+async def test_lost_final_sync_page_is_sent_again():
+    _, gw = make()
+    gw.submit(DEVICE, card("keep"))
+    gw.on_poll(DEVICE, "1")
+    gw.on_poll(DEVICE, str(gw.poll_items(DEVICE)[-1]["seq"]))
+    header = str(gw.devices[DEVICE].acked_upto)
+    gw.submit(DEVICE, card("gone"))
+    gw.on_poll(DEVICE, header)
+    header = str(gw.poll_items(DEVICE)[-1]["seq"])
+    gw.drop(DEVICE, ["gone"])
+    applied, bodies, _ = snapshot_walk(gw, header=header, lose={0})
+    syncs = [b[-1] for b in bodies if b[-1]["kind"] == "agent_sync"]
+    assert len(syncs) == 2 and syncs[1]["task_ids"] == ["keep"] and syncs[1]["seq"] > syncs[0]["seq"]
+
+
+async def test_snapshot_page_resends_are_bounded():
+    _, gw = make()
+    for i in range(3):
+        gw.submit(DEVICE, card(f"t{i}"))
     gw.on_poll(DEVICE, "0")
     first = gw.poll_items(DEVICE)
-    body = {"pending": True, "speak": False, "urgent": False, "id": None, "agent": first}
-    assert len(json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode()) <= wire.MAX_POLL_BYTES
-    assert len(first) <= wire.MAX_POLL_ITEMS
-    if first[-1]["kind"] != "agent_sync":
-        gw.on_poll(DEVICE, str(first[-1]["seq"]))
-        rest = gw.poll_items(DEVICE)
-        assert rest[-1]["kind"] == "agent_sync" and rest[0]["seq"] > first[-1]["seq"]
-        first = first + rest
-    assert sorted(p["task_id"] for p in first if p["kind"] == "agent") == [f"t{i}" for i in range(8)]
-    assert first[-1]["task_ids"] == [f"t{i}" for i in range(8)]
-    gw.on_poll(DEVICE, str(first[-1]["seq"]))
-    assert not gw.poll_ready(DEVICE)
+    for _ in range(wad.PAGE_RETRIES):
+        gw.on_poll(DEVICE, "5")
+        assert [p["seq"] for p in gw.poll_items(DEVICE)] == [p["seq"] for p in first]
+    gw.on_poll(DEVICE, "5")
+    assert gw.poll_items(DEVICE)[0]["seq"] > first[-1]["seq"], "the snapshot moves on"
+
+
+async def test_poll_batches_continue_from_the_applied_seq():
+    _, gw = make()
+    gw.on_poll(DEVICE, "1")
+    for i in range(7):
+        gw.submit(DEVICE, full_card(i))
+    got, header = [], "1"
+    for _ in range(4):
+        items = gw.poll_items(DEVICE)
+        assert len(items) <= wire.POLL_BODY_ENTRIES and body_bytes(items) <= wire.POLL_BODY_BYTES
+        got += items
+        header = str(items[-1]["seq"])
+        gw.on_poll(DEVICE, header)
+    assert [p["task_id"] for p in got] == [f"t{i}" for i in range(7)] and not gw.poll_ready(DEVICE)
+
+
+async def test_poll_item_unapplied_after_max_sends_goes_to_a_snapshot():
+    _, gw = make()
+    gw.on_poll(DEVICE, "1")
+    rec = gw.submit(DEVICE, card("t1"))
+    for _ in range(wad.MAX_SENDS):
+        assert [p["seq"] for p in gw.poll_items(DEVICE)] == [rec["seq"]]
+        gw.on_poll(DEVICE, "1")
+    dev = gw.devices[DEVICE]
+    assert dev.outgoing == [] and dev.snapshot_due
+    snap = gw.poll_items(DEVICE)
+    assert [p["kind"] for p in snap] == ["agent", "agent_sync"] and snap[0]["seq"] == rec["seq"]
+
+
+async def test_oversize_single_entry_goes_alone():
+    _, gw = make()
+    gw.on_poll(DEVICE, "5")
+    gw.submit(DEVICE, {"kind": "agent", "v": 1, "seq": 99, "pad": "x" * 1300}, raw=True)
+    gw.submit(DEVICE, card("t1"))
+    assert [p.get("pad") is not None for p in gw.poll_items(DEVICE)] == [True]
+    assert [p["task_id"] for p in gw.poll_items(DEVICE)] == ["t1"]
 
 
 async def test_drop_removes_task_and_next_poll_syncs():
@@ -290,6 +385,57 @@ async def test_route_device_events_passes_through():
                                        "params": response(1, "cancel", chat_id="c1")}}
     await wrapped(None, Conn(), msg)
     assert calls == [msg] and gw.sink.responses[0]["kind"] == "cancel"
+
+
+async def test_responses_get_receipts_and_repeats_get_the_same_receipt():
+    _, gw = make()
+    gw.submit(DEVICE, card("t1", "needs_approval", card_id="i1", options=APPROVAL))
+    conn = Conn()
+    approve = response(3, "approve", chat_id="c1", task_id="t1", card_id="i1", option_id="approve")
+    first = gw.on_device_event(conn, wad.RESPONSE_METHOD, approve)
+    assert first == {"kind": "agent_ack", "v": 1, "boot": 7, "seq": 3, "response": "approve",
+                     "result": "accepted", "card_id": "i1"}
+    assert gw.on_device_event(Conn(), wad.RESPONSE_METHOD, approve) == first, "a resend of the same event"
+    retry = gw.on_device_event(conn, wad.RESPONSE_METHOD, dict(approve, seq=4))
+    assert retry["result"] == "duplicate" and retry["decided"] == "approve" and retry["seq"] == 4
+    gw.submit(DEVICE, card("t1", "needs_approval", card_id="i2", options=APPROVAL))
+    stale = gw.on_device_event(conn, wad.RESPONSE_METHOD, response(5, "deny", chat_id="c1", task_id="t1", card_id="i1"))
+    assert stale["result"] == "stale" and len(gw.sink.responses) == 1
+    assert gw.on_device_event(conn, wad.RESPONSE_METHOD, response(6, "ack_seen", task_id="t1"))["result"] == "accepted"
+    assert gw.on_device_event(conn, wad.RESPONSE_METHOD, response(7, "shown", ack_upto=1)) is None
+    assert gw.on_device_event(conn, wad.PLAYED_METHOD, {"v": 1, "boot": 7, "seq": 8, "sentence_id": "s",
+                                                         "complete": True}) is None
+    assert gw.on_device_event(conn, wad.RESPONSE_METHOD, response(9, "approve")) is None, "invalid"
+
+
+async def test_route_device_events_sends_the_receipt_on_the_session():
+    _, gw = make()
+    gw.submit(DEVICE, card("t1", "needs_approval", card_id="i1", options=APPROVAL))
+
+    async def inner(_self, conn, msg):
+        return None
+
+    wrapped = wad.route_device_events(inner, gw)
+    conn = Conn()
+    params = response(3, "approve", chat_id="c1", task_id="t1", card_id="i1")
+    msg = {"type": "mcp", "payload": {"jsonrpc": "2.0", "method": wad.RESPONSE_METHOD, "params": params}}
+    await wrapped(None, conn, msg)
+    await wrapped(None, conn, msg)
+    acks = [p for p in conn.websocket.payloads() if p["kind"] == "agent_ack"]
+    assert [(a["seq"], a["result"]) for a in acks] == [(3, "accepted"), (3, "accepted")]
+
+    class Closed(Conn):
+        def __init__(self):
+            super().__init__()
+
+            async def fail(_data):
+                raise ConnectionError("closing")
+
+            self.websocket.send = fail
+
+    await wrapped(None, Closed(), {"type": "mcp", "payload": {"jsonrpc": "2.0", "method": wad.RESPONSE_METHOD,
+                                                               "params": dict(params, seq=4)}})
+    assert len(gw.sink.responses) == 1
 
 
 # Speech
@@ -595,3 +741,89 @@ async def test_answered_debug_reply_is_not_replayed_in_a_snapshot():
     gw.on_agent_session(DEVICE, conn)
     await settle()
     assert all("debug_reply" not in p for p in conn.websocket.payloads())
+
+
+# Closing window
+
+class InvokedConn(Conn):
+    def reset_audio_states(self):
+        pass
+
+
+async def test_rejected_session_handles_decisions_until_quiet_then_closes(monkeypatch):
+    monkeypatch.setattr(wp, "DRAIN_QUIET_SECONDS", 0.3)
+    proactive, gw = make(clock=time.monotonic)
+    gw.submit(DEVICE, card("t1", "needs_approval", card_id="i1", options=APPROVAL))
+    conn = InvokedConn()
+    proactive.on_session_open(DEVICE, conn)
+    await asyncio.wait_for(proactive.on_invoke(conn), 0.05)
+    assert not conn.closed and conn._weixue_rejected, "no lease: rejected, but the loop keeps reading"
+
+    async def inner(_self, _conn, _msg):
+        return None
+
+    wrapped = wad.route_device_events(inner, gw)
+    shown = response(1, "shown", ack_upto=1)
+    approve = response(2, "approve", chat_id="c1", task_id="t1", card_id="i1")
+    for params in (shown, approve):
+        await asyncio.sleep(0.2)
+        assert not conn.closed
+        await wrapped(None, conn, {"type": "mcp", "payload": {"method": wad.RESPONSE_METHOD, "params": params}})
+    acks = [p for p in conn.websocket.payloads() if p["kind"] == "agent_ack"]
+    assert [(a["seq"], a["result"]) for a in acks] == [(2, "accepted")]
+    assert [r["kind"] for r in gw.sink.responses] == ["approve"]
+    await asyncio.sleep(0.15)
+    assert not conn.closed, "quiet for less than DRAIN_QUIET_SECONDS"
+    await asyncio.sleep(0.4)
+    assert conn.closed
+
+
+async def test_rejected_session_closes_after_the_drain_limit(monkeypatch):
+    monkeypatch.setattr(wp, "DRAIN_QUIET_SECONDS", 10)
+    monkeypatch.setattr(wp, "DRAIN_MAX_SECONDS", 0.3)
+    proactive, _ = make(clock=time.monotonic)
+    conn = InvokedConn()
+    proactive.on_session_open(DEVICE, conn)
+    await proactive.on_invoke(conn)
+    await asyncio.sleep(0.15)
+    assert not conn.closed
+    await asyncio.sleep(0.4)
+    assert conn.closed
+
+
+def test_rejected_session_hears_no_voice():
+    import weixue_patches
+
+    calls = []
+
+    def is_vad(_self, conn, _frame):
+        calls.append(conn)
+        return True
+
+    wrapped = weixue_patches.hold_wake_utterance(is_vad)
+    conn = types.SimpleNamespace(client_have_voice=False)
+    assert wrapped(None, conn, b"") is True
+    conn._weixue_rejected = True
+    assert wrapped(None, conn, b"") is False and len(calls) == 1
+
+
+async def test_replaced_poll_takes_no_agent_items(client, monkeypatch):
+    """A device that rebooted while its previous poll was held: the old request ends with 204
+    and the snapshot pages all go to the new one."""
+    monkeypatch.setattr(wp, "POLL_HOLD_SECONDS", 3)
+    for i in range(4):
+        client.gateway.submit(DEVICE, card(f"t{i}"))
+    headers = {"Device-Id": DEVICE, "X-Weixue-Agent-Seq": "1"}
+    first = await client.get("/weixue/proactive/poll", headers=headers)
+    batch = (await first.json())["agent"]
+    headers["X-Weixue-Agent-Seq"] = str(batch[-1]["seq"])
+    second = await client.get("/weixue/proactive/poll", headers=headers)
+    headers["X-Weixue-Agent-Seq"] = str((await second.json())["agent"][-1]["seq"])
+    old = asyncio.create_task(client.get("/weixue/proactive/poll", headers=headers))
+    await asyncio.sleep(0.3)
+    client.gateway.submit(DEVICE, card("t9"))
+    client.gateway.devices[DEVICE].outgoing.clear()
+    new = await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE, "X-Weixue-Agent-Seq": "0"})
+    assert (await old).status == 204
+    body = await new.json()
+    assert [p["task_id"] for p in body["agent"]] == ["t0", "t1"], "the reboot's first page goes to the new poll"

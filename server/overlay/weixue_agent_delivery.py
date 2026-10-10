@@ -1,7 +1,8 @@
 """Agent delivery gateway (docs/agent-protocol.md): mirrors the latest `agent` item per task per
 device, pushes items to sessions that advertise `features.agent`, batches them into proactive
 poll bodies, sends snapshots, resends unacked items, speaks spoken items through the proactive
-queue, and turns device responses and `played` acks into delivery acks.
+queue, turns device responses and `played` acks into delivery acks, and answers each device
+response with an `agent_ack` receipt.
 
 Sources: fixture injection at POST /weixue/agent/messages (always) and the agent-service outbox
 stream when AGENT_SERVICE_URL is set. Acks go to the sink: logged and kept for
@@ -39,6 +40,8 @@ ACK_VIEW = 500
 TICK_SECONDS = 0.5
 # The poll body without its `agent` array.
 POLL_BASE_BYTES = 96
+# Times a snapshot page the device did not apply is sent again before the snapshot moves on.
+PAGE_RETRIES = 3
 SPEECH_FINAL = ("played", "cut_off", "lost", "dropped")
 OPEN_CARD_STATES = ("needs_approval", "needs_input")
 
@@ -69,6 +72,15 @@ class Device:
     snapshot_from: int = 0
     polls_with_seq: bool = False
     sessions: list = field(default_factory=list)
+    page: Optional["Page"] = None
+    page_retries: int = 0
+
+
+@dataclass
+class Page:
+    """The snapshot part of the last poll body: where it started and the highest seq in it."""
+    start: int
+    upto: int
 
 
 @dataclass
@@ -368,13 +380,30 @@ class AgentGateway:
             return
         dev = self.device(device_id)
         dev.polls_with_seq = True
+        page, dev.page = dev.page, None
         if seq == 0:
             if not dev.snapshot_due or dev.snapshot_from:
                 self._log(f"agent poll device={device_id} seq=0: snapshot due")
             dev.snapshot_due = True
             dev.snapshot_from = 0
+            dev.page_retries = 0
+        elif page is not None and seq < page.upto and dev.page_retries < PAGE_RETRIES:
+            dev.page_retries += 1
+            dev.snapshot_due = True
+            dev.snapshot_from = page.start
+            self._log(f"agent poll device={device_id} seq={seq}: snapshot page up to {page.upto} "
+                      f"not applied; sending it again ({dev.page_retries}/{PAGE_RETRIES})")
+        else:
+            dev.page_retries = 0
         self._acked(device_id, dev, seq, "poll")
         dev.acked_upto = seq
+        stuck = [e for e in dev.outgoing if not e.raw and e.seq > seq and e.sends >= MAX_SENDS]
+        for e in stuck:
+            dev.outgoing.remove(e)
+            self._log(f"agent seq={e.seq} unapplied after {e.sends} polls device={device_id}: snapshot due")
+        if stuck and not dev.snapshot_due:
+            dev.snapshot_due = True
+            dev.snapshot_from = 0
 
     def _poll_entries(self, dev):
         return [e for e in dev.outgoing if (e.raw and e.sends == 0) or (not e.raw and e.seq > dev.acked_upto and e.sends < MAX_SENDS)]
@@ -385,35 +414,41 @@ class AgentGateway:
             return False
         return dev.snapshot_due or bool(self._poll_entries(dev))
 
-    def poll_items(self, device_id, budget=wire.MAX_POLL_BYTES - POLL_BASE_BYTES):
-        """The `agent` array of a poll body: at most MAX_POLL_ITEMS within budget bytes; a snapshot
-        ends with agent_sync once every mirrored task fits."""
+    def poll_items(self, device_id, budget=wire.POLL_BODY_BYTES - POLL_BASE_BYTES):
+        """The `agent` array of a poll body: at most POLL_BODY_ENTRIES entries within budget bytes
+        (a larger single item goes alone); a snapshot continues from page to page and ends with
+        agent_sync once every mirrored task was sent. A snapshot page the next poll's header shows
+        unapplied is sent again (on_poll)."""
         dev = self.devices.get(device_id)
         if dev is None or not dev.polls_with_seq:
             return []
-        if dev.snapshot_due:
-            candidates = sorted((e for e in dev.mirror.values() if e.seq > dev.snapshot_from), key=lambda e: e.seq)
+        snapshot = dev.snapshot_due
+        start = dev.snapshot_from
+        if snapshot:
+            candidates = sorted((e for e in dev.mirror.values() if e.seq > start), key=lambda e: e.seq)
         else:
             candidates = self._poll_entries(dev)
         out, used = [], 2
         for e in candidates:
             n = wire.size(e.payload) + 1
-            if len(out) >= wire.MAX_POLL_ITEMS or used + n > budget:
+            if out and (len(out) >= wire.POLL_BODY_ENTRIES or used + n > budget):
                 break
             out.append(e)
             used += n
         payloads = [self._replay(e) for e in out]
         for e in out:
             self._mark_sent(e)
-        if dev.snapshot_due:
-            if len(out) == len(candidates) and len(out) < wire.MAX_POLL_ITEMS:
+        if snapshot:
+            if len(out) == len(candidates) and len(out) < wire.POLL_BODY_ENTRIES:
                 sync = wire.build_sync(self._next_seq(dev), list(dev.mirror))
-                if used + wire.size(sync) + 1 <= budget:
+                if not out or used + wire.size(sync) + 1 <= budget:
                     payloads.append(sync)
                     dev.snapshot_due = False
                     dev.snapshot_from = 0
             if dev.snapshot_due and out:
                 dev.snapshot_from = out[-1].seq
+            if payloads:
+                dev.page = Page(start=start, upto=max(p["seq"] for p in payloads))
         if payloads:
             self._log(
                 f"agent poll body device={device_id} items={len(payloads)} "
@@ -437,30 +472,40 @@ class AgentGateway:
         return self.proactive.auth.device(headers)
 
     def on_device_event(self, conn, method, params):
+        """Handles one agent_response or played notification. Returns the `agent_ack` receipt to
+        send back on conn (agent_response other than shown, its repeats included), else None."""
         device_id = self._verified(conn)
         if device_id is None:
             self.logger.bind(tag=TAG).warning(f"agent event {method} from an unverified session ignored")
-            return
+            return None
         try:
             event = wire.parse_played(params) if method == PLAYED_METHOD else wire.parse_response(params)
         except wire.WireError as e:
             self.logger.bind(tag=TAG).warning(f"agent event {method} device={device_id} rejected: {e}")
-            return
+            return None
+        conn._weixue_agent_event_at = self.clock()
         key = (device_id, event["boot"], event["seq"])
         if key in self.seen_events:
             self._log(f"agent event duplicate device={device_id} boot={event['boot']} seq={event['seq']}")
-            return
-        self.seen_events[key] = self.clock()
+            return self.seen_events[key]
+        self.seen_events[key] = None
         while len(self.seen_events) > DEDUP_KEEP:
             self.seen_events.popitem(last=False)
         if method == PLAYED_METHOD:
             self._on_played(device_id, event)
-            return
+            return None
         dev = self.device(device_id)
         if event["kind"] == "shown":
             self._acked(device_id, dev, event["ack_upto"], "shown")
             dev.acked_upto = max(dev.acked_upto, event["ack_upto"])
-            return
+            return None
+
+        def receipt(result, decided=None):
+            ack = wire.build_receipt(event["boot"], event["seq"], event["kind"], result,
+                                     card_id=event.get("card_id"), decided=decided)
+            self.seen_events[key] = ack
+            return ack
+
         latest = dev.mirror.get(event.get("task_id"))
         if event["kind"] in wire.CARD_KINDS and latest is not None:
             if latest.payload.get("card_id") != event["card_id"]:
@@ -468,7 +513,7 @@ class AgentGateway:
                     f"agent response {event['kind']} device={device_id} task={event.get('task_id')} "
                     f"card={event['card_id']} stale (current card={latest.payload.get('card_id')}): dropped"
                 )
-                return
+                return receipt("stale")
         if event["kind"] in wire.CARD_KINDS:
             card = (device_id, event["card_id"])
             first = self.card_decisions.get(card)
@@ -478,7 +523,7 @@ class AgentGateway:
                     f"card={event['card_id']} seq={event['seq']} duplicate decision (first {first[0]} "
                     f"boot={first[1]} seq={first[2]}): dropped"
                 )
-                return
+                return receipt("duplicate", decided=first[0])
             self.card_decisions[card] = (event["kind"], event["boot"], event["seq"])
             while len(self.card_decisions) > DEDUP_KEEP:
                 self.card_decisions.popitem(last=False)
@@ -488,6 +533,18 @@ class AgentGateway:
         if event["kind"] == "ack_seen" and latest is not None:
             latest.replied = True
             self.sink.ack(latest.delivery_id, latest.lease_id, "user_ack", device_id, seq=latest.seq)
+        return receipt("accepted")
+
+    async def send_receipt(self, conn, receipt):
+        """Sends an `agent_ack` on the session the response arrived on."""
+        try:
+            await conn.websocket.send(wire.frame(receipt))
+        except Exception as e:
+            self.logger.bind(tag=TAG).warning(
+                f"agent receipt {receipt['response']} seq={receipt['seq']} not sent: {type(e).__name__}")
+            return
+        self._log(f"agent receipt {receipt['response']} boot={receipt['boot']} seq={receipt['seq']} "
+                  f"card={receipt.get('card_id')} result={receipt['result']}")
 
     # Speech
 
@@ -835,13 +892,15 @@ def tag_tts_messages(send_tts_message, gateway):
 
 def route_device_events(handle, gateway):
     """Wraps McpTextMessageHandler.handle: agent_response and played notifications reach the
-    gateway before the wrapped handler logs them."""
+    gateway, and its receipt goes back on the session, before the wrapped handler logs them."""
 
     async def wrapper(self, conn, msg_json):
         payload = msg_json.get("payload")
         method = payload.get("method") if isinstance(payload, dict) else None
         if method in (RESPONSE_METHOD, PLAYED_METHOD):
-            gateway.on_device_event(conn, method, payload.get("params"))
+            receipt = gateway.on_device_event(conn, method, payload.get("params"))
+            if receipt is not None:
+                await gateway.send_receipt(conn, receipt)
         return await handle(self, conn, msg_json)
 
     wrapper.weixue_agent_wrapped = handle

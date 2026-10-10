@@ -40,7 +40,7 @@ constexpr uint32_t kScrollTrack = 0x1E3A40;
 constexpr int64_t kIdleBeforeMiniMs = 1500;
 constexpr int64_t kWhenIdleTouchGapMs = 5000;
 constexpr int64_t kSendSlowMs = 4000;
-constexpr int64_t kSendHardTimeoutMs = 15000;
+constexpr int64_t kSendHardTimeoutMs = 30000;
 constexpr int64_t kCardTapGuardMs = 400;
 constexpr int64_t kSwitchTimeoutMs = 3000;
 constexpr int64_t kOutcomeMs = 900;
@@ -69,6 +69,36 @@ inline std::string Join(const Line& line) {
     std::string out;
     for (const auto& s : line) out += s.text;
     return out;
+}
+
+// line cut to max_width, where width(text) measures plain text: spans after the second go from
+// the end first, then the longest span loses code points and ends in "...".
+template <typename Width>
+inline Line FitLine(Line line, int32_t max_width, Width width) {
+    while (line.size() > 2 && width(Join(line)) > max_width) line.pop_back();
+    while (!line.empty() && width(Join(line)) > max_width) {
+        size_t longest = 0;
+        for (size_t i = 1; i < line.size(); ++i) {
+            if (line[i].text.size() > line[longest].text.size()) longest = i;
+        }
+        std::string& text = line[longest].text;
+        bool dotted = text.size() >= 3 && text.compare(text.size() - 3, 3, "...") == 0;
+        if (dotted) text.resize(text.size() - 3);
+        if (text.empty()) {
+            line.erase(line.begin() + longest);
+            continue;
+        }
+        size_t cut = text.size() - 1;
+        while (cut > 0 && (static_cast<unsigned char>(text[cut]) & 0xC0) == 0x80) --cut;
+        text.resize(cut);
+        while (!text.empty() && text.back() == ' ') text.pop_back();
+        if (text.empty()) {
+            line.erase(line.begin() + longest);
+        } else {
+            text += "...";
+        }
+    }
+    return line;
 }
 
 // Small-face pose; kFull = the normal face (no complication).
@@ -302,11 +332,19 @@ public:
     };
 
     // Replaces the task list with the store's; returns one Arrival per task whose state (or
-    // card) is new. hhmm is the local time ("" when the clock is not set).
+    // card) is new. hhmm is the local time ("" when the clock is not set). synced_out: tasks a
+    // snapshot dropped since the last call; a chat left without tasks by them is forgotten.
     std::vector<Arrival> SetTasks(const std::vector<Task>& tasks, int64_t now_ms,
-                                  const std::string& hhmm) {
+                                  const std::string& hhmm,
+                                  const std::vector<std::string>& synced_out = {}) {
         std::vector<Arrival> out;
         std::vector<Info> next;
+        std::vector<std::string> dropped_chats;
+        for (const auto& old : tasks_) {
+            if (std::find(synced_out.begin(), synced_out.end(), old.item.task_id) != synced_out.end()) {
+                dropped_chats.push_back(old.item.chat_id);
+            }
+        }
         for (const Task& t : tasks) {
             const Info* old = FindInfo(t.item.task_id);
             Info info = old ? *old : Info();
@@ -335,6 +373,7 @@ public:
         tasks_ = tasks;
         PruneDecisions();
         RememberChats();
+        ForgetChats(dropped_chats);
         for (const Arrival& a : out) {
             if (a.state == State::kUnread || a.state == State::kFailed ||
                 a.state == State::kCancelled || a.state == State::kStopped) {
@@ -704,7 +743,8 @@ public:
                 case State::kDone:
                     break;
             }
-            if (!current_chat_.empty() && t.item.chat_id != current_chat_) {
+            if (!current_chat_.empty() && t.item.chat_id != current_chat_ &&
+                ChatTitle(t.item.chat_id) != r.title) {
                 r.status.push_back({" · " + ChatTitle(t.item.chat_id), color::kSub});
             }
             out.push_back(std::move(r));
@@ -897,28 +937,26 @@ public:
         const Task* t = Find(card_.task_id);
         if (t != nullptr) {
             v.body = Plain(t->item.summary);
-            std::string title = TitleOf(*t);
-            std::string chat = !current_chat_.empty() && t->item.chat_id != current_chat_
-                                   ? ChatTitle(t->item.chat_id) + " · "
-                                   : "";
+            std::string lead = CardLead(*t);
             if (card_.kind == CardKind::kApproval) {
                 v.tap_only = t->item.risk == Risk::kIrreversible || t->item.risk == Risk::kMoney;
                 const char* risk = t->item.risk == Risk::kIrreversible ? "irreversible"
                                    : t->item.risk == Risk::kMoney      ? "spends money"
                                    : t->item.risk == Risk::kReversible ? "reversible"
                                                                        : nullptr;
-                v.context = {{chat + title, color::kValue}};
+                if (!lead.empty()) v.context = {{lead, color::kValue}};
                 if (risk != nullptr) {
-                    v.context.push_back({" · ", color::kValue});
+                    if (!lead.empty()) v.context.push_back({" · ", color::kValue});
                     v.context.push_back({risk, v.tap_only ? color::kFail : color::kValue});
                 }
             } else {
                 std::string step;
                 if (t->item.has_progress && t->item.progress_total > 0) {
-                    step = " · step " + std::to_string(t->item.progress_step) + " of " +
+                    step = "step " + std::to_string(t->item.progress_step) + " of " +
                            std::to_string(t->item.progress_total);
                 }
-                v.context = {{chat + title + step, color::kLabel}};
+                std::string line = lead.empty() || step.empty() ? lead + step : lead + " · " + step;
+                if (!line.empty()) v.context = {{line, color::kLabel}};
             }
         }
         switch (v.phase) {
@@ -1030,15 +1068,16 @@ public:
         return false;
     }
 
-    // Transport outcome of the send (card_id, token) from Tap; a callback of an older send or of
-    // another card changes nothing. Returns the earcon to play.
-    Earcon OnDecisionSent(const std::string& card_id, uint32_t token, bool sent, int64_t now_ms) {
+    // Outcome of the send (card_id, token) from Tap: recorded = the server's receipt arrived and
+    // holds a decision for the card; false = the outbox gave up or the server refused it. A
+    // callback of an older send or of another card changes nothing. Returns the earcon to play.
+    Earcon OnDecisionSent(const std::string& card_id, uint32_t token, bool recorded, int64_t now_ms) {
         DecisionRecord* rec = nullptr;
         for (auto& r : decisions_) {
             if (r.card_id == card_id && r.token == token && r.phase == SendPhase::kQueued) rec = &r;
         }
         if (rec == nullptr) return Earcon::kNone;
-        if (!sent) {
+        if (!recorded) {
             rec->phase = SendPhase::kNotSent;
             return Earcon::kNone;
         }
@@ -1246,10 +1285,40 @@ private:
         card_.outcome_glyph = glyph;
     }
 
+    // The decision while its receipt is outstanding (the past tense waits for the receipt).
     static std::string SendingWord(const std::string& decision) {
-        if (decision == "approve") return "Approved";
-        if (decision == "deny") return "Denied";
-        return "Sent";
+        if (decision == "approve") return "Approve";
+        if (decision == "deny") return "Deny";
+        return "Answer";
+    }
+
+    // The card's line above the controls, before the risk or step: the task's chat (when not
+    // the current one) and its title, each only when it is not the summary the card shows.
+    std::string CardLead(const Task& t) const {
+        std::string body = Plain(t.item.summary);
+        std::string chat;
+        if (!current_chat_.empty() && t.item.chat_id != current_chat_) {
+            chat = ChatTitle(t.item.chat_id);
+            if (chat == body) chat.clear();
+        }
+        std::string title = Plain(t.item.title);
+        if (title == body || title == chat) title.clear();
+        if (chat.empty() || title.empty()) return chat + title;
+        return chat + " · " + title;
+    }
+
+    // Chats a snapshot left without tasks: removed; the current one hands over to the chat of the
+    // newest task (SetTasks).
+    void ForgetChats(const std::vector<std::string>& chat_ids) {
+        for (const auto& id : chat_ids) {
+            bool has_task = std::any_of(tasks_.begin(), tasks_.end(),
+                                        [&](const Task& t) { return t.item.chat_id == id; });
+            if (has_task) continue;
+            chats_.erase(std::remove_if(chats_.begin(), chats_.end(),
+                                        [&](const ChatInfo& c) { return c.chat_id == id; }),
+                         chats_.end());
+            if (current_chat_ == id) current_chat_.clear();
+        }
     }
 
     // Chat cache (at most kMaxChats): title of the chat's newest task, last update time.

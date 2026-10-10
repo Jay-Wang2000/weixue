@@ -386,6 +386,32 @@ int main(int argc, char** argv) {
         s.view->SetRows(rows, more);
         Finish(s, out, "agent-management");
     }
+    {  // management page 1 as the fixture fills it: approvals with countdowns from other chats
+        Rig r;
+        r.Add(MakeItem("t_leak", State::kWorking, "Leak sensor", "c_leak"), 0);
+        Item door = MakeItem("t_door", State::kNeedsApproval, "Front door", "c_door");
+        door.card_id = "i_door";
+        door.timeout_s = 90;
+        door.options = {{"approve", "Approve"}, {"deny", "Deny"}};
+        r.Add(door, 1000);
+        Item lr = MakeItem("t_lr", State::kNeedsApproval, "Living room lights", "c_lr");
+        lr.card_id = "i_lr";
+        lr.timeout_s = 240;
+        lr.options = {{"approve", "Approve"}, {"deny", "Deny"}};
+        r.Add(lr, 1000);
+        Item tidy = MakeItem("t_tidy", State::kNeedsInput, "Evening tidy-up", "c_tidy2");
+        tidy.card_id = "q_tidy";
+        tidy.options = {{"a", "Now"}, {"b", "Later"}};
+        r.Add(tidy, 1000);
+        r.Add(MakeItem("t_cam", State::kWorking, "Door camera", "c_door"), 1500);
+        r.model.SetCurrentChat("c_leak");
+        Scene s = NewScene();
+        lv_obj_remove_flag(s.page, LV_OBJ_FLAG_HIDDEN);
+        s.view->SetHeader(r.model.CurrentTitle(), false);
+        int more = 0;
+        s.view->SetRows(r.model.Rows(2000, 3, &more), more);
+        Finish(s, out, "agent-management-countdown");
+    }
     {  // management chats
         Rig r;
         Populate(r);

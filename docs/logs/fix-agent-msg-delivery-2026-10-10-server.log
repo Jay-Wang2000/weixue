@@ -1,0 +1,30 @@
+# fix-agent-msg-delivery device run 2026-10-10: server log excerpts (live container, branch overlay copied in).
+# Excerpts as captured during the run; the container was recreated by another process at 22:37:50Z,
+# after the main overlay had been restored, which discarded the container log. Server times are local (UTC+1).
+# Gateway acks and responses of every item are in fix-agent-msg-delivery-2026-10-10-fixture.jsonl (deliveries view).
+
+## burst (23:21:3x): at most 2 entries per body; the 2236 B item alone
+agent poll body device=<MAC> items=2 seqs=[1791670898621, 1791670898621] snapshot=False
+agent poll body device=<MAC> items=2 seqs=[1791670898623, 1791670898622] snapshot=False
+agent poll body device=<MAC> items=1 seqs=[1791670898631] snapshot=False
+agent poll body device=<MAC> items=1 seqs=[1791670898624] snapshot=False
+
+## eight, then board reset 1 (first deployment: superseded polls still took items)
+261010 23:22:23 agent poll device=<MAC> seq=0: snapshot due
+261010 23:22:23 agent poll body device=<MAC> items=2 seqs=[1791670931743, 1791670931744] snapshot=False
+261010 23:22:23 agent poll body device=<MAC> items=2 seqs=[1791670931745, 1791670931746] snapshot=False
+261010 23:22:24 agent poll device=<MAC> seq=1791670931744: snapshot page up to 1791670931746 not applied; sending it again (1/3)
+261010 23:22:24 agent poll body device=<MAC> items=2 seqs=[1791670931745, 1791670931746] snapshot=False
+261010 23:22:24 agent poll body device=<MAC> items=2 seqs=[1791670931747, 1791670931748] snapshot=False
+261010 23:22:24 agent poll body device=<MAC> items=2 seqs=[1791670931749, 1791670931750] snapshot=False
+261010 23:22:25 agent poll body device=<MAC> items=1 seqs=[1791670945117] snapshot=True
+# The second body went to the previous boot's held poll, superseded by the new boot's poll; the page
+# rewind resent it. Superseded polls now answer 204 without agent items (redeployed before reset 2).
+
+## eight, then board reset 2 (superseded polls answer 204)
+agent poll device=<MAC> seq=0: snapshot due
+agent poll body device=<MAC> items=2 seqs=[1791671147355, 1791671147356] snapshot=False
+agent poll body device=<MAC> items=2 seqs=[1791671147357, 1791671147358] snapshot=False
+agent poll body device=<MAC> items=2 seqs=[1791671147359, 1791671147360] snapshot=False
+agent poll body device=<MAC> items=2 seqs=[1791671147361, 1791671147362] snapshot=False
+agent poll body device=<MAC> items=1 seqs=[1791671167898] snapshot=True

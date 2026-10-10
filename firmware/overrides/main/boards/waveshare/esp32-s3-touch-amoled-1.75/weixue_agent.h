@@ -14,11 +14,13 @@
 #include <vector>
 
 #include "weixue_agent_msg.h"
+#include "weixue_agent_outbox.h"
 #include "weixue_agent_store.h"
 
 // Agent messages on the device (docs/agent-protocol.md): `agent` frames from the WebSocket and
 // the proactive poll go into the task store; user responses, `shown` and `played` acks go to the
-// server through Application::SendDeviceEvent from a RAM outbox.
+// server through Application::SendDeviceEvent from a RAM outbox, responses until the server's
+// `agent_ack` receipt arrives.
 class WeixueAgent {
 public:
     static WeixueAgent& GetInstance() {
@@ -33,7 +35,8 @@ public:
     // Main task, once, after the audio service started.
     void Start();
 
-    // Network task: a `custom` payload of kind agent/agent_sync; frame_bytes is its JSON size.
+    // Network task: a `custom` payload of kind agent/agent_sync/agent_ack; frame_bytes is its JSON
+    // size.
     void OnFrame(const cJSON* payload, size_t frame_bytes);
     // Poll task: the `agent` array of a 200 poll body; returns once the main task applied it (at
     // most kPollApplyWaitMs). Returns the body's `speak` (true when absent).
@@ -52,8 +55,8 @@ public:
     // Main task: UI.
     void Subscribe(Listener listener);
     const weixue_agent::Store& store() const { return store_; }
-    // Queues a response; done(sent) runs on the main task once it reached the transport or was
-    // dropped after the last retry. Returns its outbox id, 0 when refused.
+    // Queues a response; done(ok) runs on the main task once its receipt arrived (ok: the server
+    // recorded it) or the outbox gave up (false). Returns its outbox id, 0 when refused.
     uint32_t SendResponse(weixue_agent::Response response, std::function<void(bool)> done = nullptr);
     // Drops a queued response that is not in flight; its done callback never runs.
     void Cancel(uint32_t id);
@@ -67,15 +70,6 @@ public:
 private:
     WeixueAgent() = default;
 
-    struct Outgoing {
-        std::string payload;
-        std::string label;
-        int attempts = 0;
-        int64_t due_us = 0;
-        bool shown = false;
-        uint32_t id = 0;
-        std::function<void(bool)> done;
-    };
     struct LoopbackReply {
         int64_t due_us;
         weixue_agent::Response response;
@@ -86,11 +80,9 @@ private:
     std::atomic<int64_t> applied_seq_{0};
     uint32_t boot_ = 0;
     uint32_t next_seq_ = 1;
-    uint32_t next_id_ = 1;
     bool render_ack_ = false;
 
-    std::deque<Outgoing> outbox_;
-    bool in_flight_ = false;
+    weixue_agent::Outbox outbox_;
     std::vector<LoopbackReply> loopback_;
 
     std::string sentence_;
@@ -105,7 +97,9 @@ private:
     void Apply(const weixue_agent::Message& message, const char* via);
     void Notify();
     void QueueShown(int64_t upto);
-    uint32_t Enqueue(std::string payload, std::string label, std::function<void(bool)> done = nullptr);
+    void OnReceipt(const weixue_agent::Receipt& receipt);
+    uint32_t Enqueue(std::string payload, std::string label, uint32_t seq, bool receipt,
+                     std::function<void(bool)> done = nullptr);
     void FinishPlayback(bool complete, const char* reason);
     void Tick();
     void SendNext();

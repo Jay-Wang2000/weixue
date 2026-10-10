@@ -1,6 +1,7 @@
-"""Agent wire contract v1 (docs/agent-protocol.md): builders and validators of the server → device
-`agent` / `agent_sync` payloads and of the device → server `agent_response` / `played`
-notifications, the limits, and the agent-service delivery → wire mapping (the only mapper)."""
+"""Agent wire contract v1.1 (docs/agent-protocol.md): builders and validators of the server → device
+`agent` / `agent_sync` / `agent_ack` payloads and of the device → server `agent_response` /
+`played` notifications, the limits, and the agent-service delivery → wire mapping (the only
+mapper)."""
 import json
 import re
 import uuid
@@ -10,6 +11,7 @@ from datetime import datetime, timezone
 VERSION = 1
 KIND_ITEM = "agent"
 KIND_SYNC = "agent_sync"
+KIND_ACK = "agent_ack"
 STATES = (
     "working", "needs_input", "needs_approval", "unread", "done",
     "failed", "cancelled", "interrupted", "stopped",
@@ -22,12 +24,17 @@ LANGS = ("en", "zh")
 RESPONSE_KINDS = ("approve", "deny", "answer", "cancel", "ack_seen", "switch_chat", "new_chat", "shown")
 CARD_KINDS = ("approve", "deny", "answer")
 VIA = ("tap", "loopback")
+RECEIPT_RESULTS = ("accepted", "duplicate", "stale")
 CUT_REASONS = ("wake", "tap", "imu", "mute", "closed", "superseded")
 
 MAX_ITEM_BYTES = 1024
 DEVICE_DROP_BYTES = 2048
 MAX_POLL_BYTES = 4096
 MAX_POLL_ITEMS = 8
+# Poll bodies the gateway builds: with the response headers they fit one TCP segment (device MSS
+# 1440 B).
+POLL_BODY_BYTES = 1200
+POLL_BODY_ENTRIES = 2
 MAX_NOTIFICATION_BYTES = 512
 MAX_ID_CHARS = 36
 MAX_OPTION_ID_CHARS = 32
@@ -189,6 +196,20 @@ def build_sync(seq, task_ids):
     if len(ids) > MAX_SYNC_IDS or not all(is_id(t) for t in ids):
         raise WireError("bad task_ids")
     return {"kind": KIND_SYNC, "v": VERSION, "seq": _int(seq, "seq", 1, MAX_SEQ), "task_ids": ids}
+
+
+def build_receipt(boot, seq, response, result, card_id=None, decided=None):
+    """`agent_ack`: the gateway's receipt of the device's response (boot, seq). result is
+    accepted, duplicate (the card already has a decision: decided) or stale (not the task's
+    current card)."""
+    if result not in RECEIPT_RESULTS:
+        raise WireError(f"result must be one of {list(RECEIPT_RESULTS)}")
+    payload = {"kind": KIND_ACK, "v": VERSION, "boot": boot, "seq": seq, "response": response, "result": result}
+    if card_id is not None:
+        payload["card_id"] = card_id
+    if decided is not None:
+        payload["decided"] = decided
+    return payload
 
 
 def _common(params, max_bytes=MAX_NOTIFICATION_BYTES):
