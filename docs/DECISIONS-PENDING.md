@@ -91,6 +91,9 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 50. **Device tool exposure (security, Jay 2026-10-10)**: the agent backend must never be able to operate the device's physical inputs or approve its own actions. Device MCP tools are split into two classes: agent-visible (bedside, volume, brightness, status, theme) and operator-only (all `self.diag.*` injection tools, `self.system.reconfigure_wifi`, camera). Operator-only tools are never advertised or callable over the MCP channel to the backend; they exist only on the USB serial console of the diag build (and the diag MCP tools are removed). The gateway/agent `device_action` path is limited to the agent-visible list and the device enforces it. ADR-13.
 
+51. **Spoken narration during the 6 s reply hold** — needs Jay (user-facing): when a quick ask turns into a task, Fable's interim progress text inside the 6 s hold is spoken (e.g. "Now the history."). Options: A = keep (brief rev 4 behaviour; you hear what it starts doing); B = end the spoken reply as soon as the task model takes over, after the acknowledgement sentence only. Recommendation: B for calmer interaction; A if you like the running commentary.
+52. **Held call approved in the HA panel instead of on the device** — FYI: the service replays only after its own approve; a call approved directly in HA while our row waits stays unexecuted until the row expires. Acceptable for v1 (device is the approval surface); revisit if you approve from the panel often.
+
 ## Night run 2026-10-10 → 11 (Jay asleep)
 - Quiet mode: no `say`, device volume 0 for any test, no audible TTS; the full audio session runs after Jay wakes. Autonomous work continues through M2; anything user-facing in behaviour not already decided, external-service or security-related is parked here for the morning report.
 
