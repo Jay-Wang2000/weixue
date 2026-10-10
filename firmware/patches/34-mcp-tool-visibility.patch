@@ -1,0 +1,83 @@
+diff --git a/main/mcp_server.cc b/main/mcp_server.cc
+index 171f24b..f5cc596 100644
+--- a/main/mcp_server.cc
++++ b/main/mcp_server.cc
+@@ -335,7 +335,8 @@ void McpServer::AddTool(std::unique_ptr<McpTool> tool) {
+         return;
+     }
+ 
+-    ESP_LOGI(TAG, "Add tool: %s%s", tool->name().c_str(), tool->user_only() ? " [user]" : "");
++    ESP_LOGI(TAG, "Add tool: %s%s%s", tool->name().c_str(), tool->user_only() ? " [user]" : "",
++             tool->visibility() == McpToolVisibility::kOperatorOnly ? " [operator-only]" : "");
+     tools_.push_back(std::move(tool));
+ }
+ 
+@@ -522,7 +523,8 @@ void McpServer::GetToolsList(int id, const std::string& cursor, bool list_user_o
+             }
+         }
+ 
+-        if (!list_user_only_tools && (*it)->user_only()) {
++        if ((*it)->visibility() != McpToolVisibility::kAgentVisible ||
++            (!list_user_only_tools && (*it)->user_only())) {
+             ++it;
+             continue;
+         }
+@@ -543,7 +545,7 @@ void McpServer::GetToolsList(int id, const std::string& cursor, bool list_user_o
+         json.pop_back();
+     }
+ 
+-    if (json.back() == '[' && !tools_.empty()) {
++    if (json.back() == '[' && !next_cursor.empty()) {
+         // 如果没有添加任何tool，返回错误
+         ESP_LOGE(TAG, "tools/list: Failed to add tool %s because of payload size limit",
+                  next_cursor.c_str());
+@@ -563,6 +565,12 @@ void McpServer::GetToolsList(int id, const std::string& cursor, bool list_user_o
+ 
+ void McpServer::DoToolCall(int id, const std::string& tool_name, const cJSON* tool_arguments,
+                            ResponseSender response_sender) {
++    if (ClassifyMcpTool(tool_name) != McpToolVisibility::kAgentVisible) {
++        ESP_LOGW(TAG, "tools/call refused: %s is operator-only", tool_name.c_str());
++        ReplyError(id, -32601, "Tool not available over MCP", response_sender);
++        return;
++    }
++
+     auto tool_iter = std::find_if(tools_.begin(), tools_.end(), [&tool_name](const auto& tool) {
+         return tool->name() == tool_name;
+     });
+diff --git a/main/mcp_server.h b/main/mcp_server.h
+index eca6a60..9a16a23 100644
+--- a/main/mcp_server.h
++++ b/main/mcp_server.h
+@@ -15,6 +15,7 @@
+ #include <mbedtls/base64.h>
+ 
+ #include "cjson_utils.h"
++#include "weixue_mcp_policy.h"
+ 
+ class ImageContent {
+ private:
+@@ -264,17 +265,23 @@ private:
+     PropertyList properties_;
+     ToolCallback callback_;
+     bool user_only_ = false;
++    McpToolVisibility visibility_;
+ 
+ public:
+     McpTool(const std::string& name, const std::string& description, const PropertyList& properties,
+             ToolCallback callback)
+-        : name_(name), description_(description), properties_(properties), callback_(callback) {}
++        : name_(name),
++          description_(description),
++          properties_(properties),
++          callback_(callback),
++          visibility_(ClassifyMcpTool(name)) {}
+ 
+     void set_user_only(bool user_only) { user_only_ = user_only; }
+     inline const std::string& name() const { return name_; }
+     inline const std::string& description() const { return description_; }
+     inline const PropertyList& properties() const { return properties_; }
+     inline bool user_only() const { return user_only_; }
++    inline McpToolVisibility visibility() const { return visibility_; }
+ 
+     std::string to_json() const {
+         std::vector<std::string> required = properties_.GetRequired();

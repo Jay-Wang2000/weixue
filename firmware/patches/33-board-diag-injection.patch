@@ -1,5 +1,5 @@
 diff --git a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
-index e3e9996..cc5e54e 100644
+index 6916f35..7965665 100644
 --- a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
 +++ b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
 @@ -13,6 +13,12 @@
@@ -15,7 +15,7 @@ index e3e9996..cc5e54e 100644
  
  #include <esp_log.h>
  #include <esp_lcd_panel_vendor.h>
-@@ -601,15 +607,17 @@ private:
+@@ -596,15 +602,17 @@ private:
          ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO));
      }
  
@@ -41,7 +41,7 @@ index e3e9996..cc5e54e 100644
  
  #if CONFIG_USE_DEVICE_AEC
          boot_button_.OnDoubleClick([this]() {
-@@ -694,16 +702,132 @@ private:
+@@ -689,16 +697,132 @@ private:
              .handle = tp,
          };
          lv_indev_t* indev = lvgl_port_add_touch(&touch_cfg);
@@ -68,8 +68,8 @@ index e3e9996..cc5e54e 100644
 +            board->display_->OnTouch();
 +        }
 +        board->WakeDisplay();
-     }
- 
++    }
++
 +#if WEIXUE_FACE_DIAG
 +    DiagPointer diag_pointer_;
 +    DiagConsole diag_console_;
@@ -126,8 +126,8 @@ index e3e9996..cc5e54e 100644
 +        }
 +        *result = "touch needs tap <x> <y>, swipe <dir>, tour or press_boot";
 +        return false;
-+    }
-+
+     }
+ 
 +    std::string DiagStateJson() {
 +        auto& app = Application::GetInstance();
 +        std::string imu = imu_ != nullptr ? GetImuStateJson() : "null";
@@ -181,53 +181,7 @@ index e3e9996..cc5e54e 100644
      // 初始化工具
      void InitializeTools() {
          auto &mcp_server = McpServer::GetInstance();
-@@ -785,8 +909,45 @@ private:
-                 });
- #endif
-         }
-+#if WEIXUE_FACE_DIAG
-+        mcp_server.AddTool("self.diag.gesture",
-+            "Diagnostics only: handles a motion gesture (pick_up, face_down, face_up, double_tap) "
-+            "now, as if the motion sensor had detected it.",
-+            PropertyList({Property("gesture", kPropertyTypeString, std::string("pick_up"))}),
-+            [this](const PropertyList& properties) -> ReturnValue {
-+                return DiagMcpResult("diag gesture " + properties["gesture"].value<std::string>());
-+            });
-+        mcp_server.AddTool("self.diag.touch",
-+            "Diagnostics only: plays a touch as if a finger had made it: action `tap` at x, y "
-+            "(screen pixels 0-465), `swipe` in direction left|right|up|down, `press_boot` (BOOT "
-+            "button click) or `tour` (swipe left, up, down, right, 6 s apart).",
-+            PropertyList({Property("action", kPropertyTypeString, std::string("tap")),
-+                          Property("x", kPropertyTypeInteger, 233, 0, 465),
-+                          Property("y", kPropertyTypeInteger, 233, 0, 465),
-+                          Property("direction", kPropertyTypeString, std::string("left"))}),
-+            [this](const PropertyList& properties) -> ReturnValue {
-+                auto action = properties["action"].value<std::string>();
-+                std::string line = "diag touch " + action;
-+                if (action == "tap") {
-+                    line += " " + std::to_string(properties["x"].value<int>()) + " " +
-+                            std::to_string(properties["y"].value<int>());
-+                } else if (action == "swipe") {
-+                    line += " " + properties["direction"].value<std::string>();
-+                }
-+                return DiagMcpResult(line);
-+            });
-+#endif
-     }
- 
-+#if WEIXUE_FACE_DIAG
-+    std::string DiagMcpResult(const std::string& line) {
-+        std::string result;
-+        bool ok = DiagCommand(line, &result);
-+        ESP_LOGI(TAG, "MCP diag %s %s: %s", ok ? "ok" : "error", line.c_str(), result.c_str());
-+        return ok ? "{\"ok\":true}" : "{\"ok\":false,\"error\":\"" + result + "\"}";
-+    }
-+#endif
-+
- public:
-     WaveshareEsp32s3TouchAMOLED1inch75() : boot_button_(BOOT_BUTTON_GPIO) {
-         InitializePowerSaveTimer();
-@@ -802,6 +963,11 @@ public:
+@@ -758,6 +882,11 @@ public:
          InitializeImu();
          InitializeButtons();
          InitializeTools();

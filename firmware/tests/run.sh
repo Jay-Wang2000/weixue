@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Builds and runs the host tests for firmware/overrides sources (the agent tests link cJSON from a
-# firmware/build.sh scratch copy's managed components) and firmware/tools/usb_provision.py.
+# Builds and runs the host tests for firmware/overrides sources and the patched vendored MCP server
+# (the agent and MCP tests link cJSON from a firmware/build.sh scratch copy's managed components)
+# and the firmware/tools scripts.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 out="$(mktemp -d)"
@@ -30,4 +31,16 @@ for test in agent_msg_test agent_store_test agent_ui_test agent_outbox_test; do
     "$root/firmware/tests/$test.cc" "$out/cJSON.o" -o "$out/$test"
   "$out/$test"
 done
+# The vendored MCP server with 34-mcp-tool-visibility.patch, against host stubs.
+src="$vendor/xiaozhi-esp32"
+mkdir -p "$out/mcp/main"
+cp "$src/main/mcp_server.h" "$src/main/mcp_server.cc" "$src/main/cjson_utils.h" "$out/mcp/main/"
+(cd "$out/mcp" && git apply "$root/firmware/patches/34-mcp-tool-visibility.patch")
+mcp_flags=("${flags[@]/-std=c++17/-std=c++23}")
+c++ "${mcp_flags[@]}" -Wno-unused-parameter -Wno-unused-lambda-capture -DBOARD_NAME='"host"' \
+  -I "$root/firmware/tests/mcp_stubs" -I "$out/mcp/main" -I "$root/firmware/overrides/main" \
+  -isystem "$cjson" \
+  "$out/mcp/main/mcp_server.cc" "$root/firmware/tests/mcp_policy_test.cc" "$out/cJSON.o" \
+  -o "$out/mcp_policy_test"
+"$out/mcp_policy_test"
 "$py" -m unittest discover -s "$root/firmware/tests" -p 'test_*.py'

@@ -116,6 +116,15 @@ The device outbox (`weixue_agent_outbox.h`) holds 8 entries in RAM, sends one at
 - **Closing window.** A session the device opened for a proactive invocation that no longer has a lease (`proactive session opened with no current lease for it; closing once the device is quiet`) hears no voice and stays open until no agent notification arrived for 2 s (at most 8 s), so responses and `shown` acks the device sends in it are handled and receipted; then it closes. The rest are logged as `agent response …`; in live mode posted to agent-service with `Idempotency-Key = uuid5(device:boot:seq)`: `approve`/`deny`/`answer` to the chat's routes (chat id URL-quoted), `cancel` to `interrupt{reason:"panel"}`, `switch_chat`/`new_chat`/`ack_seen` to the chat routes.
 - **Persistence.** Acks are logged (`agent ack <outcome> …`), kept at `GET /weixue/agent/deliveries`, and in live mode posted to `POST /v1/deliveries/{id}/ack`; the gateway writes no database.
 
+## Device tools (ADR-13)
+
+The agent backend never operates the device's physical inputs (touch, BOOT button, gestures) and never answers an approval or clarify card itself: card responses come only from a person at the device. Device MCP tools have two classes:
+
+- **agent-visible**: `self.get_device_status`, `self.audio_speaker.set_volume`, `self.screen.set_brightness`, `self.screen.set_theme`, `self.screen.set_bedside`, `self.imu.get_state`. Only these may reach the model, through the xiaozhi device-MCP client or the gateway's `device_action`.
+- **operator-only**: every other name (`self.system.reconfigure_wifi`, the upstream user-only tools such as `self.reboot` and `self.upgrade_firmware`, camera, lamp, any later tool). Never listed or callable on the MCP channel; input injection exists only on the diag build's USB serial console.
+
+The device enforces the classes (`docs/firmware.md`, Device MCP tools). The server is the second line: `server/overlay/weixue_device_tools.py` drops a non-agent-visible tool from the device's `tools/list` before the model's function list is built (`device tool '<name>' dropped: not agent-visible`) and refuses a `call_mcp_tool` for one without sending it (`device tool call '<name>' refused: not agent-visible`). A gateway `device_action {tool, args}` runs through that same client call and checks `weixue_device_tools.is_agent_visible(tool)`.
+
 ## Fixture
 
 ```bash
