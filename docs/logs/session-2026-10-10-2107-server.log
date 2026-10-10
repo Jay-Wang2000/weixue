@@ -1,0 +1,8 @@
+261010 22:19:44[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: <mac>
+261010 22:19:44[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: <uuid>
+261010 22:19:44[0.9.7_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 <mac> 下发WebSocket配置
+261010 22:19:44[0.9.7_00000000000000][core.api.ota_handler]-INFO-Firmware cache refreshed: 0 models
+261010 22:19:44[0.9.7_00000000000000][core.api.ota_handler]-INFO-查找型号 esp32-s3-touch-amoled-1.75 的固件，找到 0 个候选
+261010 22:19:44[0.9.7_00000000000000][core.api.ota_handler]-INFO-设备 <mac> 固件已是最新: 2.5.1
+261010 22:19:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=<mac> seq=0: snapshot due
+261010 22:19:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=<mac> items=6 seqs=[1791666876832, 1791666884855, 1791666888870, 1791666892882, 1791666896898, 1791667184670] snapshot=True

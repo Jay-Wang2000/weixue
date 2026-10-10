@@ -37,12 +37,6 @@ public:
     // Re-derives line heights from the inherited text font after a theme or font change.
     void ApplyFonts();
 
-#if WEIXUE_FACE_DIAG
-    // Replays swipe left, swipe up (page 2), swipe down (page 1) and swipe right through a virtual
-    // pointer every kReplayPeriodMs, starting kReplayStartMs after the call.
-    void StartTouchReplay();
-#endif
-
 private:
     int32_t width_;
     const lv_font_t* icon_font_;
@@ -83,12 +77,9 @@ private:
     static void OpenCb(lv_event_t* e);
 
 #if WEIXUE_FACE_DIAG
-    lv_indev_t* replay_indev_ = nullptr;
-    int64_t replay_start_us_ = 0;
     char diag_values_[96] = "";
     int64_t diag_values_us_ = 0;
     const char* diag_backend_ = nullptr;
-    static void ReplayReadCb(lv_indev_t* indev, lv_indev_data_t* data);
     static void DiagBackendCb(lv_timer_t* timer);
 #endif
 };

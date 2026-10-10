@@ -1,0 +1,241 @@
+diff --git a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
+index e3e9996..cc5e54e 100644
+--- a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
++++ b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
+@@ -13,6 +13,12 @@
+ #include "i2c_device.h"
+ #include "imu_gestures.h"
+ #include "qmi8658.h"
++#include "diag_input.h"
++#if WEIXUE_FACE_DIAG
++#include "device_state_machine.h"
++#include <sstream>
++#include <vector>
++#endif
+ 
+ #include <esp_log.h>
+ #include <esp_lcd_panel_vendor.h>
+@@ -601,15 +607,17 @@ private:
+         ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO));
+     }
+ 
++    void OnBootClick() {
++        auto& app = Application::GetInstance();
++        if (app.GetDeviceState() == kDeviceStateStarting) {
++            EnterWifiConfigMode();
++            return;
++        }
++        app.ToggleChatState();
++    }
++
+     void InitializeButtons() {
+-        boot_button_.OnClick([this]() {
+-            auto& app = Application::GetInstance();
+-            if (app.GetDeviceState() == kDeviceStateStarting) {
+-                EnterWifiConfigMode();
+-                return;
+-            }
+-            app.ToggleChatState();
+-        });
++        boot_button_.OnClick([this]() { OnBootClick(); });
+ 
+ #if CONFIG_USE_DEVICE_AEC
+         boot_button_.OnDoubleClick([this]() {
+@@ -694,16 +702,132 @@ private:
+             .handle = tp,
+         };
+         lv_indev_t* indev = lvgl_port_add_touch(&touch_cfg);
+-        lv_indev_add_event_cb(indev, [](lv_event_t* e) {
+-            auto* board = static_cast<WaveshareEsp32s3TouchAMOLED1inch75*>(lv_event_get_user_data(e));
+-            if (!board->panel_off_) {
+-                board->display_->OnTouch();
+-            }
+-            board->WakeDisplay();
+-        }, LV_EVENT_PRESSED, this);
++        lv_indev_add_event_cb(indev, TouchPressedCb, LV_EVENT_PRESSED, this);
+         ESP_LOGI(TAG, "Touch panel initialized successfully");
++#if WEIXUE_FACE_DIAG
++        if (lvgl_port_lock(0)) {
++            diag_pointer_.Create(lv_display_get_default(), TouchPressedCb, this);
++            lvgl_port_unlock();
++        }
++#endif
++    }
++
++    static void TouchPressedCb(lv_event_t* e) {
++        auto* board = static_cast<WaveshareEsp32s3TouchAMOLED1inch75*>(lv_event_get_user_data(e));
++        if (!board->panel_off_) {
++            board->display_->OnTouch();
++        }
++        board->WakeDisplay();
+     }
+ 
++#if WEIXUE_FACE_DIAG
++    DiagPointer diag_pointer_;
++    DiagConsole diag_console_;
++
++    // Handles a gesture as the IMU task does for a detector or tap-engine event.
++    bool DiagGesture(const std::string& name, std::string* result) {
++        for (int g = 0; g < kGestureCount; g++) {
++            if (name == kGestureNames[g]) {
++                ESP_LOGI(TAG, "IMU diag: injected %s", kGestureNames[g]);
++                OnGesture(static_cast<Gesture>(g));
++                *result = name;
++                return true;
++            }
++        }
++        *result = "gesture must be pick_up, face_down, face_up or double_tap";
++        return false;
++    }
++
++    bool DiagTouch(const std::vector<std::string>& args, std::string* result) {
++        const std::string action = args.empty() ? "" : args[0];
++        if (action == "tap" && args.size() == 3) {
++            char* end1 = nullptr;
++            char* end2 = nullptr;
++            long x = strtol(args[1].c_str(), &end1, 10);
++            long y = strtol(args[2].c_str(), &end2, 10);
++            if (*end1 != '\0' || *end2 != '\0' || !diag_pointer_.Tap(x, y)) {
++                *result = "tap needs x y within 0-465 (or the queue is full)";
++                return false;
++            }
++            *result = "tap " + args[1] + " " + args[2];
++            return true;
++        }
++        if (action == "swipe" && args.size() == 2) {
++            if (!diag_pointer_.Swipe(args[1])) {
++                *result = "swipe needs left, right, up or down (or the queue is full)";
++                return false;
++            }
++            *result = "swipe " + args[1];
++            return true;
++        }
++        if (action == "tour" && args.size() == 1) {
++            if (!diag_pointer_.Tour()) {
++                *result = "queue is full";
++                return false;
++            }
++            *result = "tour";
++            return true;
++        }
++        if (action == "press_boot" && args.size() == 1) {
++            ESP_LOGI(TAG, "Button diag: injected boot click");
++            OnBootClick();
++            *result = "press_boot";
++            return true;
++        }
++        *result = "touch needs tap <x> <y>, swipe <dir>, tour or press_boot";
++        return false;
++    }
++
++    std::string DiagStateJson() {
++        auto& app = Application::GetInstance();
++        std::string imu = imu_ != nullptr ? GetImuStateJson() : "null";
++        return std::string("{\"device_state\":\"") +
++               DeviceStateMachine::GetStateName(app.GetDeviceState()) + "\",\"panel_off\":" +
++               (panel_off_ ? "true" : "false") + ",\"brightness\":" +
++               std::to_string(backlight_->brightness()) + ",\"display\":" +
++               display_->DiagStateJson() + ",\"imu\":" + imu + "}";
++    }
++
++    // One line: `diag gesture <name>`, `diag touch tap <x> <y>` (or `diag tap <x> <y>`),
++    // `diag touch swipe <dir>` (or `diag swipe <dir>`), `diag touch press_boot` (or
++    // `diag press_boot`), `diag touch tour`, `diag dump`, `diag help`.
++    bool DiagCommand(const std::string& line, std::string* result) {
++        std::vector<std::string> args;
++        std::istringstream in(line);
++        for (std::string word; in >> word;) {
++            args.push_back(word);
++        }
++        if (args.size() < 2 || args[0] != "diag") {
++            *result = "unknown command; try diag help";
++            return false;
++        }
++        const std::string cmd = args[1];
++        std::vector<std::string> rest(args.begin() + 2, args.end());
++        if (cmd == "gesture" && rest.size() == 1) {
++            return DiagGesture(rest[0], result);
++        }
++        if (cmd == "touch") {
++            return DiagTouch(rest, result);
++        }
++        if (cmd == "tap" || cmd == "swipe" || cmd == "press_boot") {
++            rest.insert(rest.begin(), cmd);
++            return DiagTouch(rest, result);
++        }
++        if (cmd == "dump" && rest.empty()) {
++            *result = DiagStateJson();
++            display_->DiagRequestDump();
++            return true;
++        }
++        if (cmd == "help") {
++            *result = "diag gesture pick_up|face_down|face_up|double_tap; diag tap <x> <y>; "
++                      "diag swipe left|right|up|down; diag press_boot; diag touch tour; diag dump";
++            return true;
++        }
++        *result = "unknown command; try diag help";
++        return false;
++    }
++#endif
++
+     // 初始化工具
+     void InitializeTools() {
+         auto &mcp_server = McpServer::GetInstance();
+@@ -785,8 +909,45 @@ private:
+                 });
+ #endif
+         }
++#if WEIXUE_FACE_DIAG
++        mcp_server.AddTool("self.diag.gesture",
++            "Diagnostics only: handles a motion gesture (pick_up, face_down, face_up, double_tap) "
++            "now, as if the motion sensor had detected it.",
++            PropertyList({Property("gesture", kPropertyTypeString, std::string("pick_up"))}),
++            [this](const PropertyList& properties) -> ReturnValue {
++                return DiagMcpResult("diag gesture " + properties["gesture"].value<std::string>());
++            });
++        mcp_server.AddTool("self.diag.touch",
++            "Diagnostics only: plays a touch as if a finger had made it: action `tap` at x, y "
++            "(screen pixels 0-465), `swipe` in direction left|right|up|down, `press_boot` (BOOT "
++            "button click) or `tour` (swipe left, up, down, right, 6 s apart).",
++            PropertyList({Property("action", kPropertyTypeString, std::string("tap")),
++                          Property("x", kPropertyTypeInteger, 233, 0, 465),
++                          Property("y", kPropertyTypeInteger, 233, 0, 465),
++                          Property("direction", kPropertyTypeString, std::string("left"))}),
++            [this](const PropertyList& properties) -> ReturnValue {
++                auto action = properties["action"].value<std::string>();
++                std::string line = "diag touch " + action;
++                if (action == "tap") {
++                    line += " " + std::to_string(properties["x"].value<int>()) + " " +
++                            std::to_string(properties["y"].value<int>());
++                } else if (action == "swipe") {
++                    line += " " + properties["direction"].value<std::string>();
++                }
++                return DiagMcpResult(line);
++            });
++#endif
+     }
+ 
++#if WEIXUE_FACE_DIAG
++    std::string DiagMcpResult(const std::string& line) {
++        std::string result;
++        bool ok = DiagCommand(line, &result);
++        ESP_LOGI(TAG, "MCP diag %s %s: %s", ok ? "ok" : "error", line.c_str(), result.c_str());
++        return ok ? "{\"ok\":true}" : "{\"ok\":false,\"error\":\"" + result + "\"}";
++    }
++#endif
++
+ public:
+     WaveshareEsp32s3TouchAMOLED1inch75() : boot_button_(BOOT_BUTTON_GPIO) {
+         InitializePowerSaveTimer();
+@@ -802,6 +963,11 @@ public:
+         InitializeImu();
+         InitializeButtons();
+         InitializeTools();
++#if WEIXUE_FACE_DIAG
++        diag_console_.Start([this](const std::string& line, std::string* result) {
++            return DiagCommand(line, result);
++        });
++#endif
+     }
+ 
+     virtual AudioCodec* GetAudioCodec() override {
