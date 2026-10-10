@@ -12,7 +12,7 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 4. Anthropic: `claude-sonnet-5-5` default, `claude-haiku-4-5` fallback, adaptive thinking.
 
 ## Open proposals (will be filled by agents / orchestrator)
-5. **ha-mcp voice policy diff** — approved in principle 2026-10-07; overlay no longer touches `wait_seconds` (ADR-9 revised); apply at home after the drift fix (5b), then `render_voice_policy.py` + `apply-policy.sh`. Becomes moot for the agent path once M2 exposes all tools under the ha-mcp policy (decision 19).
+5. **ha-mcp voice policy diff** — APPLIED 2026-10-10 together with the 5b drift fix (ha-agent commit); overlay no longer touches `wait_seconds` (ADR-9 revised); apply at home after the drift fix (5b), then `render_voice_policy.py` + `apply-policy.sh`. Becomes moot for the agent path once M2 exposes all tools under the ha-mcp policy (decision 19).
 5a. **Voice tool filter (live now, narrows access only)** — the bridge exposes 7 of ha-mcp's 77 tools to the voice path and refuses `ha_call_service` outside light/switch/cover/media_player/climate (`server/policy/voice_bridge.json`). Confirm or adjust the domain list.
 5b. **Policy drift found**: live ha-mcp policy v13 gates `ha_manage_blueprints`, but ha-agent's `policy/tool_policy.json` still names the old `ha_import_blueprint`; running `apply-policy.sh` from that file unchanged would drop the gate. Decide: update the ha-agent file first (recommended).
 5c. During the live light test (~21:18 house time) the living-room light was switched off by someone outside the voice path; the agent stopped toggling lights. Future live tests will use a dedicated test entity if you name one.
@@ -92,8 +92,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 ## FYI (proceeding; our own stack, not an external service)
 9. Codex Wave 2 code review (`docs/reviews/codex-gpt6-astra-high-wave2-code-review-2026-10-06.md`): fix-first verdict. Three fix tasks queued after Wave 3: `fix-server-review-2`, `fix-turn-isolation`, `fix-firmware-scripts-2`. Includes enabling `server.auth` with the device MAC allow-list and binding OTA/WS to needed interfaces only.
 
-## Current network mode (2026-10-07)
-- Office day: Mac + device on Jay's phone hotspot (SSID in `.env`, Mac IP 172.20.10.2); the device gets Wi-Fi + `ota_url` override via USB provisioning. HA is reached through the WireGuard sidecar (`server/.env` WG_TUNNEL=1, profile `tunnel`, task `tool-wg-tunnel`); the policy apply script runs from a container in the tunnel namespace. At home: LAN_IP back to 192.168.8.220, WG_TUNNEL unset, clear the device `ota_url` override.
+## Current network mode (2026-10-10)
+- Home: Mac 192.168.8.220 on the home LAN, WG_TUNNEL off (wg container removed by setup.sh), HA direct. The device still carries the hotspot `ota_url` override until it is plugged in and re-provisioned.
 
 ## User-only test items
 

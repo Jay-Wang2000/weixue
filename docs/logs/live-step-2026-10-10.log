@@ -1,0 +1,6 @@
+== live step 2026-10-10 21:36:25 main 4c5fad0 home mode
+== OTA unlisted (expect 403): 403
+== OTA listed: status 200 token: '' tz: IST-1GMT0,M10.5.0,M3.5.0/1
+== proactive poll unlisted (expect 401): 401
+== bridge: healthy; 1 connect line(s)
+== ASR configured: ASR:GoogleSTTStream
