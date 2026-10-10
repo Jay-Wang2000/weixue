@@ -86,6 +86,9 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 47. **ha-mcp HTTP transport diagnostics** — needs Jay (ha-mcp config): the 2026-10-07 tools/list hangs have no proven cause (sessions ruled out; all three happened in tunnel mode; upstream issues #2367/#1644 describe a similar intermittent hang). Options: A = enable ha-mcp's opt-in HTTP transport diagnostics (byte counts and timing, no payloads) so the next hang is diagnosable (recommended); B = A plus switch ha-mcp from SSE streaming to single JSON responses; C = neither. The bridge now survives the hang on its cached tool list either way.
 
+48. **Monitor: home status snapshot via ha-mcp** — needs Jay (brief docs/briefs/feat-agent-monitor.md Q1). Options: A = agent-service calls `ha_get_state` on a ≤20-entity list every 5 min (recommended; entities to be named by Jay or defaulted to lights/climate/covers/locks found in the area list); B = `ha_get_overview` every 5 min; C = no snapshot in v1. Build default until decided: C (tile hidden).
+49. **Monitor: ha-mcp probe cadence** — needs Jay (Q2). Recommend a 10 s ping with 5 s timeout so the "red within 30 s" rule holds; alternative: 45 s rule with a 30 s ping. Build default until decided: 10 s ping (read-only, trivial load).
+
 ## Night run 2026-10-10 → 11 (Jay asleep)
 - Quiet mode: no `say`, device volume 0 for any test, no audible TTS; the full audio session runs after Jay wakes. Autonomous work continues through M2; anything user-facing in behaviour not already decided, external-service or security-related is parked here for the morning report.
 
