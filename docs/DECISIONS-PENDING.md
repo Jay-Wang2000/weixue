@@ -89,6 +89,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 48. **Monitor: home status snapshot via ha-mcp** — needs Jay (brief docs/briefs/feat-agent-monitor.md Q1). Options: A = agent-service calls `ha_get_state` on a ≤20-entity list every 5 min (recommended; entities to be named by Jay or defaulted to lights/climate/covers/locks found in the area list); B = `ha_get_overview` every 5 min; C = no snapshot in v1. Build default until decided: C (tile hidden).
 49. **Monitor: ha-mcp probe cadence** — needs Jay (Q2). Recommend a 10 s ping with 5 s timeout so the "red within 30 s" rule holds; alternative: 45 s rule with a 30 s ping. Build default until decided: 10 s ping (read-only, trivial load).
 
+50. **Device tool exposure (security, Jay 2026-10-10)**: the agent backend must never be able to operate the device's physical inputs or approve its own actions. Device MCP tools are split into two classes: agent-visible (bedside, volume, brightness, status, theme) and operator-only (all `self.diag.*` injection tools, `self.system.reconfigure_wifi`, camera). Operator-only tools are never advertised or callable over the MCP channel to the backend; they exist only on the USB serial console of the diag build (and the diag MCP tools are removed). The gateway/agent `device_action` path is limited to the agent-visible list and the device enforces it. ADR-13.
+
 ## Night run 2026-10-10 → 11 (Jay asleep)
 - Quiet mode: no `say`, device volume 0 for any test, no audible TTS; the full audio session runs after Jay wakes. Autonomous work continues through M2; anything user-facing in behaviour not already decided, external-service or security-related is parked here for the morning report.
 
