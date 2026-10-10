@@ -42,7 +42,7 @@ ws://<host>:8004/mcp_endpoint/mcp/?token=<AES-encrypted token>
 
 `server/overlay/` is the only way to add or change server code. Its contents mirror `main/xiaozhi-server/` of the upstream clone (for example `server/overlay/core/providers/llm/<name>/<name>.py`) and are copied over the upstream tree at image build (`server/Dockerfile`, `__pycache__` excluded from both). Python packages the overlay needs are listed in `server/requirements-overlay.txt`; `server/requirements-overlay.lock` pins them and their transitive dependencies (regeneration command in `scripts/lock_overlay_deps.py`). The Dockerfile installs the lock with `--no-deps` and fails the build if `pip check` finds a conflict. Apply with `./scripts/setup.sh`. The vendored clone is never edited.
 
-Changes to upstream functions that are too small to justify overriding a whole module go in `server/overlay/weixue_patches.py` (and `weixue_clock.py` for the OTA clock). The image's entrypoint, `weixue_main.py`, applies both and then runs upstream `app.py`. Current patches:
+Changes to upstream functions that are too small to justify overriding a whole module go in `server/overlay/weixue_patches.py` (and `weixue_clock.py` for the OTA clock, `weixue_device_tools.py` for device tool classes). The image's entrypoint, `weixue_main.py`, applies them and then runs upstream `app.py`. Current patches:
 
 - `ConnectionHandler._extract_direct_answer_response` is replaced by `decode_direct_answer`: it decodes the `response` JSON string of the streamed `direct_answer` arguments (escapes, `\uXXXX`, surrogate pairs) and stops at its closing quote or at an incomplete escape, so each streamed result extends the previous one. `_clean_response_garbage` returns its input unchanged: with framing removed by the decoder, no chunk-level stripping is applied (upstream's stripped whitespace and quotes at chunk edges: "isfour", "Say 'onnow").
 - `ConnectionHandler.handle_connection`, `ListenTextMessageHandler.handle` and the aiohttp app of `core.http_server` are wrapped for proactive messages (`docs/proactive.md`).
@@ -57,6 +57,7 @@ Changes to upstream functions that are too small to justify overriding a whole m
 - `handleAbortMessage` (as imported by `core.handle.abortHandle`, `receiveAudioHandle` and `abortMessageHandler`) is wrapped to count every abort as a connection event for the wake cue.
 - `core.providers.asr.base.startToChat` is wrapped as the echo guard (see Echo guard); a transcript that passes it is a connection event and cancels a pending wake cue.
 - `SimpleHttpServer.__init__` is wrapped so proactive device requests use its `server.auth` (`docs/proactive.md`, Device identity).
+- `MCPClient.add_tool` and `call_mcp_tool` (in `device_mcp.mcp_handler`, `mcp_executor` and the package) are wrapped (`weixue_device_tools.py`): only agent-visible device tools enter the model's function list or are called on the device (`docs/agent-protocol.md`, Device tools).
 
 ## Conversation timing (ADR-7)
 
