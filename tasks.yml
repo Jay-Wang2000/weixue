@@ -225,7 +225,7 @@ tasks:
     description: |
       2026-10-07 现象（三次）：bridge 多次重启后 ha-mcp 的 MCP 端点对大响应（tools/list ≈270 KB）挂起直到 ReadTimeout，initialize 与 REST（/api/policy/*，11 KB）仍正常；在 HA 里 Reload HA-MCP 后恢复。假设：bridge 每次连接都 initialize 一个新的 MCP streamable-HTTP 会话且从不终止（无 DELETE Mcp-Session-Id / 无会话复用），ha-mcp 累积会话后退化。要做：bridge 复用会话、退出/重连时发 DELETE 终止、记录 Mcp-Session-Id、对 tools/list 设独立超时与缓存（启动用缓存列表，后台刷新）；给 feat-agent-service 的 HA adapter 同样的会话纪律；在 scratch 中用 N 次连接复现并验证不再退化；监控台记录 ha-mcp 会话数/首字节延迟。
     depends_on: [fix-wave5-server]
-    status: pending
+    status: in_progress
     retries: 0
     model: opus
   - id: feat-agent-service
