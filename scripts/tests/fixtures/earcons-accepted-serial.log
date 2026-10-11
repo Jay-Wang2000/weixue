@@ -1,0 +1,17 @@
+[    0.00 10:00:00Z] I (300000) StateMachine: State: listening -> idle
+[    2.00 10:00:02Z] I (302000) FaceDisplay: diag gaze=0,0 mode=idle
+[   12.00 10:00:12Z] I (312000) WeixueAgent: agent: chat=cht_01M4TESTCHAT0000000000000 task=tsk_01M4TESTTASK0000000000000 state=needs_approval seq=1 tier=silent speaks=0 result=applied via=poll
+[   12.00 10:00:12Z] I (312000) FaceDisplay: agent ui: task=tsk_01M4TESTTASK0000000000000 state=needs_approval tier=silent flash=0 earcon=none
+[   12.10 10:00:12Z] I (312100) FaceDisplay: agent ui: card open task=tsk_01M4TESTTASK0000000000000
+[   32.00 10:00:32Z] I (332000) WeixueAgent: agent: chat=cht_01M4TESTCHAT0000000000000 task=tsk_01M4TESTTASK0000000000000 state=needs_approval seq=2 tier=when_idle speaks=1 result=applied via=poll
+[   32.00 10:00:32Z] I (332000) FaceDisplay: agent ui: task=tsk_01M4TESTTASK0000000000000 state=needs_approval tier=when_idle flash=2 earcon=needs_you
+[   32.00 10:00:32Z] I (332000) FaceDisplay: earcon=needs_you
+[   35.00 10:00:35Z] ### send diag card approve
+[   35.20 10:00:35Z] I (335200) DiagConsole: ok diag card approve: approve tap 151 303
+[   35.20 10:00:35Z] I (335200) FaceDisplay: agent ui: card changed under the tap, refreshed task=tsk_01M4TESTTASK0000000000000
+[   36.40 10:00:36Z] ### send diag card approve
+[   36.60 10:00:36Z] I (336600) DiagConsole: ok diag card approve: approve tap 151 303
+[   36.80 10:00:36Z] I (336800) WeixueAgent: agent response: kind=approve chat=cht_01M4TESTCHAT0000000000000 task=tsk_01M4TESTTASK0000000000000 card=int_01M4TESTCARD0000000000000 option=approve via=tap seq=36
+[   37.30 10:00:37Z] I (337300) WeixueAgent: agent receipt: approve seq=36 card=int_01M4TESTCARD0000000000000 result=accepted
+[   37.30 10:00:37Z] I (337300) FaceDisplay: earcon=approved
+[   58.40 10:00:58Z] I (358400) FaceDisplay: diag gaze=0,0 mode=idle

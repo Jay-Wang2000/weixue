@@ -1,0 +1,12 @@
+[    0.00 10:00:00Z] I (300000) FaceDisplay: diag gaze=0,0 mode=idle
+[    1.00 10:00:01Z] ### send diag dump
+[    1.20 10:00:01Z] I (301200) DiagConsole: ok diag dump: {"device_state":"idle","panel_off":false,"brightness":75}
+[    2.80 10:00:02Z] ### say: Jarvis, what time is it?
+[    3.60 10:00:03Z] I (303600) Application: Wake word detected: Jarvis
+[    3.70 10:00:03Z] I (303700) StateMachine: State: idle -> connecting
+[    4.10 10:00:04Z] I (304100) StateMachine: State: connecting -> listening
+[    5.20 10:00:05Z] I (305200) Application: >> Jarvis, what time is it?
+[    5.30 10:00:05Z] I (305300) StateMachine: State: listening -> speaking
+[    6.00 10:00:06Z] I (306000) Application: << It's ten past ten.
+[    7.20 10:00:07Z] I (307200) StateMachine: State: speaking -> listening
+[    9.00 10:00:09Z] I (309000) FaceDisplay: diag gaze=0,0 mode=idle

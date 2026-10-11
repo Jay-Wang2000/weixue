@@ -1,0 +1,10 @@
+[    0.00 10:00:00Z] I (300000) StateMachine: State: idle -> connecting
+[    0.50 10:00:00Z] I (300500) StateMachine: State: connecting -> listening
+[    5.00 10:00:05Z] I (305000) FaceDisplay: diag gaze=0,0 mode=idle
+[   10.00 10:00:10Z] I (310000) FaceDisplay: diag gaze=0,0 mode=idle
+[   15.00 10:00:15Z] I (315000) FaceDisplay: diag gaze=0,0 mode=idle
+[   20.00 10:00:20Z] I (320000) FaceDisplay: diag gaze=0,0 mode=idle
+[   25.00 10:00:25Z] I (325000) FaceDisplay: diag gaze=0,0 mode=idle
+[   30.00 10:00:30Z] I (330000) FaceDisplay: diag gaze=0,0 mode=idle
+[   35.00 10:00:35Z] I (335000) FaceDisplay: diag gaze=0,0 mode=idle
+[   40.00 10:00:40Z] I (340000) FaceDisplay: diag gaze=0,0 mode=idle

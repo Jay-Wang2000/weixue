@@ -15,7 +15,8 @@
 # GOOGLE_APPLICATION_CREDENTIALS) before the board is touched.
 # From the same .env: WEIXUE_PROACTIVE_TOKEN is exported for card_tap; the fixture base is
 # http://<BIND_IP, or 127.0.0.1 for 0.0.0.0>:8003 and the fixture device the first ALLOWED_DEVICES
-# entry; VOICE_BARGE_IN (default 0) is passed as --barge-in. Options after -- override these.
+# entry; VOICE_BARGE_IN (default 0) is passed as --barge-in and VOICE_LLM (default anthropic) as
+# --voice-llm. Options after -- override these.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 live_env="${WEIXUE_LIVE_ENV:-$HOME/Projects/weixue/server/.env}"
@@ -117,6 +118,8 @@ device_id="$(env_value ALLOWED_DEVICES | cut -d, -f1 | tr -d ' ')"
 [ -n "$device_id" ] && mode_args+=(--fixture-device "$device_id")
 barge_in="$(env_value VOICE_BARGE_IN)"
 mode_args+=(--barge-in "${barge_in:-0}")
+voice_llm="$(env_value VOICE_LLM)"
+mode_args+=(--voice-llm "${voice_llm:-anthropic}")
 set +e
 "$root/.venv/bin/python" "$root/scripts/audio_session.py" --port "$port" \
   --out "$logs/session-$stamp.md" --build-info "$(git -C "$root" rev-parse --short HEAD) diag" \

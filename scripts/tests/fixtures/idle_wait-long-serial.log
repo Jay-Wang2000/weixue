@@ -1,0 +1,19 @@
+[    0.00 10:00:00Z] I (300000) StateMachine: State: listening -> speaking
+[    5.00 10:00:05Z] I (305000) FaceDisplay: diag gaze=0,0 mode=idle
+[   10.00 10:00:10Z] I (310000) FaceDisplay: diag gaze=0,0 mode=idle
+[   15.00 10:00:15Z] I (315000) FaceDisplay: diag gaze=0,0 mode=idle
+[   20.00 10:00:20Z] I (320000) FaceDisplay: diag gaze=0,0 mode=idle
+[   25.00 10:00:25Z] I (325000) StateMachine: State: speaking -> listening
+[   30.00 10:00:30Z] I (330000) FaceDisplay: diag gaze=0,0 mode=idle
+[   35.00 10:00:35Z] I (335000) FaceDisplay: diag gaze=0,0 mode=idle
+[   40.00 10:00:40Z] I (340000) FaceDisplay: diag gaze=0,0 mode=idle
+[   45.00 10:00:45Z] I (345000) StateMachine: State: listening -> idle
+[   46.60 10:00:46Z] ### say: Jarvis, what time is it?
+[   47.40 10:00:47Z] I (347400) Application: Wake word detected: Jarvis
+[   47.50 10:00:47Z] I (347500) StateMachine: State: idle -> connecting
+[   47.90 10:00:47Z] I (347900) StateMachine: State: connecting -> listening
+[   49.00 10:00:49Z] I (349000) Application: >> Jarvis, what time is it?
+[   49.10 10:00:49Z] I (349100) StateMachine: State: listening -> speaking
+[   49.80 10:00:49Z] I (349800) Application: << It's ten past ten.
+[   51.00 10:00:51Z] I (351000) StateMachine: State: speaking -> listening
+[   53.00 10:00:53Z] I (353000) FaceDisplay: diag gaze=0,0 mode=idle

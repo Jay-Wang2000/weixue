@@ -1,0 +1,13 @@
+[    0.00 10:00:00Z] I (300000) StateMachine: State: speaking -> listening
+[    5.00 10:00:05Z] I (305000) StateMachine: State: listening -> idle
+[    6.50 10:00:06Z] I (306500) FaceDisplay: agent ui: pose=mini top=tsk_01M4TESTTASK0000000000000
+[    7.60 10:00:07Z] I (307600) FaceDisplay: diag lit=6.16% screen 7.85% circle mode=mini mood=neutral dump=3 snap_ms=359.9
+[    9.20 10:00:09Z] ### say: Jarvis, what time is it?
+[   10.00 10:00:10Z] I (310000) Application: Wake word detected: Jarvis
+[   10.10 10:00:10Z] I (310100) StateMachine: State: idle -> connecting
+[   10.50 10:00:10Z] I (310500) StateMachine: State: connecting -> listening
+[   11.60 10:00:11Z] I (311600) Application: >> Jarvis, what time is it?
+[   11.70 10:00:11Z] I (311700) StateMachine: State: listening -> speaking
+[   12.40 10:00:12Z] I (312399) Application: << It's ten past ten.
+[   13.60 10:00:13Z] I (313600) StateMachine: State: speaking -> listening
+[   15.60 10:00:15Z] I (315600) FaceDisplay: diag gaze=0,0 mode=idle
