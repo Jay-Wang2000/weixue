@@ -1,0 +1,850 @@
+[    0.00 13:19:47Z] ### === ROUND D: expiry
+[    0.20 13:19:47Z] ESP-ROM:esp32s3-20210327
+[    0.20 13:19:47Z] Build:Mar 27 2021
+[    0.20 13:19:47Z] rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+[    0.20 13:19:47Z] Saved PC:0x420596d1
+[    0.20 13:19:47Z] SPIWP:0xee
+[    0.20 13:19:47Z] mode:DIO, clock div:1
+[    0.20 13:19:47Z] load:0x3fce2820,len:0x544
+[    0.20 13:19:47Z] load:0x403c8700,len:0xd14
+[    0.20 13:19:47Z] load:0x403cb700,len:0x2eb4
+[    0.20 13:19:47Z] entry 0x403c88f4
+[    0.20 13:19:47Z] I (34) octal_psram: vendor id    : 0x0d (AP)
+[    0.20 13:19:47Z] I (34) octal_psram: dev id       : 0x02 (generation 3)
+[    0.20 13:19:47Z] I (34) octal_psram: density      : 0x03 (64 Mbit)
+[    0.20 13:19:47Z] I (36) octal_psram: good-die     : 0x01 (Pass)
+[    0.20 13:19:47Z] I (40) octal_psram: Latency      : 0x01 (Fixed)
+[    0.20 13:19:47Z] I (45) octal_psram: VCC          : 0x01 (3V)
+[    0.20 13:19:47Z] I (49) octal_psram: SRF          : 0x01 (Fast Refresh)
+[    0.20 13:19:47Z] I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+[    0.20 13:19:47Z] I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+[    0.20 13:19:47Z] I (63) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+[    0.20 13:19:47Z] I (68) octal_psram: DriveStrength: 0x00 (1/1)
+[    0.20 13:19:47Z] I (72) MSPI Timing: Enter psram timing tuning
+[    0.20 13:19:47Z] I (77) esp_psram: Found 8MB PSRAM device
+[    0.20 13:19:47Z] I (79) esp_psram: Speed: 80MHz
+[    0.20 13:19:47Z] I (82) cpu_start: Multicore app
+[    0.20 13:19:47Z] I (97) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+[    0.20 13:19:47Z] I (97) cpu_start: Pro cpu start user code
+[    0.20 13:19:47Z] I (97) cpu_start: cpu freq: 240000000 Hz
+[    0.20 13:19:47Z] I (99) app_init: Application information:
+[    0.20 13:19:47Z] I (102) app_init: Project name:     xiaozhi
+[    0.20 13:19:47Z] I (106) app_init: App version:      2.5.1
+[    0.20 13:19:47Z] I (110) app_init: Compile time:     Oct  7 2026 05:42:06
+[    0.20 13:19:47Z] I (115) app_init: ELF file SHA256:  81d6bb62b...
+[    0.20 13:19:47Z] I (119) app_init: ESP-IDF:          v6.1
+[    0.20 13:19:47Z] I (123) efuse_init: Min chip rev:     v0.0
+[    0.20 13:19:47Z] I (127) efuse_init: Max chip rev:     v0.99 
+[    0.20 13:19:47Z] I (131) efuse_init: Chip rev:         v0.2
+[    0.20 13:19:47Z] I (135) heap_init: Initializing. RAM available for dynamic allocation:
+[    0.20 13:19:47Z] I (141) heap_init: At 3FCAB520 len 0003E1F0 (248 KiB): RAM
+[    0.20 13:19:47Z] I (146) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+[    0.20 13:19:47Z] I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+[    0.20 13:19:47Z] I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+[    0.20 13:19:47Z] I (162) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+[    0.20 13:19:47Z] I (169) spi_flash: detected chip: gd
+[    0.20 13:19:47Z] I (171) spi_flash: flash io: qio
+[    0.20 13:19:47Z] I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[    0.20 13:19:47Z] I (181) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[    0.20 13:19:47Z] I (188) main_task: Started on CPU0
+[    0.20 13:19:47Z] I (188) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+[    0.20 13:19:47Z] I (198) main_task: Calling app_main()
+[    0.32 13:19:47Z] ### chat cht_01M4NHX5C30VR3SGEB2HHDBWWP task tsk_01M4NHX5F1VVNNK1KHPX1HFXHD requested (message HTTP 201)
+[    0.40 13:19:47Z] I (368) Board: UUID=<uuid> SKU=esp32-s3-touch-amoled-1.75c-weixue
+[    0.40 13:19:47Z] I (368) button: IoT Button Version: 4.2.1
+[    0.40 13:19:47Z] I (368) PowerSaveTimer: Power save timer enabled
+[    0.40 13:19:47Z] I (368) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+[    0.40 13:19:47Z] I (378) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+[    0.40 13:19:47Z] W (388) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.40 13:19:47Z] W (388) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.61 13:19:47Z] W (398) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.61 13:19:47Z] I (408) co5300: version: 2.2.0
+[    0.61 13:19:47Z] I (408) co5300_spi: LCD panel create success, version: 2.2.0
+[    0.61 13:19:47Z] W (578) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+[    1.86 13:19:48Z] I (1778) Display: Power management not supported
+[    2.07 13:19:49Z] I (1858) LcdDisplay: Turning display on
+[    2.07 13:19:49Z] I (1858) LcdDisplay: Initialize LVGL library
+[    2.07 13:19:49Z] I (1858) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+[    2.07 13:19:49Z] I (1858) LcdDisplay: Use 2MB of PSRAM for image cache
+[    2.07 13:19:49Z] I (1868) LcdDisplay: Initialize LVGL port
+[    2.07 13:19:49Z] I (1868) LcdDisplay: Adding LCD display
+[    2.07 13:19:49Z] I (1868) LVGL: Starting LVGL task
+[    2.07 13:19:49Z] I (1878) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+[    2.07 13:19:49Z] I (1878) Backlight: Set brightness to 75
+[    2.07 13:19:49Z] I (1888) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+[    2.07 13:19:49Z] I (1958) CST9217: Checkcode: 0x204ECACA
+[    2.07 13:19:49Z] I (1958) CST9217: Resolution X: 466, Y: 466
+[    2.07 13:19:49Z] I (1958) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+[    2.07 13:19:49Z] I (1958) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+[    2.07 13:19:49Z] I (1958) Qmi8658: QMI8658 found at 0x6B
+[    2.07 13:19:49Z] I (1988) Qmi8658: Reset result 0x80
+[    2.07 13:19:49Z] I (2008) MCP: Add tool: self.system.reconfigure_wifi [operator-only]
+[    2.07 13:19:49Z] I (2008) MCP: Add tool: self.screen.set_bedside
+[    2.07 13:19:49Z] I (2008) MCP: Add tool: self.imu.get_state
+[    2.07 13:19:49Z] I (2008) DiagConsole: listening on USB Serial/JTAG
+[    2.07 13:19:49Z] I (2008) StateMachine: State: unknown -> starting
+[    2.07 13:19:49Z] I (2018) Application: Clock: stored TZ IST-1GMT0,M10.5.0,M3.5.0/1
+[    2.07 13:19:49Z] I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=-0.714 y=0.134 z=0.606 g
+[    2.07 13:19:49Z] I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+[    2.27 13:19:49Z] I (2148) MonitorPanel: page=1
+[    2.27 13:19:49Z] I (2228) Assets: The storage free size is 21568 KB
+[    2.27 13:19:49Z] I (2228) Assets: The assets map size is 4224 KB (partition 16384 KB)
+[    2.47 13:19:49Z] I (2468) Assets: The checksum calculation time is 245 ms
+[    2.61 13:19:49Z] ### task state needs_approval, approval pending: {"interaction_id": "int_01M4NHX79Y417DA2QQ2QW0H117", "task_id": "tsk_01M4NHX5F1VVNNK1KHPX1HFXHD", "chat_id": "cht_01M4NHX5C30VR3SGEB2HHDBWWP", "turn_id": "trn_01M4NHX5F19DZYCFRBN0VC80NF", "kind": "approval", "source": "ha_mcp", "state": "pending", "voice_can_approve": true, "created_at": "2026-10-11T13:19:49.054Z", "expires_at": "2026-10-11T13:28:23.322Z", "decision": null, "via": null, "action": 
+[    2.67 13:19:49Z] I (2478) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+[    2.67 13:19:49Z] I (2478) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 386 ms without a sample (2)
+[    2.67 13:19:49Z] W (2578) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+[    2.67 13:19:49Z] I (2578) BoxAudioCodec: Duplex channels created
+[    2.67 13:19:49Z] I (2588) ES8311: Work in Slave mode
+[    2.67 13:19:49Z] I (2588) ES7210: Work in Slave mode
+[    2.67 13:19:49Z] I (2598) ES7210: Enable ES7210_INPUT_MIC1
+[    2.67 13:19:49Z] I (2608) ES7210: Enable ES7210_INPUT_MIC2
+[    2.67 13:19:49Z] I (2608) ES7210: Enable ES7210_INPUT_MIC3
+[    2.67 13:19:49Z] I (2608) ES7210: Enable ES7210_INPUT_MIC4
+[    2.67 13:19:49Z] I (2618) ES7210: Enable TDM mode
+[    2.67 13:19:49Z] I (2618) BoxAudioCodec: BoxAudioDevice initialized
+[    2.67 13:19:49Z] I (2618) AudioCodec: Audio codec started
+[    2.67 13:19:49Z] I (2618) Application: After board/audio init
+[    2.67 13:19:49Z] I (2618) SystemInfo: free sram: 176007 minimal sram: 74480
+[    2.67 13:19:49Z] I (2628) WeixueAgent: agent: protocol v1 level 2, boot 1640227234
+[    2.67 13:19:49Z] I (2628) MCP: Add tool: self.get_device_status
+[    2.67 13:19:49Z] I (2638) MCP: Add tool: self.audio_speaker.set_volume
+[    2.67 13:19:49Z] I (2638) MCP: Add tool: self.screen.set_brightness
+[    2.67 13:19:49Z] I (2648) MCP: Add tool: self.screen.set_theme
+[    2.67 13:19:49Z] I (2648) MCP: Add tool: self.get_system_info [user] [operator-only]
+[    2.67 13:19:49Z] I (2658) MCP: Add tool: self.reboot [user] [operator-only]
+[    2.67 13:19:49Z] I (2658) MCP: Add tool: self.upgrade_firmware [user] [operator-only]
+[    2.67 13:19:49Z] I (2668) MCP: Add tool: self.screen.get_info [user] [operator-only]
+[    2.87 13:19:49Z] I (2668) MCP: Add tool: self.screen.snapshot [user] [operator-only]
+[    2.87 13:19:49Z] I (2678) MCP: Add tool: self.screen.preview_image [user] [operator-only]
+[    2.87 13:19:49Z] I (2688) MCP: Add tool: self.assets.set_download_url [user] [operator-only]
+[    2.87 13:19:49Z] I (2688) WifiManager: Initializing...
+[    2.87 13:19:49Z] I (2698) pp: pp rom version: e7ae62f
+[    2.87 13:19:49Z] I (2698) net80211: net80211 rom version: e7ae62f
+[    2.87 13:19:49Z] I (2708) wifi:wifi driver task: 3fce6a40, prio:23, stack:6656, core=0
+[    2.87 13:19:49Z] I (2708) wifi:wifi firmware version: e12a754
+[    2.87 13:19:49Z] I (2708) wifi:wifi certification version: v7.0
+[    2.87 13:19:49Z] I (2718) wifi:config NVS flash: disabled
+[    2.87 13:19:49Z] I (2718) wifi:config nano formatting: disabled
+[    2.87 13:19:49Z] I (2728) wifi:Init data frame dynamic rx buffer num: 6
+[    2.87 13:19:49Z] I (2728) wifi:Init dynamic rx mgmt buffer num: 5
+[    2.87 13:19:49Z] I (2738) wifi:Init management short buffer num: 32
+[    2.87 13:19:49Z] I (2738) wifi:Init dynamic tx buffer num: 32
+[    2.87 13:19:49Z] I (2738) wifi:Init static tx FG buffer num: 2
+[    2.87 13:19:49Z] I (2748) wifi:Init static rx buffer size: 1600
+[    2.87 13:19:49Z] I (2748) wifi:Init static rx buffer num: 3
+[    2.87 13:19:49Z] I (2758) wifi:Init dynamic rx buffer num: 6
+[    2.87 13:19:49Z] I (2758) wifi_init: rx ba win: 3
+[    2.87 13:19:49Z] I (2758) wifi_init: accept mbox: 6
+[    2.87 13:19:49Z] I (2768) wifi_init: tcpip mbox: 16
+[    2.87 13:19:49Z] I (2768) wifi_init: udp mbox: 6
+[    2.87 13:19:49Z] I (2768) wifi_init: tcp mbox: 6
+[    2.87 13:19:49Z] I (2768) wifi_init: tcp tx win: 5760
+[    2.87 13:19:49Z] I (2778) wifi_init: tcp rx win: 5760
+[    2.87 13:19:49Z] I (2778) wifi_init: tcp mss: 1440
+[    2.87 13:19:49Z] I (2778) WifiManager: Initialized
+[    2.87 13:19:49Z] I (2788) WifiBoard: Starting WiFi connection attempt
+[    2.87 13:19:49Z] I (2788) WifiManager: Starting station
+[    2.87 13:19:49Z] I (2798) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+[    2.87 13:19:49Z] I (2798) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+[    2.87 13:19:49Z] I (2838) wifi:mode : sta (<mac>)
+[    2.87 13:19:49Z] I (2838) wifi:enable tsf
+[    2.87 13:19:49Z] I (2838) WifiStation: Scanning saved channel 6
+[    2.87 13:19:49Z] I (2838) WifiBoard: WiFi scanning
+[    3.08 13:19:50Z] I (2968) WifiStation: Found AP: <ssid>, BSSID: <mac>, RSSI: -78, Channel: 6, Authmode: 3
+[    3.08 13:19:50Z] I (2968) WifiBoard: WiFi connecting to <ssid>
+[    3.08 13:19:50Z] W (2968) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+[    3.08 13:19:50Z] I (3028) wifi:new:<6,1>, old:<1,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.08 13:19:50Z] I (3028) wifi:state: init -> auth (0xb0)
+[    3.08 13:19:50Z] I (3038) wifi:state: auth -> init (0x8a0)
+[    3.08 13:19:50Z] I (3038) wifi:new:<6,0>, old:<6,1>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.08 13:19:50Z] I (3048) wifi:new:<6,1>, old:<6,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.08 13:19:50Z] I (3048) wifi:state: init -> auth (0xb0)
+[    3.08 13:19:50Z] I (3058) wifi:state: auth -> assoc (0x0)
+[    3.08 13:19:50Z] I (3068) wifi:state: assoc -> run (0x10)
+[    3.29 13:19:50Z] I (3088) wifi:connected with <ssid>, aid = 5, channel 6, 40U, bssid = <mac>
+[    3.29 13:19:50Z] I (3088) wifi:security: WPA2-PSK, phy: bgn, rssi: -79, cipher(pairwise:0x3, group:0x3), pmf:0
+[    3.29 13:19:50Z] I (3088) wifi:pm start, type: 1
+[    3.29 13:19:50Z] 
+[    3.29 13:19:50Z] I (3098) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+[    3.29 13:19:50Z] I (3098) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+[    3.29 13:19:50Z] I (3108) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+[    3.29 13:19:50Z] I (3118) wifi:<ba-add>idx:0 (ifx:0, <mac>), tid:7, ssn:0, winSize:64
+[    3.29 13:19:50Z] I (3128) MonitorPanel: diag backend=checking poll_status=0 poll_age_ms=-1
+[    3.49 13:19:50Z] I (3318) wifi:<ba-add>idx:1 (ifx:0, <mac>), tid:0, ssn:0, winSize:64
+[    4.31 13:19:51Z] I (4138) esp_netif_handlers: sta ip: <IP>, mask: <IP>, gw: <IP>
+[    4.31 13:19:51Z] I (4138) WifiStation: Got IP: <IP>
+[    4.31 13:19:51Z] I (4138) WifiBoard: Connected to WiFi: <ssid>
+[    4.31 13:19:51Z] I (4138) Application: Network connected
+[    4.31 13:19:51Z] I (4138) StateMachine: State: starting -> activating
+[    4.31 13:19:51Z] I (4148) MODEL_LOADER: Successfully load srmodels
+[    4.31 13:19:51Z] I (4168) Assets: Refreshing display theme...
+[    4.31 13:19:51Z] I (4198) Ota: Current version: 2.5.1
+[    4.31 13:19:51Z] I (4198) EspTcp: Resolved <IP> -> <IP>
+[    4.31 13:19:51Z] I (4228) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+[    4.31 13:19:51Z] I (4258) Ota: No mqtt section found !
+[    4.31 13:19:51Z] I (4268) Ota: Clock: TZ IST-1GMT0,M10.5.0,M3.5.0/1, UTC offset +60 min (January +0, July +60)
+[    4.31 13:19:51Z] I (4268) Ota: Current is the latest version
+[    4.31 13:19:51Z] I (4268) Ota: Running partition: ota_0
+[    4.31 13:19:51Z] I (4308) Application: Activation done
+[    4.51 13:19:51Z] I (4308) SystemInfo: free sram: 137963 minimal sram: 39812
+[    4.51 13:19:51Z] I (4308) StateMachine: State: activating -> idle
+[    4.51 13:19:51Z] I (4318) Application: Proactive poller: http://<IP>:8003/weixue/proactive/poll
+[    4.51 13:19:51Z] I (4318) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[    4.51 13:19:51Z] I (4318) EspTcp: Resolved <IP> -> <IP>
+[    4.51 13:19:51Z] I (4328) wifi:Set ps type: 2, coexist: 0
+[    4.51 13:19:51Z] 
+[    4.51 13:19:51Z] I (4338) AfeAudioEngine: Model 0: wn9_jarvis_tts
+[    4.51 13:19:51Z] I (4338) WakeWordCache: Allocated 64000 bytes in PSRAM
+[    4.51 13:19:51Z] I (4338) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[    4.51 13:19:51Z] I (4348) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+[    4.51 13:19:51Z] I (4358) AfeAudioEngine: Before AFE create: free=123195 min=39812 largest=77824
+[    4.51 13:19:51Z] MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+[    4.51 13:19:51Z] I (4458) AFE: AFE Version: (1MIC_V251128)
+[    4.51 13:19:51Z] I (4458) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[    4.51 13:19:51Z] I (4468) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+[    4.51 13:19:51Z] I (4478) AFE: AFE Version: (1MIC_V251128)
+[    4.51 13:19:51Z] I (4478) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[    4.51 13:19:51Z] I (4488) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+[    4.51 13:19:51Z] I (4498) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+[    4.51 13:19:51Z] I (4498) AfeAudioEngine: After AFE create: free=101095 min=33468 largest=59392
+[    4.72 13:19:51Z] I (4508) I2S_IF: Paired data: 0x3fcd7a74, current mode: playback, paired in_enable: 0, paired out_enable: 0
+[    4.72 13:19:51Z] I (4518) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+[    4.72 13:19:51Z] I (4528) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    4.72 13:19:51Z] I (4548) Adev_Codec: Open codec device OK
+[    4.72 13:19:51Z] I (4548) AudioCodec: Set output enable to true
+[    4.72 13:19:51Z] I (4548) WeixueAgent: agent: chat=cht_01M4NDCJ7NH7M1S836ATM5A2QQ task=tsk_01M4NDTVS5FW9KCY04N6DX4BVM state=needs_input seq=1791720521043 tier=silent speaks=0 result=applied via=poll
+[    4.72 13:19:51Z] I (4548) AudioService: Resampling audio from 16000 to 24000
+[    4.72 13:19:51Z] I (4568) WeixueAgent: agent: chat=cht_01M4NG7606M4ZNPPKATVD5252R task=tsk_01M4NG76ATW0C5239WK83F8M1G state=needs_input seq=1791723046919 tier=when_idle speaks=1 result=applied via=poll
+[    4.72 13:19:51Z] I (4568) I2S_IF: Peer mode playback need extend bits 32 to 64
+[    4.72 13:19:51Z] I (4568) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (1)
+[    4.72 13:19:51Z] I (4598) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+[    4.72 13:19:51Z] I (4608) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    4.72 13:19:51Z] I (4608) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+[    4.72 13:19:51Z] I (4618) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    4.72 13:19:51Z] I (4628) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 210 ms without a sample (3)
+[    4.72 13:19:51Z] I (4628) ES7210: Bits 16
+[    4.72 13:19:51Z] I (4638) FaceDisplay: agent ui: task=tsk_01M4NDTVS5FW9KCY04N6DX4BVM state=needs_input tier=silent flash=0 earcon=none
+[    4.72 13:19:51Z] I (4648) ES7210: Enable ES7210_INPUT_MIC1
+[    4.72 13:19:51Z] I (4648) FaceDisplay: agent ui: task=tsk_01M4NG76ATW0C5239WK83F8M1G state=needs_input tier=when_idle flash=2 earcon=none
+[    4.72 13:19:51Z] I (4658) ES7210: Enable ES7210_INPUT_MIC2
+[    4.72 13:19:51Z] I (4668) FaceDisplay: diag blink double=0 mode=idle
+[    4.72 13:19:51Z] I (4668) ES7210: Enable ES7210_INPUT_MIC3
+[    4.72 13:19:51Z] I (4668) FaceDisplay: ring=flash bedside=0
+[    4.72 13:19:51Z] I (4678) ES7210: Enable ES7210_INPUT_MIC4
+[    4.72 13:19:51Z] I (4688) ES7210: Enable TDM mode
+[    4.72 13:19:51Z] I (4688) ES7210: Unmuted
+[    4.72 13:19:51Z] I (4688) Adev_Codec: Open codec device OK
+[    4.72 13:19:51Z] I (4698) AudioCodec: Set input enable to true
+[    4.93 13:19:51Z] I (4788) EspTcp: Resolved <IP> -> <IP>
+[    4.93 13:19:51Z] I (4798) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+[    4.93 13:19:51Z] I (4848) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4NGKH2SYZPY2XFZ4HGY80EP state=unread seq=1791723449807 tier=silent speaks=0 result=applied via=poll
+[    4.93 13:19:51Z] I (4848) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4NGMEZQK7VVD9YTJCKYQCR9 state=unread seq=1791723480485 tier=silent speaks=0 result=applied via=poll
+[    4.93 13:19:51Z] I (4858) FaceDisplay: agent ui: task=tsk_01M4NGKH2SYZPY2XFZ4HGY80EP state=unread tier=silent flash=0 earcon=none
+[    4.93 13:19:51Z] I (4908) FaceDisplay: agent ui: task=tsk_01M4NGMEZQK7VVD9YTJCKYQCR9 state=unread tier=silent flash=0 earcon=none
+[    5.14 13:19:52Z] I (4948) FaceDisplay: ring=off bedside=0
+[    5.14 13:19:52Z] I (5098) EspTcp: Resolved <IP> -> <IP>
+[    5.14 13:19:52Z] I (5138) MonitorPanel: diag backend=online poll_status=200 poll_age_ms=243
+[    5.35 13:19:52Z] I (5268) FaceDisplay: ring=flash bedside=0
+[    5.56 13:19:52Z] I (5448) HttpClient: Established new connection to <IP>:8003 protocol=http cost=350
+[    5.56 13:19:52Z] I (5468) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4NGNGB56DDQ545HS35ZARMY state=unread seq=1791723497636 tier=silent speaks=0 result=applied via=poll
+[    5.56 13:19:52Z] I (5478) WeixueAgent: agent: chat=cht_01M4NHTJE4AZ1525VPGBNXYQNY task=tsk_01M4NHTJSNG2K2W50GMWJANX63 state=needs_approval seq=1791724724326 tier=when_idle speaks=1 result=applied via=poll
+[    5.56 13:19:52Z] I (5488) FaceDisplay: agent ui: task=tsk_01M4NGNGB56DDQ545HS35ZARMY state=unread tier=silent flash=0 earcon=none
+[    5.76 13:19:52Z] I (5588) FaceDisplay: agent ui: task=tsk_01M4NHTJSNG2K2W50GMWJANX63 state=needs_approval tier=when_idle flash=2 earcon=needs_you
+[    5.76 13:19:52Z] I (5588) FaceDisplay: earcon=needs_you
+[    5.76 13:19:52Z] I (5588) FaceDisplay: diag blink double=1 mode=idle
+[    5.76 13:19:52Z] I (5708) EspTcp: Resolved <IP> -> <IP>
+[    5.76 13:19:52Z] I (5718) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+[    5.76 13:19:52Z] I (5748) WeixueAgent: agent: chat=cht_01M4NHW5K0910E6SYCE35NQKX3 task=tsk_01M4NHW5PG6VW8YGGR9P8Q90XR state=needs_approval seq=1791724756566 tier=silent speaks=0 result=applied via=poll
+[    5.97 13:19:53Z] I (5768) FaceDisplay: agent ui: task=tsk_01M4NHW5PG6VW8YGGR9P8Q90XR state=needs_approval tier=silent flash=0 earcon=none
+[    5.97 13:19:53Z] I (5908) FaceDisplay: ring=off bedside=0
+[    5.97 13:19:53Z] I (5948) EspTcp: Resolved <IP> -> <IP>
+[    5.97 13:19:53Z] I (5948) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+[    6.17 13:19:53Z] I (5978) WeixueAgent: agent: chats seq=1791724787823 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=9 result=applied via=poll
+[    6.17 13:19:53Z] I (5998) FaceDisplay: agent ui: chats=9 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[    6.17 13:19:53Z] I (6008) FaceDisplay: agent ui: pose=attentive top=tsk_01M4NHW5PG6VW8YGGR9P8Q90XR
+[    6.17 13:19:53Z] I (6008) FaceDisplay: diag gaze=0,0 mode=idle
+[    6.38 13:19:53Z] I (6178) EspTcp: Resolved <IP> -> <IP>
+[    6.38 13:19:53Z] I (6198) FaceDisplay: ring=flash bedside=0
+[    6.38 13:19:53Z] I (6238) HttpClient: Established new connection to <IP>:8003 protocol=http cost=60
+[    6.38 13:19:53Z] I (6268) WeixueAgent: agent: chat=cht_01M4NHX5C30VR3SGEB2HHDBWWP task=tsk_01M4NHX5F1VVNNK1KHPX1HFXHD state=needs_approval seq=1791724789113 tier=silent speaks=0 result=applied via=poll
+[    6.38 13:19:53Z] I (6278) WeixueAgent: agent: sync seq=1791724793256 listed=8 dropped=0 tasks=8 via=poll
+[    6.38 13:19:53Z] I (6288) FaceDisplay: agent ui: task=tsk_01M4NHX5F1VVNNK1KHPX1HFXHD state=needs_approval tier=silent flash=0 earcon=none
+[    6.58 13:19:53Z] I (6478) EspTcp: Resolved <IP> -> <IP>
+[    6.58 13:19:53Z] I (6488) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+[    6.58 13:19:53Z] I (6578) FaceDisplay: ring=off bedside=0
+[    6.79 13:19:53Z] I (6788) FaceDisplay: ring=ears bedside=0
+[    6.99 13:19:54Z] I (6898) FaceDisplay: agent ui: card open task=tsk_01M4NG76ATW0C5239WK83F8M1G
+[    6.99 13:19:54Z] I (6898) FaceDisplay: agent ui: pose=full top=tsk_01M4NHX5F1VVNNK1KHPX1HFXHD
+[    7.61 13:19:54Z] I (7498) FaceDisplay: diag fps=9.6 frame_ms_avg=29.3 frame_ms_max=140.3 voice_flips=0 mode=idle mood=neutral inv_areas=2.6 inv_kpx=45.9 inv_full=5 ring=ears
+[    8.23 13:19:55Z] I (8148) FaceDisplay: diag lit=6.29% screen 8.01% circle mode=card mood=neutral dump=1 snap_ms=369.6
+[    8.23 13:19:55Z] FACEDUMP 1 begin 466 466 card neutral
+[    8.23 13:19:55Z] FACEDUMP 1 0 kigAAAEAIAABAOFRAwDCegEAoUm6AAAAAQChSQMAwnoBAKFJAQAgAAoBAAABACAAAQBhOQYAwnoBAIFyuAAAAAEAgXIGAMJ6
+[    8.23 13:19:55Z] FACEDUMP 1 1 AQBhOQEAIAAGAQAAAQBACAEAYTkBAIFyCADCegEAoUm2AAAAAQChSQgAwnoBAIFyAQBhOQEAQAgCAQAAAQBACAEAoUkMAMJ6
+[    8.23 13:19:55Z] FACEDUMP 1 2 tgAAAAwAwnoBAKFJAQBACP4AAAABACAAAQBhOQ4Awnq2AAAADgDCegEAYTkBACAA+gAAAAEAIAABAGE5AQCBcg8Awnq2AAAA
+[    8.23 13:19:55Z] FACEDUMP 1 3 DwDCegEAgXIBAGE5AQAgAPYAAAABACAAAQBhOQEAgXIQAMJ6AQChSbYAAAABAKFJEADCegEAgXIBAGE5AQAgAPMAAAABAAAp
+[    8.44 13:19:55Z] FACEDUMP 1 4 AQBhahEAwnoBAIFyuAAAAAEAgXIRAMJ6AQBhagEAACnwAAAAAQCgGAEAIWISAMJ6AQChSboAAAABAKFJEgDCegEAIWIBAKAY
+[    8.44 13:19:55Z] FACEDUMP 1 5 7AAAAAEAQAgBAAFaEQDCegEAgXIBAGE5AQBACLwAAAABAEAIAQBhOQEAgXIRAMJ6AQABWgEAQAjoAAAAAQAgAAEAgUERAMJ6
+[    8.44 13:19:55Z] FACEDUMP 1 6 AQCBcgEAYTkBACAAwAAAAAEAIAABAGE5AQCBchEAwnoBAIFBAQAgAOUAAAABAAApAQCBchAAwnoBAIFyAQBhOQEAIADEAAAA
+[    8.44 13:19:55Z] FACEDUMP 1 7 AQAgAAEAYTkBAIFyEADCegEAgXIBAAAp4gAAAAEAgBABAAFaEADCegEAgXIBAGE5AQAgAMgAAAABACAAAQBhOQEAgXIQAMJ6
+[    8.44 13:19:55Z] FACEDUMP 1 8 AQABWgEAgBDeAAAAAQAgAAEAgUEQAMJ6AQCBcgEAYTkBACAAzAAAAAEAIAABAGE5AQCBchAAwnoBAIFBAQAgANsAAAABAMAg
+[    8.44 13:19:55Z] FACEDUMP 1 9 AQBhahAAwnoBAKFJAQBACNAAAAABAEAIAQChSRAAwnoBAGFqAQDAINgAAAABAEAIAQDhURAAwnoBAOFRAQBACNQAAAABAEAI
+[    8.44 13:19:55Z] FACEDUMP 1 10 AQDhURAAwnoBAOFRAQBACNUAAAABACAxAQCBcg8AwnoBACFiAQCgGHcAAAABAKsCAQBXBQ4AHwcBAFcFAQCrAk8AAAABAKAY
+[    8.44 13:19:55Z] FACEDUMP 1 11 AQAhYg8AwnoBAIFyAQAgMdIAAAABAEAIAQABWg8AwnoBAIFyAQAAKXcAAAABAGEAAQC5BRIAHwcBALkFAQBhAE8AAAABAAAp
+[    8.44 13:19:55Z] FACEDUMP 1 12 AQCBcg8AwnoBAAFaAQBACM8AAAABACAxAQCBcg8AwnoBAGE5AQAgAHgAAAABALkFFAAfBwEAuQVQAAAAAQAgAAEAYTkPAMJ6
+[    8.44 13:19:55Z] FACEDUMP 1 13 AQCBcgEAIDHMAAAAAQBACAEAAVoPAMJ6AQABWgEAQAh5AAAAAQCrAhYAHwcBAKsCUQAAAAEAQAgBAAFaDwDCegEAAVoBAEAI
+[    8.64 13:19:55Z] FACEDUMP 1 14 yQAAAAEAwCABAIFyDgDCegEAYWoBAMAgewAAAAEAVwUWAB8HAQBXBVMAAAABAMAgAQBhag4AwnoBAIFyAQDAIMYAAAABACAA
+[    8.64 13:19:55Z] FACEDUMP 1 15 AQDhUQ8AwnoBAGE5AQAgAHwAAAAYAB8HVAAAAAEAIAABAGE5DwDCegEA4VEBACAAwwAAAAEAoBgBAGFqDgDCegEAIWIBAIAQ
+[    8.64 13:19:55Z] FACEDUMP 1 16 fgAAABgAHwdWAAAAAQCAEAEAIWIOAMJ6AQBhagEAoBjBAAAAAQBhOQ4AwnoBAIFyAQAgMYAAAAAYAB8HWAAAAAEAIDEBAIFy
+[    8.64 13:19:55Z] FACEDUMP 1 17 DgDCegEAYTm+AAAAAQAgAAEAAVoOAMJ6AQABWgEAQAiBAAAAGAAfB1kAAAABAEAIAQABWg4AwnoBAAFaAQAgALsAAAABAKAY
+[    8.64 13:19:55Z] FACEDUMP 1 18 AQCBcg0AwnoBAIFyAQAgMYMAAAAYAB8HWwAAAAEAIDEBAIFyDQDCegEAgXIBAKAYuQAAAAEAYTkOAMJ6AQABWgEAQAiEAAAA
+[    8.64 13:19:55Z] FACEDUMP 1 19 GAAfB1wAAAABAEAIAQABWg4AwnoBAGE5tgAAAAEAIAABAAFaDQDCegEAgXIBACAxhgAAABgAHwdeAAAAAQAgMQEAgXINAMJ6
+[    8.64 13:19:55Z] FACEDUMP 1 20 AQABWgEAIACzAAAAAQCAEAEAgXINAMJ6AQAhYgEAgBBiAAAAAQCrAgEAVwUOAB8HAQBXBQEAqwITAAAAGAAfB18AAAABAIAQ
+[    8.64 13:19:55Z] FACEDUMP 1 21 AQAhYg0AwnoBAIFyAQCAELEAAAABAAApDgDCegEAgUFiAAAAAQBhAAEAuQUSAB8HAQC5BQEAYQARAAAAGAAfB2EAAAABAIFB
+[    8.64 13:19:55Z] FACEDUMP 1 22 DgDCegEAACmvAAAAAQChSQ0AwnoBAIFyAQCgGGMAAAABALkFFAAfBwEAuQURAAAAGAAfB2IAAAABAKAYAQCBcg0AwnoBAKFJ
+[    8.64 13:19:55Z] FACEDUMP 1 23 rAAAAAEAIAABACFiDQDCegEAAVoBACAAYwAAAAEAqwIWAB8HAQCrAhAAAAAYAB8HYwAAAAEAIAABAAFaDQDCegEAIWIBACAA
+[    8.85 13:19:55Z] FACEDUMP 1 24 qQAAAAEAgBABAGFqDQDCegEAYTllAAAAAQBXBRYAHwcBAFcFEAAAABgAHwdlAAAAAQBhOQ0AwnoBAGFqAQCAEKcAAAABAMAg
+[    8.85 13:19:55Z] FACEDUMP 1 25 AQCBcgwAwnoBAIFyAQCgGGYAAAAYAB8HEAAAABgAHwdmAAAAAQCgGAEAgXIMAMJ6AQCBcgEAwCClAAAAAQAgMQ0AwnoBAAFa
+[    8.85 13:19:55Z] FACEDUMP 1 26 AQAgAGcAAAAYAB8HEAAAABgAHwdnAAAAAQAgAAEAAVoNAMJ6AQAgMaMAAAABAKFJDQDCegEAgUFpAAAAGAAfBxAAAAAYAB8H
+[    8.85 13:19:55Z] FACEDUMP 1 27 aQAAAAEAgUENAMJ6AQChSaAAAAABACAAAQDhUQwAwnoBAIFyAQDAIGoAAAAYAB8HEAAAABgAHwdqAAAAAQDAIAEAgXIMAMJ6
+[    8.85 13:19:55Z] FACEDUMP 1 28 AQDhUQEAIACdAAAAAQAgAAEAIWIMAMJ6AQAhYgEAgBBrAAAAGAAfBxAAAAAYAB8HawAAAAEAgBABACFiDADCegEAIWIBACAA
+[    8.85 13:19:55Z] FACEDUMP 1 29 mwAAAAEAgBABACFiDADCegEAAVoBACAAbAAAABgAHwcQAAAAGAAfB2wAAAABACAAAQABWgwAwnoBACFiAQCAEJkAAAABAIAQ
+[    8.85 13:19:55Z] FACEDUMP 1 30 AQCBcgwAwnoBAKFJbgAAABgAHwcQAAAAGAAfB24AAAABAKFJDADCegEAgXIBAIAQlwAAAAEAgBABAIFyDADCegEAAClvAAAA
+[    8.85 13:19:55Z] FACEDUMP 1 31 GAAfBxAAAAAYAB8HbwAAAAEAACkMAMJ6AQCBcgEAgBCVAAAAAQAAKQwAwnoBAIFyAQCgGHAAAAAYAB8HEAAAABgAHwdwAAAA
+[    8.85 13:19:55Z] FACEDUMP 1 32 AQCgGAEAgXIMAMJ6AQAAKZMAAAABAAApDADCegEAYWoBAIAQcQAAABgAHwcQAAAAGAAfB3EAAAABAIAQAQBhagwAwnoBAAAp
+[    8.85 13:19:55Z] FACEDUMP 1 33 kQAAAAEAACkMAMJ6AQAhYgEAIAByAAAAAQBXBRYAHwcBAFcFEAAAAAEAVwUWAB8HAQBXBXIAAAABACAAAQAhYgwAwnoBAAAp
+[    9.05 13:19:56Z] FACEDUMP 1 34 jwAAAAEAACkMAMJ6AQABWgEAIABzAAAAAQCrAhYAHwcBAKsCEAAAAAEAqwIWAB8HAQCrAnMAAAABACAAAQABWgwAwnoBAAAp
+[    9.05 13:19:56Z] FACEDUMP 1 35 jQAAAAEAACkMAMJ6AQChSXYAAAABALkFFAAfBwEAuQUSAAAAAQC5BRQAHwcBALkFdgAAAAEAoUkMAMJ6AQAAKYsAAAABAAAp
+[    9.05 13:19:56Z] FACEDUMP 1 36 DADCegEAoUl3AAAAAQBhAAEAuQUSAB8HAQC5BQEAYQASAAAAAQBhAAEAuQUSAB8HAQC5BQEAYQB3AAAAAQChSQwAwnoBAAAp
+[    9.05 13:19:56Z] FACEDUMP 1 37 iQAAAAEAACkBAGFqCwDCegEAIDF6AAAAAQCrAgEAVwUOAB8HAQBXBQEAqwIWAAAAAQCrAgEAVwUOAB8HAQBXBQEAqwJ6AAAA
+[    9.05 13:19:56Z] FACEDUMP 1 38 AQAgMQsAwnoBAGFqAQAAKYcAAAABAAApDADCegEAACkwAQAAAQAAKQwAwnoBAAAphQAAAAEAACkMAMJ6AQAAKTIBAAABAAAp
+[    9.05 13:19:56Z] FACEDUMP 1 39 DADCegEAACmDAAAAAQAAKQwAwnoBAAApNAEAAAEAACkMAMJ6AQAAKYEAAAABAAApDADCegEAACk2AQAAAQAAKQwAwnoBAAAp
+[    9.05 13:19:56Z] FACEDUMP 1 40 fwAAAAEAACkMAMJ6AQAAKTgBAAABAAApDADCegEAACl9AAAAAQCAEAwAwnoBAKFJOgEAAAEAoUkMAMJ6AQCAEHsAAAABAIAQ
+[    9.05 13:19:56Z] FACEDUMP 1 41 AQCBcgsAwnoBAAApPAEAAAEAACkLAMJ6AQCBcgEAgBB5AAAAAQCAEAEAgXILAMJ6AQAAKT4BAAABAAApCwDCegEAgXIBAIAQ
+[    9.05 13:19:56Z] FACEDUMP 1 42 dwAAAAEAIAABACFiCwDCegEAAClAAQAAAQAAKQsAwnoBACFiAQAgAHUAAAABACAAAQAhYgsAwnoBAAApQgEAAAEAACkLAMJ6
+[    9.05 13:19:56Z] FACEDUMP 1 43 AQAhYgEAIAB0AAAAAQDhUQsAwnoBAAApRAEAAAEAACkLAMJ6AQDhUXMAAAABAKFJCwDCegEAIDFGAQAAAQAgMQsAwnoBAKFJ
+[    9.05 13:19:56Z] FACEDUMP 1 44 cQAAAAEAIDELAMJ6AQChSUgBAAABAKFJCwDCegEAIDFvAAAAAQDAIAsAwnoBAKFJSgEAAAEAoUkLAMJ6AQDAIG0AAAABAIAQ
+[    9.26 13:19:56Z] FACEDUMP 1 45 AQCBcgoAwnoBAAFaTAEAAAEAAVoKAMJ6AQCBcgEAgBBrAAAAAQAgAAEAYWoKAMJ6AQAhYgEAIABMAQAAAQAgAAEAIWIKAMJ6
+[    9.26 13:19:56Z] FACEDUMP 1 46 AQBhagEAIABqAAAAAQAhYgoAwnoBAGFqAQAgAE4BAAABACAAAQBhagoAwnoBACFiaQAAAAEAoUkKAMJ6AQCBcgEAgBBQAQAA
+[    9.26 13:19:56Z] FACEDUMP 1 47 AQCAEAEAgXIKAMJ6AQChSWcAAAABAAApCwDCegEAoBhSAQAAAQCgGAsAwnoBAAApZQAAAAEAgBALAMJ6AQAAKVQBAAABAAAp
+[    9.26 13:19:56Z] FACEDUMP 1 48 CwDCegEAgBBjAAAAAQAgAAEAgXIKAMJ6AQChSVYBAAABAKFJCgDCegEAgXIBACAAYgAAAAEAAVoKAMJ6AQABWs4AAAABAEAI
+[    9.26 13:19:56Z] FACEDUMP 1 49 iQAAAAEAAVoKAMJ6AQABWmEAAAABAGE5CgDCegEAIWIBACAAzQAAAAEABIMBAAasAQBACAIAAAABAOJRCQAjWgEAY2oBAIAY
+[    9.26 13:19:56Z] FACEDUMP 1 50 AwAAAAEARrwFAKfMAQBGvAEAQAgJAKfMZgAAAAEAIAABACFiCgDCegEAYTlfAAAAAQCgGAoAwnoBAIFyAQCAEKAAAAABAEE5
+[    9.26 13:19:56Z] FACEDUMP 1 51 AQCnzAEA4lErAAAAAQBACAIABqwBAEAIAQAAAAEABqwKAKfMAQCCQQMAAAABAEa8AQAjWgMAQAgBAGNqAQBGvAEAAAADAEE5
+[    9.26 13:19:56Z] FACEDUMP 1 52 AQDFowEARrwEAEE5ZwAAAAEAgBABAIFyCgDCegEAoBhdAAAAAQAgAAEAgXIKAMJ6AQDAIGwAAAABAIJBAQBFiwEARrwCAKfM
+[    9.26 13:19:56Z] FACEDUMP 1 53 AQAGrAEAY2oBAIAYJwAAAAIAQTkEAAAAAQCCQQEAp8wBAGNqLAAAAAEAgBgBAEa8AQDFowoAAAABAIAYAQCnzAEAgkEDAAAA
+[    9.26 13:19:56Z] FACEDUMP 1 54 AQBGvAEAY2oDAIAYAQBjagEARrwEAAAAAQBGvAEAY2psAAAAAQDAIAoAwnoBAIFyAQAgAFwAAAABAAFaCgDCegEAgUFsAAAA
+[    9.46 13:19:56Z] FACEDUMP 1 55 AQAEgwIAp8wBAEWLAQCkcgEABIMBAAasAgCnzAEAgkEmAAAAAQBFiwEApHIFAAAAAQDBIC4AAAABAEE5AQCkcgoAAAABAIAY
+[    9.46 13:19:56Z] FACEDUMP 1 56 AQCnzAEAgkEDAAAAAQBGvAEAp8wDAEa8AQCnzAEARrwBAAAAAQDBIAEAY2oBAKRyAQCnzAEABIMDAGNqagAAAAEAgUEKAMJ6
+[    9.46 13:19:56Z] FACEDUMP 1 57 AQABWlsAAAABAGE5CgDCegEAAVpsAAAAAQCkcgEAp8wBAMWjAQBACAQAAAABAEE5AQBGvAEAp8wBAMEgJAAAAAEAQAgBAKfM
+[    9.46 13:19:56Z] FACEDUMP 1 58 AQCkcjEAAAABAIAYAQBGvAEAQTkMAAAAAQCAGAEAp8wBAIJBAwAAAAEARrwBACNaAwAAAAEAI1oBAEa8AQAAAAEAI1oBAEa8
+[    9.46 13:19:56Z] FACEDUMP 1 59 BAAjWgEABIMBAKfMawAAAAEAAVoKAMJ6AQBhOVkAAAABAKAYCgDCegEAgXIBACAAawAAAAEAgBgBAKfMAQBGvAcAAAABAIJB
+[    9.46 13:19:56Z] FACEDUMP 1 60 AQCnzAEARYsDAAAAAQDiUQEAp8wBAIJBBAAAAAEAQAgBAKfMAQAEgwQAAAABAOJRAQAGrAIAp8wBAEWLAQBBOQQAAAABACNa
+[    9.46 13:19:56Z] FACEDUMP 1 61 AQAGrAIAp8wBAAasAQAEgwEAgBgBAAAAAQDiUQUAp8wBAEWLAQAAAAEAQTkBAKfMAQAjWgQAAAABAOJRAQDFowIAp8wBAAas
+[    9.46 13:19:56Z] FACEDUMP 1 62 AQDiUQQAAAABAEE5AQCnzAEAwSABAEE5AQDFowIAp8wBAMWjAQBBORMAAAABAIAYAQCnzAEAgkECAAAAAQBjagYAp8wBAOJR
+[    9.46 13:19:56Z] FACEDUMP 1 63 AgAAAAEAgBgBAKfMAQCCQQMAAAABAEa8BQCnzAEARrwBAAAAAQAjWgEABqwBAAAAAQDBIAEARYsBAAAAAQCCQQEAp8xrAAAA
+[    9.46 13:19:56Z] I (9438) FaceDisplay: diag blink double=1 mode=idle
+[    9.46 13:19:56Z] FACEDUMP 1 64 AQAgAAEAgXIKAMJ6AQCgGFcAAAABACAAAQBhagoAwnoBAKAYbAAAAAEAI1oBAKfMAQAjWggAAAABAAasAQCnzAEAQAgCAAAA
+[    9.66 13:19:56Z] FACEDUMP 1 65 AQDiUQEAp8wBAIJBBAAAAAEAQAgBAKfMAQAEgwMAAAABAKRyAQCnzAEARYsBACNaAQBjagEABqwBAKfMAQCCQQIAAAABAKRy
+[    9.66 13:19:56Z] FACEDUMP 1 66 AQCnzAEARYsCACNaAQAEgwEAp8wBAIAYAQAAAAEAQTkBACNaAQCnzAEARYsCAOJRAQBBOQEAAAABAEE5AQCnzAEAI1oDAAAA
+[    9.66 13:19:56Z] FACEDUMP 1 67 AQCkcgEAp8wBAAasAgBjagEAxaMBAKfMAQAEgwMAAAABAEE5AQCnzAEARYsBAKfMAQAEgwEAY2oBAASDAgCnzAEAgBgSAAAA
+[    9.66 13:19:56Z] FACEDUMP 1 68 AQCAGAEAp8wBAIJBAgAAAAEApHIBAEa8BADiUQEAp8wBACNaAgAAAAEAgBgBAKfMAQCCQQMAAAAHAIAYAQAAAAEAI1oBAAas
+[    9.66 13:19:56Z] FACEDUMP 1 69 AQAAAAEAgkEBAKfMAQAAAAEAgkEBAKfMbAAAAAEAoBgKAMJ6AQBhagEAIABWAAAAAQDhUQoAwnoBAGE5bQAAAAEABIMBAKfM
+[    9.66 13:19:56Z] FACEDUMP 1 70 AQDBIAgAAAABAKRyAQCnzAEAQTkCAAAAAQDiUQEAp8wBAIJBBAAAAAEAQAgBAKfMAQAEgwIAAAABAEE5AQCnzAEAY2oDAAAA
+[    9.66 13:19:56Z] FACEDUMP 1 71 AQBACAIARrwCAAAAAQCnzAEAxaMIAAAAAQCAGAEAp8wBAKRyBAAAAAEAQTkBAKfMAQAjWgIAAAABAEE5AQCnzAEARYsEAAAA
+[    9.66 13:19:56Z] FACEDUMP 1 72 AQAEgwEAp8wBAIJBAgAAAAEAQTkCAKfMAQDBIAMAAAABAIJBAQCnzAEApHIHAAAAAQCAGAEABIMBAOJRCAAAAAEAgBgBAKfM
+[    9.66 13:19:56Z] FACEDUMP 1 73 AQCCQQIAAAABAKRyAQAGrAQAAAABAKfMAQAjWgIAAAABAIAYAQCnzAEAgkEBAAAAAQBACAgAwSABAIAYAQAjWgEABqwBAAAA
+[    9.66 13:19:56Z] FACEDUMP 1 74 AQDiUQEARrwBAAAAAQCCQQEAp8xtAAAAAQBhOQoAwnoBAOFRVQAAAAEAwCAKAMJ6AQABWm4AAAABAMWjAQCnzAEAgBgIAAAA
+[    9.66 13:19:56Z] FACEDUMP 1 75 AQBjagEAp8wBAOJRAgAAAAEA4lEBAKfMAQCCQQQAAAABAEAIAQCnzAEABIMCAAAAAQAEgwEAp8wBAIAYBABACAEABIMBAKfM
+[    9.87 13:19:56Z] FACEDUMP 1 76 AQDBIAEAAAACAEa8AQCAGAcAAAABAIAYAQCnzAEApHIEAAAAAQBBOQEAp8wBACNaAgAAAAEABIMBAKfMAQDBIAQAAAABAEAI
+[    9.87 13:19:56Z] FACEDUMP 1 77 AQCnzAEAxaMCAAAAAQBBOQEAp8wBAEWLBQAAAAEAp8wBAEWLBwAAAAEAY2oBAKfMAQBGvAgAAAABAIAYAQCnzAEAgkECAAAA
+[    9.87 13:19:56Z] FACEDUMP 1 78 AQCkcgEABqwEAAAAAQCnzAEAI1oCAAAAAQCAGAEAp8wBAIJBAQAAAAEAQTkIAKfMAQBFiwEAI1oBAAasAQAAAAEAY2oBAMWj
+[    9.87 13:19:56Z] FACEDUMP 1 79 AQAAAAEAgkEBAKfMbgAAAAEAAVoKAMJ6AQDAIFMAAAABAEAIAQCBcgkAwnoBAIFyAQAgAG4AAAABAMWjAQCnzAEAgBgIAAAA
+[    9.87 13:19:56Z] FACEDUMP 1 80 AQBjagEAp8wBAOJRAgAAAAEA4lEBAKfMAQCCQQQAAAABAEAIAQCnzAEABIMCAAAAAQAGrAgAp8wBAEE5AQAAAAEAgkECAKfM
+[    9.87 13:19:56Z] FACEDUMP 1 81 AQAEgwEAwSAFAAAAAQCAGAEAp8wBAKRyBAAAAAEAQTkBAKfMAQAjWgIAAAABAAasAQCnzAYAAAABAAasAQCnzAIAAAABAEE5
+[    9.87 13:19:56Z] FACEDUMP 1 82 AQCnzAEAY2oFAAAAAQCnzAEARYsHAAAAAQBBOQEAp8wBAKRyCAAAAAEAgBgBAKfMAQCCQQIAAAABAKRyAQAGrAQAAAABAKfM
+[    9.87 13:19:56Z] FACEDUMP 1 83 AQAjWgIAAAABAIAYAQCnzAEAgkEFAAAAAQBBOQEAp8wEAAAAAQAjWgEABqwBAAAAAgAEgwEAAAABAIJBAQCnzG4AAAABACAA
+[    9.87 13:19:56Z] FACEDUMP 1 84 AQCBcgkAwnoBAIFyAQBACFIAAAABAAFaCgDCegEAoBhvAAAAAQAEgwEAp8wBAEE5CAAAAAEABIMBAKfMAQBBOQIAAAABAOJR
+[    9.87 13:19:56Z] FACEDUMP 1 85 AQCnzAEAgkEEAAAAAQBACAEAp8wBAASDAgAAAAEARrwBAKfMBwBBOQEAQAgCAAAAAQCAGAEApHICAKfMAQAGrAEAQTkDAAAA
+[   10.07 13:19:57Z] FACEDUMP 1 86 AQCAGAEAp8wBAKRyBAAAAAEAQTkBAKfMAQAjWgIAAAACAEa8BgAAAAEAxaMBAKfMAgAAAAEAQTkBAKfMAQAjWgUAAAABAKfM
+[   10.07 13:19:57Z] FACEDUMP 1 87 AQBFixIAAAABAIAYAQCnzAEAgkECAAAAAQCkcgEABqwEAAAAAQCnzAEAI1oCAAAAAQCAGAEAp8wBAIJBAwAAAAEABIMBAKRy
+[   10.07 13:19:57Z] FACEDUMP 1 88 AQBBOQEAp8wEAAAAAQAjWgEABqwBAAAAAQBGvAEAI1oBAAAAAQCCQQEAp8xvAAAAAQCgGAoAwnoBAAFaUQAAAAEAIDEKAMJ6
+[   10.07 13:19:57Z] FACEDUMP 1 89 AQCBQXAAAAABACNaAQCnzAEAI1oIAAAAAQAGrAEAp8wBAEAIAgAAAAEA4lEBAKfMAQCCQQQAAAABAIAYAQCnzAEABIMCAAAA
+[   10.07 13:19:57Z] FACEDUMP 1 90 AQAGrAEAp8wNAAAAAQDiUQEARrwBAKfMAQBBOQIAAAABAIAYAQCnzAEApHIEAAAAAQBBOQEAp8wBACNaAgAAAAEABqwBAKfM
+[   10.07 13:19:57Z] FACEDUMP 1 91 BgAAAAEABqwBAKfMAgAAAAEAQTkBAKfMAQAjWgUAAAABAKfMAQBFixIAAAABAIAYAQCnzAEAgkECAAAAAQCkcgYAp8wBACNa
+[   10.07 13:19:57Z] FACEDUMP 1 92 AgAAAAEAgBgBAKfMAQCCQQMAAAABAEWLAQBjagEAQTkEAKfMAgCCQQEApHIBAEE5AQCnzAEAgBgBAIJBAQDBIAEABINwAAAA
+[   10.07 13:19:57Z] FACEDUMP 1 93 AQCBQQoAwnoBACAxTwAAAAEAQAgBAIFyCQDCegEAIWJxAAAAAQCAGAEAp8wBAEa8BwAAAAEAgkEBAKfMAQBFiwMAAAABAOJR
+[   10.07 13:19:57Z] FACEDUMP 1 94 AQCnzAEA4lEEAAAAAQBBOQEAp8wBAASDAgAAAAEABIMBAKfMAQCCQQ0AAAABAIAYAQCnzAEABIMCAAAAAQCAGAEAp8wBAKRy
+[   10.07 13:19:57Z] FACEDUMP 1 95 BAAAAAEAQTkBAKfMAQAjWgIAAAABAASDAQCnzAEAwSAEAAAAAQBACAEAp8wBAMWjAgAAAAEAQTkBAKfMAQAjWgUAAAABAKfM
+[   10.27 13:19:57Z] FACEDUMP 1 96 AQBFixIAAAABAIAYAQCnzAEAgkECAAAAAQCkcgEARrwFAOJRAQDBIAIAAAABAIAYAQCnzAEAgkEDAAAAAQAGrAEApHIBAEE5
+[   10.27 13:19:57Z] FACEDUMP 1 97 AQCnzAEAQTkCAMEgAQBACAEAAAABAEAIAQAGrAEABIMBAMEgAQBGvAEARYsBAEAIcQAAAAEAIWIJAMJ6AQCBcgEAQAhOAAAA
+[   10.27 13:19:57Z] FACEDUMP 1 98 AQABWgkAwnoBAIFyAQCAEHIAAAABAKRyAQCnzAEAxaMBAEAIBAAAAAEAQTkCAKfMAQCAGAMAAAABAEE5AQCnzAEABIMEAAAA
+[   10.27 13:19:57Z] FACEDUMP 1 99 AQAEgwEAp8wBAASDAgAAAAEAQTkBAKfMAQAGrAEAQAgEAAAAAQCAGAIAAAABAEAIBAAAAAEAgBgBAKfMAQCkcgIAAAABAEAI
+[   10.27 13:19:57Z] FACEDUMP 1 100 AQCnzAEAxaMEAAAAAQBBOQEAp8wBACNaAgAAAAEAwSABAKfMAQBFiwQAAAABAASDAQCnzAEAgkECAAAAAQBBOQEAp8wBACNa
+[   10.27 13:19:57Z] FACEDUMP 1 101 BQAAAAEAp8wBAEWLEgAAAAEAgBgBAKfMAQCCQQIAAAABAOJRAQCkcggAAAABAIAYAQCnzAEAgkEDAAAAAgCnzAEAI1oBAKfM
+[   10.27 13:19:57Z] FACEDUMP 1 102 BAAAAAEAQTkBAAasAQDFowEAQAgBAAAAAQBACAEAxaMBAEa8AQDBIHAAAAABAIAQAQCBcgkAwnoBAAFaTQAAAAEAIDEKAMJ6
+[   10.27 13:19:57Z] FACEDUMP 1 103 AQAgMXQAAAABAASDAgCnzAEARYsBAKRyAQAEgwEABqwCAKfMAQBBOQUAAAABAAasAQCnzAEAY2oBAEE5AQCCQQEABIMBAAas
+[   10.27 13:19:57Z] FACEDUMP 1 104 AQCnzAEABIMDAAAAAQBjagEAp8wBAEa8AQCkcgEAY2oBAKRyAQAGrAEAxaMCAAAAAQBGvAEARYsBAGNqAQAjWgEAY2oBAEa8
+[   10.27 13:19:57Z] FACEDUMP 1 105 AQCnzAEAwSADAAAAAQDFowEAp8wBAASDAgAjWgEAAAABAEE5AQCnzAEAI1oDAAAAAQBjagEAp8wBAAasAgBjagEAxaMBAKfM
+[   10.48 13:19:57Z] FACEDUMP 1 106 AQAEgwMAAAABAEE5AQCnzAEAI1oFAAAAAQCnzAEARYsSAAAAAQCAGAEAp8wBAIJBDAAAAAEAgBgBAKfMAQCCQQIAAAABAIJB
+[   10.48 13:19:57Z] FACEDUMP 1 107 AQCnzAEA4lECAKfMAQBACAIAAAABAASDAQCnzAEAY2oFAAAAAQAEgwEARYtxAAAAAQAgMQoAwnoBACAxSwAAAAEAQAgBAIFy
+[   10.48 13:19:57Z] FACEDUMP 1 108 CQDCegEAAVp2AAAAAQBBOQEARYsBAEa8AwCnzAEABIMBAEAIBgAAAAEAQAgBAASDAQBGvAEAp8wBAEa8AQCkcgEAQAgBAAas
+[   10.48 13:19:57Z] FACEDUMP 1 109 AQAEgwQAAAABAIJBAQBFiwIAp8wBAEa8AQBFiwEAgkECAAAAAQAjWgEABqwCAKfMAQBGvAEARYsBAMEgBAAAAAEAgBgBAEWL
+[   10.48 13:19:57Z] FACEDUMP 1 110 AgCnzAEABIMBAAAAAQBBOQEAp8wBACNaBAAAAAEAgkEBAMWjAgCnzAEAxaMBAOJRBAAAAAEAQTkBAKfMAQAjWgUAAAABAKfM
+[   10.48 13:19:57Z] FACEDUMP 1 111 AQBFixIAAAABAIAYAQCnzAEAgkEJAAAAAQDBIAIAI1oBAKRyAQCnzAEAgkECAAAAAQDFowEABIMBAAAAAQBBOQIARrwBAASD
+[   10.48 13:19:57Z] FACEDUMP 1 112 AgAjWgEAgkEEAMEgBABBOXIAAAABAAFaCQDCegEAgXIBAEAISgAAAAEA4VEJAMJ6AQCBcgEAQAh6AAAAAQBBOQEAp8wBAEa8
+[   10.48 13:19:57Z] FACEDUMP 1 113 AQDBIFoAAAABAIAYAQCnzAEAgkEJAAAAAQCAGAMAp8wBAEWLAQBACAEAAAABAIJBAQCnzAEAwSADAAAAAQCCQQEApHIBAMWj
+[   10.48 13:19:57Z] FACEDUMP 1 114 AQBGvAgAp8wBAMWjcgAAAAEAQAgBAIFyCQDCegEA4VFJAAAAAQDAIAoAwnoBACAxfAAAAAEAgkEBAKfMAQBGvAEAwSBZAAAA
+[   10.48 13:19:57Z] FACEDUMP 1 115 AQCAGAEAp8wBAIJBEQAAAAEAgBiEAAAAAQAgMQoAwnoBAMAgRwAAAAEAIAABAGFqCQDCegEAAVp+AAAAAQDiUQIAp8wBAMEg
+[   10.68 13:19:57Z] FACEDUMP 1 116 8gAAAAEAAVoJAMJ6AQBhagEAIABGAAAAAQCBQQkAwnoBAIFyAQBACHQBAAABAEAIAQCBcgkAwnoBAIFBRQAAAAEAgBAKAMJ6
+[   10.68 13:19:57Z] FACEDUMP 1 117 AQAgMXYBAAABACAxCgDCegEAgBBEAAAAAQABWgkAwnoBACFieAEAAAEAIWIJAMJ6AQABWkMAAAABAAApCgDCegEAgBB4AQAA
+[   10.68 13:19:57Z] FACEDUMP 1 118 AQCAEAoAwnoBAAApQQAAAAEAIAABAIFyCQDCegEAYTl6AQAAAQBhOQkAwnoBAIFyAQAgAEAAAAABAIFBCQDCegEAYWoBACAA
+[   10.68 13:19:57Z] FACEDUMP 1 119 egEAAAEAIAABAGFqCQDCegEAgUE/AAAAAQBACAoAwnoBAMAgfAEAAAEAwCAKAMJ6AQBACD4AAAABAAFaCQDCegEAAVp+AQAA
+[   10.68 13:19:57Z] FACEDUMP 1 120 AQABWgkAwnoBAAFaPQAAAAEAoBgKAMJ6AQBACH4BAAABAEAICgDCegEAoBg8AAAAAQAhYgkAwnoBAGE5gAEAAAEAYTkJAMJ6
+[   10.68 13:19:57Z] I (10578) FaceDisplay: diag gaze=-21,-9 mode=idle
+[   10.68 13:19:57Z] FACEDUMP 1 121 AQAhYjsAAAABAAApCQDCegEAgXIBACAAgAEAAAEAIAABAIFyCQDCegEAACk5AAAAAQAgAAEAYWoJAMJ6AQAAKYIBAAABAAAp
+[   10.68 13:19:57Z] FACEDUMP 1 122 CQDCegEAYWoBACAAOAAAAAEAYTkJAMJ6AQAhYoQBAAABACFiCQDCegEAYTk3AAAAAQAgAAEAgXIJAMJ6AQCgGIQBAAABAKAY
+[   10.68 13:19:57Z] FACEDUMP 1 123 CQDCegEAgXIBACAANgAAAAEAYTkJAMJ6AQDhUYYBAAABAOFRCQDCegEAYTk1AAAAAQAgAAEAgXIJAMJ6AQBACIYBAAABAEAI
+[   10.68 13:19:57Z] FACEDUMP 1 124 CQDCegEAgXIBACAANAAAAAEAYTkJAMJ6AQChSYgBAAABAKFJCQDCegEAYTkzAAAAAQBACAkAwnoBAIFyAQBACOAAAAABAChC
+[   10.68 13:19:57Z] FACEDUMP 1 125 AQB1pQEAPN8BAL7vAQA83wEAOL4BAChCoQAAAAEAQAgBAIFyCQDCegEAQAgyAAAAAQChSQkAwnoBAGE5lgAAAAEAKEIBADzf
+[   10.88 13:19:57Z] FACEDUMP 1 126 AQC6zgEAYQgPAAAAAQAoQgEAPN8BALrOAQBhCDMAAAABAAxbBgC+7wEAKEKiAAAAAQBhOQkAwnoBAKFJMQAAAAEAQAgJAMJ6
+[   10.88 13:19:57Z] FACEDUMP 1 127 AQCBcgEAIAA3AAAAAQA4vgcAvu8DAAAAAgC+7wEAOL5RAAAAAQATnQIAvu8BAAxbDwAAAAEAE50CAL7vAQAMWzIAAAABAGEI
+[   10.88 13:19:57Z] FACEDUMP 1 128 AwC+7wEAjmsBAChCAQCKSgEAkYyjAAAAAQAgAAEAgXIJAMJ6AQBACDAAAAABAGE5CQDCegEAYTk4AAAAAQCRjAEAPN8FAL7v
+[   10.88 13:19:57Z] FACEDUMP 1 129 AQATnQMAAAACAL7vAQATnVEAAAABAA98AgC+7wEAKEIFAAAAAQAoQgEAvu8BAAxbBwAAAAEAD3wCAL7vAQAoQjIAAAABAI5r
+[   10.88 13:19:57Z] FACEDUMP 1 130 AgC+7wEAikqoAAAAAQBhOQkAwnoBAGE5LwAAAAEAIAABAIFyCADCegEAgXIBACAAOgAAAAEADFsCAL7vAQAPfAUAAAABALrO
+[   10.88 13:19:57Z] FACEDUMP 1 131 AQC+7wEAkYxSAAAAAQAMWwEAikoGAAAAAQCRjAEAvu8BAAxbCAAAAAEADFsBAIpKMwAAAAEAE50CAL7vqQAAAAEAIAABAIFy
+[   10.88 13:19:57Z] FACEDUMP 1 132 CADCegEAgXIBACAALgAAAAEAYTkJAMJ6AQBhOTsAAAABAChCAgC+7wEADFsFAAAAAQA4vgEAvu8BAA98WgAAAAEAus4BAL7v
+[   10.88 13:19:57Z] FACEDUMP 1 133 AQAMWz0AAAABAHWlAQC+7wEAPN+qAAAAAQBhOQkAwnoBAGE5LQAAAAEAIAAJAMJ6AQCBcgEAIAA7AAAAAQAoQgIAvu8BAAxb
+[   10.88 13:19:57Z] FACEDUMP 1 134 BQAAAAEAdaUBAL7vAQCOa1kAAAABAGUpAgC+7wEADFs9AAAAAQB1pQEAvu8BADzfqgAAAAEAIAABAIFyCQDCegEAIAAsAAAA
+[   10.88 13:19:57Z] FACEDUMP 1 135 AQChSQkAwnoBAGE5PAAAAAEAKEICAL7vAQAMWwUAAAABABOdAQC+7wEADFsEAAAAAQCOawEAvu8BADi+AgAAAAEAjmsBALrO
+[   11.09 13:19:58Z] FACEDUMP 1 136 AgC+7wEAus4BAJGMAQBhCAMAAAABAAxbAQA4vgIAvu8BADzfAQATnQEAZSkMAAAAAQAPfAIAvu8BAGUpBgAAAAEAOL4CAL7v
+[   11.09 13:19:58Z] FACEDUMP 1 137 AQAMWwYAAAABAJGMAgC+7wEAYQgEAAAAAQBlKQEAD3wBADi+AQA83wIAvu8BALrOAQAPfAEAYQgGAAAAAQCOawIAvu8BAGUp
+[   11.09 13:19:58Z] FACEDUMP 1 138 AgAAAAEA4xgBABOdCAC+7wMAAAABAI5rAgC+7wEAZSkEAAAAAQCOawEAvu8BADi+AgAAAAEADFsBADi+AgC+7wEAPN8BAHWl
+[   11.09 13:19:58Z] FACEDUMP 1 139 AQCKSgoAAAABAAxbAQA4vgIAvu8BADzfAQCRjAEA4xgBAAAAAQAoQgEAvu8BADzfCgAAAAEA4xgBAA98AQC6zgcAvu8FAAAA
+[   11.09 13:19:58Z] FACEDUMP 1 140 AQBlKQEAkYwBALrOAgC+7wEAPN8BABOdAQAoQgcAAAABAI5rAQC+7wEAOL4CAAAAAQAoQgEAdaUCAL7vAQA83wgAAAABADi+
+[   11.09 13:19:58Z] FACEDUMP 1 141 AgC+7wEAYQgIAAAAAQB1pQIAvu8BAGEIBAAAAAEAZSkBAJGMAQC6zgIAvu8BADzfAQATnQEAKEIHAAAAAQATnQIAvu8IAAAA
+[   11.09 13:19:58Z] FACEDUMP 1 142 AQATnQIAvu8FAAAAAQCOawEAvu8BADi+AgAAAAEAKEIBAHWlAgC+7wEAPN9BAAAAAQBhOQkAwnoBAOFRLAAAAAkAwnoBAIFy
+[   11.09 13:19:58Z] FACEDUMP 1 143 AQAgADwAAAABAChCAgC+7wEADFsFAAAAAQCRjAEAvu8BAIpKBAAAAAEAjmsBAL7vAQA83wEAYQgBALrOBgC+7wEAPN8BAOMY
+[   11.09 13:19:58Z] FACEDUMP 1 144 AQBhCAEAus4HAL7vAQAoQgsAAAABAChCAgC+7wEADFsFAAAAAQBhCAMAvu8BAHWlBgAAAAEAus4BAL7vAQC6zgQAAAABAJGM
+[   11.09 13:19:58Z] FACEDUMP 1 145 CAC+7wEAPN8BAOMYBQAAAAEAjmsCAL7vAQBlKQIAAAABAA98CQC+7wMAAAABAI5rAgC+7wEAZSkEAAAAAQCOawEAvu8BADzf
+[   11.29 13:19:58Z] FACEDUMP 1 146 AQBhCAEAOL4HAL7vAQATnQcAAAABAGEIAQA4vgcAvu8CAAxbAQC+7wEAPN8KAAAAAQAPfAkAvu8EAAAAAQAPfAgAvu8BABOd
+[   11.29 13:19:58Z] FACEDUMP 1 147 BgAAAAEAjmsBAL7vAQC6zgEAAAABAI5rBAC+7wEAOL4IAAAAAQAMWwIAvu8BAAxbBwAAAAEAYQgCAL7vAQA4vgQAAAABAA98
+[   11.29 13:19:58Z] FACEDUMP 1 148 CAC+7wEAE50GAAAAAQATnQIAvu8IAAAAAQATnQIAvu8FAAAAAQCOawEAvu8BALrOAQAAAAEAjmsEAL7vAQA4vkEAAAABACAA
+[   11.29 13:19:58Z] FACEDUMP 1 149 AQCBcgkAwnosAAAACQDCegEAYTk9AAAAAQAoQgIAvu8BAAxbBQAAAAEAjmsBAL7vAQBlKQQAAAABAI5rAgC+7wEAOL4BAL7v
+[   11.29 13:19:58Z] FACEDUMP 1 150 AQB1pQEADFsBAChCAQAMWwEAus4CAL7vAQB1pQEAOL4BAL7vAQA4vgEADFsBAIpKAQAMWwEAdaUCAL7vAQA83wwAAAACAL7v
+[   11.29 13:19:58Z] FACEDUMP 1 151 AQATnQUAAAABAIpKBAC+7wUAAAABAGEIAgC+7wEAkYwEAAAAAQAMWwEAvu8BALrOAQCOawEAKEIBAGUpAQCKSgEAdaUCAL7v
+[   11.29 13:19:58Z] FACEDUMP 1 152 AQA4vgUAAAABAI5rAgC+7wEAZSkDAAAAAQBhCAEAikoCAL7vAQCOawQAYQgDAAAAAQCOawIAvu8BAGUpBAAAAAEAjmsCAL7v
+[   11.29 13:19:58Z] FACEDUMP 1 153 AQA4vgEAvu8BADi+AQCOawIAikoBAJGMAwC+7wEADFsGAAAAAQB1pQIAvu8BADzfAQCOawIAikoBAJGMAgC+7wEAus4BAL7v
+[   11.29 13:19:58Z] FACEDUMP 1 154 AQA83wsAAAACAGEIAQA4vgEAvu8BADzfBABhCAMAAAABAJGMAgC+7wEAPN8BAA98AgCKSgEAjmsBADzfAgC+7wEAE50FAAAA
+[   11.29 13:19:58Z] FACEDUMP 1 155 AQCOawIAvu8BAIpKAgC+7wEAdaUCAA98AQAMWwkAAAACAL7vAQA4vgcAAAABAAxbAgC+7wEADFsDAAAAAQCRjAIAvu8BADzf
+[   11.29 13:19:58Z] FACEDUMP 1 156 AQAPfAIAikoBAI5rAQA83wIAvu8BABOdBQAAAAEAE50CAL7vCAAAAAEAE50CAL7vBQAAAAEAjmsCAL7vAQCKSgIAvu8BAHWl
+[   11.49 13:19:58Z] FACEDUMP 1 157 AgAPfAEADFtCAAAAAQBhOQkAwnosAAAACQDCegEAQAg9AAAAAQAoQgIAvu8BAAxbDAAAAAEAjmsDAL7vAQCOawUAAAABALrO
+[   11.49 13:19:58Z] FACEDUMP 1 158 AwC+7wEAkYwFAAAAAQATnQIAvu8BAIpKCwAAAAEAOL4BAL7vAQA83wUAAAABABOdAQC+7wEAE50CAL7vAQAoQgQAAAABAIpK
+[   11.49 13:19:58Z] FACEDUMP 1 159 AgC+7wEAikoEAAAAAQBhCAEAZSkGAAAAAQB1pQIAvu8BAOMYBAAAAAEAjmsCAL7vAQBlKQQAAAABAGUpAgC+7wEADFsHAAAA
+[   11.49 13:19:58Z] FACEDUMP 1 160 AQCOawIAvu8BAGUpBAAAAAEAjmsDAL7vAQAPfAUAAAABAChCAgC+7wEAOL4FAAAAAQCKSgIAvu8BADi+BQAAAAEA4xgBADzf
+[   11.49 13:19:58Z] FACEDUMP 1 161 AgC+7wEAPN8NAAAAAQB1pQEAvu8BADzfBgAAAAEAZSkCAL7vAQA4vgEAYQgFAAAAAQB1pQIAvu8BAAxbBAAAAAEAjmsCAL7v
+[   11.49 13:19:58Z] FACEDUMP 1 162 AgA83wEAKEINAAAAAQCRjAIAvu8BAOMYBgAAAAEAOL4CAL7vAwAAAAEAZSkCAL7vAQA4vgEAYQgFAAAAAQB1pQIAvu8BAAxb
+[   11.49 13:19:58Z] FACEDUMP 1 163 BAAAAAEAE50CAL7vCAAAAAEAE50CAL7vBQAAAAEAjmsCAL7vAgA83wEAKEJGAAAAAQBACAkAwnosAAAAAQChSQcAwnoBAKFJ
+[   11.49 13:19:58Z] FACEDUMP 1 164 PgAAAAEAKEICAL7vAQAMWwwAAAABAI5rAgC+7wEAOL4GAAAAAQCOawIAvu8BADzfBgAAAAEAZSkCAL7vAQAPfAsAAAABAA98
+[   11.49 13:19:58Z] FACEDUMP 1 165 AgC+7wEA4xgEAAAAAgC+7wEADFsBALrOAQC+7wEAD3wEAAAAAQCRjAIAvu8BAGEIDAAAAAEAikoCAL7vAQCKSgQAAAABAI5r
+[   11.49 13:19:58Z] FACEDUMP 1 166 AgC+7wEAZSkEAAAAAQBlKQIAvu8BAAxbBwAAAAEAjmsCAL7vAQBlKQQAAAABAI5rAgC+7wEAus4HAAAAAQA4vgIAvu8FAAAA
+[   11.70 13:19:58Z] FACEDUMP 1 167 AQB1pQIAvu8BAOMYBgAAAAEADFsCAL7vAQA83w0AAAABAHWlAQC+7wEAPN8GAAAAAQB1pQIAvu8BAOMYBgAAAAEAYQgCAL7v
+[   11.70 13:19:58Z] FACEDUMP 1 168 AQC6zgQAAAABAI5rAwC+7wEAKEIOAAAAAQBlKQIAvu8BAA98BQAAAAEAYQgCAL7vAQATnQMAAAABAHWlAgC+7wEA4xgGAAAA
+[   11.70 13:19:58Z] FACEDUMP 1 169 AQBhCAIAvu8BALrOBAAAAAEAE50CAL7vCAAAAAEAE50CAL7vBQAAAAEAjmsDAL7vAQAoQkgAAAABAKFJBwDCegEAoUktAAAA
+[   11.70 13:19:58Z] FACEDUMP 1 170 AQCBcgUAwnoBAIFyPwAAAAEAKEICAL7vAQAMWwwAAAABAI5rAgC+7wEAjmsGAAAAAQAoQgIAvu8BABOdBwAAAAIAvu8BAJGM
+[   11.70 13:19:58Z] FACEDUMP 1 171 CwAAAAEAKEICAL7vAQAMWwMAAAABAChCAgC+7wEA4xgBAJGMAQC+7wEAus4EAAAAAQC6zgEAvu8BADi+DQAAAAEAZSkCAL7v
+[   11.70 13:19:58Z] FACEDUMP 1 172 AQAMWwQAAAABAI5rAgC+7wEAZSkEAAAAAQBlKQIAvu8BAAxbBwAAAAEAjmsCAL7vAQBlKQQAAAABAI5rAgC+7wEAD3wHAAAA
+[   11.70 13:19:58Z] FACEDUMP 1 173 AQAPfAIAvu8BAGEIBAAAAAIAvu8BADi+CAAAAAIAvu8BADzfDQAAAAEAdaUBAL7vAQA83wYAAAACAL7vAQA4vggAAAABAJGM
+[   11.70 13:19:58Z] FACEDUMP 1 174 AgC+7wEA4xgDAAAAAQCOawIAvu8BAHWlEAAAAAEAus4BAL7vAQC6zgUAAAABAI5rAgC+7wEAKEIDAAAAAgC+7wEAOL4IAAAA
+[   11.70 13:19:58Z] FACEDUMP 1 175 AQCRjAIAvu8BAOMYAwAAAAEAE50CAL7vCAAAAAEAE50CAL7vBQAAAAEAjmsCAL7vAQB1pUoAAAABAIFyBQDCegEAgXIvAAAA
+[   11.70 13:19:58Z] FACEDUMP 1 176 AQChSQMAwnoBAKFJQAAAAAEAKEICAL7vAQAMWwwAAAABAI5rAgC+7wEAKEIGAAAAAQBlKQIAvu8BAI5rBwAAAAIAvu8BABOd
+[   11.90 13:19:58Z] FACEDUMP 1 177 DAAAAAIAvu8BABOdAwAAAAEAD3wBAL7vAQA83wEAAAABAIpKAgC+7wEA4xgCAAAAAQBhCAIAvu8BAA98DQAAAAEAZSkCAL7v
+[   11.90 13:19:58Z] FACEDUMP 1 178 AQAMWwQAAAABAI5rAgC+7wEAZSkEAAAAAQBlKQIAvu8BAAxbBwAAAAEAjmsCAL7vAQBlKQQAAAABAI5rAgC+7wEAikoHAAAA
+[   11.90 13:19:58Z] FACEDUMP 1 179 AQAPfAIAvu8BAGEIAwAAAAEAZSkCAL7vAQAPfAgAAAABALrOAQC+7wEAPN8NAAAAAQB1pQEAvu8BADzfBQAAAAEAZSkCAL7v
+[   11.90 13:19:58Z] FACEDUMP 1 180 AQAPfAgAAAABAIpKAgC+7wEADFsDAAAAAQCOawIAvu8BAIpKEAAAAAEAjmsCAL7vAQAoQgQAAAABADi+AQC+7wEAPN8DAAAA
+[   11.90 13:19:58Z] FACEDUMP 1 181 AQBlKQIAvu8BAA98CAAAAAEAikoCAL7vAQAMWwMAAAABABOdAgC+7wgAAAABABOdAgC+7wUAAAABAI5rAgC+7wEAikpLAAAA
+[   11.90 13:19:58Z] FACEDUMP 1 182 AQChSQMAwnoBAKFJdQAAAAEAKEICAL7vAQAMWwwAAAABAI5rAgC+7wEAZSkGAAAAAQBlKQIAvu8BAAxbBwAAAAIAvu8BABOd
+[   11.90 13:19:58Z] FACEDUMP 1 183 DAAAAAEAdaUBAL7vAQA83wMAAAABALrOAQC+7wEAkYwCAAAAAgC+7wEADFsCAAAAAQCKSgIAvu8BAChCBgAAAAEAKEIBAJGM
+[   11.90 13:19:58Z] FACEDUMP 1 184 AQC6zgEAPN8GAL7vAQAMWwQAAAABAI5rAgC+7wEAZSkEAAAAAQBlKQIAvu8BAAxbBwAAAAEAjmsCAL7vAQBlKQQAAAABAI5r
+[   11.90 13:19:58Z] FACEDUMP 1 185 AgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIAwAAAAEAKEICAL7vAQAMWwgAAAABAHWlAQC+7wEAPN8NAAAAAQB1pQEAvu8BADzf
+[   11.90 13:19:58Z] FACEDUMP 1 186 BQAAAAEAKEICAL7vAQAMWwgAAAABAGUpAgC+7wEAjmsDAAAAAQCOawIAvu8BAGUpEAAAAAEAYQgCAL7vAQCRjAMAAAABAOMY
+[   12.11 13:19:59Z] FACEDUMP 1 187 AgC+7wEAD3wDAAAAAQAoQgIAvu8BAAxbCAAAAAEAZSkCAL7vAQCOawMAAAABABOdAgC+7wgAAAABABOdAgC+7wUAAAABAI5r
+[   12.11 13:19:59Z] FACEDUMP 1 188 AgC+7wEAZSnFAAAAAQAoQgIAvu8BAAxbDAAAAAEAjmsCAL7vAQBlKQYAAAABAGUpAgC+7wEADFsHAAAAAgC+7wEAE50MAAAA
+[   12.11 13:19:59Z] FACEDUMP 1 189 AQCOawIAvu8BAOMYAQAAAAEA4xgCAL7vAQAoQgIAAAABADi+AQC+7wEAdaUCAAAAAQCRjAIAvu8FAAAAAQBhCAEAOL4EAL7v
+[   12.11 13:19:59Z] FACEDUMP 1 190 BAA83wIAvu8BAAxbBAAAAAEAjmsCAL7vAQBlKQQAAAABAGUpAgC+7wEADFsHAAAAAQCOawIAvu8BAGUpBAAAAAEAjmsCAL7v
+[   12.11 13:19:59Z] FACEDUMP 1 191 AQBlKQcAAAABAA98AgC+7wEAYQgDAAAAAQCKSgIAvu8BAAxbCAAAAAEAdaUBAL7vAQA83w0AAAABAHWlAQC+7wEAPN8FAAAA
+[   12.11 13:19:59Z] FACEDUMP 1 192 AQCKSgIAvu8BAAxbCAAAAAEAZSkCAL7vAQAPfAMAAAABAI5rAgC+7wEAZSkRAAAAAQATnQIAvu8DAAAAAQAPfAIAvu8BAOMY
+[   12.11 13:19:59Z] FACEDUMP 1 193 AwAAAAEAikoCAL7vAQAMWwgAAAABAGUpAgC+7wEAD3wDAAAAAQATnQIAvu8IAAAAAQATnQIAvu8FAAAAAQCOawIAvu8BAGUp
+[   12.11 13:19:59Z] FACEDUMP 1 194 xQAAAAEAKEICAL7vAQAMWwwAAAABAI5rAgC+7wEAZSkGAAAAAQBlKQIAvu8BAAxbBwAAAAIAvu8BABOdDAAAAAEAZSkCAL7v
+[   12.11 13:19:59Z] FACEDUMP 1 195 AQAMWwEAAAABAI5rAgC+7wMAAAABAI5rAgC+7wIAAAABALrOAQC+7wEAOL4FAAAAAQC6zgIAvu8BABOdAQBlKQQAAAABAGUp
+[   12.11 13:19:59Z] FACEDUMP 1 196 AgC+7wEADFsEAAAAAQCOawIAvu8BAGUpBAAAAAEAZSkCAL7vAQAMWwcAAAABAI5rAgC+7wEAZSkEAAAAAQCOawIAvu8BAGUp
+[   12.31 13:19:59Z] FACEDUMP 1 197 BwAAAAEAD3wCAL7vAQBhCAMAAAABAIpKAgC+7wEADFsIAAAAAQB1pQEAvu8BADzfDQAAAAEAdaUBAL7vAQA83wUAAAABAChC
+[   12.31 13:19:59Z] FACEDUMP 1 198 AgC+7wEADFsIAAAAAQAoQgIAvu8BAI5rAwAAAAEAjmsCAL7vAQBlKREAAAABAChCAgC+7wEAikoCAAAAAQC6zgEAvu8BALrO
+[   12.31 13:19:59Z] FACEDUMP 1 199 BAAAAAEAKEICAL7vAQAMWwgAAAABAChCAgC+7wEAjmsDAAAAAQATnQIAvu8IAAAAAQATnQIAvu8FAAAAAQCOawIAvu8BAGUp
+[   12.31 13:19:59Z] FACEDUMP 1 200 xQAAAAEAKEICAL7vAQAMWwwAAAABAI5rAgC+7wEAZSkGAAAAAQBlKQIAvu8BAAxbBwAAAAIAvu8BABOdDQAAAAIAvu8BABOd
+[   12.31 13:19:59Z] FACEDUMP 1 201 AQAAAAEAdaUBAL7vAQB1pQMAAAABAOMYAgC+7wEAKEIBAAAAAgC+7wEAjmsEAAAAAQCKSgIAvu8BAJGMBgAAAAEAZSkCAL7v
+[   12.31 13:19:59Z] FACEDUMP 1 202 AQAMWwQAAAABAI5rAgC+7wEAZSkEAAAAAQBlKQIAvu8BAAxbBwAAAAEAjmsCAL7vAQBlKQQAAAABAI5rAgC+7wEAZSkHAAAA
+[   12.31 13:19:59Z] FACEDUMP 1 203 AQAPfAIAvu8BAGEIAwAAAAEAZSkCAL7vAQAPfAgAAAABADi+AQC+7wEAPN8NAAAAAQB1pQEAvu8BADzfBQAAAAEA4xgCAL7v
+[   12.31 13:19:59Z] FACEDUMP 1 204 AQAPfAgAAAABAAxbAgC+7wEADFsDAAAAAQCOawIAvu8BAGUpEgAAAAEAus4BAL7vAQB1pQEAAAABAOMYAgC+7wEAjmsEAAAA
+[   12.31 13:19:59Z] FACEDUMP 1 205 AQDjGAIAvu8BAA98CAAAAAEADFsCAL7vAQAMWwMAAAABABOdAgC+7wgAAAABADi+AgC+7wUAAAABAI5rAgC+7wEAZSnFAAAA
+[   12.31 13:19:59Z] FACEDUMP 1 206 AQAoQgIAvu8BAAxbDAAAAAEAjmsCAL7vAQBlKQYAAAABAGUpAgC+7wEADFsHAAAAAgC+7wEAE50NAAAAAQB1pQEAvu8BALrO
+[   12.31 13:19:59Z] FACEDUMP 1 207 AQAAAAIAvu8BAAxbBAAAAAEAPN8BAL7vAQAPfAEAKEICAL7vAQBlKQQAAAABAJGMAgC+7wEA4xgGAAAAAQCKSgIAvu8BAAxb
+[   12.51 13:19:59Z] FACEDUMP 1 208 BAAAAAEAjmsCAL7vAQBlKQQAAAABAGUpAgC+7wEADFsHAAAAAQCOawIAvu8BAGUpBAAAAAEAjmsCAL7vAQBlKQcAAAABAA98
+[   12.51 13:19:59Z] FACEDUMP 1 209 AgC+7wEAYQgEAAAAAgC+7wEAdaUIAAAAAQA83wEAvu8BADzfDQAAAAEAdaUBAL7vAQA83wYAAAACAL7vAQA4vggAAAABAJGM
+[   12.51 13:19:59Z] FACEDUMP 1 210 AgC+7wEA4xgDAAAAAQCOawIAvu8BAGUpEgAAAAEAjmsCAL7vAQAAAAEAjmsCAL7vAQBhCAUAAAACAL7vAQA4vggAAAABAJGM
+[   12.51 13:19:59Z] FACEDUMP 1 211 AgC+7wEA4xgDAAAAAQCRjAIAvu8BAGEIBwAAAAMAvu8FAAAAAQCOawIAvu8BAGUpxQAAAAEAKEICAL7vAQAMWwwAAAABAI5r
+[   12.51 13:19:59Z] FACEDUMP 1 212 AgC+7wEAZSkGAAAAAQBlKQIAvu8BAAxbBwAAAAIAvu8BABOdDQAAAAEADFsCAL7vAQAoQgIAvu8BAGEIBAAAAAEAkYwBAL7v
+[   12.51 13:19:59Z] FACEDUMP 1 213 AQA4vgEAD3wCAL7vBQAAAAEAkYwCAL7vAQDjGAYAAAABABOdAgC+7wEADFsEAAAAAQCOawIAvu8BAGUpBAAAAAEAZSkCAL7v
+[   12.51 13:19:59Z] FACEDUMP 1 214 AQCOawcAAAABAI5rAgC+7wEAZSkEAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAQAAAABADi+AgC+7wEA4xgGAAAA
+[   12.51 13:19:59Z] FACEDUMP 1 215 AQBlKQIAvu8BADzfDQAAAAEAdaUBAL7vAQA83wYAAAABABOdAgC+7wEAZSkGAAAAAQBhCAIAvu8BALrOBAAAAAEAjmsCAL7v
+[   12.51 13:19:59Z] FACEDUMP 1 216 AQBlKRIAAAABAGEIAgC+7wEAikoBADi+AQC+7wEAdaUGAAAAAQATnQIAvu8BAGUpBgAAAAEAYQgCAL7vAQC6zgQAAAABAA98
+[   12.51 13:19:59Z] FACEDUMP 1 217 AgC+7wEAKEIGAAAAAQCKSgMAvu8FAAAAAQCOawIAvu8BAGUpxQAAAAEAKEICAL7vAQAMWwwAAAABAI5rAgC+7wEAZSkGAAAA
+[   12.72 13:19:59Z] FACEDUMP 1 218 AQBlKQIAvu8BAAxbBwAAAAIAvu8BABOdDQAAAAEA4xgCAL7vAQATnQEAvu8BADi+BQAAAAEAikoCAL7vAQB1pQEAvu8BAHWl
+[   12.72 13:19:59Z] FACEDUMP 1 219 BQAAAAEAjmsCAL7vAQCOawUAAAABAAxbAwC+7wEADFsEAAAAAQCOawIAvu8BAGUpBAAAAAEAYQgCAL7vAQA4vgcAAAABAI5r
+[   12.72 13:19:59Z] I (12558) FaceDisplay: diag gaze=9,-1 mode=idle
+[   12.72 13:19:59Z] I (12558) FaceDisplay: diag fps=7.1 frame_ms_avg=26.3 frame_ms_max=56.1 voice_flips=0 mode=idle mood=neutral inv_areas=3.7 inv_kpx=30.9 inv_full=0 ring=ears
+[   12.72 13:19:59Z] FACEDUMP 1 220 AgC+7wEAZSkEAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAQAAAABAIpKAgC+7wEAdaUFAAAAAQBhCAEAus4CAL7v
+[   12.72 13:19:59Z] FACEDUMP 1 221 AQA83w0AAAABAHWlAQC+7wEAPN8GAAAAAQDjGAIAvu8BALrOAQBhCAUAAAABAHWlAgC+7wEADFsEAAAAAQCOawIAvu8BAGUp
+[   12.72 13:19:59Z] FACEDUMP 1 222 EwAAAAEAdaUBAL7vAQB1pQIAvu8BAIpKBgAAAAEA4xgCAL7vAQC6zgEAYQgFAAAAAQB1pQIAvu8BAAxbBAAAAAEAKEICAL7v
+[   12.72 13:19:59Z] FACEDUMP 1 223 AQA4vgUAAAABAGEIAQA83wMAvu8FAAAAAQCOawIAvu8BAGUpxQAAAAEAikoCAL7vAQCOawwAAAABAI5rAgC+7wEAZSkGAAAA
+[   12.72 13:19:59Z] FACEDUMP 1 224 AQBlKQIAvu8BAAxbBwAAAAIAvu8BABOdDgAAAAEAPN8DAL7vAQCOawYAAAAEAL7vAQCOawUAAAABAOMYAwC+7wEAD3wBAChC
+[   12.72 13:19:59Z] FACEDUMP 1 225 AQBlKQEADFsBAHWlAQC+7wEAdaUCAL7vAQAMWwQAAAABAI5rAgC+7wEAZSkFAAAAAQA4vgIAvu8BABOdAgAoQgEADFsBAGEI
+[   12.72 13:19:59Z] FACEDUMP 1 226 AgAAAAEAjmsCAL7vAQBlKQQAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIBQAAAAEAOL4CAL7vAQC6zgEADFsCAChC
+[   12.92 13:19:59Z] FACEDUMP 1 227 AQCOawEAPN8BAL7vAQC6zgEAvu8BADzfDQAAAAEAdaUBAL7vAQA83wcAAAABAI5rAgC+7wEAPN8BAA98AQCKSgEAKEIBAI5r
+[   12.92 13:19:59Z] FACEDUMP 1 228 AQC6zgIAvu8BAHWlBQAAAAEAjmsCAL7vAQBlKRMAAAABAIpKBAC+7wgAAAABAI5rAgC+7wEAPN8BAA98AQCKSgEAKEIBAI5r
+[   12.92 13:19:59Z] FACEDUMP 1 229 AQC6zgIAvu8BAHWlBgAAAAEAus4CAL7vAQA4vgEADFsBAChCAQCKSgEAD3wCAL7vAQC6zgIAvu8FAAAAAQCOawIAvu8BAGUp
+[   12.92 13:19:59Z] FACEDUMP 1 230 wwAAAAEAD3wBADzfBAC+7wEAPN8BABOdCgAAAAEAjmsCAL7vAQBlKQYAAAABAGUpAgC+7wEADFsHAAAAAgC+7wEAE50OAAAA
+[   12.92 13:19:59Z] FACEDUMP 1 231 AQATnQMAvu8BAGUpBgAAAAEAdaUDAL7vAQDjGAYAAAABAI5rBwC+7wEAdaUBAAAAAQA4vgEAvu8BAAxbBAAAAAEAjmsCAL7v
+[   12.92 13:19:59Z] FACEDUMP 1 232 AQBlKQUAAAABAGUpBgC+7wEA4xgCAAAAAQCOawIAvu8BAGUpBAAAAAEAjmsCAL7vAQBlKQcAAAABAA98AgC+7wEAYQgFAAAA
+[   12.92 13:19:59Z] FACEDUMP 1 233 AQBhCAEAOL4HAL7vAQAMWwEAE50BAL7vAQA83w0AAAABAHWlAQC+7wEAPN8IAAAAAQCOawgAvu8BABOdBgAAAAEAjmsCAL7v
+[   12.92 13:19:59Z] FACEDUMP 1 234 AQBlKRQAAAABADzfAgC+7wEAkYwJAAAAAQCOawgAvu8BABOdBwAAAAEAZSkIAL7vAQCOawEADFsCAL7vBQAAAAEAjmsCAL7v
+[   12.92 13:19:59Z] FACEDUMP 1 235 AQBlKcMAAAABADi+BwC+7woAAAABAI5rAgC+7wEAZSkGAAAAAQBlKQIAvu8BAAxbBwAAAAIAvu8BABOdDgAAAAEADFsCAL7v
+[   12.92 13:19:59Z] FACEDUMP 1 236 AQA83wcAAAABAI5rAgC+7wEAPN8IAAAAAQAoQgEAdaUBADzfAgC+7wEAOL4BAAxbAgAAAAEAkYwBAL7vAQAMWwQAAAABAI5r
+[   12.92 13:19:59Z] FACEDUMP 1 237 AgC+7wEAZSkGAAAAAQBlKQEAE50BADzfAQC+7wEAPN8BAHWlAQBhCAIAAAABAI5rAgC+7wEAZSkEAAAAAQCOawIAvu8BAGUp
+[   13.12 13:20:00Z] FACEDUMP 1 238 BwAAAAEAD3wCAL7vAQBhCAcAAAABAAxbAQA4vgIAvu8BADzfAQATnQEAZSkBAAAAAQB1pQEAvu8BADzfDQAAAAEAdaUBAL7v
+[   13.12 13:20:00Z] FACEDUMP 1 239 AQA83wkAAAABAOMYAQCRjAEAus4CAL7vAQA83wEAE50BAChCBwAAAAEAjmsCAL7vAQBlKRQAAAABAJGMAgC+7wEAKEIKAAAA
+[   13.12 13:20:00Z] FACEDUMP 1 240 AQDjGAEAkYwBALrOAgC+7wEAPN8BABOdAQAoQgkAAAABAGEIAQAPfAEAus4CAL7vAQA83wEAE50BAGUpAQAAAAEAKEICAL7v
+[   13.12 13:20:00Z] FACEDUMP 1 241 BQAAAAEAjmsCAL7vAQBlKVsBAAABAHWlAQC+7wEAPN9AAAAAAQC6zgEAvu8BALrOjAEAAAEAus4BAL7vAQA4vj8AAAABAGUp
+[   13.12 13:20:00Z] FACEDUMP 1 242 AgC+7wEAD3yLAQAAAQBlKQIAvu8BAJGMPwAAAAEAE50CAL7vAQDjGIIBAAABAChCBwAAAAEAYQgBALrOAgC+7wEAZSk+AAAA
+[   13.12 13:20:00Z] FACEDUMP 1 243 AQAoQgIAvu8BABOdggEAAAEAYQgBAL7vAQA83wEAkYwBAI5rAQCKSgIAKEIBAA98AQA83wIAvu8BAHWlOwAAAAEAZSkCAChC
+[   13.12 13:20:00Z] FACEDUMP 1 244 AQAPfAMAvu8BAGEIggEAAAEAYQgKAL7vAQB1pTwAAAABABOdBQC+7wEAKEKEAQAAAQDjGAEAD3wBAHWlAQA83wMAvu8BALrO
+[   13.12 13:20:00Z] FACEDUMP 1 245 AQATnQEAKEI9AAAAAQAPfAIAvu8BADzfAQATnQEA4xivHgAAAQCOawIAvu8BAGUpKwAAAAEAjmsCAL7vAQBlKZ8BAAABAI5r
+[   13.12 13:20:00Z] FACEDUMP 1 246 AgC+7wEAZSkrAAAAAQCOawIAvu8BAGUpnwEAAAEAjmsCAL7vAQBlKSEAAAABAChCAQC+7wEADFsHAAAAAQCOawIAvu8BAGUp
+[   13.12 13:20:00Z] FACEDUMP 1 247 NQAAAAEAKEIBAL7vAQAMW2cBAAABAI5rAgC+7wEAZSkhAAAAAQCRjAEAvu8BAAxbBwAAAAEAjmsCAL7vAQBlKTUAAAABAJGM
+[   13.33 13:20:00Z] FACEDUMP 1 248 AQC+7wEADFtnAQAAAQCOawIAvu8BAGUpIQAAAAEAus4BAL7vAQAMWwcAAAABAI5rAgC+7wEAZSk1AAAAAQC6zgEAvu8BAAxb
+[   13.33 13:20:00Z] FACEDUMP 1 249 ZwEAAAEAjmsCAL7vAQBlKSAAAAABAGUpAgC+7wEADFsHAAAAAQCOawIAvu8BAGUpNAAAAAEAZSkCAL7vAQAMW7UAAAABAGUp
+[   13.33 13:20:00Z] FACEDUMP 1 250 AQAPfAEAOL4BADzfAgC+7wEAus4BAA98AQBhCAYAAAABAI5rAQC+7wEAOL4CAAAAAQAMWwEAOL4CAL7vAQA83wEAdaUBAIpK
+[   13.33 13:20:00Z] FACEDUMP 1 251 CAAAAAEAYQgBAA98AQA4vgMAvu8BALrOAQATnQEAikoCAAAAAQAPfAIAvu8BAGUpBgAAAAEAOL4CAL7vAQAMWwYAAAABAJGM
+[   13.33 13:20:00Z] FACEDUMP 1 252 AgC+7wEAYQgFAAAAAQBlKQEAE50BADzfAgC+7wEAOL4BAI5rBwAAAAEAjmsBAL7vAQA4vgIAAAABAChCAQB1pQIAvu8BADzf
+[   13.33 13:20:00Z] FACEDUMP 1 253 DQAAAAEAZSkBAJGMAQC6zgIAvu8BADzfAQATnQEAKEIHAAAAAQCOawEAvu8BADi+AgAAAAEADFsBADi+AgC+7wEAPN8BAHWl
+[   13.33 13:20:00Z] FACEDUMP 1 254 AQCKSg0AAAABAA98AgC+7wEAZSkGAAAAAQA4vgIAvu8BAAxbBgAAAAEAkYwCAL7vAQBhCAIAAAABAI5rAgC+7wEA4xgBAAAA
+[   13.33 13:20:00Z] FACEDUMP 1 255 AQAMWwEAOL4CAL7vAQA83wEAdaUBAIpKCgAAAAEAZSkBABOdAQA83wIAvu8BADi+AQCOawUAAAABAOMYAQATnQgAvu8DAAAA
+[   13.33 13:20:00Z] FACEDUMP 1 256 AQCOawIAvu8BAOMYAQAAAAEADFsBADi+AgC+7wEAPN8BAHWlAQCKSgoAAAABAGUpAQATnQEAPN8CAL7vAQA4vgEAjmsHAAAA
+[   13.33 13:20:00Z] FACEDUMP 1 257 AQCOawEAvu8BADi+AgAAAAEAKEIBAHWlAgC+7wEAPN8IAAAAAQDjGAEAE50IAL7vBgAAAAEAZSkBAJGMAQC6zgIAvu8BADzf
+[   13.53 13:20:00Z] FACEDUMP 1 258 AQATnQEAKEKiAAAAAQCRjAgAvu8BADzfAQDjGAUAAAABAI5rAQC+7wEAPN8BAGEIAQA4vgcAvu8BABOdBgAAAAEAKEIJAL7v
+[   13.53 13:20:00Z] FACEDUMP 1 259 AQAPfAEAAAABAChCAgC+7wEADFsFAAAAAQBhCAMAvu8BAHWlBgAAAAEAus4BAL7vAQC6zgUAAAABAA98BwC+7wEAPN8BAOMY
+[   13.53 13:20:00Z] FACEDUMP 1 260 BQAAAAEAjmsBAL7vAQC6zgEAAAABAI5rBAC+7wEAOL4MAAAAAQAPfAgAvu8BABOdBgAAAAEAjmsBAL7vAQA83wEAYQgBADi+
+[   13.53 13:20:00Z] FACEDUMP 1 261 BwC+7wEAE50MAAAAAQAoQgIAvu8BAAxbBQAAAAEAYQgDAL7vAQB1pQYAAAABALrOAQC+7wEAus4DAAAAAQCOawIAvu8BAGUp
+[   13.53 13:20:00Z] FACEDUMP 1 262 AQA4vgcAvu8BABOdCAAAAAEAD3wHAL7vAQA83wEA4xgDAAAAAQAPfAkAvu8DAAAAAQCOawIAvu8BAGUpAQA4vgcAvu8BABOd
+[   13.53 13:20:00Z] FACEDUMP 1 263 CAAAAAEAD3wHAL7vAQA83wEA4xgFAAAAAQCOawEAvu8BALrOAQAAAAEAjmsEAL7vAQA4vggAAAABAA98CQC+7wUAAAABAA98
+[   13.53 13:20:00Z] FACEDUMP 1 264 CAC+7wEAE52hAAAAAQAMWwEAvu8BALrOAQCOawEAKEIBAGUpAQCKSgEAdaUCAL7vAQA4vgUAAAABAI5rAgC+7wEAOL4BAL7v
+[   13.53 13:20:00Z] FACEDUMP 1 265 AQA4vgEAjmsCAIpKAQCRjAMAvu8BAAxbBAAAAAEAYQgDAL7vAQAPfAEAKEIBAGUpAQCKSgEAD3wBADi+AQC+7wEA4xgCAAAA
+[   13.53 13:20:00Z] FACEDUMP 1 266 AgC+7wEAE50FAAAAAQCKSgQAvu8FAAAAAQBhCAIAvu8BAJGMBAAAAAEAD3wCAL7vAQC6zgEADFsCAChCAQCRjAIAvu8BADzf
+[   13.53 13:20:00Z] FACEDUMP 1 267 AQBhCAQAAAABAI5rAgC+7wEAikoCAL7vAQB1pQIAD3wBAAxbCwAAAAEAkYwCAL7vAQA83wEAD3wCAIpKAQCOawEAPN8CAL7v
+[   13.53 13:20:00Z] FACEDUMP 1 268 AQATnQUAAAABAI5rAgC+7wEAOL4BAL7vAQA4vgEAjmsCAIpKAQCRjAMAvu8BAAxbDAAAAAIAvu8BABOdBQAAAAEAikoEAL7v
+[   13.74 13:20:00Z] FACEDUMP 1 269 BQAAAAEAYQgCAL7vAQCRjAMAAAABAI5rAgC+7wEAOL4BAL7vAQA4vgEADFsBAChCAQCKSgEAD3wDAL7vAQAMWwYAAAABAA98
+[   13.74 13:20:00Z] FACEDUMP 1 270 AgC+7wEAus4BAAxbAgAoQgEAkYwCAL7vAQA83wEAYQgDAAAAAQBhCAEAikoCAL7vAQCOawQAYQgDAAAAAQCOawIAvu8BADi+
+[   13.74 13:20:00Z] FACEDUMP 1 271 AQC+7wEAOL4BAAxbAQAoQgEAikoBAA98AwC+7wEADFsGAAAAAQAPfAIAvu8BALrOAQAMWwIAKEIBAJGMAgC+7wEAPN8BAGEI
+[   13.74 13:20:00Z] FACEDUMP 1 272 BAAAAAEAjmsCAL7vAQCKSgIAvu8BAHWlAgAPfAEADFsJAAAAAQBhCAEAikoCAL7vAQCOawQAYQgEAAAAAQCRjAIAvu8BADzf
+[   13.74 13:20:00Z] FACEDUMP 1 273 AQAPfAIAikoBAI5rAQA83wIAvu8BABOdoAAAAAEAYQgBAGUpBgAAAAEAdaUCAL7vAQDjGAQAAAABAI5rAwC+7wEAD3wFAAAA
+[   13.74 13:20:00Z] I (13648) SystemInfo: free sram: 98983 minimal sram: 33468
+[   13.74 13:20:00Z] FACEDUMP 1 274 AQAoQgIAvu8BADi+BAAAAAEADFsCAL7vAQAoQgYAAAABAGEIAwAAAAEAOL4BAL7vAQA83wUAAAABABOdAQC+7wEAE50CAL7v
+[   13.74 13:20:00Z] FACEDUMP 1 275 AQAoQgQAAAABAIpKAgC+7wEAikoDAAAAAQBlKQIAvu8BAHWlBQAAAAEAikoCAL7vAQCRjAQAAAABAI5rAgC+7wIAPN8BAChC
+[   13.74 13:20:00Z] FACEDUMP 1 276 DgAAAAEAZSkCAL7vAQA4vgEAYQgFAAAAAQB1pQIAvu8BAAxbBAAAAAEAjmsDAL7vAQAPfAUAAAABAChCAgC+7wEAOL4MAAAA
+[   13.74 13:20:00Z] FACEDUMP 1 277 AQA4vgEAvu8BADzfBQAAAAEAE50BAL7vAQATnQIAvu8BAChCBAAAAAEAikoCAL7vAQCKSgMAAAABAI5rAwC+7wEAD3wFAAAA
+[   13.94 13:20:01Z] FACEDUMP 1 278 AQBlKQIAvu8BADi+BQAAAAEAZSkCAL7vAQB1pQUAAAABAIpKAgC+7wEAkYwEAAAAAQBlKQIAvu8BAAxbBwAAAAEAjmsDAL7v
+[   13.94 13:20:01Z] FACEDUMP 1 279 AQAPfAUAAAABAGUpAgC+7wEAOL4FAAAAAQBlKQIAvu8BAHWlBQAAAAEAikoCAL7vAQCRjAQAAAABAI5rAgC+7wIAPN8BAChC
+[   13.94 13:20:01Z] FACEDUMP 1 280 DgAAAAEAZSkCAL7vAQAMWwcAAAABAGUpAgC+7wEAOL4BAGEIBQAAAAEAdaUCAL7vAQAMW6cAAAABAIpKAgC+7wEAikoEAAAA
+[   13.94 13:20:01Z] FACEDUMP 1 281 AQCOawIAvu8BALrOBwAAAAEAOL4CAL7vBAAAAAEAjmsCAL7vAQBhCAoAAAABAA98AgC+7wEA4xgEAAAAAgC+7wEADFsBALrO
+[   13.94 13:20:01Z] FACEDUMP 1 282 AQC+7wEAD3wEAAAAAQCRjAIAvu8BAGEIAwAAAAEAE50CAL7vAQBhCAYAAAABADi+AgC+7wQAAAABAI5rAwC+7wEAKEIPAAAA
+[   13.94 13:20:01Z] FACEDUMP 1 283 AQB1pQIAvu8BAOMYBgAAAAEAYQgCAL7vAQC6zgQAAAABAI5rAgC+7wEAus4HAAAAAQA4vgIAvu8MAAAAAQAPfAIAvu8BAOMY
+[   13.94 13:20:01Z] FACEDUMP 1 284 BAAAAAIAvu8BAAxbAQC6zgEAvu8BAA98BAAAAAEAkYwCAL7vAQBhCAMAAAABAI5rAgC+7wEAus4HAAAAAQB1pQIAvu8FAAAA
+[   13.94 13:20:01Z] FACEDUMP 1 285 AQATnQIAvu8BAGEIBgAAAAEAOL4CAL7vBAAAAAEAZSkCAL7vAQAMWwcAAAABAI5rAgC+7wEAus4HAAAAAQB1pQIAvu8FAAAA
+[   13.94 13:20:01Z] I (13888) FaceDisplay: diag blink double=0 mode=idle
+[   13.94 13:20:01Z] FACEDUMP 1 286 AQATnQIAvu8BAGEIBgAAAAEAOL4CAL7vBAAAAAEAjmsDAL7vAQAoQg8AAAABAGUpAgC+7wEADFsHAAAAAQB1pQIAvu8BAOMY
+[   13.94 13:20:01Z] FACEDUMP 1 287 BgAAAAEAYQgCAL7vAQC6zqcAAAABAGUpAgC+7wEADFsEAAAAAQCOawIAvu8BAA98BwAAAAEAD3wCAL7vAQBhCAMAAAABAChC
+[   13.94 13:20:01Z] FACEDUMP 1 288 AgC+7wEAkYwKAAAAAQAoQgIAvu8BAAxbAwAAAAEAKEICAL7vAQDjGAEAkYwBAL7vAQC6zgQAAAABALrOAQC+7wEAOL4EAAAA
+[   14.14 13:20:01Z] FACEDUMP 1 289 AgC+7wEAdaUHAAAAAQCOawIAvu8BAGUpAwAAAAEAjmsCAL7vAQB1pRAAAAACAL7vAQA4vggAAAABAJGMAgC+7wEA4xgDAAAA
+[   14.14 13:20:01Z] FACEDUMP 1 290 AQCOawIAvu8BAA98BwAAAAEAD3wCAL7vAQBhCAsAAAABAChCAgC+7wEADFsDAAAAAQAoQgIAvu8BAOMYAQCRjAEAvu8BALrO
+[   14.14 13:20:01Z] FACEDUMP 1 291 BAAAAAEAus4BAL7vAQA4vgQAAAABAI5rAgC+7wEAD3wHAAAAAQAPfAIAvu8BAGEIBAAAAAIAvu8BAHWlBwAAAAEAjmsCAL7v
+[   14.14 13:20:01Z] FACEDUMP 1 292 AQBlKQMAAAABAGUpAgC+7wEADFsHAAAAAQCOawIAvu8BAA98BwAAAAEAD3wCAL7vAQBhCAQAAAACAL7vAQB1pQcAAAABAI5r
+[   14.14 13:20:01Z] FACEDUMP 1 293 AgC+7wEAZSkDAAAAAQCOawIAvu8BAHWlEAAAAAEAZSkCAL7vAQAMWwcAAAACAL7vAQA4vggAAAABAJGMAgC+7wEA4ximAAAA
+[   14.14 13:20:01Z] FACEDUMP 1 294 AQBlKQIAvu8BAAxbBAAAAAEAjmsCAL7vAQCKSgcAAAABAA98AgC+7wEAYQgEAAAAAQC6zgIAvu8BALrOAQAMWwkAAAACAL7v
+[   14.14 13:20:01Z] FACEDUMP 1 295 AQATnQMAAAABAA98AQC+7wEAPN8BAAAAAQCKSgIAvu8BAOMYAgAAAAEAYQgCAL7vAQAPfAMAAAABAOMYAgC+7wEAkYwHAGUp
+[   14.14 13:20:01Z] FACEDUMP 1 296 AQAPfAIAvu8BAIpKAwAAAAEAjmsCAL7vAQCKSg8AAAABAGUpAgC+7wEAD3wIAAAAAQCKSgIAvu8BAAxbAwAAAAEAjmsCAL7v
+[   14.14 13:20:01Z] FACEDUMP 1 297 AQCKSgcAAAABAA98AgC+7wEAYQgMAAAAAgC+7wEAE50DAAAAAQAPfAEAvu8BADzfAQAAAAEAikoCAL7vAQDjGAIAAAABAGEI
+[   14.14 13:20:01Z] FACEDUMP 1 298 AgC+7wEAD3wEAAAAAQCOawIAvu8BAIpKBwAAAAEAD3wCAL7vAQBhCAMAAAABAOMYAgC+7wEAkYwHAGUpAQAPfAIAvu8BAIpK
+[   14.35 13:20:01Z] FACEDUMP 1 299 AwAAAAEAZSkCAL7vAQAMWwcAAAABAI5rAgC+7wEAikoHAAAAAQAPfAIAvu8BAGEIAwAAAAEA4xgCAL7vAQCRjAcAZSkBAA98
+[   14.35 13:20:01Z] FACEDUMP 1 300 AgC+7wEAikoDAAAAAQCOawIAvu8BAIpKEAAAAAEAZSkCAL7vAQAMWwYAAAABAGUpAgC+7wEAD3wIAAAAAQCKSgIAvu8BAAxb
+[   14.35 13:20:01Z] FACEDUMP 1 301 nwAAAAEAKEIBAJGMAQC6zgEAPN8GAL7vAQAMWwQAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIBAAAAAEAYQgBADi+
+[   14.35 13:20:01Z] FACEDUMP 1 302 AwC+7wEAPN8BAA98AQDjGAYAAAABAHWlAQC+7wEAPN8DAAAAAQC6zgEAvu8BAJGMAgAAAAIAvu8BAAxbAgAAAAEAikoCAL7v
+[   14.35 13:20:01Z] FACEDUMP 1 303 AQAoQgMAAAABAChCDQC+7wEADFsDAAAAAQCOawIAvu8BAGUpDwAAAAEAKEICAL7vAQAMWwgAAAABAGUpAgC+7wEAjmsDAAAA
+[   14.35 13:20:01Z] FACEDUMP 1 304 AQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAwAAAABAHWlAQC+7wEAPN8DAAAAAQC6zgEAvu8BAJGMAgAAAAIAvu8BAAxb
+[   14.35 13:20:01Z] FACEDUMP 1 305 AgAAAAEAikoCAL7vAQAoQgQAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIAwAAAAEAKEINAL7vAQAMWwMAAAABAGUp
+[   14.35 13:20:01Z] FACEDUMP 1 306 AgC+7wEADFsHAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAMAAAABAChCDQC+7wEADFsDAAAAAQCOawIAvu8BAGUp
+[   14.35 13:20:01Z] FACEDUMP 1 307 EAAAAAEAZSkCAL7vAQAMWwYAAAABAChCAgC+7wEADFsIAAAAAQBlKQIAvu8BAI5rnQAAAAEAYQgBADi+BAC+7wQAPN8CAL7v
+[   14.35 13:20:01Z] FACEDUMP 1 308 AQAMWwQAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIBgAAAAEAikoBADi+BAC+7wEAE50BAGEIBAAAAAEAjmsCAL7v
+[   14.55 13:20:01Z] FACEDUMP 1 309 AQDjGAEAAAABAOMYAgC+7wEAKEICAAAAAQA4vgEAvu8BAHWlAgAAAAEAkYwCAL7vBAAAAAEAikoNAL7vAQAMWwMAAAABAI5r
+[   14.55 13:20:01Z] FACEDUMP 1 310 AgC+7wEAZSkPAAAAAQCKSgIAvu8BAAxbCAAAAAEAZSkCAL7vAQAPfAMAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEI
+[   14.55 13:20:01Z] FACEDUMP 1 311 DAAAAAEAjmsCAL7vAQDjGAEAAAABAOMYAgC+7wEAKEICAAAAAQA4vgEAvu8BAHWlAgAAAAEAkYwCAL7vBQAAAAEAjmsCAL7v
+[   14.55 13:20:01Z] FACEDUMP 1 312 AQBlKQcAAAABAA98AgC+7wEAYQgDAAAAAQCKSg0Avu8BAAxbAwAAAAEAZSkCAL7vAQAMWwcAAAABAI5rAgC+7wEAZSkHAAAA
+[   14.55 13:20:01Z] FACEDUMP 1 313 AQAPfAIAvu8BAGEIAwAAAAEAikoNAL7vAQAMWwMAAAABAI5rAgC+7wEAZSkQAAAAAQBlKQIAvu8BAAxbBgAAAAEAikoCAL7v
+[   14.55 13:20:01Z] FACEDUMP 1 314 AQAMWwgAAAABAGUpAgC+7wEAD3ydAAAAAQC6zgIAvu8BABOdAQBlKQQAAAABAGUpAgC+7wEADFsEAAAAAQCOawIAvu8BAGUp
+[   14.55 13:20:01Z] FACEDUMP 1 315 BwAAAAEAD3wCAL7vAQBhCAgAAAABAGUpAQCRjAMAvu8BADzfAQDjGAMAAAABAGUpAgC+7wEADFsBAAAAAQCOawIAvu8DAAAA
+[   14.55 13:20:01Z] FACEDUMP 1 316 AQCOawIAvu8CAAAAAQC6zgEAvu8BADi+BAAAAAEAKEICAL7vAQAMWw4AAAABAI5rAgC+7wEAZSkPAAAAAQAoQgIAvu8BAAxb
+[   14.55 13:20:01Z] FACEDUMP 1 317 CAAAAAEAKEICAL7vAQCOawMAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIDAAAAAEAZSkCAL7vAQAMWwEAAAABAI5r
+[   14.55 13:20:01Z] FACEDUMP 1 318 AgC+7wMAAAABAI5rAgC+7wIAAAABALrOAQC+7wEAOL4FAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAMAAAABAChC
+[   14.76 13:20:01Z] FACEDUMP 1 319 AgC+7wEADFsOAAAAAQBlKQIAvu8BAAxbBwAAAAEAjmsCAL7vAQBlKQcAAAABAA98AgC+7wEAYQgDAAAAAQAoQgIAvu8BAAxb
+[   14.76 13:20:01Z] FACEDUMP 1 320 DgAAAAEAjmsCAL7vAQBlKRAAAAABAGUpAgC+7wEADFsGAAAAAQAoQgIAvu8BAAxbCAAAAAEAKEICAL7vAQCOa5wAAAABAIpK
+[   14.76 13:20:01Z] FACEDUMP 1 321 AgC+7wEAkYwGAAAAAQBlKQIAvu8BAAxbBAAAAAEAjmsCAL7vAQBlKQcAAAABAA98AgC+7wEAYQgKAAAAAQBhCAEAE50CAL7v
+[   14.76 13:20:01Z] FACEDUMP 1 322 AQB1pQQAAAACAL7vAQATnQEAAAABAHWlAQC+7wEAdaUDAAAAAQDjGAIAvu8BAChCAQAAAAIAvu8BAI5rBAAAAAEAZSkCAL7v
+[   14.76 13:20:01Z] FACEDUMP 1 323 AQAPfA4AAAABAI5rAgC+7wEAZSkPAAAAAQDjGAIAvu8BAA98CAAAAAEADFsCAL7vAQAMWwMAAAABAI5rAgC+7wEAZSkHAAAA
+[   14.76 13:20:01Z] FACEDUMP 1 324 AQAPfAIAvu8BAGEIDQAAAAIAvu8BABOdAQAAAAEAdaUBAL7vAQB1pQMAAAABAOMYAgC+7wEAKEIBAAAAAgC+7wEAjmsFAAAA
+[   14.76 13:20:01Z] FACEDUMP 1 325 AQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAMAAAABAGUpAgC+7wEAD3wOAAAAAQBlKQIAvu8BAAxbBwAAAAEAjmsCAL7v
+[   14.76 13:20:01Z] FACEDUMP 1 326 AQBlKQcAAAABAA98AgC+7wEAYQgDAAAAAQBlKQIAvu8BAA98DgAAAAEAjmsCAL7vAQBlKRAAAAABAGUpAgC+7wEADFsGAAAA
+[   14.76 13:20:01Z] FACEDUMP 1 327 AQDjGAIAvu8BAA98CAAAAAEADFsCAL7vAQAMW5wAAAABAJGMAgC+7wEA4xgGAAAAAQCKSgIAvu8BAAxbBAAAAAEAjmsCAL7v
+[   14.76 13:20:01Z] FACEDUMP 1 328 AQBlKQcAAAABAA98AgC+7wEAYQgMAAAAAQA4vgIAvu8EAAAAAQB1pQEAvu8BALrOAQAAAAIAvu8BAAxbBAAAAAEAPN8BAL7v
+[   14.97 13:20:02Z] FACEDUMP 1 329 AQAPfAEAKEICAL7vAQBlKQUAAAACAL7vAQA4vg4AAAABAI5rAgC+7wEAZSkQAAAAAgC+7wEAOL4IAAAAAQCRjAIAvu8BAOMY
+[   14.97 13:20:02Z] FACEDUMP 1 330 AwAAAAEAjmsCAL7vAQBlKQcAAAABAA98AgC+7wEAYQgNAAAAAQB1pQEAvu8BALrOAQAAAAIAvu8BAAxbBAAAAAEAPN8BAL7v
+[   14.97 13:20:02Z] FACEDUMP 1 331 AQAPfAEAKEICAL7vAQBlKQUAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIBAAAAAIAvu8BADi+DgAAAAEAZSkCAL7v
+[   14.97 13:20:02Z] FACEDUMP 1 332 AQAMWwcAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIBAAAAAIAvu8BADi+DgAAAAEAjmsCAL7vAQBlKRAAAAABAGUp
+[   14.97 13:20:02Z] FACEDUMP 1 333 AgC+7wEADFsHAAAAAgC+7wEAOL4IAAAAAQCRjAIAvu8BAOMYnAAAAAEAkYwCAL7vAQDjGAYAAAABABOdAgC+7wEADFsEAAAA
+[   14.97 13:20:02Z] FACEDUMP 1 334 AQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAwAAAABAA98AgC+7wQAAAABAAxbAgC+7wEAKEICAL7vAQBhCAQAAAABAJGM
+[   14.97 13:20:02Z] FACEDUMP 1 335 AQC+7wEAOL4BAA98AgC+7wYAAAABABOdAgC+7wEAKEINAAAAAQCOawIAvu8BAGUpEAAAAAEAE50CAL7vAQBlKQYAAAABAGEI
+[   14.97 13:20:02Z] FACEDUMP 1 336 AgC+7wEAus4EAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCA0AAAABAAxbAgC+7wEAKEICAL7vAQBhCAQAAAABAJGM
+[   14.97 13:20:02Z] FACEDUMP 1 337 AQC+7wEAOL4BAA98AgC+7wYAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIBAAAAAEAE50CAL7vAQAoQg0AAAABAGUp
+[   14.97 13:20:02Z] FACEDUMP 1 338 AgC+7wEAjmsHAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAQAAAABABOdAgC+7wEAKEINAAAAAQCOawIAvu8BAGUp
+[   14.97 13:20:02Z] FACEDUMP 1 339 EAAAAAEAZSkCAL7vAQCOawcAAAABABOdAgC+7wEAZSkGAAAAAQBhCAIAvu8BALrODQAAAAIAYQgGAAAAAgBhCAYAAAACAGEI
+[   15.17 13:20:02Z] FACEDUMP 1 340 fgAAAAEAjmsCAL7vAQCOawUAAAABAAxbAwC+7wEADFsEAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAMAAAABAOMY
+[   15.17 13:20:02Z] FACEDUMP 1 341 AQBhCAcAAAABALrOAQC+7wEAus4EAAAAAQDjGAIAvu8BABOdAQC+7wEAOL4FAAAAAQCKSgIAvu8BAHWlAQC+7wEAdaUGAAAA
+[   15.17 13:20:02Z] FACEDUMP 1 342 AQBlKQIAvu8BADzfAQBlKQcAAAABAGUpBAAAAAEAjmsCAL7vAQBlKRAAAAABAOMYAgC+7wEAus4BAGEIBQAAAAEAdaUCAL7v
+[   15.17 13:20:02Z] FACEDUMP 1 343 AQAMWwQAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIDQAAAAEA4xgCAL7vAQATnQEAvu8BADi+BQAAAAEAikoCAL7v
+[   15.17 13:20:02Z] FACEDUMP 1 344 AQB1pQEAvu8BAHWlBgAAAAEAjmsCAL7vAQBlKQcAAAABAA98AgC+7wEAYQgEAAAAAQBlKQIAvu8BADzfAQBlKQcAAAABAGUp
+[   15.17 13:20:02Z] FACEDUMP 1 345 BAAAAAEAYQgCAL7vAQA4vgcAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEIBAAAAAEAZSkCAL7vAQA83wEAZSkHAAAA
+[   15.17 13:20:02Z] FACEDUMP 1 346 AQBlKQQAAAABAI5rAgC+7wEAZSkQAAAAAQBhCAIAvu8BADi+BwAAAAEA4xgCAL7vAQC6zgEAYQgFAAAAAQB1pQIAvu8BAAxb
+[   15.17 13:20:02Z] FACEDUMP 1 347 DAAAAAEAjmsCAL7vAQCOawQAAAABAI5rAgC+7wEAjmsEAAAAAQCOawIAvu8BAI5rfQAAAAEA4xgDAL7vAQAPfAEAKEIBAGUp
+[   15.17 13:20:02Z] FACEDUMP 1 348 AQAMWwEAdaUBAL7vAQB1pQIAvu8BAAxbBAAAAAEAjmsCAL7vAQBlKQcAAAABAA98AgC+7wEAYQgDAAAAAQCOawEAvu8BAHWl
+[   15.17 13:20:02Z] FACEDUMP 1 349 AQCOawEAKEIBAGUpAQAoQgEADFsBALrOAgC+7wEADFsFAAAAAQA83wMAvu8BAI5rBgAAAAQAvu8BAI5rBwAAAAEAD3wDAL7v
+[   15.37 13:20:02Z] FACEDUMP 1 350 AQATnQEADFsBAIpKAQAMWwEAjmsBAHWlAQC+7wEAE50EAAAAAQCOawIAvu8BAGUpEQAAAAEAjmsCAL7vAQA83wEAD3wBAIpK
+[   15.37 13:20:02Z] FACEDUMP 1 351 AQAoQgEAjmsBALrOAgC+7wEAdaUFAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCA4AAAABADzfAwC+7wEAjmsGAAAA
+[   15.37 13:20:02Z] FACEDUMP 1 352 BAC+7wEAjmsGAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAUAAAABAA98AwC+7wEAE50BAAxbAQCKSgEADFsBAI5r
+[   15.37 13:20:02Z] FACEDUMP 1 353 AQB1pQEAvu8BABOdBQAAAAEAOL4CAL7vAQATnQIAKEIBAAxbAQBhCAIAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEI
+[   15.37 13:20:02Z] FACEDUMP 1 354 BQAAAAEAD3wDAL7vAQATnQEADFsBAIpKAQAMWwEAjmsBAHWlAQC+7wEAE50EAAAAAQCOawIAvu8BAGUpEQAAAAEAOL4CAL7v
+[   15.37 13:20:02Z] FACEDUMP 1 355 AQATnQIAKEIBAAxbAQBhCAMAAAABAI5rAgC+7wEAPN8BAA98AQCKSgEAKEIBAI5rAQC6zgIAvu8BAHWlDQAAAAEAus4CAL7v
+[   15.37 13:20:02Z] FACEDUMP 1 356 AQC6zgQAAAABALrOAgC+7wEAus4EAAAAAQC6zgIAvu8BALrOfgAAAAEAjmsHAL7vAQB1pQEAAAABADi+AQC+7wEADFsEAAAA
+[   15.37 13:20:02Z] FACEDUMP 1 357 AQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAMAAAABAAxbCQC+7wEAkYwGAAAAAQATnQMAvu8BAGUpBgAAAAEAdaUDAL7v
+[   15.37 13:20:02Z] FACEDUMP 1 358 AQDjGAgAAAABAI5rCQC+7wEAE50EAAAAAQCOawIAvu8BAGUpEgAAAAEAjmsIAL7vAQATnQYAAAABAI5rAgC+7wEAZSkHAAAA
+[   15.37 13:20:02Z] FACEDUMP 1 359 AQAPfAIAvu8BAGEIDgAAAAEAE50DAL7vAQBlKQYAAAABAHWlAwC+7wEA4xgGAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7v
+[   15.37 13:20:02Z] I (15358) FaceDisplay: diag gaze=0,0 mode=idle
+[   15.57 13:20:02Z] FACEDUMP 1 360 AQBhCAYAAAABAI5rCQC+7wEAE50FAAAAAQBlKQYAvu8BAOMYAgAAAAEAjmsCAL7vAQBlKQcAAAABAA98AgC+7wEAYQgGAAAA
+[   15.57 13:20:02Z] FACEDUMP 1 361 AQCOawkAvu8BABOdBAAAAAEAjmsCAL7vAQBlKREAAAABAGUpBgC+7wEA4xgEAAAAAQCOawgAvu8BABOdDgAAAAEAOL4CAL7v
+[   15.57 13:20:02Z] FACEDUMP 1 362 AQA4vgQAAAABADi+AgC+7wEAOL4EAAAAAQA4vgIAvu8BADi+fwAAAAEAKEIBAHWlAQA83wIAvu8BADi+AQAMWwIAAAABAJGM
+[   15.57 13:20:02Z] FACEDUMP 1 363 AQC+7wEADFsEAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAQAAAABAIpKAQATnQEAus4DAL7vAQC6zgEAkYwBAGUp
+[   15.57 13:20:02Z] FACEDUMP 1 364 BwAAAAEADFsCAL7vAQA83wcAAAABAI5rAgC+7wEAPN8KAAAAAQDjGAEAD3wBADi+AwC+7wEAus4BABOdAQCKSgUAAAABAI5r
+[   15.57 13:20:02Z] FACEDUMP 1 365 AgC+7wEAZSkTAAAAAQDjGAEAkYwBALrOAgC+7wEAPN8BABOdAQAoQgcAAAABAI5rAgC+7wEAZSkHAAAAAQAPfAIAvu8BAGEI
+[   15.57 13:20:02Z] FACEDUMP 1 366 DgAAAAEADFsCAL7vAQA83wcAAAABAI5rAgC+7wEAPN8HAAAAAQCOawIAvu8BAGUpBwAAAAEAD3wCAL7vAQBhCAcAAAABAOMY
+[   15.57 13:20:02Z] FACEDUMP 1 367 AQAPfAEAOL4DAL7vAQC6zgEAE50BAIpKBwAAAAEAZSkBABOdAQA83wEAvu8BADzfAQB1pQEAYQgCAAAAAQCOawIAvu8BAGUp
+[   15.57 13:20:02Z] FACEDUMP 1 368 BwAAAAEAD3wCAL7vAQBhCAcAAAABAOMYAQAPfAEAOL4DAL7vAQC6zgEAE50BAIpKBQAAAAEAjmsCAL7vAQBlKRIAAAABAGUp
+[   15.57 13:20:02Z] FACEDUMP 1 369 AQATnQEAPN8BAL7vAQA83wEAdaUBAGEIBQAAAAEA4xgBAJGMAQC6zgIAvu8BADzfAQATnQEAKEIPAAAAAQAoQgIAPN8BAChC
+[   15.57 13:20:02Z] FACEDUMP 1 370 BAAAAAEAKEICADzfAQAoQgQAAAABAChCAgA83wEAKEIZHAAAAQAlGQEAUmwBAOgxRwAAAAEAJRkBAFJsAQDoMQIAAAABACUZ
+[   15.77 13:20:02Z] FACEDUMP 1 371 AQBSbAEA6DEHAAAAAQAlGQEAUmwBAOgxMgAAAAEAJRkBAFJsAQDoMQIAAAABACUZAQBSbAEA6DEwAQAAAQBBAAUAUmwBAK9b
+[   15.77 13:20:02Z] FACEDUMP 1 372 AQCKOgEAgggDAAAAAQAlGQEAUmwBAOgxRwAAAAEAJRkBAFJsAQDoMQIAAAABACUZAQBSbAEA6DEHAAAAAQAlGQEAUmwBAOgx
+[   15.77 13:20:02Z] FACEDUMP 1 373 MgAAAAEAJRkBAFJsAQDoMQIAAAABACUZAQBSbAEA6DEwAQAAAQBBAAEAUmwBAPBjAgBJMgEAijoBAK9bAgBSbAEAwxACAAAA
+[   15.77 13:20:02Z] FACEDUMP 1 374 AQAlGQEAUmwBAOgxRwAAAAEAJRkBAFJsAQDoMQIAAAABACUZAQBSbAEA6DEHAAAAAQAlGQEAUmwBAOgxMgAAAAEAJRkBAFJs
+[   15.77 13:20:02Z] FACEDUMP 1 375 AQDoMQIAAAABACUZAQBSbAEA6DEwAQAAAQBBAAEAUmwBAAxLBAAAAAEApykBAFJsAQBuUwIAAAABACUZAQBSbAEA6DFHAAAA
+[   15.77 13:20:02Z] FACEDUMP 1 376 AQAlGQEAUmwBAOgxAgAAAAEAJRkBAFJsAQDoMQcAAAABACUZAQBSbAEA6DEyAAAAAQAlGQEAUmwBAOgxAgAAAAEAJRkBAFJs
+[   15.77 13:20:02Z] FACEDUMP 1 377 AQDoMTABAAABAEEAAQBSbAEADEsFAAAAAQDwYwEAUmwCAAAAAQAlGQEAUmwBAOgxBAAAAAEApykBAK9bAgBSbAEADEsBACUZ
+[   15.77 13:20:02Z] FACEDUMP 1 378 BAAAAAEAJRkBAMtCAQDwYwIAUmwBAG5TAQAlGQQAAAABAOgxAQCvWwIAUmwBAK9bAQDLQgEAgggEAAAAAQCnKQEAr1sCAFJs
+[   15.77 13:20:02Z] FACEDUMP 1 379 AQAMSwEAJRkKAAAAAQBmIQEAblMCAFJsAQCvWwEASTIDAAAAAQAlGQEAy0IBAPBjAgBSbAEAblMBACUZAwAAAAEAJRkBAFJs
+[   15.77 13:20:02Z] FACEDUMP 1 380 AQDoMQIAAAABACUZAQBSbAEA6DEHAAAAAQAlGQEAUmwBAOgxAQBmIQEAblMCAFJsAQBuUwEAJRkEAAAAAQAlGQEAy0IBAPBj
+[   15.97 13:20:03Z] FACEDUMP 1 381 AgBSbAEAblMBACUZDgAAAAEAZiEBAG5TAgBSbAEAr1sBAEkyAwAAAAEAJRkBAMtCAQDwYwIAUmwBAG5TAQAlGQMAAAABACUZ
+[   15.97 13:20:03Z] FACEDUMP 1 382 AQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxDAAAAAEA6DEBAK9bAgBSbAEAr1sBAMtCAQCCCAQAAAABAKcpAQCvWwIAUmwBAAxL
+[   15.98 13:20:03Z] FACEDUMP 1 383 AQAlGQMAAAABACUZAQBSbAEAwxABAIIIAQBuUwEAUmwCAK9bAQBSbAEAQQAFAAAAAQDwYwEAUmz/AAAAAQBBAAEAUmwBAAxL
+[   15.98 13:20:03Z] FACEDUMP 1 384 BQAAAAEAblMBAFJsAgAAAAEAJRkBAFJsAQDoMQMAAAABAIo6AQBSbAEADEsBAOgxAQBJMgEAr1sBAFJsAQBmIQMAAAABAAxL
+[   15.98 13:20:03Z] FACEDUMP 1 385 AQDwYwEAijoBAOgxAQCKOgIAUmwBAIIIAgAAAAEAijoBAFJsAQAMSwIA6DEBAMtCAQBSbAEAgggDAAAAAQCKOgEAUmwBAAxL
+[   15.98 13:20:03Z] FACEDUMP 1 386 AQDoMQEASTIBAK9bAQBSbAEAZiEIAAAAAQCKOgEAUmwBAPBjAgCKOgEAblMBAIo6AwAAAAEADEsBAPBjAQCKOgEA6DEBAIo6
+[   15.98 13:20:03Z] FACEDUMP 1 387 AgBSbAEAgggCAAAAAQAlGQEAUmwBAOgxAgAAAAEAJRkBAFJsAQDoMQcAAAABACUZAQBSbAEAblMBAFJsAQDLQgEASTIBAIo6
+[   15.98 13:20:03Z] FACEDUMP 1 388 AgBSbAEAgggDAAAAAQAMSwEA8GMBAIo6AQDoMQEAijoCAFJsAQCCCAwAAAABAIo6AQBSbAEA8GMCAIo6AQBuUwEAijoDAAAA
+[   15.98 13:20:03Z] FACEDUMP 1 389 AQAMSwEA8GMBAIo6AQDoMQEAijoCAFJsAQCCCAIAAAABACUZAQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxCwAAAAEAijoBAFJs
+[   15.98 13:20:03Z] FACEDUMP 1 390 AQAMSwIA6DEBAMtCAQBSbAEAgggDAAAAAQCKOgEAUmwBAAxLAQDoMQEASTIBAK9bAQBSbAEAZiECAAAAAQAlGQEAUmwBAKcp
+[   16.18 13:20:03Z] FACEDUMP 1 391 AQBSbAEAr1sBAMtCAQBJMgEA6DEBAFJsAQCnKQQAAAABAMMQAQBSbAEAijr/AAAAAQBBAAEAUmwBAAxLBAAAAAEAQQABAFJs
+[   16.18 13:20:03Z] FACEDUMP 1 392 AQCvWwIAAAABACUZAQBSbAEA6DECAAAAAQAlGQEAUmwBAEkyAwAAAAEAQQACAPBjAwAAAAEAgggEAAAAAQDoMQEAUmwBAOgx
+[   16.18 13:20:03Z] FACEDUMP 1 393 AgAAAAEAUmwBAG5TCAAAAAEAJRkBAFJsAQBJMgMAAAABAEEAAgDwYwcAAAABACUZAQBSbAEADEsIAAAAAQCCCAQAAAABAOgx
+[   16.18 13:20:03Z] FACEDUMP 1 394 AQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxAgAAAAEAJRkBAFJsAQDoMQcAAAABACUZAgBSbAEAwxADAAAAAQBmIQEAUmwBAIo6
+[   16.18 13:20:03Z] FACEDUMP 1 395 AwAAAAEAgggEAAAAAQDoMQEAUmwBAOgxCwAAAAEAJRkBAFJsAQAMSwgAAAABAIIIBAAAAAEA6DEBAFJsAQDoMQIAAAABACUZ
+[   16.18 13:20:03Z] FACEDUMP 1 396 AQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxCwAAAAEAUmwBAG5TCAAAAAEAJRkBAFJsAQBJMgMAAAABAEEAAgDwYwIAAAABACUZ
+[   16.18 13:20:03Z] FACEDUMP 1 397 AgBSbAEASTIDAAAAAQBBAAEAUmwBAG5TBAAAAAEAijoBAFJsAQDDEP8AAAABAEEAAQBSbAEADEsCAAAAAQBBAAEAZiEBAK9b
+[   16.18 13:20:03Z] FACEDUMP 1 398 AQBSbAEApykCAAAAAQAlGQEAUmwBAOgxAgAAAAEAy0IBAFJsAQCCCAQAQQABAMtCAQBSbAEAwxAHAAAAAQCCCAEAUmwBAIo6
+[   16.18 13:20:03Z] FACEDUMP 1 399 AgAAAAIA8GMBAIIIBwAAAAEAy0IBAFJsAQCCCAQAQQABAMtCAQBSbAEAwxAGAAAAAQDLQgEAUmwBAMMQDQAAAAEAgggBAFJs
+[   16.18 13:20:03Z] FACEDUMP 1 400 AQCKOgIAAAABACUZAQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxBwAAAAEAJRkBAFJsAQAMSwUAAAABAFJsAQAMSwgAAAABAIII
+[   16.38 13:20:03Z] FACEDUMP 1 401 AQBSbAEAijoLAAAAAQDLQgEAUmwBAMMQDQAAAAEAgggBAFJsAQCKOgIAAAABACUZAQBSbAEA6DECAAAAAQAlGQEAUmwBAOgx
+[   16.38 13:20:03Z] FACEDUMP 1 402 CwAAAAIA8GMBAIIIBwAAAAEAy0IBAFJsAQCCCAQAQQABAMtCAQBSbAEAwxABAAAAAQAlGQEAUmwBAK9bBQAAAAEADEsBAFJs
+[   16.38 13:20:03Z] FACEDUMP 1 403 AQBBAAMAAAABAPBjAQCvWwABAAABAEEABwBSbAEA6DEDAAAAAQAlGQEAUmwBAOgxAgAAAAEAr1sIAFJsAQAlGQcAAAABAIII
+[   16.38 13:20:03Z] FACEDUMP 1 404 AQBSbAEAijoCAAAAAQBmIQIAUmwBAMtCAQDDEAUAAAABAK9bCABSbAEAJRkGAAAAAQCvWwEAUmwOAAAAAQCCCAEAUmwBAIo6
+[   16.38 13:20:03Z] FACEDUMP 1 405 AgAAAAEAJRkBAFJsAQDoMQIAAAABACUZAQBSbAEA6DEHAAAAAQAlGQEAUmwBAEkyBQAAAAEAUmwBAAxLCAAAAAEAgggBAFJs
+[   16.38 13:20:03Z] FACEDUMP 1 406 AQCKOgsAAAABAK9bAQBSbA4AAAABAIIIAQBSbAEAijoCAAAAAQAlGQEAUmwBAOgxAgAAAAEAJRkBAFJsAQDoMQsAAAABAGYh
+[   16.38 13:20:03Z] FACEDUMP 1 407 AgBSbAEAy0IBAMMQBQAAAAEAr1sIAFJsAQAlGQEAAAABACUZAQBSbAEASTIFAAAAAQBmIQEAUmwBAOgxAgAAAAEAJRkBAFJs
+[   16.38 13:20:03Z] FACEDUMP 1 408 AQDoMQABAAABAEEAAQBSbAEA8GMBAIo6AgBJMgEAZiEBAEEABAAAAAEAJRkBAFJsAQDoMQIAAAABAPBjAQBSbAcAJRkBAEEA
+[   16.38 13:20:03Z] FACEDUMP 1 409 AgAAAAEApykBAAxLAQDwYwQAUmwBAIo6AwAAAAEAgggBAIo6AgBSbAEAr1sBACUZAwAAAAEA8GMBAFJsBwAlGQEAQQAGAAAA
+[   16.38 13:20:03Z] FACEDUMP 1 410 AgDwYwkAAAABAKcpAQAMSwEA8GMEAFJsAQCKOgIAAAABACUZAQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxBwAAAAEAJRkBAFJs
+[   16.58 13:20:03Z] FACEDUMP 1 411 AQDoMQUAAAABAFJsAQAMSwMAAAABAKcpAQAMSwEA8GMEAFJsAQCKOgsAAAACAPBjCQAAAAEApykBAAxLAQDwYwQAUmwBAIo6
+[   16.59 13:20:03Z] FACEDUMP 1 412 AgAAAAEAJRkBAFJsAQDoMQIAAAABACUZAQBSbAEA6DEMAAAAAQCCCAEAijoCAFJsAQCvWwEAJRkDAAAAAQDwYwEAUmwHACUZ
+[   16.59 13:20:03Z] FACEDUMP 1 413 AQBBAAEAAAABACUZAQBSbAEA6DEGAAAAAQBSbAEAblMCAAAAAQDLQgEAUmwBAEEAAAEAAAEAQQABAFJsAQAMSwkAAAABACUZ
+[   16.59 13:20:03Z] FACEDUMP 1 414 AQBSbAEA6DECAAAAAQCvWwEAUmwJAAAAAQBJMgEAUmwBAG5TAQBmIQIAwxABAGYhAQBSbAEAijoGAAAAAQCnKQEA8GMBAFJs
+[   16.59 13:20:03Z] FACEDUMP 1 415 AQAlGQIAAAABAK9bAQBSbA4AAAABAK9bAQBSbAgAAAABAEkyAQBSbAEAblMBAGYhAgDDEAEAZiEBAFJsAQCKOgIAAAABACUZ
+[   16.59 13:20:03Z] FACEDUMP 1 416 AQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxBwAAAAEAJRkBAFJsAQDoMQUAAAABAFJsAQAMSwIAAAABAEkyAQBSbAEAblMBAGYh
+[   16.59 13:20:03Z] FACEDUMP 1 417 AgDDEAEAZiEBAFJsAQCKOgsAAAABAK9bAQBSbAgAAAABAEkyAQBSbAEAblMBAGYhAgDDEAEAZiEBAFJsAQCKOgIAAAABACUZ
+[   16.59 13:20:03Z] FACEDUMP 1 418 AQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxDwAAAAEApykBAPBjAQBSbAEAJRkCAAAAAQCvWwEAUmwJAAAAAQAlGQEAUmwBAOgx
+[   16.59 13:20:03Z] FACEDUMP 1 419 BgAAAAEAijoBAFJsAQCCCAEAAAABAFJsAQBuUwEBAAABAEEAAQBSbAEADEsJAAAAAQAlGQEAUmwBAOgxAgAAAAEAy0IBAFJs
+[   16.59 13:20:03Z] FACEDUMP 1 420 AQBmIQgAAAABAFJsAQDwYwQAAAABAMMQAQBSbAEAijoHAAAAAQCCCAEAUmwBAMtCAgAAAAEAy0IBAFJsAQBmIQ0AAAABAMtC
+[   16.79 13:20:03Z] FACEDUMP 1 421 AQBSbAEAwxAHAAAAAQBSbAEA8GMEAAAAAQDDEAEAUmwBAIo6AgAAAAEAJRkBAFJsAQDoMQIAAAABACUZAQBSbAEA6DEHAAAA
+[   16.79 13:20:03Z] FACEDUMP 1 422 AQAlGQEAUmwBAOgxBQAAAAEAUmwBAAxLAgAAAAEAUmwBAPBjBAAAAAEAwxABAFJsAQCKOgsAAAABAMtCAQBSbAEAwxAHAAAA
+[   16.79 13:20:03Z] FACEDUMP 1 423 AQBSbAEA8GMEAAAAAQDDEAEAUmwBAIo6AgAAAAEAJRkBAFJsAQDoMQIAAAABACUZAQBSbAEA6DEQAAAAAQCCCAEAUmwBAMtC
+[   16.79 13:20:03Z] FACEDUMP 1 424 AgAAAAEAy0IBAFJsAQBmIQgAAAABACUZAQBSbAEA6DEGAAAAAQDDEAEAUmwBAOgxAQBmIQEAUmwBAKcpAQEAAAEAQQABAFJs
+[   16.79 13:20:03Z] FACEDUMP 1 425 AQAMSwkAAAABACUZAQBSbAEA6DECAAAAAQAlGQEAUmwBAK9bAQBBAAQAAAABAIIIAgAAAAEAUmwBAG5TBAAAAAEASTIBAFJs
+[   16.79 13:20:03Z] FACEDUMP 1 426 AQCKOgIAAAABAEEABAAAAAEAgggBAFJsAQCKOgIAAAABACUZAQBSbAEAr1sBAEEABAAAAAEAgggHAAAAAQBmIQEAUmwBAAxL
+[   16.79 13:20:03Z] FACEDUMP 1 427 BwAAAAEAUmwBAG5TBAAAAAEASTIBAFJsAQCKOgIAAAABACUZAQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxBwAAAAEAJRkBAFJs
+[   16.79 13:20:03Z] FACEDUMP 1 428 AQDoMQUAAAABAFJsAQAMSwIAAAABAFJsAQBuUwQAAAABAEkyAQBSbAEAijoLAAAAAQBmIQEAUmwBAAxLBwAAAAEAUmwBAG5T
+[   16.79 13:20:03Z] FACEDUMP 1 429 BAAAAAEASTIBAFJsAQCKOgIAAAABACUZAQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxCwAAAAEAQQAEAAAAAQCCCAEAUmwBAIo6
+[   16.79 13:20:03Z] FACEDUMP 1 430 AgAAAAEAJRkBAFJsAQCvWwEAQQAEAAAAAQCCCAIAAAABACUZAQBSbAEA6DEHAAAAAQCvWwEAblMBAMtCAQBSbAIBAAABAEEA
+[   16.99 13:20:04Z] FACEDUMP 1 431 AQBSbAEADEsJAAAAAQAlGQEAUmwBAOgxAwAAAAEASTIBAFJsAQDwYwEAijoBAEkyAQCKOgEAr1sBAG5TAgAAAAEADEsBAFJs
+[   16.99 13:20:04Z] FACEDUMP 1 432 AQBJMgEAJRkBAGYhAQDLQgEAr1sBAFJsAQCKOgIAAAABAPBjAQAMSwEASTIBAOgxAQBJMgEA8GMBAFJsAQDDEAMAAAABAEky
+[   16.99 13:20:04Z] FACEDUMP 1 433 AQBSbAEA8GMBAIo6AQBJMgEAijoBAK9bAQBuUwgAAAABAMtCAQBSbAEAr1sBAIo6AQBJMgIADEsCAAAAAQAMSwEAUmwBAEky
+[   16.99 13:20:04Z] FACEDUMP 1 434 AQAlGQEAZiEBAMtCAQCvWwEAUmwBAIo6AgAAAAEAJRkBAFJsAQDoMQIAAAABACUZAQBSbAEA6DEHAAAAAQAlGQEAUmwBAOgx
+[   16.99 13:20:04Z] FACEDUMP 1 435 BQAAAAEAUmwBAAxLAgAAAAEADEsBAFJsAQBJMgEAJRkBAGYhAQDLQgEAr1sBAFJsAQCKOgwAAAABAMtCAQBSbAEAr1sBAIo6
+[   16.99 13:20:04Z] FACEDUMP 1 436 AQBJMgIADEsCAAAAAQAMSwEAUmwBAEkyAQAlGQEAZiEBAMtCAQCvWwEAUmwBAIo6AgAAAAEAJRkBAFJsAQDoMQIAAAABACUZ
+[   16.99 13:20:04Z] FACEDUMP 1 437 AQBSbAEA6DELAAAAAQDwYwEADEsBAEkyAQDoMQEASTIBAPBjAQBSbAEAwxADAAAAAQBJMgEAUmwBAPBjAQCKOgEASTIBAIo6
+[   16.99 13:20:04Z] FACEDUMP 1 438 AQCvWwEAblMCAAAAAQAlGQEAUmwBAOgxBwAAAAEA6DECAFJsAQDLQgIBAAABAEEAAQBSbAEADEsJAAAAAQAlGQEAUmwBAOgx
+[   16.99 13:20:04Z] FACEDUMP 1 439 BAAAAAEAZiEBAAxLAgBSbAEA8GMBAAxLAQBmIQIAAAABAEEAAQDLQgEA8GMBAFJsAQDwYwEAijoBAAAAAQBuUwEAijoCAAAA
+[   16.99 13:20:04Z] FACEDUMP 1 440 AQDoMQEAr1sCAFJsAQDwYwEADEsBAMMQBQAAAAEAZiEBAAxLAgBSbAEA8GMBAAxLAQBmIQkAAAABAKcpAQBuUwIAUmwBAK9b
+[   16.99 13:20:04Z] FACEDUMP 1 441 AQDoMQIAAAABAEEAAQDLQgEA8GMBAFJsAQDwYwEAijoBAAAAAQBuUwEAijoCAAAAAQAlGQEAUmwBAOgxAgAAAAEAJRkBAFJs
+[   17.20 13:20:04Z] FACEDUMP 1 442 AQDoMQcAAAABACUZAQBSbAEA6DEFAAAAAQBSbAEADEsCAAAAAQBBAAEAy0IBAPBjAQBSbAEA8GMBAIo6AQAAAAEAblMBAIo6
+[   17.20 13:20:04Z] FACEDUMP 1 443 DQAAAAEApykBAG5TAgBSbAEAr1sBAOgxAgAAAAEAQQABAMtCAQDwYwEAUmwBAPBjAQCKOgEAAAABAG5TAQCKOgIAAAABACUZ
+[   17.20 13:20:04Z] FACEDUMP 1 444 AQBSbAEA6DECAAAAAQAlGQEAUmwBAOgxCwAAAAEA6DEBAK9bAgBSbAEA8GMBAAxLAQDDEAUAAAABAGYhAQAMSwIAUmwBAPBj
+[   17.20 13:20:04Z] FACEDUMP 1 445 AQAMSwEAZiECAAAAAQAlGQEAUmwBAOgxBwAAAAEAgggCAFJsAQAlGU8DAAAIAEEAIAAAAAgAQQCiAQAACABSbAEA8GMfAAAA
+[   17.20 13:20:04Z] FACEDUMP 1 446 CABSbAEA8GOhAQAACQDDEB8AAAAJAMMQzWEAAAEAwwgBAIcRAQBKGgEAiyJwAC4rAQCLIgEAShoBAIcRAQDDCFcBAAABAMMI
+[   17.20 13:20:04Z] FACEDUMP 1 447 AQDoGQEA7SJ4AC4rAQDtIgEA6BkBAMMIUgEAAAEAwwgBAEoaAwAuKwEAiyIBAMcRAQDkCAEAwwhwAAAAAQDDCAEA5AgBAMcR
+[   17.20 13:20:04Z] FACEDUMP 1 448 AQCLIgMALisBAEoaAQDDCE4BAAABACAAAQApGgIALisBAO0iAQCHEQEAYQB4AAAAAQBhAAEAhxEBAO0iAgAuKwEAKRoBACAA
+[   17.20 13:20:04Z] FACEDUMP 1 449 SwEAAAEAwwgBAO0iAQAuKwEA7SIBAIcRAQAgAHwAAAABACAAAQCHEQEA7SIBAC4rAQDtIgEAwwhJAQAAAQAlCQIALisBAEoa
+[   17.20 13:20:04Z] FACEDUMP 1 450 AQBhAIAAAAABAGEAAQBKGgIALisBACUJRwEAAAEAxxECAC4rAQCHEYQAAAABAIcRAgAuKwEAxxFFAQAAAQAlCQIALisBACUJ
+[   17.20 13:20:04Z] FACEDUMP 1 451 hgAAAAEAJQkCAC4rAQAlCUMBAAABAMMIAgAuKwEAJQmIAAAAAQAlCQIALisBAMMIQQEAAAEAIAABAO0iAQAuKwEAhxGKAAAA
+[   17.40 13:20:04Z] FACEDUMP 1 452 AQCHEQEALisBAO0iAQAgAEABAAABACkaAQAuKwEAShqMAAAAAQBKGgEALisBACkaPwEAAAEAwwgBAC4rAQDtIgEAYQCMAAAA
+[   17.40 13:20:04Z] FACEDUMP 1 453 AQBhAAEA7SIBAC4rAQDDCD4BAAABAEoaAQAuKwEAhxGOAAAAAQCHEQEALisBAEoaPQEAAAEAwwgBAC4rAQDtIgEAIACOAAAA
+[   17.40 13:20:04Z] FACEDUMP 1 454 AQAgAAEA7SIBAC4rAQDDCDwBAAABAOgZAQAuKwEAhxGQAAAAAQCHEQEALisBAOgZPAEAAAEA7SIBAC4rAQBhAJAAAAABAGEA
+[   17.40 13:20:04Z] FACEDUMP 1 455 AQAuKwEA7SI7AQAAAQDDCAEALisBAIsikgAAAAEAiyIBAC4rAQDDCDoBAAABAIcRAQAuKwEAxxGSAAAAAQDHEQEALisBAIcR
+[   17.40 13:20:04Z] FACEDUMP 1 456 OgEAAAEAShoBAC4rAQDkCJIAAAABAOQIAQAuKwEASho6AQAAAQCLIgEALisBAMMIkgAAAAEAwwgBAC4rAQCLIjoBAAACAC4r
+[   17.40 13:20:04Z] FACEDUMP 1 457 JwAAAAEAQQgCALedAQBNW2kAAAACAC4rOgEAAAIALisnAAAAAQBBCAIAt50BAE1bHgAAAAEAhikBALedAQBJOkgAAAACAC4r
+[   17.40 13:20:04Z] FACEDUMP 1 458 OgEAAAIALisnAAAAAQBBCAIAt50BAE1bHgAAAAEATVsBALedAQBJOkgAAAACAC4rOgEAAAIALisnAAAAAQBBCAIAt50BAE1b
+[   17.40 13:20:04Z] FACEDUMP 1 459 HgAAAAEA9IQBALedAQBJOkgAAAACAC4rOgEAAAIALisnAAAAAQBBCAIAt50BAE1bHQAAAAEABBkCALedAQBJOkgAAAACAC4r
+[   17.40 13:20:04Z] FACEDUMP 1 460 OgEAAAIALisnAAAAAQBBCAIAt50BAE1bDgAAAAEABBkBAOxSAQCSfAEAVY0CALedAQD0hAEA7FIBAEEIBAAAAAEAohABAK9j
+[   17.40 13:20:04Z] FACEDUMP 1 461 CAC3nQYAAAABAAQZAQCvYwEAVY0CALedAQCSfAEAqkIHAAAAAQCqQgEAt50BAJJ8AgAAAAEAhikBABBsAgC3nQEAVY0mAAAA
+[   17.61 13:20:04Z] FACEDUMP 1 462 AgAuKzoBAAACAC4rJwAAAAEAQQgCALedAQBNWw0AAAABAE1bCAC3nQEAVY0BAKIQAwAAAAEA7FIJALedBQAAAAEA7FIHALed
+[   17.61 13:20:04Z] FACEDUMP 1 463 AQBVjQEAohAFAAAAAQCqQgEAt50BAPSEAQAAAAEAqkIEALedAQCSfCYAAAACAC4rOgEAAAIALisnAAAAAQBBCAIAt50BAE1b
+[   17.61 13:20:04Z] FACEDUMP 1 464 DQAAAAEASToBALedAQD0hAEAqkIBAIYpAQAEGQEA5zEBABBsAgC3nQEAknwEAAAAAQBBCAEA5zECALedAQCqQgQAQQgEAAAA
+[   17.61 13:20:04Z] FACEDUMP 1 465 AQDsUgIAt50BAPSEAQBJOgIAhikBAE1bAgC3nQEAVY0BAEEIBAAAAAEAqkICALedAQDnMQIAt50BABBsAgDsUgEASTomAAAA
+[   17.61 13:20:04Z] FACEDUMP 1 466 AgAuKzoBAAACAC4rJwAAAAEAQQgCALedAQBNWw0AAAABAEEIAQAEGQYAAAABABBsAgC3nQEAohAEAAAAAQAEGQIAt50BAEk6
+[   17.61 13:20:04Z] FACEDUMP 1 467 BwAAAAEABBkCALedAQAQbAUAAAABAOcxAgC3nQEATVsEAAAAAQCqQgIAt50CAFWNAQCGKSoAAAACAC4rOgEAAAIALisnAAAA
+[   17.61 13:20:04Z] FACEDUMP 1 468 AQBBCAIAt50BAE1bFQAAAAEA5zECALedAQDnMQQAAAABAAQZAgC3nQEASToHAAAAAQCvYwIAt50BAEEIBgAAAAEAknwCALed
+[   17.61 13:20:04Z] FACEDUMP 1 469 BAAAAAEAqkIDALedAQCGKSsAAAACAC4rOgEAAAIALisnAAAAAQBBCAIAt50BAE1bFQAAAAEABBkCALedAQBJOgQAAAABAAQZ
+[   17.61 13:20:04Z] I (17568) FaceDisplay: diag fps=7.2 frame_ms_avg=25.2 frame_ms_max=35.7 voice_flips=0 mode=idle mood=neutral inv_areas=3.1 inv_kpx=30.1 inv_full=0 ring=ears
+[   17.61 13:20:04Z] FACEDUMP 1 470 AgC3nQEASToHAAAAAgC3nQEAEGwHAAAAAQCqQgIAt50BAAQZAwAAAAEAqkICALedAQAQbCwAAAACAC4rOgEAAAIALisnAAAA
+[   17.81 13:20:04Z] FACEDUMP 1 471 AQBBCAIAt50BAE1bFQAAAAEABBkCALedAQBJOgQAAAABAAQZAgC3nQEASToGAAAAAQCiEAIAt50BAE1bBwAEGQEA7FICALed
+[   17.81 13:20:04Z] FACEDUMP 1 472 AQDnMQMAAAABAKpCAgC3nQEA5zEsAAAAAgAuKzoBAAACAC4rJwAAAAEAQQgCALedAQBNWw4AAAABAIYpAQBNWwEA9IQBAFWN
+[   17.81 13:20:04Z] FACEDUMP 1 473 BgC3nQEASToEAAAAAQAEGQIAt50BAEk6BgAAAAEAhikNALedAQBJOgMAAAABAKpCAgC3nQEABBksAAAAAgAuKzoBAAACAC4r
+[   17.81 13:20:04Z] FACEDUMP 1 474 JwAAAAEAQQgCALedAQBNWwwAAAABAEEIAQCSfAQAt50EAFWNAgC3nQEASToEAAAAAQAEGQIAt50BAEk6BgAAAAEA5zENALed
+[   17.81 13:20:04Z] FACEDUMP 1 475 AQBJOgMAAAABAKpCAgC3nQEABBksAAAAAgAuKzoBAAACAC4rJwAAAAEAQQgCALedAQBNWwwAAAABAPSEAgC3nQEAr2MBAAQZ
+[   17.81 13:20:04Z] FACEDUMP 1 476 BAAAAAEABBkCALedAQBJOgQAAAABAAQZAgC3nQEASToGAAAAAQCGKQIAt50BAEk6DgAAAAEAqkICALedAQAEGSwAAAACAC4r
+[   17.81 13:20:04Z] FACEDUMP 1 477 OgEAAAIALisnAAAAAQBBCAIAt50BAE1bCwAAAAEA5zECALedAQBNWwYAAAABAAQZAgC3nQEASToEAAAAAQAEGQIAt50BAEk6
+[   17.81 13:20:04Z] FACEDUMP 1 478 BgAAAAEABBkCALedAQDsUg4AAAABAKpCAgC3nQEABBksAAAAAgAuKzoBAAACAC4rJwAAAAEAQQgCALedAQBNWwsAAAABAE1b
+[   17.81 13:20:04Z] FACEDUMP 1 479 AgC3nQEAohAGAAAAAQDnMQIAt50BAEk6BAAAAAEABBkCALedAQBJOgcAAAACALedAQCSfA4AAAABAKpCAgC3nQEABBksAAAA
+[   17.81 13:20:04Z] FACEDUMP 1 480 AgAuKzoBAAACAC4rJwAAAAEAQQgCALedAQBNWwsAAAABAE1bAgC3nQEAohAGAAAAAQCvYwIAt50BAEk6BAAAAAEABBkCALed
+[   17.81 13:20:04Z] FACEDUMP 1 481 AQCqQgcAAAABAK9jAgC3nQEAhikNAAAAAQCqQgIAt50BAAQZLAAAAAIALis6AQAAAgAuKycAAAABAEEIAgC3nQEATVsLAAAA
+[   18.01 13:20:05Z] FACEDUMP 1 482 AQCqQgIAt50BAKpCBQAAAAEASToDALedAQBJOgQAAAABAEEIAgC3nQEAknwHAAAAAQAEGQIAt50BAFWNAQAEGQcAAAABAAQZ
+[   18.01 13:20:05Z] FACEDUMP 1 483 BAAAAAEAqkICALedAQAEGSwAAAACAC4rOgEAAAIALisnAAAAAQBBCAIAt50BAJJ8CQCqQgIAAAABAKIQAwC3nQEA7FIBAIYp
+[   18.01 13:20:05Z] FACEDUMP 1 484 AQAEGQEASToBABBsAQC3nQEAEGwCALedAQBJOgUAAAABAJJ8AgC3nQEAr2MCAIYpAQBJOgEAQQgDAAAAAQDsUgMAt50BAK9j
+[   18.01 13:20:05Z] FACEDUMP 1 485 AQBJOgEA5zEBAEk6AQCqQgEAEGwBALedAQCvYwQAAAABAKpCAgC3nQEABBksAAAAAgAuKzoBAAACAC4rJwAAAAEAQQgMALed
+[   18.01 13:20:05Z] FACEDUMP 1 486 AwAAAAEAqkIHALedAQAQbAEAAAABAJJ8AQC3nQEASToFAAAAAQAEGQYAt50BAKIQBAAAAAEAqkIJALedAQCvYwQAAAABAKpC
+[   18.01 13:20:05Z] FACEDUMP 1 487 AgC3nQEABBksAAAAAgAuKzoBAAACAC4rJwAAAAEAQQgMALedBAAAAAEAhikBABBsAQBVjQIAt50BAJJ8AQBJOgIAAAABAE1b
+[   18.01 13:20:05Z] FACEDUMP 1 488 AQC3nQEASToGAAAAAQAEGQEAr2MBAFWNAQC3nQEAVY0BABBsAQBBCAUAAAABAKIQAQDsUgEAknwDALedAQD0hAEAr2MBAOcx
+[   18.01 13:20:05Z] FACEDUMP 1 489 BQAAAAEAqkICALedAQAEGSwAAAACAC4rOgEAAAIALiuUAAAAAgAuKzoBAAACAC4rlAAAAAIALis6AQAAAQCLIgEALisBAMMI
+[   18.01 13:20:05Z] FACEDUMP 1 490 kgAAAAEAwwgBAC4rAQCLIjoBAAABAEoaAQAuKwEA5AiSAAAAAQDkCAEALisBAEoaOgEAAAEAhxEBAC4rAQDHEZIAAAABAMcR
+[   18.01 13:20:05Z] FACEDUMP 1 491 AQAuKwEAhxE6AQAAAQDDCAEALisBAIsikgAAAAEAiyIBAC4rAQDDCDsBAAABAO0iAQAuKwEAYQCQAAAAAQBhAAEALisBAO0i
+[   18.21 13:20:05Z] FACEDUMP 1 492 PAEAAAEA6BkBAC4rAQCHEZAAAAABAIcRAQAuKwEA6Bk8AQAAAQDDCAEALisBAO0iAQAgAI4AAAABACAAAQDtIgEALisBAMMI
+[   18.21 13:20:05Z] FACEDUMP 1 493 PQEAAAEAShoBAC4rAQCHEY4AAAABAIcRAQAuKwEASho+AQAAAQDDCAEALisBAO0iAQBhAIwAAAABAGEAAQDtIgEALisBAMMI
+[   18.21 13:20:05Z] FACEDUMP 1 494 PwEAAAEAKRoBAC4rAQBKGowAAAABAEoaAQAuKwEAKRpAAQAAAQAgAAEA7SIBAC4rAQCHEYoAAAABAIcRAQAuKwEA7SIBACAA
+[   18.21 13:20:05Z] FACEDUMP 1 495 QQEAAAEAwwgCAC4rAQAlCYgAAAABACUJAgAuKwEAwwhDAQAAAQAlCQIALisBACUJhgAAAAEAJQkCAC4rAQAlCUUBAAABAMcR
+[   18.21 13:20:05Z] FACEDUMP 1 496 AgAuKwEAhxGEAAAAAQCHEQIALisBAMcRRwEAAAEAJQkCAC4rAQBKGgEAYQCAAAAAAQBhAAEAShoCAC4rAQAlCUkBAAABAMMI
+[   18.21 13:20:05Z] FACEDUMP 1 497 AQDtIgEALisBAO0iAQCHEQEAIAB8AAAAAQAgAAEAhxEBAO0iAQAuKwEA7SIBAMMISwEAAAEAIAABACkaAgAuKwEA7SIBAIcR
+[   18.21 13:20:05Z] FACEDUMP 1 498 AQBhAHgAAAABAGEAAQCHEQEA7SICAC4rAQApGgEAIABOAQAAAQDDCAEAShoDAC4rAQCLIgEAxxEBAOQIAQDDCHAAAAABAMMI
+[   18.21 13:20:05Z] FACEDUMP 1 499 AQDkCAEAxxEBAIsiAwAuKwEAShoBAMMIUgEAAAEAwwgBAOgZAQDtIngALisBAO0iAQDoGQEAwwhXAQAAAQDDCAEAhxEBAEoa
+[   18.21 13:20:05Z] FACEDUMP 1 500 AQCLInAALisBAIsiAQBKGgEAhxEBAMMI+nUAAAEAwxABAA1LAQAlGUgAAAABAMMQAQANSwEAJRlqAQAAAQAEGQEAKTIBAMxC
+[   18.21 13:20:05Z] FACEDUMP 1 501 AgANSwEAqzoBAIYhAQAgABIAAAABAAQZAQANSwEAhiEZAAAAAgDDEC0AAAABAAQZAQANSwEAhiEDAAAAAgDDEGQBAAABAOgp
+[   18.41 13:20:05Z] FACEDUMP 1 502 AgANSwEAKTIBAMcpAQDoKQEAqzoCAA1LAQDDEBIAAAABAIIIGgAAAAEAKTIBAMcpLgAAAAEAgggEAAAAAQApMgEAxyljAQAA
+[   18.41 13:20:05Z] FACEDUMP 1 503 AQDHKQEADUsBAGo6AQAgAAQAAAABAMMQAQDMQgEADUsBAIIIKwAAAAEAIAABAA1LAQDHKTIAAAABACAAAQANSwEAxyliAQAA
+[   18.41 13:20:05Z] FACEDUMP 1 504 AQBhCAEADUsBAMxCBwAAAAEABBkBAA1LAQApMgMAAAABAMMQAQANSwEAgggBAGEIAQBqOgEADUsBAKs6BgAAAAEAwxABAA1L
+[   18.41 13:20:05Z] FACEDUMP 1 505 AQBmIQIAAAABACUZAQANSwEABBkEAAAAAQAgAAEADUsBAOgpAwAAAAEAZiEBAKs6AgANSwEAqzoBAOgpAQBhCAEAAAABACUZ
+[   18.41 13:20:05Z] FACEDUMP 1 506 BQANSwEAKTIHAAAAAQBmIQEAqzoCAA1LAQCrOgEA6CkBAGEIAwAAAAEAwxABAOgpAQDMQgIADUsBAGo6AQDDEAIAAAABAGo6
+[   18.41 13:20:05Z] FACEDUMP 1 507 AQANSwEAIAAFAAAAAQCrOgEADUsGAAAAAQDDEAEADUsBAGYhAQAAAAEAJRkFAA1LAQApMl8BAAABAGYhAQANSwEAZiEIAAAA
+[   18.41 13:20:05Z] FACEDUMP 1 508 AQCrOgEADUsBACAAAgAAAAEAwxABAA1LAQAlGQEADUsBAKs6AQDoKQEAhiEGAAAAAQDDEAEADUsBAGYhAgAAAAEAJRkBAA1L
+[   18.41 13:20:05Z] FACEDUMP 1 509 AQAEGQQAAAABACAAAQANSwEA6CkCAAAAAQDHKQEADUsBACkyAgBmIQEA6CkBAA1LAQBhCAEAAAABAMMQAQBmIQEADUsBACky
+[   18.41 13:20:05Z] FACEDUMP 1 510 AgAlGQEAwxAGAAAAAQDHKQEADUsBACkyAgBmIQEA6CkBAA1LAQBhCAMAAAABACkyAQDMQgEAxykBAGYhAQDHKQIADUsBAGEI
+[   18.41 13:20:05Z] FACEDUMP 1 511 AQAAAAEAJRkBAA1LAQBmIQQAAAABAIIIAQANSwEA6CkGAAAAAQDDEAEADUsBAGYhAQAAAAEAwxABAGYhAQANSwEAKTICACUZ
+[   18.62 13:20:05Z] FACEDUMP 1 512 AQDDEF8BAAABAOgpAQANSwEAgggIAAAAAQDHKQEADUsBAMMQAgAAAAEAwxACAA1LAQCGIQkAAAABAMMQAQANSwEAZiECAAAA
+[   18.62 13:20:05Z] FACEDUMP 1 513 AQAlGQEADUsBAAQZBAAAAAEAIAABAA1LAQDoKQIAAAABAA1LAQBqOggAAAABAGEIAQANSwEAxykJAAAAAQANSwEAajoJAAAA
+[   18.62 13:20:05Z] FACEDUMP 1 514 AQBhCAQAAAABAGYhAQANSwEAZiECAAAAAQANSwEAqzoEAAAAAQDHKQEADUsBAMMQBgAAAAEAwxABAA1LAQBmIQIAAAABAGEI
+[   18.62 13:20:05Z] FACEDUMP 1 515 AQANSwEAxyliAQAAAQBqOgEADUsBAGEICAAAAAEAhiEBAA1LAQAlGQIAAAABAMMQAQANSwEAqzoKAAAAAQDDEAEADUsBAGYh
+[   18.62 13:20:05Z] FACEDUMP 1 516 AgAAAAEAJRkBAA1LAQAEGQQAAAABACAAAQANSwEA6CkCAAAAAgDMQgEAYQgHAAAAAQBhCAEADUsBAMcpCQAAAAIAzEIBAGEI
+[   18.62 13:20:05Z] FACEDUMP 1 517 DQAAAAEAYQgBAA1LAQDHKQIAAAABAMcpAQANSwEAgggDAAAAAgDMQgcAAAABAMMQAQANSwEAZiECAAAAAQBhCAEADUsBAMcp
+[   18.62 13:20:05Z] FACEDUMP 1 518 YgEAAAEAajoBAA1LAQBhCAgAAAABAIYhAQANSwEAJRkCAAAAAQDDEAEADUsBAIYhCgAAAAEAwxABAA1LAQBmIQIAAAABACUZ
+[   18.62 13:20:05Z] FACEDUMP 1 519 AQANSwEABBkEAAAAAQAgAAEADUsBAOgpAgAAAAEABBkCAA1LAQDoKQEAgggFAAAAAQBhCAEADUsBAMcpCQAAAAEABBkCAA1L
+[   18.62 13:20:05Z] FACEDUMP 1 520 AQDoKQEAgggLAAAAAQBhCAEADUsBAMcpAgAAAAEAgggBAA1LAQCGIQIAAAABAMMQAQANSwEAhiEHAAAAAQDDEAEADUsBAGYh
+[   18.62 13:20:05Z] FACEDUMP 1 521 AgAAAAEAYQgBAA1LAQDHKWIBAAABAOgpAQANSwEAwxAIAAAAAQDoKQEADUsBAMMQAgAAAAEAwxABAA1LAQBmIQoAAAABAMMQ
+[   18.82 13:20:05Z] FACEDUMP 1 522 AQANSwEAZiECAAAAAQAlGQEADUsBAAQZBAAAAAEAIAABAA1LAQDoKQMAAAABAGEIAQDHKQIADUsBAKs6AQDDEAMAAAABAGEI
+[   18.82 13:20:05Z] FACEDUMP 1 523 AQANSwEAxykKAAAAAQBhCAEAxykCAA1LAQCrOgEAwxAEAAAAAQAlGQEAKTIBAMxCBAANSwEAxykDAAAAAQCrOgEAzEICAAAA
+[   18.82 13:20:05Z] FACEDUMP 1 524 AQDHKQEADUsBAGEIBwAAAAEAwxABAA1LAQBmIQIAAAABAGEIAQANSwEAxyliAQAAAQBmIQEADUsBAGYhCAAAAAEAqzoBAA1L
+[   18.82 13:20:05Z] FACEDUMP 1 525 AQAgAAIAAAABAMMQAQANSwEAZiEKAAAAAQDDEAEADUsBAGYhAgAAAAEAJRkBAA1LAQAEGQQAAAABAGEIAQANSwEA6CkGAAAA
+[   18.82 13:20:05Z] FACEDUMP 1 526 AQAlGQEAzEIBAA1LAQDDEAIAAAABAGEIAQANSwEAxykNAAAAAQAlGQEAzEIBAA1LAQDDEAIAAAABAIYhAQANSwEAajoBAAQZ
+[   18.82 13:20:05Z] I (18718) FaceDisplay: diag blink double=0 mode=idle
+[   18.82 13:20:05Z] FACEDUMP 1 527 AgCCCAEABBkBAA1LAQDHKQMAAAABAGYhAQANSwEAwxABAAAAAQDMQgEAqzoIAAAAAQDDEAEADUsBAGYhAgAAAAEAYQgBAA1L
+[   18.82 13:20:05Z] FACEDUMP 1 528 AQDHKWIBAAABAGEIAQANSwEAzEIHAAAAAQAEGQEADUsBACkyAwAAAAEAwxABAA1LAQBmIQoAAAABAMMQAQANSwEAZiECAAAA
+[   18.82 13:20:05Z] FACEDUMP 1 529 AQAlGQEADUsBACUZBAAAAAEAwxABAA1LAQDoKQcAAAABAGEIAQANSwEA6CkCAAAAAQBhCAEADUsBAMcpDgAAAAEAYQgBAA1L
+[   18.82 13:20:05Z] FACEDUMP 1 530 AQDoKQIAAAABAA1LAQDMQgQAAAABAIIIAQANSwEAxykDAAAAAQAgAAEADUsBAOgpAQDDEAEADUsBAGYhCAAAAAEAwxABAA1L
+[   18.82 13:20:05Z] FACEDUMP 1 531 AQBmIQIAAAABAGEIAQANSwEAxyljAQAAAQDHKQEADUsBAGo6AQAgAAQAAAABAMMQAgANSwEAgggDAAAAAQDDEAEADUsBAGYh
+[   19.02 13:20:06Z] FACEDUMP 1 532 CgAAAAEAwxABAA1LAQBmIQIAAAABAMMQAQANSwEA6CkEAAAAAQDoKQEADUsBAOgpAgAAAAEAIAAEAAAAAQBhCAEADUsBAMcp
+[   19.02 13:20:06Z] FACEDUMP 1 533 AgAAAAEAIAABAA1LAQBqOgkAAAABACAABAAAAAEAYQgBAA1LAQDHKQIAAAABAA1LAQBqOgQAAAABAIYhAQANSwEAxykEAAAA
+[   19.02 13:20:06Z] FACEDUMP 1 534 AQDoKQEAzEIBAMcpAQANSwEAIAAIAAAAAQDDEAEADUsBAGYhAgAAAAEAIAABAA1LAQBqOmQBAAABAOgpAgANSwEAKTIBAMcp
+[   19.02 13:20:06Z] FACEDUMP 1 535 AQDoKQEAqzoCAA1LAQAEGQQAAAABAMMQAQANSwEAZiEKAAAAAQDDEAEADUsBAGYhAwAAAAEAqzoBAA1LAQCGIQEAwxABAAQZ
+[   19.02 13:20:06Z] FACEDUMP 1 536 AQDoKQEAqzoBAA1LAQDoKQIAAAABAMxCAQApMgEAhiEBAGYhAQCGIQEAzEIBAA1LAQCCCAMAAAABAGo6AQANSwEA6CkCAGYh
+[   19.02 13:20:06Z] FACEDUMP 1 537 BgAAAAEAzEIBACkyAQCGIQEAZiEBAIYhAQDMQgEADUsBAIIIAgAAAAEAKTIBAA1LAQCGIQEAwxABAAQZAQDoKQEAqzoBAA1L
+[   19.02 13:20:06Z] FACEDUMP 1 538 AQDHKQQAAAABAMMQAgANSwEAKTIJAAAAAQDDEAEADUsBAGYhAwAAAAEAajoBAA1LAQDoKQIAZiFiAQAAAQDDEAEAKTIBAMxC
+[   19.02 13:20:06Z] FACEDUMP 1 539 AgANSwEAqzoBAMcpAQBhCAUAAAABAMMQAQANSwEAZiEKAAAAAQDDEAEADUsBAGYhAwAAAAEAIAABAOgpAQDMQgEADUsBAMxC
+[   19.02 13:20:06Z] FACEDUMP 1 540 AQDHKQEAIAABAKs6AQDoKQIAAAABAGYhAQCrOgIADUsBAMxCAQApMgEAgggEAAAAAQBhCAEAKTICAA1LAQDoKQYAAAABAGYh
+[   19.02 13:20:06Z] FACEDUMP 1 541 AQCrOgIADUsBAMxCAQApMgEAgggDAAAAAQAgAAEA6CkBAMxCAQANSwEAzEIBAMcpAQAAAAEAajoBAMcpBQAAAAEAzEIBAA1L
+[   19.23 13:20:06Z] FACEDUMP 1 542 AQAEGQkAAAABAMMQAQANSwEAZiEDAAAAAQBhCAEAKTICAA1LAQDoKXwBAAABAMMQAQANSwEAZiE8AAAAAQBqOgEADUuRAQAA
+[   19.23 13:20:06Z] FACEDUMP 1 543 AQDDEAEADUsBAGYhOwAAAAEAgggBAA1LAQDHKZEBAAABACUZAQANSwEAJRk7AAAAAQApMgEADUsBAGEIjgEAAAEAIAACAIYh
+[   19.23 13:20:06Z] FACEDUMP 1 544 AQDMQgEADUsBAGEIOAAAAAEAJRkBAGYhAQApMgEADUsBAMcpjwEAAAEAIAABAMxCAQANSwEAqzoBAAQZOQAAAAEAKTIBAA1L
+[   19.23 13:20:06Z] FACEDUMP 1 545 AQDMQgEAhiHYPAAA
+[   19.23 13:20:06Z] FACEDUMP 1 end 13651
+[   19.84 13:20:06Z] I (19658) FaceDisplay: diag gaze=-13,-4 mode=idle
+[   22.75 13:20:09Z] I (22588) FaceDisplay: diag fps=6.2 frame_ms_avg=28.3 frame_ms_max=55.7 voice_flips=0 mode=idle mood=neutral inv_areas=4.0 inv_kpx=34.3 inv_full=0 ring=ears
+[   23.80 13:20:10Z] I (23628) SystemInfo: free sram: 98051 minimal sram: 33468
+[   24.84 13:20:11Z] I (24728) FaceDisplay: diag gaze=15,-4 mode=idle
+[   24.84 13:20:11Z] I (24768) FaceDisplay: diag blink double=0 mode=idle
+[   27.74 13:20:14Z] I (27578) FaceDisplay: diag gaze=9,0 mode=idle
+[   27.74 13:20:14Z] I (27618) FaceDisplay: diag fps=6.6 frame_ms_avg=25.4 frame_ms_max=54.3 voice_flips=0 mode=idle mood=neutral inv_areas=3.5 inv_kpx=31.5 inv_full=0 ring=ears
+[   29.80 13:20:16Z] I (29778) FaceDisplay: diag blink double=0 mode=idle
+[   32.09 13:20:19Z] I (32008) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=10 resyncs=3 skipped=11 read_errors=0 torn_timestamps=1
+[   32.09 13:20:19Z] I (32008) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[   32.29 13:20:19Z] I (32138) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 148 ms without a sample (4)
+[   32.62 13:20:19Z] ### card open on device: NOT seen
+[   32.62 13:20:19Z] ### === ROUND D end

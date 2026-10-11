@@ -1,0 +1,27 @@
+{
+ "D": {
+  "task": "tsk_01M4NHX5F1VVNNK1KHPX1HFXHD",
+  "chat": "cht_01M4NHX5C30VR3SGEB2HHDBWWP",
+  "row": {
+   "interaction_id": "int_01M4NHX79Y417DA2QQ2QW0H117",
+   "task_id": "tsk_01M4NHX5F1VVNNK1KHPX1HFXHD",
+   "chat_id": "cht_01M4NHX5C30VR3SGEB2HHDBWWP",
+   "turn_id": "trn_01M4NHX5F19DZYCFRBN0VC80NF",
+   "kind": "approval",
+   "source": "ha_mcp",
+   "state": "pending",
+   "voice_can_approve": true,
+   "created_at": "2026-10-11T13:19:49.054Z",
+   "expires_at": "2026-10-11T13:28:23.322Z",
+   "decision": null,
+   "via": null,
+   "action": {
+    "text": "input_boolean.toggle input_boolean.weixue_session_probe",
+    "detail": "ha_call_service input_boolean.weixue_session_probe",
+    "tool": "ha_call_service",
+    "risk": "low",
+    "reversible": true
+   }
+  }
+ }
+}

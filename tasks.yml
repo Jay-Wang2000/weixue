@@ -374,6 +374,15 @@ tasks:
     status: pending
     retries: 0
     model: opus
+  - id: fix-approval-card-queue
+    name: "Approval cards never surface behind an open question card; gate driver leaves stale tasks"
+    branch: fix/approval-card-queue
+    description: |
+      Approval gate 2026-10-11 13:14 (docs/logs/approval-gate-2026-10-11.md, -BC/-D logs; finding 66): rounds B/C/D never reached a tap because round A's task was left in needs_input (the agent asked a follow-up after the HA error) and its card re-opened at boot; the gateway tiered the next approval cards `silent` (C, D) or `when_idle` (B) and the device never opened them behind the open card, so all three expired untouched (expiry itself correct: 0 replays). Fix: (1) gateway tiering — a needs_approval card is never `silent` because another card is open; it queues as when_idle (or the interrupt tier per ADR-9 if due); (2) device — while a card is open, a newly arrived needs_approval card is shown next: either preempt a needs_input card (decision 66, default until Jay rules: queue behind, but auto-advance to the next pending open card 20 s after the current card was last touched, and at boot open the newest approval card first); (3) gate driver (docs/logs/approval-gate-2026-10-11-driver.py -> scripts/approval_gate.py): before each round close every open card task of the probe chats (cancel via the agent-service API) and after each round settle its task; it also must not report a round as run when the card never opened. Tests: gateway tiering, device unit tests (firmware/tests), driver tests; board run of rounds B (deny), C (duplicate taps) and a second A on the diag build, then release build restored.
+    depends_on: [fix-hamcp-client-timeout]
+    status: in_progress
+    retries: 0
+    model: opus
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
