@@ -24,6 +24,8 @@ PAUSE_RESUME_MAX = 5
 SETTLE_MAX = 3
 COMPACT_AT_TOKENS = 150_000
 VOICE_WINDOW_S = 20
+# Message origins that are the device's own voice turns: only these answer a question by message.
+VOICE_ORIGINS = ("voice", "sim")
 INPUT_TTL_S = 1800
 BARGE_IN_RESUME_S = 10
 MAX_OPEN_TASKS_PER_DEVICE = 20

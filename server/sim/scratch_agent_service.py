@@ -11,7 +11,8 @@ SIM_SERVICE_ROOT selects another server/agent-service tree (default: this checko
 Control routes (same bearer token):
   POST /sim/faults  {"path": <regex>, "status": 503, "count": n, "after": bool}  next n matching requests
                     answer status; "after": the request is handled first and its answer replaced
-  POST /sim/ask     {"device_id", "question", "options"}  a chat turn that leaves a question card
+  POST /sim/ask     {"device_id", "question", "options", "origin"?, "chat_id"?}  a chat turn (origin kind, default
+                    none; chat default current) that leaves a question card
   POST /sim/enqueue {"device_id", "tier", "slot", "payload", "speak", "task_id", "chat_id"}  outbox.enqueue
   GET  /sim/rows?delivery_id=  the deliveries row and its delivery_acks; ?interaction_id= that row
 
@@ -134,9 +135,11 @@ def main():
         transport = httpx.ASGITransport(app=api.app())
         async with httpx.AsyncClient(transport=transport, base_url="http://agent",
                                      headers={"Authorization": f"Bearer {token}"}, timeout=30) as http:
-            resp = await http.post("/v1/chats/current/messages", headers={"Idempotency-Key": str(uuid.uuid4())},
-                                   json={"device_id": body["device_id"],
-                                         "text": f"ask:{body['question']}:{'|'.join(body['options'])}"})
+            message = {"device_id": body["device_id"], "text": f"ask:{body['question']}:{'|'.join(body['options'])}"}
+            if body.get("origin"):
+                message["origin"] = {"kind": body["origin"]}
+            resp = await http.post(f"/v1/chats/{body.get('chat_id') or 'current'}/messages",
+                                   headers={"Idempotency-Key": str(uuid.uuid4())}, json=message)
         await asyncio.sleep(1.0)
         row = service.store.one("SELECT * FROM interactions ORDER BY created_at DESC LIMIT 1")
         return JSONResponse({"status": resp.status_code, "interaction_id": row and row["interaction_id"],

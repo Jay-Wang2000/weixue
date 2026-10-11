@@ -1,6 +1,6 @@
 """Lexicons and text classification for routing a new user message (brief section 7)."""
 import re
-from typing import Optional
+from typing import Iterable, Optional
 
 CJK = re.compile(r"[㐀-鿿豈-﫿]")
 _STRIP = re.compile(r"[\s\W_]+", re.UNICODE)
@@ -15,6 +15,18 @@ OPEN_ENDED = ("what next", "what s next", "what is next", "anything else", "what
               "is there anything",
               "还有什么", "还需要什么", "还需要我", "接下来做什么", "接下来要做", "想让我做", "要我做什么",
               "需要我做什么", "有什么可以帮", "有什么需要", "告诉我")
+
+# A spoken follow-up answers an open question card when it names an option or picks one by position
+# within ANSWER_WORDS_MAX words (CJK: ANSWER_CJK_MAX characters), or is a short answer of at most
+# SHORT_WORDS_MAX words (CJK: SHORT_CJK_MAX characters).
+ANSWER_WORDS_MAX = 10
+ANSWER_CJK_MAX = 15
+SHORT_WORDS_MAX = 3
+SHORT_CJK_MAX = 6
+ORDINALS = ("first", "second", "third", "fourth", "last", "1st", "2nd", "3rd", "4th", "option one", "option two",
+            "option three", "option four", "option 1", "option 2", "option 3", "option 4", "number one",
+            "number two", "number three", "number four", "number 1", "number 2", "number 3", "number 4",
+            "第一", "第二", "第三", "第四", "最后", "前一个", "后一个", "1号", "2号", "3号", "4号")
 
 STOPPED = {"en": "Stopped.", "zh": "好，停了。"}
 MAYBE_HAPPENED = {"en": " Some of it may already have happened.", "zh": "有些可能已经执行了。"}
@@ -58,6 +70,35 @@ def is_open_ended(text: str) -> bool:
     norm = f" {normalize(text)} "
     compact = norm.replace(" ", "")
     return any((f" {phrase} " in norm) if phrase.isascii() else (phrase in compact) for phrase in OPEN_ENDED)
+
+
+def _size(norm: str) -> int:
+    """Words of the normalized text, each CJK character counted as one."""
+    cjk = len(CJK.findall(norm))
+    return cjk + len([w for w in CJK.sub(" ", norm).split() if w])
+
+
+def _contains(norm: str, phrase: str) -> bool:
+    phrase = normalize(phrase)
+    if not phrase:
+        return False
+    if CJK.search(phrase):
+        return phrase.replace(" ", "") in norm.replace(" ", "")
+    return f" {phrase} " in f" {norm} "
+
+
+def answers_question(text: str, labels: Iterable[str]) -> bool:
+    """Whether a spoken follow-up answers a question card with these option labels."""
+    norm = normalize(text)
+    if not norm or norm in STOP:
+        return False
+    cjk = bool(CJK.search(norm))
+    size = _size(norm)
+    if size <= (SHORT_CJK_MAX if cjk else SHORT_WORDS_MAX):
+        return True
+    if size > (ANSWER_CJK_MAX if cjk else ANSWER_WORDS_MAX):
+        return False
+    return any(_contains(norm, label) for label in labels) or any(_contains(norm, o) for o in ORDINALS)
 
 
 def approval_cue(lang: str, action_text: str) -> str:

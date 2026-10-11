@@ -358,12 +358,14 @@ public:
     };
 
     // Replaces the task list with the store's; returns one Arrival per task whose state (or
-    // card) is new. hhmm is the local time ("" when the clock is not set). synced_out: tasks a
-    // snapshot dropped since the last call; a chat left without tasks by them is forgotten.
+    // card) is new. An open card raised from SILENT to WHEN_IDLE or INTERRUPT is queued to open
+    // without an Arrival. hhmm is the local time ("" when the clock is not set). synced_out: tasks
+    // a snapshot dropped since the last call; a chat left without tasks by them is forgotten.
     std::vector<Arrival> SetTasks(const std::vector<Task>& tasks, int64_t now_ms,
                                   const std::string& hhmm,
                                   const std::vector<std::string>& synced_out = {}) {
         std::vector<Arrival> out;
+        std::vector<PendingOpen> upgraded;
         std::vector<Info> next;
         std::vector<std::string> dropped_chats;
         if (boot_until_ms_ < 0) boot_until_ms_ = now_ms + kBootPickMs;
@@ -386,6 +388,11 @@ public:
                 info.state_since_ms = now_ms;
                 info.hhmm = hhmm;
                 if (!t.seen) out.push_back({t.item.task_id, t.item.state, t.item.tier, t.item.speaks});
+            } else if (weixue_agent::IsOpenCard(t.item.state) && t.item.tier != Tier::kSilent) {
+                const Task* before = Find(t.item.task_id);
+                if (before != nullptr && before->item.tier == Tier::kSilent) {
+                    upgraded.push_back({t.item.card_id, t.item.tier, now_ms});
+                }
             }
             if (info.decided_card != t.item.card_id || !weixue_agent::IsOpenCard(t.item.state)) {
                 info.decided.clear();
@@ -413,6 +420,11 @@ public:
                     pending_open_.push_back({t->item.card_id, a.tier, now_ms});
                 }
             }
+        }
+        for (const PendingOpen& p : upgraded) {
+            bool queued = std::any_of(pending_open_.begin(), pending_open_.end(),
+                                      [&](const PendingOpen& q) { return q.card_id == p.card_id; });
+            if (!queued && p.card_id != card_.card_id) pending_open_.push_back(p);
         }
         if (new_chat_pending_) {
             for (const Task& t : tasks) {

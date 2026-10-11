@@ -1,0 +1,68 @@
+{
+ "ask": "Tell me the temperature in one of the two rooms I use most, but ask me which one first; the options are Living room and Bedroom.",
+ "taps_before_open": 0,
+ "setup": [
+  {
+   "cmd": "diag volume 0",
+   "ok": true,
+   "line": 83
+  },
+  {
+   "cmd": "diag bedside day",
+   "ok": true,
+   "line": 91
+  }
+ ],
+ "ready": "None",
+ "cleanup_before": [],
+ "chat": "cht_01M4P1CP4W5E52PDSYYP9HYYGN",
+ "task": "tsk_01M4P1CPBGK62W38JBVH9WA2P7",
+ "message_status": 201,
+ "routed": "new_task",
+ "routed_chat": "cht_01M4P1CP4W5E52PDSYYP9HYYGN",
+ "pending": {
+  "interaction_id": "int_01M4P1CQYPAW30WM2GKST9QP3K",
+  "task_id": "tsk_01M4P1CPBGK62W38JBVH9WA2P7",
+  "chat_id": "cht_01M4P1CP4W5E52PDSYYP9HYYGN",
+  "turn_id": "trn_01M4P1CPBHGKAP0NR6HKRN9QJ5",
+  "kind": "input",
+  "source": "sdk",
+  "state": "pending",
+  "voice_can_approve": false,
+  "created_at": "2026-10-11T17:50:26.262Z",
+  "expires_at": "2026-10-11T18:20:26.262Z",
+  "decision": null,
+  "via": null,
+  "question": {
+   "text": "Which room?",
+   "options": [
+    {
+     "id": "opt1",
+     "label": "Living room"
+    },
+    {
+     "id": "opt2",
+     "label": "Bedroom"
+    }
+   ],
+   "multi_select": false
+  }
+ },
+ "card_open": {
+  "line": 992,
+  "after_s": 20.1
+ },
+ "tap": {
+  "ok": true,
+  "line": 1043,
+  "result": "option 2 tap 315 317"
+ },
+ "receipt": {
+  "line": 1077,
+  "text": "I (31477) WeixueAgent: agent receipt: answer seq=7 card=int_01M4P1CQYPAW30WM2GKST9QP3K result=accepted"
+ },
+ "end_state": "done",
+ "interaction": [],
+ "result": "pass",
+ "settle": []
+}

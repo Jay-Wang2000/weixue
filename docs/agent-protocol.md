@@ -43,7 +43,7 @@ Server → device, on the WebSocket `custom` channel (`CONFIG_RECEIVE_CUSTOM_MES
            {"id":"cht_01J8…","state":"idle","age_s":86400}]}}                          // no title: untitled
 ```
 
-A `needs_input` item is a question card: `summary` is the question and `options` holds 2-4 choices, shown as the card's buttons; agent-service never sends a question without options (decision 67). The device still renders an option-less question with Later for items stored before that rule. A spoken reply to the card answers it in the user's own words through the normal voice path.
+A `needs_input` item is a question card: `summary` is the question and `options` holds 2-4 choices, shown as the card's buttons; agent-service never sends a question without options (decision 67). The device still renders an option-less question with Later for items stored before that rule. A spoken reply to the card answers it in the user's own words through the normal voice path when it names an option or is a short answer (agent-service, `ask_user`); the gateway never delivers a `needs_input` or `needs_approval` card `silent` (a SILENT offer becomes `when_idle` without speech), and the device opens a card whose open item is raised from `silent` to `when_idle` or `interrupt` without a second earcon or flash.
 
 `progress.activity` (v1.3, ≤ 24 chars, the chat's language) is what the agent is doing now (Service deliveries, Activity); a working item without it shows the state word. `progress` without `step` carries only the activity. A device that does not know the field ignores it (unknown fields are ignored).
 

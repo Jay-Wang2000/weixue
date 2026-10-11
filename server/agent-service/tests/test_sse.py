@@ -15,7 +15,8 @@ async def test_message_stream_resumes_after_last_event_id(make):
     h = await make()
     _, events = await h.send("hello", key="k-sse")
     last = events[1]["seq"]
-    resp = await h.http.post("/v1/chats/current/messages", json={"device_id": "sim-device-01", "text": "hello"},
+    resp = await h.http.post("/v1/chats/current/messages", json={"device_id": "sim-device-01", "text": "hello",
+                                                                     "origin": {"kind": "voice"}},
                              headers={"Idempotency-Key": "k-sse", "Accept": "text/event-stream",
                                       "Last-Event-ID": str(last)})
     from conftest import parse_sse

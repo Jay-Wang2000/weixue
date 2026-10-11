@@ -115,16 +115,16 @@ class Harness:
     async def poll(self):
         await self.service.ha.poll_once()
 
-    async def send(self, text, chat="current", key=None, **extra):
-        body = {"device_id": DEVICE, "text": text, **extra}
+    async def send(self, text, chat="current", key=None, origin="voice", **extra):
+        body = {"device_id": DEVICE, "text": text, **({"origin": {"kind": origin}} if origin else {}), **extra}
         resp = await self.http.post(f"/v1/chats/{chat}/messages", json=body,
                                     headers={"Idempotency-Key": key or str(uuid.uuid4()),
                                              "Accept": "text/event-stream"})
         assert resp.status_code == 200, resp.text
         return resp, parse_sse(resp.text)
 
-    async def send_json(self, text, chat="current", key=None, expect=(200, 201), **extra):
-        body = {"device_id": DEVICE, "text": text, **extra}
+    async def send_json(self, text, chat="current", key=None, expect=(200, 201), origin="voice", **extra):
+        body = {"device_id": DEVICE, "text": text, **({"origin": {"kind": origin}} if origin else {}), **extra}
         resp = await self.http.post(f"/v1/chats/{chat}/messages", json=body,
                                     headers={"Idempotency-Key": key or str(uuid.uuid4())})
         assert resp.status_code in expect, resp.text

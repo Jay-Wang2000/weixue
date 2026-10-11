@@ -2,7 +2,8 @@
 """Gateway recovery sim rounds against server/sim/scratch_agent_service.py: the real agent gateway
 and proactive queue (server/overlay) talking HTTP to the scratch service, with simulated device
 sessions (playback, played acks, card answers) in place of the board. Rounds: decisions (F04),
-speech hand-off (F09), retries and attempts (F10), gateway restart (F11), INTERRUPT (F13), and
+speech hand-off (F09), retries and attempts (F10), gateway restart (F11), INTERRUPT (F13), answer
+routing and open-card tiers (routing), and
 `--rounds activity`: a turn of fake tools whose working items carry the activity label (decision 68;
 start the scratch service with --reply-hold-s 1). Run with the server test venv after starting the
 scratch service:
@@ -187,6 +188,12 @@ class Sim:
         async with self.http.request(method, self.url + path, json=body, params=params) as resp:
             return await resp.json()
 
+    async def api(self, method, path, body=None):
+        """(status, json) of an agent-service API call."""
+        headers = {"Idempotency-Key": str(uuid.uuid4())}
+        async with self.http.request(method, self.url + path, json=body, headers=headers) as resp:
+            return resp.status, await resp.json()
+
     async def rows(self, delivery_id):
         return await self.ctl("GET", "/sim/rows", params={"delivery_id": delivery_id})
 
@@ -274,6 +281,49 @@ async def round_questions(sim, conn):
     rows = await sim.ctl("GET", "/sim/rows", params={"interaction_id": asked["interaction_id"]})
     check(got and got[-1]["result"] == "accepted" and rows["interaction"]["state"] == "answered",
           f"option tap: receipt {got and got[-1]['result']}, interaction {rows['interaction']['state']}")
+
+
+def mirrored_card(sim, card):
+    return next((e for e in sim.gw.devices[DEVICE].mirror.values() if e.payload.get("card_id") == card), None)
+
+
+async def round_routing(sim, conn):
+    print("\n== answer routing and open-card tiers ==", flush=True)
+    asked = await sim.ctl("POST", "/sim/ask", {"device_id": DEVICE, "question": "Which room?",
+                                               "options": ["Living room", "Bedroom"], "origin": "voice"})
+    card = asked["interaction_id"]
+    entry = await sim.wait(lambda: mirrored_card(sim, card), 10, "voice question mirrored")
+    item = entry.payload if entry else {}
+    check(item.get("delivery") == "when_idle" and item.get("speaks") is False,
+          f"question spoken in the voice reply: card {item.get('delivery')} speaks={item.get('speaks')}")
+    _, chat = await sim.api("POST", "/v1/chats", {"device_id": DEVICE, "switch": False})
+    status, probe = await sim.api("POST", f"/v1/chats/{chat['chat_id']}/messages",
+                                  {"device_id": DEVICE, "text": "Bedroom probe", "origin": {"kind": "api"}})
+    rows = await sim.ctl("GET", "/sim/rows", params={"interaction_id": card})
+    check(status == 201 and probe.get("chat_id") == chat["chat_id"] and probe.get("routed") == "new_task" and
+          rows["interaction"]["state"] == "pending",
+          f"API message to another chat in the voice window: {probe.get('routed')} in "
+          f"{'its chat' if probe.get('chat_id') == chat['chat_id'] else probe.get('chat_id')}, "
+          f"question {rows['interaction']['state']}")
+    status, answer = await sim.api("POST", "/v1/chats/current/messages",
+                                   {"device_id": DEVICE, "text": "Bedroom", "origin": {"kind": "voice"}})
+    rows = await sim.ctl("GET", "/sim/rows", params={"interaction_id": card})
+    check(answer.get("routed") == "answer" and rows["interaction"]["state"] == "answered",
+          f"voice follow-up: {answer.get('routed')}, question {rows['interaction']['state']}")
+    asked = await sim.ctl("POST", "/sim/ask", {"device_id": DEVICE, "question": "Which room?",
+                                               "options": ["Living room", "Bedroom"], "origin": "api",
+                                               "chat_id": chat["chat_id"]})
+    entry = await sim.wait(lambda: mirrored_card(sim, asked["interaction_id"]), 10, "API question mirrored")
+    item = entry.payload if entry else {}
+    check(item.get("delivery") == "when_idle" and item.get("speaks") is True,
+          f"question from an API message: card {item.get('delivery')} speaks={item.get('speaks')}")
+    params = {"v": 1, "boot": conn.boot, "seq": conn.next_seq(), "kind": "answer", "chat_id": item.get("chat_id"),
+              "task_id": item.get("task_id"), "card_id": asked["interaction_id"], "option_id": "opt2", "via": "tap"}
+    sim.gw.on_device_event(conn, wad.RESPONSE_METHOD, params)
+    got = await sim.wait(lambda: sim.receipts(conn, asked["interaction_id"]), 20, "receipt of the option tap")
+    rows = await sim.ctl("GET", "/sim/rows", params={"interaction_id": asked["interaction_id"]})
+    check(got and got[-1]["result"] == "accepted" and rows["interaction"]["state"] == "answered",
+          f"option 2 tap: receipt {got and got[-1]['result']}, interaction {rows['interaction']['state']}")
 
 
 async def round_decisions(sim, conn):
@@ -426,8 +476,9 @@ async def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--url", default="http://127.0.0.1:18810")
     ap.add_argument("--state", required=True)
-    ap.add_argument("--rounds", default="questions,decisions,speech,attempts,restart,interrupt",
-                    help="comma list of questions, decisions, speech, attempts, restart, interrupt, activity")
+    ap.add_argument("--rounds", default="questions,decisions,speech,attempts,restart,interrupt,routing",
+                    help="comma list of questions, decisions, speech, attempts, restart, interrupt, routing, "
+                         "activity")
     a = ap.parse_args()
     rounds = a.rounds.split(",")
     token = os.environ["SIM_TOKEN"]
@@ -451,6 +502,8 @@ async def main():
         await round_interrupt(sim, conn)
     if "activity" in rounds:
         await round_activity(sim, conn)
+    if "routing" in rounds:
+        await round_routing(sim, conn)
     await sim.stop_gateway()
     await sim.http.close()
     print(f"\n{'ALL PASS' if not FAILURES else 'FAILED: ' + '; '.join(FAILURES)}", flush=True)
