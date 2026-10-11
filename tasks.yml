@@ -426,7 +426,7 @@ tasks:
     description: |
       Finding 76 (2026-10-11 17:40): the device restores tsk_01M4NVTP5D41EQX8RP3V1BT5MS as needs_approval at every boot although the agent service cancelled it at 16:13 and its interaction is approved/closed — the gateway mirror never received or applied the terminal state, so the boot snapshot keeps re-sending a dead approval card. Fix: on gateway start and on every boot snapshot the mirror reconciles its open-card items against the service (GET task state) and drops or terminalises any task the service reports as terminal; the service's terminal transitions must be delivered to the mirror even when the originating delivery was never acked; test with a cancelled probe task; board check: the dead card is gone after reboot.
     depends_on: [fix-input-window-routing]
-    status: pending
+    status: in_progress
     retries: 0
     model: opus
   - id: feat-agent-service
