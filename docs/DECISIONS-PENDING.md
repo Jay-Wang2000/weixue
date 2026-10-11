@@ -178,3 +178,5 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 73. **Semantic end-of-turn model**: A = self-host Smart Turn v3.2 (BSD-2, local CPU, Chinese) in the gateway; B = wait for Google STT semantic endpointing (no public parameters).
 74. **Barge-in confirmation path**: A = two-stage gate (low-NLP barge_hint -> duck -> text gate) with wake word as fallback (confidence low on whispers); B = wake word only (conservative; must say "Jarvis" to interrupt).
 75. **AEC NLP level A/B (VERYAGGR vs AGGR) on the home device** — allows whispers through at the cost of short-term echo false triggers; A = allow the A/B; B = no.
+
+76. **Finding (no decision)**: a cancelled probe task (service state cancelled 16:13, interaction approved) is still restored to the device as an open approval card at every boot — the gateway mirror never applied the terminal state. Task fix-mirror-reconcile (mirror reconciles open cards against the service on start and boot snapshot).
