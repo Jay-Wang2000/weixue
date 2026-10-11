@@ -288,7 +288,7 @@ tasks:
     description: |
       DESIGN.md M2 feat-agent-monitor：agent 服务的事件库 + 只读 Web 监控台——动作时间线（工具调用、审批裁决）、token/费用（会话/任务/天）、家庭状态快照、连接（设备 WS、agent 服务与 ha-mcp 直连、bridge/endpoint/隧道健康）、MCP 状态（可达、工具数、pending（含非本服务归属的）、策略版本）、chats、错误。数据来自 feat-agent-service 的 SQLite（同一库，只读）与定期健康探测；不执行任何动作。仅绑定 127.0.0.1（决定 30）；后端迁到家中 Ubuntu 后经 Tailscale 打开，不公网暴露、v1 无 basic auth。端到端：跑一次长任务后监控台显示全部工具调用与 token；断隧道 30 s 内状态变红。
     depends_on: [feat-agent-service]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: feat-ui-sessions
