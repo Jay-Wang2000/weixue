@@ -389,7 +389,7 @@ tasks:
     description: |
       Jay 2026-10-11: question cards are too noisy — the agent ends answers with "what do you want me to do next?" and each becomes a needs_input card (the awaiting_answer path: interactions.py text question, options []). Rule: a question card exists only for a genuine blocking choice, Claude Code style — one question plus 2-4 short options the user picks; open-ended or rhetorical questions are just speech and the turn ends done. Implement: remove the awaiting_answer tool and prompt line; ask_user requires 2-4 options (reject or downgrade to plain speech + done otherwise), the question text is one sentence without "what next" phrasing (prompt + validator); the device card renders the options as the primary buttons (verify, fix if needed); a voice answer still works as "Other"; migrate/close existing option-less needs_input tasks on deploy (cancelled with reason). Tests (service, gateway, firmware host) + sim round; board check of one real option card.
     depends_on: [fix-approval-card-queue]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: feat-panel-current-tool
