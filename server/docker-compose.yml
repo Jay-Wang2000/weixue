@@ -18,6 +18,7 @@ services:
       - WEIXUE_PROACTIVE_TOKEN=${WEIXUE_PROACTIVE_TOKEN:-}
       - AGENT_SERVICE_URL=http://${AGENT_SERVICE_HOST:-agent-service}:8010
       - AGENT_SERVICE_TOKEN=${AGENT_SERVICE_TOKEN:-}
+      - MONITOR_TOKEN=${MONITOR_TOKEN:-}
     ports:
       - "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8000:8000"
       - "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8003:8003"
@@ -55,6 +56,7 @@ services:
       - ./data/mcp-bridge/endpoint-url:/run/secrets/mcp-endpoint-url:ro
       - ./policy/voice_bridge.json:/app/policy/voice_bridge.json:ro
       - ./data/mcp-bridge/cache:/app/cache
+      - ./data/mcp-bridge/status:/app/status
     healthcheck:
       test: ["CMD", "python", "-m", "weixue_bridge.health"]
       interval: 30s
@@ -81,6 +83,10 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - HA_MCP_URL=${HA_MCP_URL:?set HA_MCP_URL in server/.env}
       - AGENT_SERVICE_TOKEN=${AGENT_SERVICE_TOKEN:-}
+      - MONITOR_TOKEN=${MONITOR_TOKEN:-}
+      - AGENT_DB=/data/db/agent.db
+      - AGENT_HA_PROBE_S=${AGENT_HA_PROBE_S:-10}
+      - AGENT_HA_PROBE_TIMEOUT_S=${AGENT_HA_PROBE_TIMEOUT_S:-5}
       - TZ=${TZ:-UTC}
     volumes:
       - ./data/agent-service:/data
@@ -95,6 +101,38 @@ services:
       wg:
         condition: service_healthy
         required: false
+
+  agent-monitor:
+    image: weixue/agent-monitor:local
+    build:
+      context: ./agent-monitor
+    container_name: agent-monitor
+    restart: unless-stopped
+    environment:
+      - AGENT_SERVICE_URL=http://${AGENT_SERVICE_HOST:-agent-service}:8010
+      - MONITOR_TOKEN=${MONITOR_TOKEN:-}
+      - GATEWAY_URL=http://xiaozhi-esp32-server:8003
+      - MCP_ENDPOINT=mcp-endpoint-server:8004
+      - WG_TUNNEL=${WG_TUNNEL:-}
+      - AGENT_HA_PROBE_S=${AGENT_HA_PROBE_S:-10}
+      - MONITOR_HOME=${MONITOR_HOME:-}
+      - TZ=${TZ:-UTC}
+    ports:
+      - "127.0.0.1:8020:8020"
+    # rw so a mode=ro WAL reader can open agent.db-shm after a clean writer shutdown (docs/agent-monitor.md).
+    volumes:
+      - ./data/agent-service/db:/db
+      - ./data/mcp-bridge/status:/bridge:ro
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "python", "-m", "agent_monitor.health"]
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    depends_on:
+      agent-service:
+        condition: service_started
 
   wg:
     profiles: [tunnel]

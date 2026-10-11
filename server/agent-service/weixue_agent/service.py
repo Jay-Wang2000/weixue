@@ -55,7 +55,8 @@ class Service:
             ha_client = HaMcpClient(settings.ha_mcp_url, timeout_s=15)
         self.ha = HaGateway(settings, self.store, ha_client, require_iface=require_iface)
         self.engine = Engine(settings, self.store, self.hub, self.client, self.ha, self.outbox, self.chats)
-        self.monitor = Monitor(self.store, self.ha, self.engine, self.outbox, settings.mcp_endpoint_host)
+        self.monitor = Monitor(self.store, self.ha, self.engine, self.outbox, settings.mcp_endpoint_host,
+                               probe_s=settings.probe_s, probe_timeout_s=settings.probe_timeout_s)
         self.recovery_summary: Dict[str, Any] = {}
         self._chats_pending: set = set()
         self._watch: Optional[asyncio.Task] = None

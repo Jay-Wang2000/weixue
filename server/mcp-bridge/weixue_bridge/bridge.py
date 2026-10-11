@@ -22,6 +22,7 @@ from .config import (
 )
 from .catalog import ToolCatalog, refresh_loop
 from .hamcp import HaMcpClient, HaMcpError, session_label
+from .status import BridgeStatus
 from .voice_filter import filter_tools, refusal
 
 log = logging.getLogger("weixue_bridge")
@@ -247,22 +248,30 @@ async def _ping(ha: HaMcpClient) -> Optional[str]:
 
 
 async def _heartbeat(
-    ha: HaMcpClient, health_file: str, bridge: Optional[Bridge] = None, catalog: Optional[ToolCatalog] = None
+    ha: HaMcpClient,
+    health_file: str,
+    bridge: Optional[Bridge] = None,
+    catalog: Optional[ToolCatalog] = None,
+    status: Optional[BridgeStatus] = None,
 ) -> None:
     """Every HEARTBEAT_S pings ha-mcp. Success refreshes the health file once `bridge` has announced,
-    failure removes it; every STATS_EVERY_PINGS successful pings with a catalog log stats_line."""
+    failure removes it; every ping rewrites the status file; every STATS_EVERY_PINGS successful pings
+    with a catalog log stats_line."""
     ping_ms: List[int] = []
     while True:
         await asyncio.sleep(HEARTBEAT_S)
         failure = await _ping(ha)
+        first_byte = ha.timings["ping"].first_byte_ms if failure is None and "ping" in ha.timings else None
         if failure is None:
-            if "ping" in ha.timings:
-                ping_ms.append(ha.timings["ping"].first_byte_ms)
+            if first_byte is not None:
+                ping_ms.append(first_byte)
             if bridge is None or bridge.announced:
                 _mark_healthy(health_file)
         else:
             log.warning("ha-mcp ping failed: %s", failure)
             _clear_health(health_file)
+        if status is not None:
+            status.ping(failure is None, first_byte)
         if catalog is not None and len(ping_ms) >= STATS_EVERY_PINGS:
             log.info("%s", stats_line(ha, catalog, ping_ms))
             ping_ms = []
@@ -282,7 +291,7 @@ async def wait_for_interface(name: str) -> None:
         await asyncio.sleep(IFACE_POLL_S)
 
 
-async def _announce(bridge: Bridge, ha: HaMcpClient, health_file: str) -> None:
+async def _announce(bridge: Bridge, ha: HaMcpClient, health_file: str, status: Optional[BridgeStatus] = None) -> None:
     """Registers the tools, then marks the bridge healthy once ha-mcp answers a ping."""
     try:
         count = await bridge.announce()
@@ -294,15 +303,25 @@ async def _announce(bridge: Bridge, ha: HaMcpClient, health_file: str) -> None:
         _mark_healthy(health_file)
     else:
         log.warning("ha-mcp ping failed: %s", failure)
+    if status is not None:
+        status.announced = True
+        status.ping(failure is None, ha.timings["ping"].first_byte_ms if failure is None and "ping" in ha.timings else None)
 
 
-async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None, catalog: Optional[ToolCatalog] = None) -> None:
+async def run(
+    config: BridgeConfig,
+    ha: Optional[HaMcpClient] = None,
+    catalog: Optional[ToolCatalog] = None,
+    status: Optional[BridgeStatus] = None,
+) -> None:
     """Keeps the endpoint connection up; raises BridgeExit after ENDPOINT_MAX_FAILURES consecutive failed
     connects, once NAMESPACE_IFACE, present at start, is gone, or once config.tunnel_iface is gone.
     With config.tunnel_iface set nothing is connected before that interface exists.
-    One ha-mcp session serves every endpoint connection; it is ended when run returns or is cancelled."""
+    One ha-mcp session serves every endpoint connection; it is ended when run returns or is cancelled.
+    The status file says `stopped` once run ends."""
     ha = ha or HaMcpClient(config.ha_mcp_url)
     catalog = catalog or ToolCatalog(ha, config.tools_cache)
+    status = status or BridgeStatus(config.status_file, ha, catalog)
     log.info("ha-mcp %s <-> endpoint %s", redact(config.ha_mcp_url), redact(config.endpoint_url))
     catalog.load()
     current: Dict[str, Optional[Bridge]] = {"bridge": None}
@@ -313,6 +332,7 @@ async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None, catalog: O
             log.info("ha-mcp tool list changed; %d tools on the voice path", await bridge.announce_tools())
 
     refresher: Optional[asyncio.Task] = None
+    status.write()
     try:
         if config.tunnel_iface:
             await wait_for_interface(config.tunnel_iface)
@@ -328,8 +348,9 @@ async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None, catalog: O
                     bridge = Bridge(config.voice_filter, ha, catalog, ws.send)
                     current["bridge"] = bridge
                     backoff = 1
-                    announcer = asyncio.create_task(_announce(bridge, ha, config.health_file))
-                    heartbeat = asyncio.create_task(_heartbeat(ha, config.health_file, bridge, catalog))
+                    status.update(state="connected", announced=False)
+                    announcer = asyncio.create_task(_announce(bridge, ha, config.health_file, status))
+                    heartbeat = asyncio.create_task(_heartbeat(ha, config.health_file, bridge, catalog, status))
                     pending = set()
                     try:
                         async for raw in ws:
@@ -346,6 +367,7 @@ async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None, catalog: O
             except (OSError, websockets.exceptions.WebSocketException) as e:
                 log.warning("bridge down: %s", type(e).__name__)
             _clear_health(config.health_file)
+            status.update(state="disconnected", announced=False)
             names = _interface_names()
             if watch_iface and NAMESPACE_IFACE not in names:
                 raise BridgeExit(f"{NAMESPACE_IFACE} is gone from the network namespace")
@@ -357,6 +379,7 @@ async def run(config: BridgeConfig, ha: Optional[HaMcpClient] = None, catalog: O
             await asyncio.sleep(backoff)
             backoff = min(backoff * 2, RECONNECT_MAX_S)
     finally:
+        status.update(state="stopped", announced=False)
         if refresher is not None:
             refresher.cancel()
             await asyncio.gather(refresher, return_exceptions=True)

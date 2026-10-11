@@ -37,11 +37,16 @@ class Api:
 
     # ------------------------------------------------------------------ plumbing
 
-    def _authorized(self, request: Request) -> bool:
+    def _authorized(self, request: Request, read_scope: bool = False) -> bool:
+        """The service token on every route; MONITOR_TOKEN also on read-scope routes."""
         header = request.headers.get("authorization", "")
         if not header.lower().startswith("bearer "):
             return False
-        return hmac.compare_digest(header[7:].strip().encode(), self.svc.settings.token.encode())
+        presented = header[7:].strip().encode()
+        if hmac.compare_digest(presented, self.svc.settings.token.encode()):
+            return True
+        monitor = self.svc.settings.monitor_token
+        return read_scope and monitor is not None and hmac.compare_digest(presented, monitor.encode())
 
     async def _body(self, request: Request, model: type, optional: bool = False) -> BaseModel:
         raw = await request.body()
@@ -57,11 +62,11 @@ class Api:
             raise ApiError(400, "invalid_request", "body failed validation",
                            [{"loc": [str(p) for p in x["loc"]], "msg": x["msg"]} for x in e.errors()][:10])
 
-    def route(self, handler, auth: bool = True):
+    def route(self, handler, auth: bool = True, read_scope: bool = False):
         async def endpoint(request: Request) -> Response:
             trace = request.headers.get("x-trace-id", "").lower()
             request.state.trace_id = trace if TRACE_RE.match(trace) else new_trace_id()
-            if auth and not self._authorized(request):
+            if auth and not self._authorized(request, read_scope and request.method == "GET"):
                 return error(401, "unauthorized", "missing or wrong bearer token")
             try:
                 response = await handler(request)
@@ -82,7 +87,7 @@ class Api:
         r = self.route
         return [
             Route("/healthz", r(self.healthz, auth=False)),
-            Route("/v1/status", r(self.status)),
+            Route("/v1/status", r(self.status, read_scope=True), methods=["GET"]),
             Route("/v1/chats", r(self.chats_list), methods=["GET"]),
             Route("/v1/chats", r(self.chats_create), methods=["POST"]),
             Route("/v1/chats/back", r(self.chats_back), methods=["POST"]),
@@ -97,7 +102,7 @@ class Api:
             Route("/v1/chats/{chat_id}/switch", r(self.chats_switch), methods=["POST"]),
             Route("/v1/chats/{chat_id}/read", r(self.chats_read), methods=["POST"]),
             Route("/v1/tasks/{task_id}", r(self.task_get), methods=["GET"]),
-            Route("/v1/tasks/{task_id}/trace", r(self.task_trace), methods=["GET"]),
+            Route("/v1/tasks/{task_id}/trace", r(self.task_trace, read_scope=True), methods=["GET"]),
             Route("/v1/deliveries/stream", r(self.deliveries_stream), methods=["GET"]),
             Route("/v1/deliveries/{delivery_id}/ack", r(self.deliveries_ack), methods=["POST"]),
             Route("/v1/devices/{device_id}/snapshot", r(self.device_snapshot), methods=["GET"]),

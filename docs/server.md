@@ -195,7 +195,11 @@ Optional web console (MySQL + Redis + manager-web, port 8002): set `MYSQL_ROOT_P
 
 ## Agent service
 
-Compose service `agent-service` (`docs/agent-service.md`): no host port; the server container reaches it at `AGENT_SERVICE_URL` (`http://agent-service:8010`, or `http://wg:8010` while `WG_TUNNEL=1`, where it shares the tunnel namespace like `mcp-bridge`) with the bearer `AGENT_SERVICE_TOKEN`, and the agent gateway (`docs/agent-protocol.md`) consumes its outbox for every device with an agent session. Its environment holds only `ANTHROPIC_API_KEY`, `HA_MCP_URL`, `AGENT_SERVICE_TOKEN` and `TZ`; data lives in `data/agent-service/`.
+Compose service `agent-service` (`docs/agent-service.md`): no host port; the server container reaches it at `AGENT_SERVICE_URL` (`http://agent-service:8010`, or `http://wg:8010` while `WG_TUNNEL=1`, where it shares the tunnel namespace like `mcp-bridge`) with the bearer `AGENT_SERVICE_TOKEN`, and the agent gateway (`docs/agent-protocol.md`) consumes its outbox for every device with an agent session. Its environment holds `ANTHROPIC_API_KEY`, `HA_MCP_URL`, `AGENT_SERVICE_TOKEN`, `MONITOR_TOKEN`, `AGENT_DB`, the ha-mcp probe cadence and `TZ`; data lives in `data/agent-service/` (database in `db/`).
+
+## Agent monitor
+
+Compose service `agent-monitor` (`docs/agent-monitor.md`): a read-only board at `http://127.0.0.1:8020/`, bound to 127.0.0.1 only (decision 30); from a phone through `ssh -L 8020:127.0.0.1:8020`, on the Ubuntu server later through Tailscale. Tiles turn red on the rules in `docs/agent-monitor.md` (device 3 s after its last poll, agent after 2 failed checks, ha-mcp after 25 s without a good ping, bridge after 65 s or on `stopped`). It stores nothing; the agent service prunes event tables after 30 days (decision 21).
 
 ## Verification
 

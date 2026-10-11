@@ -21,6 +21,7 @@ TAG = __name__
 _CJK = re.compile(r"[\u3400-\u9fff]")
 INVOKE_TEXT = "weixue:proactive"
 TOKEN_ENV = "WEIXUE_PROACTIVE_TOKEN"
+MONITOR_TOKEN_ENV = "MONITOR_TOKEN"
 
 MODES = ("announce", "conversation")
 MAX_MESSAGE_CHARS = 500
@@ -260,8 +261,10 @@ class DeviceAuth:
 
 
 class Proactive:
-    def __init__(self, token, clock=time.monotonic, wall=time.time, speaker=None, auth=None):
+    def __init__(self, token, clock=time.monotonic, wall=time.time, speaker=None, auth=None, monitor_token=""):
         self.token = token or ""
+        # Read scope: accepted on GET /weixue/proactive only.
+        self.monitor_token = monitor_token or ""
         self.clock = clock
         self.wall = wall
         self.speaker = speaker or speak
@@ -273,6 +276,7 @@ class Proactive:
         self.sessions = {}
         self.last_poll = {}
         self.polls = {}
+        self.poll_ended = {}
         self.muted_until = 0.0
         self.buckets = {}
         self.reply_window = REPLY_WINDOW_SECONDS
@@ -468,9 +472,12 @@ class Proactive:
         devices = {}
         for device in sorted(self.known_devices()):
             seen = self.last_poll.get(device)
+            ended = self.poll_ended.get(device)
             devices[device] = {
                 "session_open": bool(self.live_sessions(device)),
                 "last_poll_seconds_ago": round(self.clock() - seen, 1) if seen is not None else None,
+                "poll_held": device in self.polls,
+                "last_poll_end_seconds_ago": round(self.clock() - ended, 1) if ended is not None else None,
                 "reachable": self.reachable(device),
             }
         return {
@@ -486,12 +493,16 @@ class Proactive:
         conn._weixue_ws = ws
         conn._weixue_opened = self.clock()
         self.sessions.setdefault(device, []).append(conn)
+        if self.agent is not None:
+            self.agent.on_connection(device, "open", conn)
         self._notify()
 
     def on_session_close(self, device, conn):
         conns = self.sessions.get(device, [])
         if conn in conns:
             conns.remove(conn)
+            if self.agent is not None:
+                self.agent.on_connection(device, "close", conn)
         if not conns:
             self.sessions.pop(device, None)
         self._notify()
@@ -552,6 +563,9 @@ class Proactive:
         finally:
             if self.polls.get(device) is ticket:
                 del self.polls[device]
+                self.poll_ended[device] = self.clock()
+                while len(self.poll_ended) > MAX_DEVICES:
+                    del self.poll_ended[min(self.poll_ended, key=self.poll_ended.get)]
 
     def claim(self, conn, item):
         """Marks item as delivering for conn before its delivery task exists; only that claim
@@ -829,21 +843,26 @@ def parse_invoke(text):
     return parts[0], parts[1]
 
 
-def _authorized(proactive, request):
+def _authorized(proactive, request, read_scope=False):
+    """WEIXUE_PROACTIVE_TOKEN on every guarded route; MONITOR_TOKEN also on read-scope routes."""
     header = request.headers.get("Authorization", "")
     if not header.startswith("Bearer "):
         return False
-    return hmac.compare_digest(header[7:].encode(), proactive.token.encode())
+    presented = header[7:].encode()
+    if proactive.token and hmac.compare_digest(presented, proactive.token.encode()):
+        return True
+    return bool(read_scope and proactive.monitor_token
+                and hmac.compare_digest(presented, proactive.monitor_token.encode()))
 
 
 def add_routes(app, proactive):
     from aiohttp import web
 
-    def guarded(handler):
+    def guarded(handler, read_scope=False):
         async def wrapper(request):
-            if not proactive.token:
+            if not proactive.token and not (read_scope and proactive.monitor_token):
                 return web.json_response({"error": f"disabled: {TOKEN_ENV} is not set"}, status=503)
-            if not _authorized(proactive, request):
+            if not _authorized(proactive, request, read_scope):
                 return web.json_response({"error": "unauthorized"}, status=401)
             try:
                 return await handler(request)
@@ -914,7 +933,7 @@ def add_routes(app, proactive):
     app.add_routes(
         [
             web.get("/weixue/proactive/poll", poll),
-            web.get("/weixue/proactive", guarded(status)),
+            web.get("/weixue/proactive", guarded(status, read_scope=True)),
             web.post("/weixue/proactive/messages", guarded(create)),
             web.get("/weixue/proactive/messages/{id}", guarded(get_message)),
             web.put("/weixue/proactive/mute", guarded(mute)),
@@ -928,5 +947,5 @@ INSTANCE: Optional[Proactive] = None
 def instance():
     global INSTANCE
     if INSTANCE is None:
-        INSTANCE = Proactive(os.environ.get(TOKEN_ENV, ""))
+        INSTANCE = Proactive(os.environ.get(TOKEN_ENV, ""), monitor_token=os.environ.get(MONITOR_TOKEN_ENV, ""))
     return INSTANCE

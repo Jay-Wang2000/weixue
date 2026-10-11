@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>weixue monitor</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="mark"></span>weixue <span class="dim">agent monitor</span></div>
+  <div class="meta"><span id="clock">--:--</span> <span id="live" class="pill pill-unknown">connecting</span></div>
+</header>
+<div id="banner" class="banner" hidden></div>
+<section id="tiles" class="tiles" aria-label="Connections"></section>
+<main class="grid">
+  <section class="card" id="mcp-card"><h2>MCP</h2><div id="mcp" class="body"></div></section>
+  <section class="card" id="summary-card"><h2>Today</h2><div id="summary" class="body"></div></section>
+  <section class="card span2" id="timeline-card">
+    <h2>Timeline</h2>
+    <form id="filters" class="filters">
+      <label>Chat <select id="f-chat"><option value="">all</option></select></label>
+      <label>State <select id="f-state">
+        <option value="">all</option><option value="open">open</option><option value="done">done</option>
+        <option value="failed">failed</option><option value="cancelled">cancelled</option>
+      </select></label>
+      <label>Tool kind <select id="f-kind">
+        <option value="">all</option><option value="ha">ha</option><option value="app">app</option>
+        <option value="memory">memory</option><option value="server">server</option>
+      </select></label>
+    </form>
+    <div id="timeline" class="body"></div>
+    <button id="older" class="more" type="button" hidden>Older</button>
+  </section>
+  <section class="card span2" id="cost-card"><h2>Cost</h2><div id="cost" class="body"></div></section>
+  <section class="card" id="home-card" hidden><h2>Home</h2><div id="home" class="body"></div></section>
+  <section class="card" id="chats-card"><h2>Chats</h2><div id="chats" class="body"></div></section>
+  <section class="card" id="errors-card"><h2>Errors</h2><div id="errors" class="body"></div></section>
+</main>
+<footer class="foot dim">Read-only. Times in <span id="tzname">Europe/Dublin</span>.</footer>
+</body>
+</html>

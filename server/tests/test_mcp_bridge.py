@@ -1243,3 +1243,87 @@ async def test_announce_marks_health_only_when_ha_mcp_answers(tmp_path, ping_err
     await bridge_mod._announce(bridge, ha, str(path))
     assert path.exists() is healthy_after
     assert [m["id"] for m in out] == [bridge_mod.ANNOUNCE_INIT_ID, bridge_mod.ANNOUNCE_TOOLS_ID]
+
+
+# --- status file for the monitor ------------------------------------------------------
+
+from weixue_bridge.status import BridgeStatus  # noqa: E402
+
+
+def test_status_file_is_atomic_and_carries_no_url(tmp_path):
+    ha = FakeHa()
+    ha.session_id = "0123456789abcdef"
+    ha.sessions_opened = 2
+    ha.timings["tools/list"] = hamcp_mod.Timing(200, 120, 340, 900)
+    catalog = ready_catalog(ha)
+    catalog.source = "cache"
+    path = tmp_path / "status" / "bridge.json"
+    status = BridgeStatus(str(path), ha, catalog, clock=lambda: 2000.0)
+    status.update(state="connected", announced=True)
+    for ms in (40, 60, 500):
+        status.ping(True, ms)
+    status.ping(False, None)
+    data = json.loads(path.read_text())
+    assert data["state"] == "connected" and data["announced"] is True and data["ts"] == 2000.0
+    assert data["ping_first_byte_ms_p50"] == 60 and data["ping_first_byte_ms_max"] == 500
+    assert data["last_ping_ok_at"] == 2000.0 and data["sessions_opened"] == 2
+    assert data["tools"] == 3 and data["tools_source"] == "cache" and data["tools_list_first_byte_ms"] == 120
+    assert data["session"] == hamcp_mod.session_label("0123456789abcdef")
+    assert "0123456789abcdef" not in path.read_text() and "http" not in path.read_text()
+    assert not list(path.parent.glob("*.tmp")) and oct(path.stat().st_mode & 0o777) == "0o644"
+
+
+def test_status_file_disabled_without_a_path(tmp_path):
+    BridgeStatus("", FakeHa()).update(state="connected")
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_config_status_file_default_and_override():
+    env = {"HA_MCP_URL": HA_URL, "MCP_ENDPOINT": ENDPOINT, "VOICE_FILTER_FILE": str(FILTER_FILE)}
+    assert load_config(env).status_file == "/app/status/bridge.json"
+    assert load_config({**env, "BRIDGE_STATUS_FILE": ""}).status_file == ""
+
+
+async def test_run_reports_connected_then_disconnected_then_stopped(reconnect, idle_heartbeat, tmp_path):
+    path = tmp_path / "bridge.json"
+    states = []
+
+    class Recording(BridgeStatus):
+        def write(self):
+            states.append((self.state, self.announced))
+            super().write()
+
+    reconnect["script"] = [None]
+    status = Recording(str(path), reconnect["ha"])
+    with pytest.raises(bridge_mod.BridgeExit):
+        await bridge_mod.run(reconnect["config"], reconnect["ha"], status=status)
+    assert states[:3] == [("starting", False), ("connected", False), ("disconnected", False)]
+    assert states[-1] == ("stopped", False) and json.loads(path.read_text())["state"] == "stopped"
+
+
+async def test_announce_marks_the_status_announced(tmp_path):
+    ha = FakeHa({"tools/list": TOOLS})
+    bridge, _out = make_bridge(ha, ready_catalog(ha))
+    path = tmp_path / "bridge.json"
+    status = BridgeStatus(str(path), ha)
+    status.state = "connected"
+    await bridge_mod._announce(bridge, ha, str(tmp_path / "healthy"), status)
+    data = json.loads(path.read_text())
+    assert data["announced"] is True and data["last_ping_ok_at"] and data["ping_first_byte_ms_p50"] == 1
+
+
+async def test_sigterm_writes_stopped(tmp_path, monkeypatch):
+    import signal
+
+    path = tmp_path / "bridge.json"
+    config = bridge_mod.BridgeConfig(HA_URL, ENDPOINT, VOICE, str(tmp_path / "healthy"), tunnel_iface="wg-never",
+                                     status_file=str(path))
+    task = asyncio.create_task(bridge_mod.serve(config))
+    for _ in range(100):
+        await asyncio.sleep(0.01)
+        if path.exists():
+            break
+    assert json.loads(path.read_text())["state"] == "starting"
+    os.kill(os.getpid(), signal.SIGTERM)
+    await asyncio.wait_for(task, 5)
+    assert json.loads(path.read_text())["state"] == "stopped"

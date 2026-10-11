@@ -248,6 +248,7 @@ elif args[:2] == ["compose", "build"]:
     else:
         state["tags"]["weixue/mcp-bridge:local"] = "bridge-new"
         state["tags"]["weixue/agent-service:local"] = "agent-new"
+        state["tags"]["weixue/agent-monitor:local"] = "monitor-new"
         state["tags"]["weixue/xiaozhi-esp32-server:local"] = "server-new"
 elif args[:2] == ["compose", "up"]:
     if args[-1] == "mcp-endpoint-server" and "new-key" in fails:
@@ -260,6 +261,12 @@ elif args[:2] == ["compose", "up"]:
             code = 1
         else:
             state["running"].append(state["tags"]["weixue/xiaozhi-esp32-server:local"])
+elif args[:1] == ["stop"]:
+    state.setdefault("stopped", []).extend(args[1:])
+    state.setdefault("events", []).append("stop " + " ".join(args[1:]))
+elif args[:1] == ["inspect"]:
+    running = "agent-running" in fails or args[-1] not in state.get("stopped", [])
+    print("true" if running else "false")
 elif args[:1] == ["run"]:
     mounts = dict(a.split(":")[1::-1] for a in args if a.count(":") == 2 and a.endswith(":ro"))
     script, config = args[-2], args[-1]
@@ -380,8 +387,9 @@ def test_setup_publishes_validated_config_and_new_images(setup_tree):
     assert state["tags"]["weixue/xiaozhi-esp32-server:rollback"] == "server-old"
     assert _leftovers(server) == []
     assert "sk-test" not in result.stdout + result.stderr
-    assert state["execs"] == ["mcp-bridge", "xiaozhi-esp32-server", "agent-service"]
-    assert "ready: bridge healthy, Home Assistant answered via the voice path, agent-service healthy" in result.stdout
+    assert state["execs"] == ["mcp-bridge", "xiaozhi-esp32-server", "agent-service", "agent-monitor"]
+    assert ("ready: bridge healthy, Home Assistant answered via the voice path, agent-service healthy, "
+            "agent-monitor healthy") in result.stdout
     assert not list((server / "data").rglob("*.cfg.rollback")) and not (server / "data" / "mcp-bridge" / "endpoint-url.rollback").exists()
 
 
@@ -559,7 +567,7 @@ def test_unready_bridge_or_ha_path_rolls_back_and_keeps_the_deployed_env(setup_t
     assert message in result.stdout and "new version is not ready; rolling back" in result.stdout
     assert (server / ".env.deployed").read_text() == deployed
     assert (server / ".env").read_text() == deployed and (server / ".env.failed").read_text() == attempted
-    assert state["recreated"][-2:] == [["mcp-bridge", "agent-service", "xiaozhi-esp32-server"]] * 2
+    assert state["recreated"][-2:] == [["mcp-bridge", "agent-service", "agent-monitor", "xiaozhi-esp32-server"]] * 2
     assert "previous version is not ready" not in result.stdout
 
 
@@ -700,3 +708,68 @@ def test_agent_service_host_follows_the_tunnel_mode(setup_tree, tunnel, host):
     assert result.returncode == 0, result.stdout + result.stderr
     hosts = [l for l in (server / ".env").read_text().splitlines() if l.startswith("AGENT_SERVICE_HOST=")]
     assert hosts == ([f"AGENT_SERVICE_HOST={host}"] if host else [])
+
+
+def test_monitor_token_is_generated_once_and_never_printed(setup_tree):
+    server, run = setup_tree
+    result, _ = run()
+    assert result.returncode == 0, result.stdout + result.stderr
+    env = (server / ".env").read_text().splitlines()
+    tokens = [l.split("=", 1)[1] for l in env if l.startswith("MONITOR_TOKEN=")]
+    agent = [l.split("=", 1)[1] for l in env if l.startswith("AGENT_SERVICE_TOKEN=")]
+    assert len(tokens) == 1 and len(tokens[0]) == 64 and tokens[0] != agent[0]
+    assert tokens[0] not in result.stdout + result.stderr
+    assert _mode(server / ".env.deployed") == 0o600
+    result, _ = run()
+    assert [l for l in (server / ".env").read_text().splitlines() if l.startswith("MONITOR_TOKEN=")] == \
+        [f"MONITOR_TOKEN={tokens[0]}"]
+    assert tokens[0] not in result.stdout + result.stderr
+
+
+def test_first_monitor_deploy_rolls_back_without_it(setup_tree):
+    server, run = setup_tree
+    result, state = run()
+    assert result.returncode == 0, result.stdout + result.stderr
+    state["tags"].pop("weixue/agent-monitor:local")
+    (server.parent.parent / "state.json").write_text(json.dumps(state))
+    result, state = run(FAKE_FAIL="exec-agent-monitor", ATTEMPT="new")
+    assert result.returncode == 1
+    assert "agent-monitor not ready after 1s" in result.stdout and "rolling back" in result.stdout
+    assert state["recreated"][-1] == ["mcp-bridge", "agent-service", "xiaozhi-esp32-server"]
+    assert "agent-monitor" in state["removed"] and "previous version is not ready" not in result.stdout
+
+
+def test_monitor_is_bound_to_localhost_only():
+    services = yaml.safe_load((SERVER_DIR / "docker-compose.yml").read_text())["services"]
+    monitor = services["agent-monitor"]
+    assert monitor["ports"] == ["127.0.0.1:8020:8020"]
+    assert "env_file" not in monitor and "network_mode" not in monitor
+    assert {e.split("=", 1)[0] for e in monitor["environment"]} == {
+        "AGENT_SERVICE_URL", "MONITOR_TOKEN", "GATEWAY_URL", "MCP_ENDPOINT", "WG_TUNNEL", "AGENT_HA_PROBE_S",
+        "MONITOR_HOME", "TZ"}
+    assert monitor["volumes"] == ["./data/agent-service/db:/db", "./data/mcp-bridge/status:/bridge:ro"]
+    assert all("memory" not in v for v in monitor["volumes"])
+    assert "./data/mcp-bridge/status:/app/status" in services["mcp-bridge"]["volumes"]
+
+
+def test_agent_db_moves_into_db_only_with_the_service_stopped(setup_tree):
+    server, run = setup_tree
+    data = server / "data" / "agent-service"
+    data.mkdir(parents=True, exist_ok=True)
+    for name in ("agent.db", "agent.db-wal", "agent.db-shm"):
+        (data / name).write_text(name)
+    result, state = run(FAKE_FAIL="agent-running")
+    assert result.returncode == 1 and "still running" in result.stdout
+    assert (data / "agent.db").exists() and not (data / "db" / "agent.db").exists()
+    assert not state.get("recreated")
+    assert (server / "data" / ".config.yaml").read_text() == OLD_CONFIG
+    result, state = run()
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert sorted(p.name for p in (data / "db").iterdir()) == ["agent.db", "agent.db-shm", "agent.db-wal"]
+    assert not (data / "agent.db").exists() and (data / "db" / "agent.db").read_text() == "agent.db"
+    log = state["log"]
+    stop = log.index("stop agent-service")
+    assert stop < next(i for i, l in enumerate(log) if "--force-recreate" in l)
+    assert "inspect -f {{.State.Running}} agent-service" in log[stop + 1]
+    result, state = run()
+    assert result.returncode == 0 and "stop agent-service" not in state["log"][len(log):]

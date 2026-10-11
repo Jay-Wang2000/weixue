@@ -624,6 +624,22 @@ async def test_service_sink_posts_acks_and_routes():
     assert posts[0][1] == {"lease_id": "lease-1", "outcome": "played"}
     assert posts[1][0] == "http://agent:8010/v1/chats/cht_1/approve"
     assert posts[1][2] == {"Idempotency-Key": wire.decision_id(DEVICE, 1, 2)} and len(posts) == 2
+    sink.connection(DEVICE, "open", "sess-1")
+    sink.connection(DEVICE, "close", None)
+    await settle()
+    assert posts[2][:2] == ("http://agent:8010/v1/devices/7c%3A0c%3A5f%3A42%3A4b%3Afc/connection",
+                            {"kind": "open", "gateway_session_id": "sess-1"})
+    assert posts[3][1] == {"kind": "close"}
+
+
+def test_gateway_forwards_session_events_to_the_sink():
+    proactive, gw = make()
+    seen = []
+    gw.sink.connection = lambda device, kind, session_id=None: seen.append((device, kind, session_id))
+    conn = Conn()
+    proactive.on_session_open(DEVICE, conn)
+    proactive.on_session_close(DEVICE, conn)
+    assert seen == [(DEVICE, "open", "s1"), (DEVICE, "close", "s1")]
 
 
 def test_apply_installs_hooks_once(monkeypatch):

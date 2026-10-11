@@ -67,6 +67,14 @@ if [ -z "${AGENT_SERVICE_TOKEN:-}" ]; then
   echo "generated AGENT_SERVICE_TOKEN in server/.env"
 fi
 export AGENT_SERVICE_TOKEN
+# agent-monitor's read-only scope on agent-service and the gateway; generated once, never printed.
+if [ -z "${MONITOR_TOKEN:-}" ]; then
+  MONITOR_TOKEN=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
+  [ -z "$(tail -c 1 .env)" ] || echo >> .env
+  printf 'MONITOR_TOKEN=%s\n' "$MONITOR_TOKEN" >> .env
+  echo "generated MONITOR_TOKEN in server/.env"
+fi
+export MONITOR_TOKEN
 AGENT_HOST_WANT=$([ -n "$TUNNEL_SERVICES" ] && echo wg || true)
 if [ "$(sed -n 's/^AGENT_SERVICE_HOST=//p' .env | tail -n 1)" != "$AGENT_HOST_WANT" ]; then
   ENV_REST=$(grep -v '^AGENT_SERVICE_HOST=' .env || true)
@@ -76,7 +84,8 @@ if [ -n "$AGENT_HOST_WANT" ]; then export AGENT_SERVICE_HOST=$AGENT_HOST_WANT; e
 
 MODEL=data/models/SenseVoiceSmall/model.pt
 MODEL_URL=https://modelscope.cn/models/iic/SenseVoiceSmall/resolve/master/model.pt
-mkdir -p data/models/SenseVoiceSmall data/mcp-endpoint data/mcp-bridge/cache data/agent-service
+mkdir -p data/models/SenseVoiceSmall data/mcp-endpoint data/mcp-bridge/cache data/mcp-bridge/status \
+  data/agent-service/db
 if [ -d "$MODEL" ]; then
   rmdir "$MODEL" 2>/dev/null || { echo "$MODEL is a non-empty directory; remove it"; exit 1; }
 fi
@@ -95,8 +104,8 @@ export UPSTREAM_COMMIT
 docker info >/dev/null 2>&1 || { echo "docker daemon is not running"; exit 1; }
 
 CONFIG=data/.config.yaml
-SERVICES=($TUNNEL_SERVICES mcp-bridge agent-service xiaozhi-esp32-server)
-IMAGES=(weixue/mcp-bridge:local weixue/agent-service:local weixue/xiaozhi-esp32-server:local)
+SERVICES=($TUNNEL_SERVICES mcp-bridge agent-service agent-monitor xiaozhi-esp32-server)
+IMAGES=(weixue/mcp-bridge:local weixue/agent-service:local weixue/agent-monitor:local weixue/xiaozhi-esp32-server:local)
 [ -z "$TUNNEL_SERVICES" ] || IMAGES+=(weixue/wg:local)
 ready_host() { if [ "$BIND_IP" = 0.0.0.0 ]; then echo 127.0.0.1; else echo "$BIND_IP"; fi; }
 
@@ -125,9 +134,11 @@ MCP_ENDPOINT_INTERNAL=$(echo "$MCP" | sed -E 's#^ws://[^/]+#ws://mcp-endpoint-se
 
 MCP_ENDPOINT=$MCP_ENDPOINT_INTERNAL python3 scripts/render_config.py config/config.template.yaml > "$STAGED"
 
-# A first deployment of agent-service has no previous version: a rollback removes it.
+# A first deployment of agent-service or agent-monitor has no previous version: a rollback removes it.
 AGENT_REQUIRED=1
 AGENT_PREVIOUS=$(docker image inspect weixue/agent-service:local >/dev/null 2>&1 && echo 1 || true)
+MONITOR_REQUIRED=1
+MONITOR_PREVIOUS=$(docker image inspect weixue/agent-monitor:local >/dev/null 2>&1 && echo 1 || true)
 for image in "${IMAGES[@]}"; do
   if docker image inspect "$image" >/dev/null 2>&1; then
     docker tag "$image" "${image%:*}:rollback"
@@ -164,7 +175,7 @@ wait_for() {
 # Deployment readiness: OTA and WebSocket banners, the tunnel (WG_TUNNEL=1: handshake and
 # boundary), the bridge's health file, one read-only Home Assistant call made from the
 # server container through the endpoint, the bridge and ha-mcp (scripts/check_ha_path.py),
-# and agent-service's healthcheck (database, model API, ha-mcp ping).
+# agent-service's healthcheck (database, model API, ha-mcp ping) and agent-monitor's /healthz (database readable).
 deploy_ready() {
   python3 scripts/check_ready.py "$(ready_host)" || return 1
   if [ "${WG_TUNNEL:-}" = 1 ]; then
@@ -176,7 +187,10 @@ deploy_ready() {
   if [ -n "$AGENT_REQUIRED" ]; then
     wait_for agent-service docker exec agent-service python -m weixue_agent.health || return 1
   fi
-  echo "ready: bridge healthy$([ "${WG_TUNNEL:-}" != 1 ] || echo ", tunnel healthy"), Home Assistant answered via the voice path$([ -z "$AGENT_REQUIRED" ] || echo ", agent-service healthy")"
+  if [ -n "$MONITOR_REQUIRED" ]; then
+    wait_for agent-monitor docker exec agent-monitor python -m agent_monitor.health || return 1
+  fi
+  echo "ready: bridge healthy$([ "${WG_TUNNEL:-}" != 1 ] || echo ", tunnel healthy"), Home Assistant answered via the voice path$([ -z "$AGENT_REQUIRED" ] || echo ", agent-service healthy")$([ -z "$MONITOR_REQUIRED" ] || echo ", agent-monitor healthy")"
 }
 
 manual_restore() {
@@ -213,12 +227,20 @@ rollback() {
     set -a; . ./.env; set +a
     echo "server/.env restored from the last successful run; the attempted one is server/.env.failed"
   fi
-  local services=($endpoint mcp-bridge agent-service xiaozhi-esp32-server)
-  if [ -z "$AGENT_PREVIOUS" ]; then
-    services=($endpoint mcp-bridge xiaozhi-esp32-server)
+  local services=($endpoint mcp-bridge)
+  if [ -n "$AGENT_PREVIOUS" ]; then
+    services+=(agent-service)
+  else
     AGENT_REQUIRED=
     docker rm -f agent-service >/dev/null 2>&1 || true
   fi
+  if [ -n "$AGENT_PREVIOUS" ] && [ -n "$MONITOR_PREVIOUS" ]; then
+    services+=(agent-monitor)
+  else
+    MONITOR_REQUIRED=
+    docker rm -f agent-monitor >/dev/null 2>&1 || true
+  fi
+  services+=(xiaozhi-esp32-server)
   [ "${WG_TUNNEL:-}" != 1 ] || services=(wg "${services[@]}")
   if restore_images && docker compose up -d --force-recreate "${services[@]}"; then
     [ "${WG_TUNNEL:-}" = 1 ] || docker rm -f wg >/dev/null 2>&1 || true
@@ -243,6 +265,22 @@ if ! docker run --rm --entrypoint python \
   exit 1
 fi
 
+# agent-service's database moves into data/agent-service/db/ (the directory agent-monitor mounts) while the
+# service is stopped; compose sets AGENT_DB for this and for a rolled-back image.
+AGENT_DATA=data/agent-service
+if [ -f "$AGENT_DATA/agent.db" ] && [ ! -e "$AGENT_DATA/db/agent.db" ]; then
+  docker stop agent-service >/dev/null 2>&1 || true
+  if [ "$(docker inspect -f '{{.State.Running}}' agent-service 2>/dev/null || echo false)" != false ]; then
+    restore_images
+    echo "agent-service is still running; its database was not moved and nothing was published"
+    exit 1
+  fi
+  for file in agent.db agent.db-wal agent.db-shm; do
+    if [ -e "$AGENT_DATA/$file" ]; then mv "$AGENT_DATA/$file" "$AGENT_DATA/db/$file"; fi
+  done
+  echo "agent-service database moved to server/$AGENT_DATA/db/"
+fi
+
 ENDPOINT_FILE=$(mktemp "$ENDPOINT_URL.XXXXXX")
 printf '%s\n' "$MCP_ENDPOINT_INTERNAL" > "$ENDPOINT_FILE"
 mv -f "$ENDPOINT_FILE" "$ENDPOINT_URL"
@@ -257,3 +295,4 @@ chmod 600 "$ENV_DEPLOYED"
 rm -f .env.failed "$ENDPOINT_CFG.rollback" "$ENDPOINT_URL.rollback"
 echo "OTA: http://$LAN_IP:8003/xiaozhi/ota/"
 echo "WS:  ws://$LAN_IP:8000/xiaozhi/v1/"
+echo "Monitor: http://127.0.0.1:8020/"

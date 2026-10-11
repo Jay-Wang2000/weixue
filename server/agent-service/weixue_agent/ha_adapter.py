@@ -268,14 +268,17 @@ class HaGateway:
             except Exception:
                 delay = HA_TOOLS_RETRY_MIN_S if delay >= HA_TOOLS_REFRESH_S else min(HA_TOOLS_RETRY_MAX_S, delay * 2)
 
-    async def ping(self) -> bool:
-        """A matching successful MCP ping result; anything else is unhealthy."""
+    async def ping(self, timeout_s: Optional[float] = None) -> bool:
+        """A matching successful MCP ping result within timeout_s; anything else is unhealthy."""
         if self.client is None:
             return False
         try:
-            await self.client.request("ping", {})
+            await asyncio.wait_for(self.client.request("ping", {}), timeout=timeout_s)
         except HaMcpError as e:
             self.last_error = str(e)
+            return False
+        except asyncio.TimeoutError:
+            self.last_error = f"ping timed out after {timeout_s:g} s"
             return False
         self.last_ping_ok = self.last_ok = time.time()
         return True
