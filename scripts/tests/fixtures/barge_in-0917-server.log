@@ -1,0 +1,21 @@
+261011 10:27:25[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 10:27:25[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 10:27:26[0.9.7_00000000000000][weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 10:27:29[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.585s | 语言: en-US | 结果: Jarvis, tell me a long story about a dragon.
+261011 10:27:29[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis, tell me a long story about a dragon.
+261011 10:27:29[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Jarvis, tell me a long story about a dragon.
+261011 10:27:30[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.383s: High on a mountain called Greywhistle lived a small
+261011 10:27:31[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.180s: dragon named Ember, who was embarrassed because she couldn't breathe fire
+261011 10:27:31[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.236s: All she could manage was a little puff of warm, smelly smoke, like burnt toast
+261011 10:27:32[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.190s: The other dragons laughed, so one cold morning she packed a satchel and flew down into the valley to find a new life
+261011 10:27:33[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.360s | 语言: en-US | 结果: I don't know.
+261011 10:27:33[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: I don't know.
+261011 10:27:33[0.9.7_00000000000000][weixue_patches]-INFO-barge-in disabled: dropped utterance during playback: "I don't know."
+261011 10:27:33[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.207s: In the village below, the winter had come early, and the baker's ovens had gone cold because the wood was wet
+261011 10:27:34[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.185s: Ember landed in the square and everyone screamed
+261011 10:27:35[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.220s: But the baker's daughter, a girl named Pip, just looked at her and asked, can you warm bread?
+261011 10:27:36[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.269s: Ember puffed her gentle, toasty smoke over the dough, and the loaves rose golden and perfect
+261011 10:27:37[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.224s: Shall I keep going?
+261011 10:27:40[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.142s | 语言: None | 结果: 100
+261011 10:27:40[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: 100
+261011 10:27:40[0.9.7_00000000000000][weixue_patches]-INFO-barge-in disabled: dropped utterance during playback: '100'

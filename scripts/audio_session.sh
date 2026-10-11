@@ -13,6 +13,9 @@
 # sets the Mac output volume to 55 for the run, restoring volume and mute state on exit. Clips are
 # synthesised with the service account at GOOGLE_SA_FILE in the live server/.env (exported as
 # GOOGLE_APPLICATION_CREDENTIALS) before the board is touched.
+# From the same .env: WEIXUE_PROACTIVE_TOKEN is exported for card_tap; the fixture base is
+# http://<BIND_IP, or 127.0.0.1 for 0.0.0.0>:8003 and the fixture device the first ALLOWED_DEVICES
+# entry; VOICE_BARGE_IN (default 0) is passed as --barge-in. Options after -- override these.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 live_env="${WEIXUE_LIVE_ENV:-$HOME/Projects/weixue/server/.env}"
@@ -37,10 +40,15 @@ done
 # shellcheck source=scripts/device.sh
 . "$root/scripts/device.sh"
 
+# Value of KEY in the live .env (last assignment, surrounding quotes removed); empty when unset.
+env_value() {
+  sed -n "s/^$1=//p" "$live_env" 2>/dev/null | tail -1 | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/"
+}
+
 # Exports GOOGLE_APPLICATION_CREDENTIALS from the live .env and warms the clip cache.
 synth_clips() {
   local sa
-  sa="$(sed -n 's/^GOOGLE_SA_FILE=//p' "$live_env" 2>/dev/null | tail -1)"
+  sa="$(env_value GOOGLE_SA_FILE)"
   [ -n "$sa" ] && [ -f "$sa" ] || die "GOOGLE_SA_FILE in $live_env is unset or not a file"
   export GOOGLE_APPLICATION_CREDENTIALS="$sa"
   "$root/.venv/bin/python" -c 'import google.cloud.texttospeech' 2>/dev/null || {
@@ -60,7 +68,7 @@ fi
 device_select_port "$port_arg"
 
 if [ "$no_audio" = 0 ]; then
-  lan_ip="$(sed -n 's/^LAN_IP=//p' "$live_env" 2>/dev/null | tail -1)"
+  lan_ip="$(env_value LAN_IP)"
   here="$(ipconfig getifaddr en0 2>/dev/null || true)"
   [ -n "$lan_ip" ] && [ "$here" = "$lan_ip" ] \
     || die "not in home mode (en0 ${here:-none}, LAN_IP ${lan_ip:-unset}); audio is off in office mode, use --no-audio"
@@ -99,6 +107,16 @@ fi
 
 mode_args=()
 [ "$no_audio" = 1 ] && mode_args+=(--no-audio)
+token="$(env_value WEIXUE_PROACTIVE_TOKEN)"
+[ -n "$token" ] && export WEIXUE_PROACTIVE_TOKEN="$token"
+unset token
+bind_ip="$(env_value BIND_IP)"
+[ -z "$bind_ip" ] || [ "$bind_ip" = 0.0.0.0 ] && bind_ip=127.0.0.1
+mode_args+=(--fixture-base "http://$bind_ip:8003")
+device_id="$(env_value ALLOWED_DEVICES | cut -d, -f1 | tr -d ' ')"
+[ -n "$device_id" ] && mode_args+=(--fixture-device "$device_id")
+barge_in="$(env_value VOICE_BARGE_IN)"
+mode_args+=(--barge-in "${barge_in:-0}")
 set +e
 "$root/.venv/bin/python" "$root/scripts/audio_session.py" --port "$port" \
   --out "$logs/session-$stamp.md" --build-info "$(git -C "$root" rev-parse --short HEAD) diag" \

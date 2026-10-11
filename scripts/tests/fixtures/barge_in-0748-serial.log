@@ -1,0 +1,51 @@
+[  476.66 07:59:15Z] I (476467) StateMachine: State: listening -> idle
+[  476.66 07:59:15Z] I (476477) FaceDisplay: mode=idle mood=neutral
+[  476.66 07:59:15Z] I (476477) FaceDisplay: ring=off bedside=0
+[  476.66 07:59:15Z] ### say: Jarvis, tell me a story about a lighthouse keeper that takes about one minute to tell.
+[  497.83 07:59:37Z] ### result long_reply: FAIL 0/1 reply 0 s, device aborts 0, server aborts 0
+[  497.83 07:59:37Z] ### item barge_in
+[  497.83 07:59:37Z] ### say: Jarvis, tell me a long story about a dragon.
+[  499.59 07:59:38Z] I (499557) Application: Wake word detected: Jarvis (state: 3)
+[  499.59 07:59:38Z] I (499557) StateMachine: State: idle -> connecting
+[  499.59 07:59:38Z] I (499567) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  499.79 07:59:39Z] I (499637) FaceDisplay: mode=listening mood=neutral
+[  499.79 07:59:39Z] I (499637) FaceDisplay: ring=pulse bedside=0
+[  499.79 07:59:39Z] I (499717) WebSocket: WebSocket handshake done, cost=150 tcp=20 handshake=130
+[  499.79 07:59:39Z] I (499787) WS: Session ID: <uuid>
+[  499.79 07:59:39Z] W (499787) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  499.79 07:59:39Z] I (499807) Application: Wake word detected: Jarvis
+[  500.00 07:59:39Z] I (499927) AfeAudioEngine: Encoded wake word into 33 packets in 369 ms
+[  500.00 07:59:39Z] I (499927) Application: Sent 5 packets captured after the wake word
+[  500.00 07:59:39Z] I (499927) StateMachine: State: connecting -> listening
+[  500.00 07:59:39Z] I (499957) WeixueAgent: agent: chats seq=1791704759543 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  500.00 07:59:39Z] I (499967) WeixueAgent: agent: sync seq=1791705579049 listed=0 dropped=0 tasks=0 via=push
+[  500.41 07:59:39Z] I (500247) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":4228406466,"seq":37,"kind":"shown","ack_upto":1791705579049,"via":"tap"}}
+[  500.41 07:59:39Z] I (500247) WeixueAgent: agent ack sent: shown upto 1791705579049 (attempt 1)
+[  503.51 07:59:42Z] I (503337) Application: >> Jarvis, tell me a long story about a dragon
+[  503.51 07:59:42Z] I (503367) StateMachine: State: listening -> speaking
+[  503.51 07:59:42Z] I (503377) FaceDisplay: mode=thinking mood=neutral
+[  503.51 07:59:42Z] I (503377) FaceDisplay: ring=spin bedside=0
+[  504.56 07:59:43Z] I (504417) Application: << Once upon a time
+[  504.56 07:59:43Z] I (504427) FaceDisplay: mode=speaking mood=neutral
+[  504.56 07:59:43Z] I (504437) FaceDisplay: ring=level bedside=0
+[  506.01 07:59:45Z] I (505917) Application: << high above a misty valley, there lived a small dragon named Ember
+[  509.57 07:59:48Z] ### say: Stop. What is two plus two?
+[  511.17 07:59:50Z] I (510997) Application: << Unlike the other dragons, Ember couldn't breathe fire
+[  514.49 07:59:53Z] I (514327) StateMachine: State: speaking -> listening
+[  514.49 07:59:53Z] I (514327) Application: >> der ist die
+[  514.49 07:59:53Z] I (514347) StateMachine: State: listening -> speaking
+[  514.49 07:59:53Z] I (514357) FaceDisplay: mode=thinking mood=neutral
+[  514.49 07:59:53Z] I (514357) FaceDisplay: ring=spin bedside=0
+[  516.35 07:59:55Z] I (516267) FaceDisplay: mode=thinking mood=happy
+[  516.35 07:59:55Z] I (516287) Application: << Sorry, I didn't catch that
+[  516.35 07:59:55Z] I (516317) FaceDisplay: mode=speaking mood=happy
+[  516.35 07:59:55Z] I (516327) FaceDisplay: ring=level bedside=0
+[  516.39 07:59:55Z] ### result barge_in: FAIL 0/1 interrupted reply, new turn answered; abort server=True device=False
+[  517.79 07:59:57Z] I (517807) Application: << Do you want me to carry on with Ember's story?
+[  520.69 07:59:59Z] I (520577) StateMachine: State: speaking -> listening
+[  520.69 07:59:59Z] I (520597) FaceDisplay: mode=listening mood=neutral
+[  520.69 07:59:59Z] I (520597) FaceDisplay: ring=pulse bedside=0
+[  528.77 08:00:08Z] I (528587) WS: Websocket disconnected
+[  528.77 08:00:08Z] I (528587) StateMachine: State: listening -> idle
+[  528.77 08:00:08Z] I (528617) FaceDisplay: mode=idle mood=neutral
+[  528.77 08:00:08Z] I (528617) FaceDisplay: ring=off bedside=0

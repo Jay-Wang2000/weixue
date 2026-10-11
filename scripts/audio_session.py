@@ -7,6 +7,7 @@ and the release build after, and sets the Mac output volume. Speech is Google Cl
 clips cached under ~/Projects/weixue-vendor/session-clips and played with afplay (scripts/session_tts.py);
 gestures and touches go through the diag console (firmware/tools/diag_inject.py). --no-audio runs only
 the items that need no speech; --synth-only synthesises every clip and exits (no board, no playback).
+Verdicts come from scripts/session_judge.py; each table row carries the judged events (Reason).
 """
 import argparse
 import datetime
@@ -21,22 +22,21 @@ sys.path.insert(0, os.path.join(ROOT, "firmware", "tools"))
 from diag_inject import DiagSerial, redact  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import session_judge as judge  # noqa: E402
 import session_tts  # noqa: E402
 
 SERVER_CONTAINER = "xiaozhi-esp32-server"
-CUES = ("Hmm?", "Mm-hm?", "Yes?")
+CUES = judge.CUES
 STATE_RE = re.compile(r"StateMachine: State: (\w+) -> (\w+)")
-STT_RE = re.compile(r"Application: >> (.+)")
-TTS_RE = re.compile(r"Application: << (.+)")
-REPLY_RE = re.compile(r"Application: << (?!(?:Hmm|Mm-hm|Yes)\?$)(.+)")
-CUE_RE = re.compile(r"Application: << (Hmm\?|Mm-hm\?|Yes\?)$")
-SERVER_ABORT_RE = re.compile(r"Abort message received|收到abort")
-DIM_RE = re.compile(r"Backlight: Set brightness to 20$")
-UNDIM_RE = re.compile(r"Backlight: Set brightness to (?!20$)\d+$")
+STT_RE = judge.STT_RE
+REPLY_RE = judge.REPLY_RE
+CUE_RE = judge.CUE_RE
+YES_STT_RE = re.compile(r"Application: >> .*\byes\b", re.I)
+WAKE_CUE_TRIES = 12
 
 AUDIO_ITEMS = ("boot", "one_breath", "wake_cue", "long_reply", "barge_in", "double_tap",
-               "face_down", "press_boot", "panel", "card_tap", "bedside_voice", "pick_up_dim")
-SILENT_ITEMS = ("boot", "face_down", "double_tap", "press_boot", "panel", "card_tap", "pick_up_dim")
+               "face_down", "press_boot", "panel", "card_tap", "bedside_voice", "pick_up")
+SILENT_ITEMS = ("boot", "face_down", "double_tap", "press_boot", "panel", "card_tap", "pick_up")
 NEEDS_AUDIO = {"one_breath", "wake_cue", "long_reply", "barge_in", "bedside_voice"}
 
 WAKE = "Jarvis"
@@ -55,6 +55,26 @@ PLAIN = {
     "question": QUESTION.capitalize(),
     "barge": "Stop. What is two plus two?",
 }
+MATCH = {
+    "question": re.compile(r"what time is it", re.I),
+    "double_tap": re.compile(r"lighthouse|light house", re.I),
+    "long_reply": re.compile(r"lighthouse|light house", re.I),
+    "barge_in": re.compile(r"dragon", re.I),
+    "barge_question": re.compile(r"two plus two|2 \+ 2|2\+2", re.I),
+    "barge_answer": re.compile(r"\bfour\b|\b4\b", re.I),
+    "bedside_night": re.compile(r"bedside", re.I),
+    "bedside_auto": re.compile(r"auto", re.I),
+}
+
+
+def events(pairs):
+    """`label L<n>` for each found event, `no <label>` for each missing one."""
+    return ", ".join(f"{label} L{hit[0]}" if isinstance(hit, tuple) else
+                     (label if hit else f"no {label}") for label, hit in pairs)
+
+
+def cell(text):
+    return text.replace("|", "\\|").replace("\n", " ")
 
 
 def all_utterances():
@@ -70,14 +90,24 @@ class Session:
         self.args = args
         self.diag = diag
         self.audio = not args.no_audio
+        self.barge_in = int(getattr(args, "barge_in", 0) or 0)
         self.rows = []
+        self.plays = []  # (line index when the clip started, judge.Play)
 
     # Device and speech helpers.
 
     def say(self, text):
-        self.diag.note(f"say: {text}")
         path, _ = session_tts.ensure_clip(self.args.voice, text)
+        n = self.diag.note(f"say: {text}")
+        self.plays.append((self.diag.mark(), judge.Play(n, time.monotonic(), text)))
         subprocess.run(session_tts.afplay_command(path), check=True)
+
+    def window(self, since):
+        """Console lines from line index `since` until now, as judge.Line."""
+        return [judge.Line(n, t, text) for t, n, text in self.diag.snapshot(since)]
+
+    def plays_since(self, since):
+        return [p for i, p in self.plays if i >= since]
 
     def inject(self, line):
         ok, result, n = self.diag.send(line)
@@ -120,13 +150,31 @@ class Session:
             return None
         return [redact(l) for l in (out.stdout + out.stderr).splitlines()]
 
-    def record(self, item, passed, total, need, result, evidence, skipped=False):
-        verdict = "skipped" if skipped else ("pass" if passed >= need else "FAIL")
+    def record(self, item, passed, total, need, result, evidence, skipped=False, reason="", count=None):
+        verdict = "skipped" if skipped else ("pass" if total and passed >= need else "FAIL")
         ev = ", ".join(str(e) for e in evidence[:12])
         if len(evidence) > 12:
             ev += f", ... ({len(evidence)} lines)"
-        self.rows.append((item, f"{passed}/{total}" if total else "-", verdict, result, ev))
-        self.diag.note(f"result {item}: {verdict} {passed}/{total} {result}")
+        count = count or (f"{passed}/{total}" if total else "-")
+        self.rows.append((item, count, verdict, result, reason or "-", ev))
+        self.diag.note(f"result {item}: {verdict} {count} {reason or result}")
+
+    def record_trials(self, item, verdicts, result, need=None, extra="", score=None):
+        """Row from judge Verdicts: trials with ok None are listed but not counted. score
+        (passed, total) replaces the per-trial count."""
+        counted = [v for v in verdicts if v.ok is not None]
+        passed, total = score or (sum(v.ok is True for v in counted), len(counted))
+        excluded = len(verdicts) - len(counted)
+        count = f"{passed}/{total}" + (f" (+{excluded} not counted)" if excluded and not score else "")
+        tally = {}
+        for v in verdicts:
+            tally[v.cls] = tally.get(v.cls, 0) + 1
+        trials = [f"{v.cls}: {v.reason}" if len(verdicts) == 1 else f"t{i} {v.cls}: {v.reason}"
+                  for i, v in enumerate(verdicts, 1)]
+        head = ", ".join(f"{k} {n}" for k, n in tally.items())
+        reason = "; ".join(([head] if len(verdicts) > 1 else []) + trials + ([extra] if extra else []))
+        self.record(item, passed, total, total if need is None else need, result,
+                    [n for v in verdicts for n in v.evidence], reason=reason, count=count)
 
     def skip(self, item, why):
         self.record(item, 0, 0, 0, why, [], skipped=True)
@@ -139,12 +187,13 @@ class Session:
         ok, result, n = self.inject("diag dump")
         ev = ([hit[0]] if hit else []) + [c[0] for c in console] + ([n] if n else [])
         good = bool(hit) and bool(console) and ok
-        self.record("boot", int(good), 1, 1, "idle, diag console up, dump answered" if good else
-                    f"idle={bool(hit)} console={bool(console)} dump={ok}", ev)
+        self.record("boot", int(good), 1, 1, "idle, diag console up, dump answered", ev,
+                    reason=events([("idle", hit), ("diag console", console[0] if console else None),
+                                   ("dump", (n,) if ok and n else None)]))
         time.sleep(5)
 
     def item_face_down(self):
-        n_ok, ev = 0, []
+        n_ok, ev, missing = 0, [], []
         for i in range(self.args.count):
             since = self.diag.mark()
             ok_down, _, n1 = self.inject("diag gesture face_down")
@@ -163,45 +212,42 @@ class Session:
             good = ok_down and ok_up and all((g, m, u, um)) and muted and quiet
             n_ok += good
             ev += [h[0] for h in (g, m, u, um) if h]
+            if not good:
+                missing.append(f"t{i + 1} " + events([("face_down", g), ("muted", m), ("dump mic_muted", muted),
+                                                       ("quiet", quiet), ("face_up", u), ("unmuted", um)]))
             time.sleep(1.5)
         extra = ", a wake word while face-down started nothing" if self.audio else ""
         self.record("face_down", n_ok, self.args.count, self.args.count,
-                    f"face_down -> `Microphone muted`, dump mic_muted, face_up -> `Microphone unmuted`{extra}", ev)
+                    f"face_down -> `Microphone muted`, dump mic_muted, face_up -> `Microphone unmuted`{extra}", ev,
+                    reason="; ".join(missing) or "every trial: face_down, muted, dump mic_muted, face_up, unmuted")
 
     def item_double_tap(self):
-        n_ok, ev = 0, []
+        verdicts = []
         for _ in range(self.args.count):
             if not self.audio:
                 since = self.diag.mark()
                 ok, _, _ = self.inject("diag gesture double_tap")
-                g = self.wait(r"IMU gesture: double_tap \(count \d+\)", 3, since)
-                n_ok += bool(ok and g)
-                ev += [g[0]] if g else []
+                g = self.wait(judge.gesture_re("double_tap"), 3, since)
+                verdicts.append(judge.Verdict(bool(ok and g), "pass" if ok and g else "no_gesture",
+                                              events([("gesture", g)]), [g[0]] if g else []))
                 time.sleep(1)
                 continue
             since = self.ask(ASKS["double_tap"])
             stt, reply = self.wait_reply(since)
-            if reply is None:
-                continue
-            time.sleep(2.5)
-            if self.state() != "speaking":
-                self.diag.note("double_tap: reply ended before the tap")
-                continue
-            since = self.diag.mark()
-            self.inject("diag gesture double_tap")
-            g = self.wait(r"IMU gesture: double_tap \(count \d+\)", 2, since)
-            a = self.wait(r"Application: Abort speaking", 2, since)
-            s = self.wait(r"State: speaking -> listening", 3, since)
-            good = all((g, a, s))
-            n_ok += good
-            ev += [h[0] for h in (stt, reply, g, a, s) if h]
+            if reply is not None:
+                time.sleep(2.5)
+                if self.state() == "speaking":
+                    tap = self.diag.mark()
+                    self.inject("diag gesture double_tap")
+                    self.wait(judge.TO_LISTENING_RE, 3, tap)
+            verdicts.append(judge.judge_double_tap(self.window(since), MATCH["double_tap"]))
+            self.diag.note(f"double_tap: {verdicts[-1].cls}: {verdicts[-1].reason}")
             time.sleep(1)
         if self.audio:
-            self.record("double_tap", n_ok, self.args.count, self.args.count,
-                        "double-tap during the reply -> `Abort speaking`, speaking -> listening", ev)
+            self.record_trials("double_tap", verdicts,
+                               "double-tap during the reply -> `Abort speaking`, speaking -> listening")
         else:
-            self.record("double_tap", n_ok, self.args.count, self.args.count,
-                        "gesture handled while idle (no reply to stop without audio)", ev)
+            self.record_trials("double_tap", verdicts, "gesture handled while idle (no reply to stop without audio)")
 
     def item_press_boot(self):
         if not self.audio:
@@ -216,7 +262,8 @@ class Session:
             good = ok and all((m, b, r, u))
             self.record("press_boot", int(good), 1, 1,
                         "BOOT click while muted -> `Microphone muted, not starting a conversation`",
-                        [h[0] for h in (m, b, r, u) if h])
+                        [h[0] for h in (m, b, r, u) if h],
+                        reason=events([("muted", m), ("boot click", b), ("refused", r), ("unmuted", u)]))
             return
         self.wait_idle()
         since = self.diag.mark()
@@ -228,7 +275,8 @@ class Session:
         stt, reply = self.wait_reply(since)
         good = ok and all((c, lst, stt, reply))
         self.record("press_boot", int(good), 1, 1, "BOOT click from idle opens a conversation that answers",
-                    [h[0] for h in (c, lst, stt, reply) if h])
+                    [h[0] for h in (c, lst, stt, reply) if h],
+                    reason=events([("connecting", c), ("listening", lst), ("transcript", stt), ("reply", reply)]))
         self.wait_idle()
 
     def item_panel(self):
@@ -241,25 +289,28 @@ class Session:
             ("diag swipe up", r"MonitorPanel: page=2"),
             ("diag swipe right", r"MonitorPanel: page=face"),
         ]
-        n_ok, ev = 0, []
+        n_ok, ev, seen = 0, [], []
         for line, want in steps:
             since = self.diag.mark()
             ok, _, _ = self.inject(line)
             hit = self.wait(want, 3, since)
             n_ok += bool(ok and hit)
             ev += [hit[0]] if hit else []
+            seen.append((want.split(": ")[-1], hit if ok else None))
             time.sleep(0.8)
         ok, dump, _ = self.inject("diag dump")
         closed = ok and '"panel":false' in dump
         n_ok += closed
         self.record("panel", n_ok, len(steps) + 1, len(steps) + 1,
-                    "swipe left opens page 1, tap Home -> page 2, swipe down/up, swipe right closes", ev)
+                    "swipe left opens page 1, tap Home -> page 2, swipe down/up, swipe right closes", ev,
+                    reason=events(seen + [("dump panel:false", closed)]))
 
     def item_card_tap(self):
         a = self.args
         token = os.environ.get("WEIXUE_PROACTIVE_TOKEN", "")
         if not (a.fixture_base and a.fixture_device and token):
-            self.skip("card_tap", "needs --fixture-base, --fixture-device and WEIXUE_PROACTIVE_TOKEN")
+            self.skip("card_tap", "needs --fixture-base, --fixture-device and WEIXUE_PROACTIVE_TOKEN "
+                      "(audio_session.sh sets them from server/.env)")
             self.skip("earcons", "needs the card fixture")
             return
         self.wait_idle()
@@ -285,128 +336,126 @@ class Session:
             pass
         good = bool(card and sent and responses)
         self.record("card_tap", int(good), 1, 1, "approval card opened, tap on Approve reached the server",
-                    [h[0] for h in (card, sent) if h])
+                    [h[0] for h in (card, sent) if h],
+                    reason=events([("card open", card), ("sent", sent), ("fixture approve response", responses)]))
         earcons = self.diag.find_all(r"FaceDisplay: earcon=", since)
         names = [re.search(r"earcon=(\S+)", t).group(1) for _, t in earcons]
         good = "needs_you" in names and "approved" in names
-        self.record("earcons", int(good), 1, 1, f"markers: {', '.join(names) or 'none'}", [n for n, _ in earcons])
+        self.record("earcons", int(good), 1, 1, "earcons needs_you and approved", [n for n, _ in earcons],
+                    reason=", ".join(f"earcon={name} L{n}" for name, (n, _) in zip(names, earcons)) or "no earcon line")
 
     def item_one_breath(self):
-        n_ok, ev = 0, []
+        verdicts = []
         for _ in range(self.args.count):
             self.wait_idle()
             time.sleep(2)
             since = self.diag.mark()
             self.say(PLAIN["wake_question"])
-            stt, reply = self.wait_reply(since)
-            good = bool(stt and re.search(r"what time is it", stt[1], re.I) and reply)
-            n_ok += good
-            ev += [h[0] for h in (stt, reply) if h]
-        self.record("one_breath", n_ok, self.args.count, (self.args.count * 9 + 9) // 10,
-                    "first transcript holds `what time is it`, reply played", ev)
+            self.wait_reply(since)
+            verdicts.append(judge.judge_turn(self.window(since), MATCH["question"]))
+        self.record_trials("one_breath", verdicts, "first transcript holds `what time is it`, reply played",
+                           need=(self.args.count * 9 + 9) // 10)
 
     def item_wake_cue(self):
-        done, ev, tries = {}, [], 0
-        while len([c for c in CUES if done.get(c)]) < len(CUES) and tries < 12:
-            tries += 1
+        done, verdicts = {}, []
+        while not all(done.get(c) for c in CUES) and len(verdicts) < WAKE_CUE_TRIES:
             self.wait_idle()
             time.sleep(2)
+            t0 = time.time()
             since = self.diag.mark()
             self.say(PLAIN["wake"])
-            cue = self.wait(CUE_RE, 8, since)
-            if cue is None:
-                continue
-            self.wait(r"State: speaking -> listening", 5, cue[4])
-            since = self.diag.mark()
-            self.say(PLAIN["yes"])
-            stt, reply = self.wait_reply(since)
-            good = bool(stt and re.search(r"\byes\b", stt[1], re.I) and reply)
-            name = cue[2].group(1)
-            done[name] = done.get(name) or good
-            ev += [h[0] for h in (cue, stt, reply) if h]
+            cue = self.wait(CUE_RE, 15, since)
+            if cue is not None:
+                self.wait(r"State: speaking -> listening", 5, cue[4])
+                after = self.diag.mark()
+                self.say(PLAIN["yes"])
+                yes = self.wait(YES_STT_RE, 15, after)
+                if yes is not None:
+                    self.wait(REPLY_RE, 40, yes[4])
+            server = self.server_lines(t0, time.time())
+            lines = self.window(since)
+            v = judge.judge_wake_cue(lines, self.plays_since(since), server)
+            name = judge.cue_name(lines, server) or "no cue"
+            verdicts.append(v._replace(reason=f"[{name}] {v.reason}"))
+            self.diag.note(f"wake_cue: {v.cls}: {v.reason}")
+            if name in CUES:
+                done[name] = done.get(name) or v.ok
         n_ok = sum(bool(done.get(c)) for c in CUES)
-        self.record("wake_cue", n_ok, len(CUES), len(CUES),
-                    "; ".join(f"{c} {'ok' if done.get(c) else 'missing'}" for c in CUES) + f" ({tries} wakes)", ev)
+        summary = "; ".join(f"{c} {'ok' if done.get(c) else 'not answered' if c in done else 'not played'}"
+                            for c in CUES)
+        self.record_trials("wake_cue", verdicts, "each cue played and its follow-up \"Yes.\" answered",
+                           extra=f"{summary} ({len(verdicts)} wakes)", score=(n_ok, len(CUES)))
 
     def item_long_reply(self):
         self.wait_idle()
         t0 = time.time()
         since = self.ask(ASKS["long_reply"])
         stt, first = self.wait_reply(since)
-        end = self.wait(r"State: speaking -> (listening|idle)", 180, first[4]) if first else None
-        t1 = time.time()
-        aborts = self.diag.find_all(r"Application: Abort speaking", since)
-        server = self.server_lines(t0, t1)
-        server_aborts = None if server is None else sum(bool(SERVER_ABORT_RE.search(l)) for l in server)
-        seconds = end[3] - first[3] if (first and end) else 0
-        good = seconds >= 50 and not aborts and server_aborts == 0
-        self.record("long_reply", int(good), 1, 1,
-                    f"reply {seconds:.0f} s, device aborts {len(aborts)}, server aborts "
-                    f"{'n/a' if server_aborts is None else server_aborts}",
-                    [h[0] for h in (stt, first, end) if h] + [n for n, _ in aborts])
+        if first is not None:
+            self.wait(r"State: speaking -> (listening|idle)", 180, first[4])
+        server = self.server_lines(t0, time.time())
+        v = judge.judge_long_reply(self.window(since), server, MATCH["long_reply"])
+        self.record_trials("long_reply", [v], f"TTS start to stop >= {judge.LONG_REPLY_S} s, "
+                           "0 device and server aborts")
         self.wait_idle()
 
     def item_barge_in(self):
         self.wait_idle()
         since = self.ask(ASKS["barge_in"])
         stt, first = self.wait_reply(since)
-        if first is None:
-            self.record("barge_in", 0, 1, 1, "no reply to interrupt", [h[0] for h in (stt,) if h])
-            return
-        time.sleep(5)
-        t0 = time.time()
-        since = self.diag.mark()
-        self.say(PLAIN["barge"])
-        stt2, reply = self.wait_reply(since, reply_timeout=30)
-        t1 = time.time()
-        server = self.server_lines(t0 - 1, t1)
-        server_abort = bool(server) and any(SERVER_ABORT_RE.search(l) for l in server)
-        device_abort = self.diag.find_all(r"Application: Abort speaking", since)
-        good = bool(stt2 and re.search(r"two plus two|2 \+ 2|2\+2", stt2[1], re.I) and reply and
-                    re.search(r"\bfour\b|\b4\b", reply[1], re.I) and (server_abort or device_abort))
-        self.record("barge_in", int(good), 1, 1,
-                    f"interrupted reply, new turn answered; abort server={server_abort} device={bool(device_abort)}",
-                    [h[0] for h in (stt, first, stt2, reply) if h] + [n for n, _ in device_abort])
+        server = None
+        if first is not None:
+            time.sleep(5)
+            if self.state() == "speaking":
+                t0 = time.time()
+                after = self.diag.mark()
+                self.say(PLAIN["barge"])
+                if self.barge_in:
+                    self.wait_reply(after, reply_timeout=30)
+                else:
+                    self.wait(judge.SPEAK_END_RE, 180, after)
+                server = self.server_lines(t0 - 1, time.time())
+        v = judge.judge_barge_in(self.window(since), self.plays_since(since), server, self.barge_in,
+                                 MATCH["barge_in"], PLAIN["barge"], MATCH["barge_question"], MATCH["barge_answer"])
+        expect = ("phrase during the reply -> abort, new turn answered" if self.barge_in else
+                  "phrase during the reply -> no abort, reply plays out")
+        self.record_trials("barge_in", [v], f"VOICE_BARGE_IN={self.barge_in}: {expect}")
         self.wait_idle()
 
     def item_bedside_voice(self):
         self.wait_idle()
-        since = self.ask(ASKS["bedside_night"])
-        hint = self.wait(r"FaceDisplay: bedside hint=night", 30, since)
+        start = self.ask(ASKS["bedside_night"])
+        self.wait(r"FaceDisplay: bedside hint=night", 30, start)
         self.wait_idle()
-        on = self.wait(r"FaceDisplay: bedside=on", 25, since)
-        off = None
+        on = self.wait(r"FaceDisplay: bedside=on", 25, start)
         if on:
             s2 = self.diag.mark()
             self.inject("diag tap 233 60")
-            off = self.wait(r"FaceDisplay: bedside=off reason=touch", 3, s2)
+            self.wait(r"FaceDisplay: bedside=off reason=touch", 3, s2)
         self.wait_idle()
         s3 = self.ask(ASKS["bedside_auto"])
-        auto = self.wait(r"FaceDisplay: bedside hint=auto", 30, s3)
-        good = all((hint, on, off, auto))
-        self.record("bedside_voice", int(good), 1, 1,
-                    "voice night hint -> page 15 s after idle, tap leaves it, voice auto hint",
-                    [h[0] for h in (hint, on, off, auto) if h])
+        self.wait(r"FaceDisplay: bedside hint=auto", 30, s3)
+        v = judge.judge_bedside(self.window(start), self.plays_since(start), ASKS["bedside_night"],
+                                ASKS["bedside_auto"], MATCH["bedside_night"], MATCH["bedside_auto"])
+        self.record_trials("bedside_voice", [v], "voice night hint -> page 15 s after idle, tap leaves it, voice auto hint")
         self.wait_idle()
 
-    def item_pick_up_dim(self):
-        n_ok, ev = 0, []
+    def item_pick_up(self):
+        verdicts = []
         for _ in range(self.args.count):
-            ok, dump, _ = self.inject("diag dump")
-            if not (ok and '"brightness":20,' in dump):
-                if self.wait(DIM_RE, 90) is None:
-                    self.diag.note("pick_up_dim: no dim within 90 s")
-                    continue
-            time.sleep(1)
             since = self.diag.mark()
-            ok, _, _ = self.inject("diag gesture pick_up")
-            g = self.wait(r"IMU gesture: pick_up \(count \d+\)", 2, since)
-            u = self.wait(UNDIM_RE, 3, since)
-            good = bool(ok and g and u)
-            n_ok += good
-            ev += [h[0] for h in (g, u) if h]
-        self.record("pick_up_dim", n_ok, self.args.count, self.args.count,
-                    "pick_up after the 60 s dim restores the brightness", ev)
+            ok, dump, _ = self.inject("diag dump")
+            dimmed = ok and '"brightness":20,' in dump
+            if not dimmed:
+                dimmed = self.wait(judge.DIM_RE, 90) is not None
+            if dimmed:
+                time.sleep(1)
+                tap = self.diag.mark()
+                self.inject("diag gesture pick_up")
+                self.wait(judge.UNDIM_RE, 3, tap)
+            verdicts.append(judge.judge_pick_up(self.window(since), self.plays_since(since), dimmed))
+        self.record_trials("pick_up", verdicts, "pick_up after the 60 s dim restores the brightness",
+                           extra=judge.vibration_summary(self.window(0), self.plays_since(0)))
 
     def run(self, items):
         for item in items:
@@ -427,11 +476,12 @@ def write_report(path, args, session, started, serial_log, server_log):
         f.write(f"Mode: {'no audio (gestures and touches only)' if args.no_audio else 'audio, Google TTS voice ' + args.voice}. "
                 f"Build: {args.build_info or 'diag'}. Serial log: `{rel(serial_log)}`"
                 f"{', server log: `' + rel(server_log) + '`' if server_log else ''}. "
-                f"Evidence numbers are serial log lines. Injections use the diag console "
+                f"Server VOICE_BARGE_IN={session.barge_in} (server/.env). "
+                f"Evidence numbers and `L<n>` in Reason are serial log lines. Injections use the diag console "
                 f"(`DiagConsole: ok ...` lines).\n\n")
-        f.write("| # | Item | Count | Verdict | Result | Evidence |\n|---|---|---|---|---|---|\n")
-        for i, (item, count, verdict, result, ev) in enumerate(rows, 1):
-            f.write(f"| {i} | {item} | {count} | {verdict} | {result} | {ev} |\n")
+        f.write("| # | Item | Count | Verdict | Result | Reason | Evidence |\n|---|---|---|---|---|---|---|\n")
+        for i, (item, count, verdict, result, reason, ev) in enumerate(rows, 1):
+            f.write(f"| {i} | {item} | {count} | {verdict} | {cell(result)} | {cell(reason)} | {ev} |\n")
         f.write(f"\n{passed}/{len(counted)} items pass, {len(rows) - len(counted)} skipped.\n")
     return passed == len(counted)
 
@@ -462,6 +512,8 @@ def main():
     ap.add_argument("--no-reset", action="store_true", help="do not reset the board at the start")
     ap.add_argument("--fixture-base", help="gateway base URL for the approval card (agent_msg_fixture.py)")
     ap.add_argument("--fixture-device", help="device MAC as on allowed_devices")
+    ap.add_argument("--barge-in", type=int, choices=(0, 1), default=0,
+                    help="VOICE_BARGE_IN in effect on the server (audio_session.sh reads it from server/.env)")
     args = ap.parse_args()
     if args.synth_only:
         return synth_only(args.voice)

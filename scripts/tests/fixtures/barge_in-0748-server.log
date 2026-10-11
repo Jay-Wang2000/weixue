@@ -1,0 +1,25 @@
+261011 08:59:39[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 08:59:39[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 08:59:39[0.9.7_00000000000000][weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:59:42[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.524s | 语言: en-US | 结果: Jarvis, tell me a long story about a dragon.
+261011 08:59:42[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis, tell me a long story about a dragon.
+261011 08:59:42[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Jarvis, tell me a long story about a dragon.
+261011 08:59:44[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.300s: Once upon a time
+261011 08:59:44[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.233s: high above a misty valley, there lived a small dragon named Ember
+261011 08:59:45[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.150s: Unlike the other dragons, Ember couldn't breathe fire
+261011 08:59:45[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.221s: When she sneezed, only a puff of warm, glittering smoke came out
+261011 08:59:46[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.190s: The older dragons laughed, so Ember spent her days alone, collecting shiny buttons, spoons and bits of glass from the village below
+261011 08:59:47[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.244s: One bitter winter, a snowstorm buried the valley
+261011 08:59:48[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.244s: The village lamps went out, and the villagers huddled in the cold, afraid
+261011 08:59:49[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.198s: Ember saw the dark village from her cave and felt her heart thump
+261011 08:59:50[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.304s: She flew down, landed in the square, and sneezed as hard as she could
+261011 08:59:51[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.343s: Out came a cloud of warm, golden smoke
+261011 08:59:52[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.232s: It drifted into every window and chimney, and wherever it touched, the air grew cozy
+261011 08:59:52[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.207s: Shall I go on?
+261011 08:59:53[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.223s | 语言: None | 结果: der ist die
+261011 08:59:53[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: der ist die
+261011 08:59:53[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261011 08:59:53[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261011 08:59:53[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: der ist die
+261011 08:59:55[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.119s: Sorry, I didn't catch that
+261011 08:59:56[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.211s: Do you want me to carry on with Ember's story?

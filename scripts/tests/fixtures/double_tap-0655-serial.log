@@ -1,0 +1,209 @@
+[  509.62 07:07:48Z] I (509477) StateMachine: State: connecting -> listening
+[  509.62 07:07:48Z] I (509487) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  509.62 07:07:48Z] I (509517) WeixueAgent: agent: sync seq=1791702468177 listed=0 dropped=0 tasks=0 via=push
+[  509.82 07:07:48Z] I (509727) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":37,"kind":"shown","ack_upto":1791702468177,"via":"tap"}}
+[  509.82 07:07:48Z] I (509737) WeixueAgent: agent ack sent: shown upto 1791702468177 (attempt 1)
+[  512.62 07:07:51Z] ### result barge_in: FAIL 0/1 no reply to interrupt
+[  512.62 07:07:51Z] ### item double_tap
+[  512.62 07:07:51Z] ### say: tell me a long story about a lighthouse keeper.
+[  513.09 07:07:51Z] I (512907) Application: >> Jarvis. Tell me a long story about dragon
+[  513.09 07:07:51Z] I (512927) StateMachine: State: listening -> speaking
+[  513.09 07:07:51Z] I (512937) FaceDisplay: mode=thinking mood=neutral
+[  513.09 07:07:51Z] I (512937) FaceDisplay: ring=spin bedside=0
+[  514.11 07:07:52Z] I (514057) Application: << Once upon a time
+[  514.11 07:07:52Z] I (514087) FaceDisplay: mode=speaking mood=neutral
+[  514.11 07:07:52Z] I (514097) FaceDisplay: ring=level bedside=0
+[  515.74 07:07:54Z] I (515697) Application: << high above the village of Emberfall, a small dragon named Cinder lived in a cave full of cold stones
+[  518.61 07:07:57Z] ### send diag gesture double_tap
+[  518.79 07:07:57Z] I (518647) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: injected double_tap
+[  518.79 07:07:57Z] I (518647) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: double_tap (count 1)
+[  518.79 07:07:57Z] I (518647) DiagConsole: ok diag gesture double_tap: double_tap
+[  518.79 07:07:57Z] I (518677) Application: Abort speaking
+[  518.79 07:07:57Z] I (518707) StateMachine: State: speaking -> listening
+[  518.79 07:07:57Z] I (518717) FaceDisplay: mode=listening mood=neutral
+[  518.79 07:07:57Z] I (518717) FaceDisplay: ring=pulse bedside=0
+[  519.80 07:07:58Z] ### say: tell me a long story about a lighthouse keeper.
+[  524.91 07:08:03Z] I (524797) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 9)
+[  531.65 07:08:10Z] I (531487) WS: Websocket disconnected
+[  531.65 07:08:10Z] I (531547) StateMachine: State: listening -> idle
+[  531.65 07:08:10Z] I (531557) FaceDisplay: mode=idle mood=neutral
+[  531.65 07:08:10Z] I (531557) FaceDisplay: ring=off bedside=0
+[  538.28 07:08:17Z] ### say: Jarvis, tell me a long story about a lighthouse keeper.
+[  540.20 07:08:18Z] I (540117) Application: Wake word detected: Jarvis (state: 3)
+[  540.20 07:08:18Z] I (540117) StateMachine: State: idle -> connecting
+[  540.21 07:08:18Z] I (540127) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  540.21 07:08:18Z] I (540177) WebSocket: WebSocket handshake done, cost=40 tcp=10 handshake=30
+[  540.21 07:08:18Z] I (540207) WS: Session ID: <uuid>
+[  540.41 07:08:19Z] W (540217) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  540.41 07:08:19Z] I (540227) Application: Wake word detected: Jarvis
+[  540.42 07:08:19Z] I (540277) FaceDisplay: mode=listening mood=neutral
+[  540.42 07:08:19Z] I (540287) FaceDisplay: ring=pulse bedside=0
+[  540.62 07:08:19Z] I (540507) AfeAudioEngine: Encoded wake word into 33 packets in 391 ms
+[  540.62 07:08:19Z] I (540507) Application: Sent 5 packets captured after the wake word
+[  540.62 07:08:19Z] I (540507) StateMachine: State: connecting -> listening
+[  540.62 07:08:19Z] I (540557) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  540.62 07:08:19Z] I (540557) WeixueAgent: agent: sync seq=1791702498917 listed=0 dropped=0 tasks=0 via=push
+[  541.03 07:08:19Z] I (540837) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":39,"kind":"shown","ack_upto":1791702498917,"via":"tap"}}
+[  541.03 07:08:19Z] I (540847) WeixueAgent: agent ack sent: shown upto 1791702498917 (attempt 1)
+[  550.80 07:08:29Z] I (550807) WS: Websocket disconnected
+[  551.01 07:08:29Z] I (550857) StateMachine: State: listening -> idle
+[  551.01 07:08:29Z] I (550867) FaceDisplay: mode=idle mood=neutral
+[  551.01 07:08:29Z] I (550867) FaceDisplay: ring=off bedside=0
+[  557.60 07:08:36Z] ### say: Jarvis, tell me a long story about a lighthouse keeper.
+[  559.37 07:08:38Z] I (559317) Application: Wake word detected: Jarvis (state: 3)
+[  559.37 07:08:38Z] I (559317) StateMachine: State: idle -> connecting
+[  559.37 07:08:38Z] I (559327) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  559.57 07:08:38Z] I (559417) WebSocket: WebSocket handshake done, cost=80 tcp=30 handshake=50
+[  559.57 07:08:38Z] I (559427) FaceDisplay: mode=listening mood=neutral
+[  559.57 07:08:38Z] I (559437) FaceDisplay: ring=pulse bedside=0
+[  559.57 07:08:38Z] I (559427) WS: Session ID: <uuid>
+[  559.57 07:08:38Z] W (559447) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  559.57 07:08:38Z] I (559457) Application: Wake word detected: Jarvis
+[  559.78 07:08:38Z] I (559767) AfeAudioEngine: Encoded wake word into 33 packets in 449 ms
+[  559.78 07:08:38Z] I (559767) Application: Sent 6 packets captured after the wake word
+[  559.78 07:08:38Z] I (559767) StateMachine: State: connecting -> listening
+[  559.98 07:08:38Z] I (559817) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  559.98 07:08:38Z] I (559817) WeixueAgent: agent: sync seq=1791702518155 listed=0 dropped=0 tasks=0 via=push
+[  560.19 07:08:38Z] I (560037) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":40,"kind":"shown","ack_upto":1791702518155,"via":"tap"}}
+[  560.19 07:08:38Z] I (560047) WeixueAgent: agent ack sent: shown upto 1791702518155 (attempt 1)
+[  570.18 07:08:48Z] I (570097) WS: Websocket disconnected
+[  570.18 07:08:48Z] I (570107) StateMachine: State: listening -> idle
+[  570.18 07:08:48Z] I (570137) FaceDisplay: mode=idle mood=neutral
+[  570.18 07:08:48Z] I (570137) FaceDisplay: ring=off bedside=0
+[  576.87 07:08:55Z] ### say: Jarvis, tell me a long story about a lighthouse keeper.
+[  578.76 07:08:57Z] I (578657) Application: Wake word detected: Jarvis (state: 3)
+[  578.76 07:08:57Z] I (578657) StateMachine: State: idle -> connecting
+[  578.76 07:08:57Z] I (578667) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  578.76 07:08:57Z] I (578727) FaceDisplay: mode=listening mood=neutral
+[  578.76 07:08:57Z] I (578727) FaceDisplay: ring=pulse bedside=0
+[  578.96 07:08:57Z] I (578827) WebSocket: WebSocket handshake done, cost=150 tcp=90 handshake=60
+[  578.96 07:08:57Z] I (578847) WS: Session ID: <uuid>
+[  578.96 07:08:57Z] W (578857) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  578.96 07:08:57Z] I (578867) Application: Wake word detected: Jarvis
+[  579.17 07:08:57Z] I (579057) AfeAudioEngine: Encoded wake word into 33 packets in 400 ms
+[  579.17 07:08:57Z] I (579057) Application: Sent 6 packets captured after the wake word
+[  579.17 07:08:57Z] I (579057) StateMachine: State: connecting -> listening
+[  579.17 07:08:57Z] I (579097) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  579.17 07:08:57Z] I (579097) WeixueAgent: agent: sync seq=1791702537566 listed=0 dropped=0 tasks=0 via=push
+[  579.37 07:08:58Z] I (579377) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":42,"kind":"shown","ack_upto":1791702537566,"via":"tap"}}
+[  579.57 07:08:58Z] I (579377) WeixueAgent: agent ack sent: shown upto 1791702537566 (attempt 1)
+[  589.57 07:09:08Z] I (589427) WS: Websocket disconnected
+[  589.57 07:09:08Z] I (589437) StateMachine: State: listening -> idle
+[  589.57 07:09:08Z] I (589467) FaceDisplay: mode=idle mood=neutral
+[  589.57 07:09:08Z] I (589467) FaceDisplay: ring=off bedside=0
+[  596.17 07:09:14Z] ### say: Jarvis, tell me a long story about a lighthouse keeper.
+[  598.12 07:09:16Z] I (597987) Application: Wake word detected: Jarvis (state: 3)
+[  598.12 07:09:16Z] I (597987) StateMachine: State: idle -> connecting
+[  598.12 07:09:16Z] I (598027) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  598.33 07:09:17Z] I (598207) WebSocket: WebSocket handshake done, cost=170 tcp=130 handshake=40
+[  598.33 07:09:17Z] I (598247) WS: Session ID: <uuid>
+[  598.33 07:09:17Z] W (598267) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  598.33 07:09:17Z] I (598277) Application: Wake word detected: Jarvis
+[  598.33 07:09:17Z] I (598297) AfeAudioEngine: Encoded wake word into 33 packets in 317 ms
+[  598.33 07:09:17Z] I (598307) Application: Sent 4 packets captured after the wake word
+[  598.33 07:09:17Z] I (598307) FaceDisplay: mode=listening mood=neutral
+[  598.33 07:09:17Z] I (598317) StateMachine: State: connecting -> listening
+[  598.33 07:09:17Z] I (598327) FaceDisplay: ring=pulse bedside=0
+[  598.54 07:09:17Z] I (598397) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  598.54 07:09:17Z] I (598407) WeixueAgent: agent: sync seq=1791702556954 listed=0 dropped=0 tasks=0 via=push
+[  598.74 07:09:17Z] I (598617) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":43,"kind":"shown","ack_upto":1791702556954,"via":"tap"}}
+[  598.74 07:09:17Z] I (598637) WeixueAgent: agent ack sent: shown upto 1791702556954 (attempt 1)
+[  608.74 07:09:27Z] I (608657) WS: Websocket disconnected
+[  608.74 07:09:27Z] I (608667) StateMachine: State: listening -> idle
+[  608.74 07:09:27Z] I (608697) FaceDisplay: mode=idle mood=neutral
+[  608.74 07:09:27Z] I (608697) FaceDisplay: ring=off bedside=0
+[  615.47 07:09:34Z] ### say: Jarvis, tell me a long story about a lighthouse keeper.
+[  617.31 07:09:36Z] I (617317) Application: Wake word detected: Jarvis (state: 3)
+[  617.31 07:09:36Z] I (617317) StateMachine: State: idle -> connecting
+[  617.51 07:09:36Z] I (617327) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  617.51 07:09:36Z] I (617397) FaceDisplay: mode=listening mood=neutral
+[  617.51 07:09:36Z] I (617397) WebSocket: WebSocket handshake done, cost=60 tcp=10 handshake=50
+[  617.51 07:09:36Z] I (617407) FaceDisplay: ring=pulse bedside=0
+[  617.51 07:09:36Z] I (617497) WS: Session ID: <uuid>
+[  617.51 07:09:36Z] W (617507) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  617.51 07:09:36Z] I (617517) Application: Wake word detected: Jarvis
+[  617.92 07:09:36Z] I (617747) AfeAudioEngine: Encoded wake word into 33 packets in 437 ms
+[  617.92 07:09:36Z] I (617757) Application: Sent 6 packets captured after the wake word
+[  617.92 07:09:36Z] I (617757) StateMachine: State: connecting -> listening
+[  617.92 07:09:36Z] I (617797) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  617.92 07:09:36Z] I (617807) WeixueAgent: agent: sync seq=1791702576133 listed=0 dropped=0 tasks=0 via=push
+[  618.12 07:09:36Z] I (618017) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":44,"kind":"shown","ack_upto":1791702576133,"via":"tap"}}
+[  618.12 07:09:36Z] I (618027) WeixueAgent: agent ack sent: shown upto 1791702576133 (attempt 1)
+[  628.11 07:09:46Z] I (628067) WS: Websocket disconnected
+[  628.11 07:09:46Z] I (628067) StateMachine: State: listening -> idle
+[  628.11 07:09:46Z] I (628097) FaceDisplay: mode=idle mood=neutral
+[  628.11 07:09:46Z] I (628097) FaceDisplay: ring=off bedside=0
+[  634.77 07:09:53Z] ### say: Jarvis, tell me a long story about a lighthouse keeper.
+[  636.69 07:09:55Z] I (636627) Application: Wake word detected: Jarvis (state: 3)
+[  636.69 07:09:55Z] I (636627) StateMachine: State: idle -> connecting
+[  636.69 07:09:55Z] I (636687) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  636.89 07:09:55Z] I (636727) FaceDisplay: mode=listening mood=neutral
+[  636.89 07:09:55Z] I (636727) FaceDisplay: ring=pulse bedside=0
+[  636.89 07:09:55Z] I (636737) WebSocket: WebSocket handshake done, cost=50 tcp=20 handshake=30
+[  636.89 07:09:55Z] I (636757) WS: Session ID: <uuid>
+[  636.89 07:09:55Z] W (636767) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  636.89 07:09:55Z] I (636777) Application: Wake word detected: Jarvis
+[  637.09 07:09:55Z] I (637027) AfeAudioEngine: Encoded wake word into 33 packets in 406 ms
+[  637.09 07:09:55Z] I (637037) Application: Sent 6 packets captured after the wake word
+[  637.09 07:09:55Z] I (637037) StateMachine: State: connecting -> listening
+[  637.09 07:09:55Z] I (637077) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  637.09 07:09:55Z] I (637077) WeixueAgent: agent: sync seq=1791702595473 listed=0 dropped=0 tasks=0 via=push
+[  637.50 07:09:56Z] I (637357) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":46,"kind":"shown","ack_upto":1791702595473,"via":"tap"}}
+[  637.50 07:09:56Z] I (637367) WeixueAgent: agent ack sent: shown upto 1791702595473 (attempt 1)
+[  647.49 07:10:06Z] I (647327) WS: Websocket disconnected
+[  647.50 07:10:06Z] I (647337) StateMachine: State: listening -> idle
+[  647.50 07:10:06Z] I (647367) FaceDisplay: mode=idle mood=neutral
+[  647.50 07:10:06Z] I (647367) FaceDisplay: ring=off bedside=0
+[  654.14 07:10:12Z] ### say: Jarvis, tell me a long story about a lighthouse keeper.
+[  656.07 07:10:14Z] I (656017) Application: Wake word detected: Jarvis (state: 3)
+[  656.07 07:10:14Z] I (656017) StateMachine: State: idle -> connecting
+[  656.07 07:10:14Z] I (656037) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  656.27 07:10:15Z] I (656097) WebSocket: WebSocket handshake done, cost=60 tcp=10 handshake=50
+[  656.27 07:10:15Z] I (656117) WS: Session ID: <uuid>
+[  656.27 07:10:15Z] W (656127) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  656.27 07:10:15Z] I (656137) Application: Wake word detected: Jarvis
+[  656.48 07:10:15Z] I (656347) FaceDisplay: mode=listening mood=neutral
+[  656.48 07:10:15Z] I (656347) FaceDisplay: ring=pulse bedside=0
+[  656.48 07:10:15Z] I (656417) AfeAudioEngine: Encoded wake word into 33 packets in 400 ms
+[  656.48 07:10:15Z] I (656417) Application: Sent 5 packets captured after the wake word
+[  656.48 07:10:15Z] I (656417) StateMachine: State: connecting -> listening
+[  656.48 07:10:15Z] I (656477) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  656.48 07:10:15Z] I (656477) WeixueAgent: agent: sync seq=1791702614833 listed=0 dropped=0 tasks=0 via=push
+[  656.88 07:10:15Z] I (656757) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":48,"kind":"shown","ack_upto":1791702614833,"via":"tap"}}
+[  656.88 07:10:15Z] I (656767) WeixueAgent: agent ack sent: shown upto 1791702614833 (attempt 1)
+[  660.76 07:10:19Z] I (660637) Application: >> The voices
+[  660.76 07:10:19Z] I (660637) StateMachine: State: listening -> speaking
+[  660.76 07:10:19Z] I (660637) FaceDisplay: mode=thinking mood=neutral
+[  660.76 07:10:19Z] I (660657) FaceDisplay: ring=spin bedside=0
+[  662.19 07:10:20Z] I (662017) FaceDisplay: mode=thinking mood=confused
+[  662.60 07:10:21Z] I (662457) Application: << Not sure what you mean by that
+[  662.60 07:10:21Z] I (662457) FaceDisplay: mode=speaking mood=confused
+[  662.60 07:10:21Z] I (662467) FaceDisplay: ring=level bedside=0
+[  664.64 07:10:23Z] I (664577) Application: << Do you want to change my voice or role, or were you just messing with me?
+[  665.10 07:10:23Z] ### send diag gesture double_tap
+[  665.24 07:10:23Z] I (665137) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: injected double_tap
+[  665.24 07:10:23Z] I (665137) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: double_tap (count 2)
+[  665.24 07:10:23Z] I (665137) Application: Abort speaking
+[  665.24 07:10:23Z] I (665137) DiagConsole: ok diag gesture double_tap: double_tap
+[  665.24 07:10:23Z] I (665157) StateMachine: State: speaking -> listening
+[  665.24 07:10:23Z] I (665157) FaceDisplay: mode=listening mood=confused
+[  665.24 07:10:23Z] I (665167) FaceDisplay: ring=pulse bedside=0
+[  665.24 07:10:23Z] I (665257) FaceDisplay: mode=listening mood=neutral
+[  666.25 07:10:24Z] ### say: tell me a long story about a lighthouse keeper.
+[  670.52 07:10:29Z] I (670397) Application: >> Tell me a long story about a Lighthouse Keeper
+[  670.52 07:10:29Z] I (670407) StateMachine: State: listening -> speaking
+[  670.52 07:10:29Z] I (670427) FaceDisplay: mode=thinking mood=neutral
+[  670.52 07:10:29Z] I (670437) FaceDisplay: ring=spin bedside=0
+[  671.74 07:10:30Z] I (671557) Application: << Far out on a rocky coast
+[  671.74 07:10:30Z] I (671567) FaceDisplay: mode=speaking mood=neutral
+[  671.74 07:10:30Z] I (671587) FaceDisplay: ring=level bedside=0
+[  673.76 07:10:32Z] I (673747) Application: << there was a lighthouse called Gray Tooth, and its keeper was an old man named Elias
+[  674.24 07:10:32Z] ### send diag gesture double_tap
+[  674.37 07:10:33Z] I (674277) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: injected double_tap
+[  674.37 07:10:33Z] I (674277) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: double_tap (count 3)
+[  674.37 07:10:33Z] I (674277) Application: Abort speaking
+[  674.37 07:10:33Z] I (674277) DiagConsole: ok diag gesture double_tap: double_tap
+[  674.37 07:10:33Z] I (674307) StateMachine: State: speaking -> listening
+[  674.37 07:10:33Z] I (674347) FaceDisplay: mode=listening mood=neutral
+[  674.37 07:10:33Z] I (674357) FaceDisplay: ring=pulse bedside=0
+[  675.38 07:10:34Z] ### result double_tap: FAIL 3/10 double-tap during the reply -> `Abort speaking`, speaking -> listening

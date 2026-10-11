@@ -1,0 +1,75 @@
+[  719.70 07:11:18Z] I (719567) StateMachine: State: listening -> idle
+[  719.70 07:11:18Z] I (719597) FaceDisplay: mode=idle mood=neutral
+[  719.70 07:11:18Z] I (719597) FaceDisplay: ring=off bedside=0
+[  719.70 07:11:18Z] ### item panel
+[  719.70 07:11:18Z] ### send diag swipe left
+[  719.90 07:11:18Z] I (719737) DiagConsole: ok diag swipe left: swipe left
+[  719.90 07:11:18Z] I (719747) DiagInput: pointer (400,233)->(66,233) 300 ms
+[  719.90 07:11:18Z] I (719827) MonitorPanel: page=1
+[  719.90 07:11:18Z] I (719827) MonitorPanel: page=panel
+[  720.71 07:11:19Z] ### send diag tap 233 430
+[  720.72 07:11:19Z] I (720737) DiagConsole: ok diag tap 233 430: tap 233 430
+[  721.13 07:11:19Z] I (721057) DiagInput: pointer (233,430)->(233,430) 120 ms
+[  721.33 07:11:20Z] I (721187) MonitorPanel: page=2
+[  722.13 07:11:20Z] ### send diag swipe down
+[  722.34 07:11:21Z] I (722177) DiagConsole: ok diag swipe down: swipe down
+[  722.34 07:11:21Z] I (722187) DiagInput: pointer (233,120)->(233,380) 300 ms
+[  722.34 07:11:21Z] I (722287) MonitorPanel: page=1
+[  723.14 07:11:21Z] ### send diag swipe up
+[  723.15 07:11:21Z] I (723167) DiagConsole: ok diag swipe up: swipe up
+[  723.35 07:11:22Z] I (723187) DiagInput: pointer (233,380)->(233,120) 300 ms
+[  723.36 07:11:22Z] I (723267) MonitorPanel: page=2
+[  724.16 07:11:22Z] ### send diag swipe right
+[  724.37 07:11:23Z] I (724187) DiagConsole: ok diag swipe right: swipe right
+[  724.37 07:11:23Z] I (724187) DiagInput: pointer (66,233)->(400,233) 300 ms
+[  724.37 07:11:23Z] I (724267) MonitorPanel: page=face
+[  725.17 07:11:23Z] ### send diag dump
+[  725.40 07:11:24Z] I (725207) DiagConsole: ok diag dump: {"device_state":"idle","panel_off":false,"brightness":75,"display":{"mode":"idle","mood":"neutral","ring":"off","bedside":false,"panel":false,"page":2,"card":false,"chats":false},"imu":{"face_down":false,"mic_muted":false,"last_gesture":"face_up","last_gesture_age_ms":22584,"counts":{"pick_up":9,"face_down":10,"face_up":10,"double_tap":3},"accel_g":[0.24,-0.55,0.81],"sampling":{"overruns":233,"resyncs":42,"skipped":2449,"read_errors":16,"torn_timestamps":10}}}
+[  725.40 07:11:24Z] ### result panel: pass 6/6 swipe left opens page 1, tap Home -> page 2, swipe down/up, swipe right closes
+[  725.40 07:11:24Z] ### item card_tap
+[  725.40 07:11:24Z] ### result card_tap: skipped 0/0 needs --fixture-base, --fixture-device and WEIXUE_PROACTIVE_TOKEN
+[  725.40 07:11:24Z] ### result earcons: skipped 0/0 needs the card fixture
+[  725.40 07:11:24Z] ### item bedside_voice
+[  725.40 07:11:24Z] ### say: Jarvis, switch the screen to bedside mode.
+[  727.42 07:11:26Z] I (727427) Application: Wake word detected: Jarvis (state: 3)
+[  727.42 07:11:26Z] I (727427) StateMachine: State: idle -> connecting
+[  727.62 07:11:26Z] I (727467) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  727.62 07:11:26Z] I (727507) FaceDisplay: mode=listening mood=neutral
+[  727.62 07:11:26Z] I (727507) FaceDisplay: ring=pulse bedside=0
+[  727.62 07:11:26Z] I (727537) WebSocket: WebSocket handshake done, cost=70 tcp=10 handshake=60
+[  727.62 07:11:26Z] I (727567) WS: Session ID: <uuid>
+[  727.62 07:11:26Z] W (727587) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  727.62 07:11:26Z] I (727597) Application: Wake word detected: Jarvis
+[  727.82 07:11:26Z] I (727817) AfeAudioEngine: Encoded wake word into 33 packets in 397 ms
+[  727.82 07:11:26Z] I (727827) Application: Sent 5 packets captured after the wake word
+[  727.82 07:11:26Z] I (727827) StateMachine: State: connecting -> listening
+[  728.02 07:11:26Z] I (727857) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  728.02 07:11:26Z] I (727857) WeixueAgent: agent: sync seq=1791702686271 listed=0 dropped=0 tasks=0 via=push
+[  728.22 07:11:26Z] I (728147) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":51,"kind":"shown","ack_upto":1791702686271,"via":"tap"}}
+[  728.22 07:11:26Z] I (728147) WeixueAgent: agent ack sent: shown upto 1791702686271 (attempt 1)
+[  737.59 07:11:36Z] I (737497) WS: Websocket disconnected
+[  737.59 07:11:36Z] I (737497) StateMachine: State: listening -> idle
+[  737.59 07:11:36Z] I (737507) FaceDisplay: mode=idle mood=neutral
+[  737.59 07:11:36Z] I (737507) FaceDisplay: ring=off bedside=0
+[  784.22 07:12:22Z] ### say: Jarvis, set the bedside screen back to automatic.
+[  786.34 07:12:25Z] I (786187) Application: Wake word detected: Jarvis (state: 3)
+[  786.34 07:12:25Z] I (786187) StateMachine: State: idle -> connecting
+[  786.34 07:12:25Z] I (786207) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  786.34 07:12:25Z] I (786257) WebSocket: WebSocket handshake done, cost=50 tcp=20 handshake=30
+[  786.34 07:12:25Z] I (786277) WS: Session ID: <uuid>
+[  786.34 07:12:25Z] W (786297) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  786.34 07:12:25Z] I (786307) Application: Wake word detected: Jarvis
+[  786.54 07:12:25Z] I (786387) FaceDisplay: mode=listening mood=neutral
+[  786.54 07:12:25Z] I (786417) FaceDisplay: ring=pulse bedside=0
+[  786.74 07:12:25Z] I (786597) AfeAudioEngine: Encoded wake word into 33 packets in 405 ms
+[  786.74 07:12:25Z] I (786597) Application: Sent 6 packets captured after the wake word
+[  786.74 07:12:25Z] I (786607) StateMachine: State: connecting -> listening
+[  786.74 07:12:25Z] I (786637) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  786.74 07:12:25Z] I (786647) WeixueAgent: agent: sync seq=1791702744988 listed=0 dropped=0 tasks=0 via=push
+[  786.94 07:12:25Z] I (786937) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":53,"kind":"shown","ack_upto":1791702744988,"via":"tap"}}
+[  786.94 07:12:25Z] I (786947) WeixueAgent: agent ack sent: shown upto 1791702744988 (attempt 1)
+[  796.73 07:12:35Z] I (796607) WS: Websocket disconnected
+[  796.73 07:12:35Z] I (796617) StateMachine: State: listening -> idle
+[  796.73 07:12:35Z] I (796617) FaceDisplay: mode=idle mood=neutral
+[  796.73 07:12:35Z] I (796627) FaceDisplay: ring=off bedside=0
+[  818.46 07:12:57Z] ### result bedside_voice: FAIL 0/1 voice night hint -> page 15 s after idle, tap leaves it, voice auto hint
