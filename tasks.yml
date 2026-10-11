@@ -282,6 +282,15 @@ tasks:
     status: pending
     retries: 0
     model: opus
+  - id: feat-monitor-home-snapshot
+    name: "Monitor: home status snapshot tile (decision 48)"
+    branch: feat/monitor-home-snapshot
+    description: |
+      决定 48：agent 服务每 5 min 经 ha-mcp 只读工具（ha_get_state / 区域列表）读取 ≤20 个实体（默认 light/climate/cover/lock 域，可由 .env 列表覆盖）写入 home_snapshot 表；监控台启用 home 瓦片（MONITOR_HOME=1 默认开），显示实体名、状态、最近更新时间；只读。schema 增量迁移（服务与监控一起部署，DB 备份照旧）。host 测试 + live 验证一次快照出现在监控台。
+    depends_on: [feat-agent-monitor]
+    status: pending
+    retries: 0
+    model: sonnet
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
