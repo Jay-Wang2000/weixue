@@ -324,7 +324,7 @@ tasks:
     description: |
       docs/logs/session-2026-10-11-0655-rca.md 列出的 6 个判定缺陷：wake_cue 把后续「Yes」失败记成「cue missing」；double_tap 在无转写时静默跳过；long_reply 默认 reply 0 s；barge_in/bedside 的判定依赖转写而非实际事件；card_tap/earcons 需要 WEIXUE_PROACTIVE_TOKEN 自动从 server/.env 读取；扬声器震动触发的虚假 pick_up 要在表中标注。待 fix-session-tts 合并后做。
     depends_on: [fix-session-tts]
-    status: pending
+    status: in_progress
     retries: 0
     model: sonnet
   - id: feat-agent-service

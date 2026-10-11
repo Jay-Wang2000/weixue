@@ -56,3 +56,4 @@ Rule: if Codex P1 findings per task rise above the baseline for two consecutive 
 - 2026-10-11 feat-monitor-home-snapshot merged (PR #16): schema v3, home tile on; 15 entities snapshotted live from the worktree deploy; redeployed from main after merge.
 - 2026-10-11 fix-max-iterations merged (PR #17): MAX_ITERATIONS 60 -> 150 (ruling 54); no gate (one constant).
 - 2026-10-11 main after PRs #15-#17: server suite 1001 passed / 12 skipped (fresh py3.10 venv, mocked).
+- 2026-10-11 fix-session-tts merged (PR #18): Google TTS Chirp 3 HD clips (Fenrir) via afplay; one_breath 10/10 dev + 10/10 reviewer on the board; wake_cue/long_reply/barge_in still fail pending STT dropouts + driver judging.
