@@ -91,7 +91,7 @@ def main():
     fake_api = FakeApi(script)
     fake_ha = FakeHaMcp(wait_seconds=2.0)
     service = Service(settings, client=fake_api.client(),
-                      ha_client=HaMcpClient(HA_URL, transport=httpx.ASGITransport(app=fake_ha.app("/private_sim")), timeout_s=15))
+                      ha_client=HaMcpClient(HA_URL, transport=httpx.ASGITransport(app=fake_ha.app("/private_sim"))))
     api = Api(service)
     faults = Faults(api.app())
 

@@ -44,6 +44,7 @@ CUE_RE = judge.CUE_RE
 YES_STT_RE = re.compile(r"Application: >> .*\byes\b", re.I)
 WAKE_CUE_TRIES = 12
 IDLE_WAIT_S = 30  # longest stay in one non-idle state before a wake clip is given up
+SPEAKING_WAIT_S = 90  # the same limit while the state is speaking
 IDLE_CAP_S = 180
 SETTLE_S = 1.5  # seconds idle, with no pose change or screen snapshot, before a wake clip
 IDLE_ROUNDS = 40
@@ -207,11 +208,11 @@ class Session:
     def wait(self, pattern, timeout, since=None):
         return self.diag.wait_for(pattern, timeout, since)
 
-    def wait_ready(self, timeout=IDLE_WAIT_S, settle=SETTLE_S):
+    def wait_ready(self, settle=SETTLE_S):
         """Waits until the device is idle (serial state, or a diag dump before the first state line)
         and SETTLE_BREAK_RE has been quiet for settle seconds. Returns None when ready, else a
-        not_idle Verdict: the device stayed timeout seconds in one non-idle state, or IDLE_CAP_S
-        passed."""
+        not_idle Verdict: the device stayed in one non-idle state for its limit (SPEAKING_WAIT_S
+        while speaking, else IDLE_WAIT_S), or IDLE_CAP_S passed."""
         start = time.monotonic()
         for _ in range(IDLE_ROUNDS):
             mark = self.diag.mark()
@@ -228,8 +229,9 @@ class Session:
                                    f"(settle {settle} s)")
                     return None
                 continue
+            limit = SPEAKING_WAIT_S if state == "speaking" else IDLE_WAIT_S
             now = time.monotonic()
-            left = min(max(start, at[0] if at else start) + timeout, start + IDLE_CAP_S) - now
+            left = min(max(start, at[0] if at else start) + limit, start + IDLE_CAP_S) - now
             if left <= 0 or self.wait(STATE_RE, left, mark) is None:
                 break
         state, at = self.last_state()

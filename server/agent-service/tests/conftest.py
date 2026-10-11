@@ -74,7 +74,7 @@ class Harness:
     def _service(self):
         transport = self.transport = DroppingTransport(httpx.ASGITransport(app=self.fake_ha.app()))
         service = Service(self.settings, client=self.api.client(),
-                          ha_client=HaMcpClient(HA_URL, transport=transport, timeout_s=15))
+                          ha_client=HaMcpClient(HA_URL, transport=transport))
         service.engine.prefix_mismatch_behavior = "error"
         return service
 

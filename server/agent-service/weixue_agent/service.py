@@ -53,7 +53,7 @@ class Service:
         self.chats = ChatIndex(self.store, on_change=self._chats_changed)
         self.client = client if client is not None else anthropic.AsyncAnthropic()
         if ha_client is None and settings.ha_mcp_url:
-            ha_client = HaMcpClient(settings.ha_mcp_url, timeout_s=15)
+            ha_client = HaMcpClient(settings.ha_mcp_url)
         self.ha = HaGateway(settings, self.store, ha_client, require_iface=require_iface)
         self.engine = Engine(settings, self.store, self.hub, self.client, self.ha, self.outbox, self.chats)
         self.monitor = Monitor(self.store, self.ha, self.engine, self.outbox, settings.mcp_endpoint_host,

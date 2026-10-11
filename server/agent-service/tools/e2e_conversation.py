@@ -103,7 +103,7 @@ class Run:
         from weixue_hamcp import HaMcpClient
 
         async def read() -> Optional[str]:
-            client = HaMcpClient(os.environ["HA_MCP_URL"], timeout_s=20)
+            client = HaMcpClient(os.environ["HA_MCP_URL"])
             try:
                 result = await client.call_tool("ha_get_state", {"entity_id": LIGHT, "fields": ["state"]},
                                                 read_timeout_s=20)

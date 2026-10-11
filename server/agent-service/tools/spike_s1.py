@@ -80,7 +80,7 @@ class Spike:
         self.conversation = "default"
         http = anthropic.DefaultAsyncHttpxClient(event_hooks={"request": [self._capture]})
         self.client = anthropic.AsyncAnthropic(http_client=http)
-        self.ha = HaMcpClient(os.environ["HA_MCP_URL"], timeout_s=30)
+        self.ha = HaMcpClient(os.environ["HA_MCP_URL"])
         self.specs: List[Dict[str, Any]] = []
         self.read_only: set = set()
         self.memory_dir = Path(tempfile.mkdtemp(prefix="s1-memory-"))
@@ -394,7 +394,7 @@ class Spike:
         settings = load_settings({"AGENT_SERVICE_TOKEN": "s" * 40, "HA_MCP_URL": os.environ["HA_MCP_URL"],
                                   "AGENT_DATA_DIR": str(data)})
         store = Store(data / "agent.db")
-        gateway = HaGateway(settings, store, HaMcpClient(os.environ["HA_MCP_URL"], timeout_s=30))
+        gateway = HaGateway(settings, store, HaMcpClient(os.environ["HA_MCP_URL"]))
         await gateway.refresh()
         args = {"domain": "input_boolean", "service": "toggle", "entity_id": HELD_ENTITY}
         waiter = {"device_id": "sim-device-01", "chat_id": "cht_S1", "task_id": None, "turn_id": "trn_S1",

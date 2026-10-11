@@ -375,7 +375,7 @@ def test_compose_profile_from_env_file_switches_bridge_namespace(tmp_path, tunne
     assert agent["depends_on"]["wg"] == {"condition": "service_healthy", "required": False}
     assert set(agent["environment"]) == {"ANTHROPIC_API_KEY", "HA_MCP_URL", "AGENT_SERVICE_TOKEN", "TZ", "MONITOR_TOKEN",
                                          "AGENT_DB", "AGENT_HA_PROBE_S", "AGENT_HA_PROBE_TIMEOUT_S",
-                                         "AGENT_HOME_SNAPSHOT_S", "AGENT_HOME_ENTITIES"}
+                                         "AGENT_HOME_SNAPSHOT_S", "AGENT_HOME_ENTITIES", "HA_MCP_READ_TIMEOUT_S"}
     assert agent["environment"]["AGENT_DB"] == "/data/db/agent.db"
     assert "ports" not in agent and "env_file" not in agent
     monitor = services["agent-monitor"]
