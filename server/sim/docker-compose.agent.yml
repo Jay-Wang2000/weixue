@@ -1,7 +1,8 @@
-# claude_agent sim rounds: the sim server (agent.config.yaml, tone TTS, scripted ASR) sends every turn to an
-# agent-service. SIM_AGENT=live uses the deployed one on the live compose network (read-only use, nothing
-# there is restarted); SIM_AGENT=branch builds and runs this tree's agent-service (no HA URL) beside it.
-#   ./agent_scenarios.sh live|branch
+# claude_agent sim rounds: the sim server (agent.config.yaml rendered to data/agent.rendered.yaml, tone TTS,
+# scripted ASR) sends every turn to an agent-service. SIM_AGENT=live uses the deployed one on the live compose
+# network (read-only use, nothing there is restarted); SIM_AGENT=branch builds and runs this tree's
+# agent-service (no HA URL) beside it. SIM_ANTHROPIC_API_KEY is set only for the VOICE_LLM=anthropic round.
+#   ./agent_scenarios.sh live|m2|branch
 name: weixue-agent-sim
 services:
   sim-server:
@@ -12,16 +13,18 @@ services:
       - TZ=UTC
       - AGENT_SERVICE_URL=${SIM_AGENT_URL:?set SIM_AGENT_URL}
       - AGENT_SERVICE_TOKEN=${SIM_AGENT_TOKEN:?set SIM_AGENT_TOKEN}
+      - ANTHROPIC_API_KEY=${SIM_ANTHROPIC_API_KEY:-}
     ports:
       - "127.0.0.1:18200:8000"
       - "127.0.0.1:18203:8003"
     networks: [default, live]
     volumes:
       - ./data:/opt/xiaozhi-esp32-server/data
-      - ./agent.config.yaml:/opt/xiaozhi-esp32-server/data/.config.yaml:ro
+      - ./data/agent.rendered.yaml:/opt/xiaozhi-esp32-server/data/.config.yaml:ro
       - ./sim_main.py:/opt/xiaozhi-esp32-server/sim_main.py:ro
       - ./sim_asr.py:/opt/xiaozhi-esp32-server/core/providers/asr/sim_asr.py:ro
       - ../overlay/core/providers/llm/claude_agent:/opt/xiaozhi-esp32-server/core/providers/llm/claude_agent:ro
+      - ../overlay/core/providers/llm/anthropic:/opt/xiaozhi-esp32-server/core/providers/llm/anthropic:ro
       - ../overlay/core/providers/tts/google_tts.py:/opt/xiaozhi-esp32-server/core/providers/tts/google_tts.py:ro
       - ../overlay/weixue_patches.py:/opt/xiaozhi-esp32-server/weixue_patches.py:ro
       - ../overlay/weixue_proactive.py:/opt/xiaozhi-esp32-server/weixue_proactive.py:ro
@@ -30,6 +33,7 @@ services:
       - ../overlay/weixue_main.py:/opt/xiaozhi-esp32-server/weixue_main.py:ro
       - ../overlay/weixue_device_tools.py:/opt/xiaozhi-esp32-server/weixue_device_tools.py:ro
       - ../overlay/weixue_clock.py:/opt/xiaozhi-esp32-server/weixue_clock.py:ro
+      - ../overlay/weixue-agent-prompt.txt:/opt/xiaozhi-esp32-server/weixue-agent-prompt.txt:ro
 
   sim-agent-service:
     profiles: [branch]

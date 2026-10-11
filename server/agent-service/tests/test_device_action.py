@@ -1,5 +1,5 @@
 """device_action app tool: SSE event on the reply stream, result route, whitelist, closed reply, timeout;
-the reply's first text delta is not coalesced."""
+the sentence before a tool call reaches the stream first; the reply's first clause is not coalesced."""
 import asyncio
 import time
 
@@ -114,3 +114,50 @@ async def test_first_text_delta_of_a_reply_is_not_coalesced(make, monkeypatch):
     assert first[0]["data"]["delta"] == "Sure"
     assert first_at < seen["later"]
     assert "".join(e["data"]["delta"] for e in events if e["type"] == "text") == "Sure, it is ten past nine."
+
+
+async def test_the_sentence_before_a_tool_call_is_on_the_stream_before_the_tool_runs(make):
+    marks = {}
+
+    async def script(turn):
+        marks["system"] = turn.body["system"][0]["text"]
+        await turn.text("Sure, switching to bedside mode.")
+        marks["tool_call"] = time.monotonic()
+        await turn.tool("device_action", {"tool": "self.screen.set_bedside", "args": {"mode": "night"}})
+        await turn.text("Done.")
+    h = await make(script)
+    send = asyncio.create_task(h.send("Set bedside mode"))
+    first = await h.wait_for(lambda: h.events_of_type("text"), what="first text")
+    first_at = time.monotonic()
+    assert h.events_of_type("device_action") == [] or first[0]["seq"] < h.events_of_type("device_action")[0]["seq"]
+    event = await _next_action(h)
+    await asyncio.sleep(0.5)
+    resp = await _post_result(h, event["chat_id"], event["data"]["action_id"], {"ok": True, "result": "{}"})
+    assert resp.status_code == 200
+    _, events = await send
+    types = [e["type"] for e in events]
+    assert types.index("text") < types.index("device_action")
+    assert first[0]["data"]["delta"] == "Sure, "
+    assert first_at - marks["tool_call"] < 0.3
+    assert "Before your first tool call in a reply, say one short sentence" in marks["system"]
+    assert "never begin a reply with a tool call" in marks["system"]
+
+
+async def test_deltas_up_to_the_first_clause_are_not_coalesced(make, monkeypatch):
+    monkeypatch.setattr(turns, "TEXT_COALESCE_MS", 3000)
+    seen = {}
+
+    async def script(turn):
+        await turn.text("Okay let me set that", delay=0.05)
+        await asyncio.sleep(0.5)
+        seen["later"] = time.monotonic()
+        await turn.text("up. And the rest")
+    h = await make(script)
+    send = asyncio.create_task(h.send("Set bedside mode"))
+    head = await h.wait_for(lambda: len(h.events_of_type("text")) >= 5 and h.events_of_type("text"), what="5 deltas")
+    head_at = time.monotonic()
+    _, events = await send
+    assert [e["data"]["delta"] for e in head[:5]] == ["Okay ", "let ", "me ", "set ", "that"]
+    assert head_at < seen["later"]
+    assert [e["data"]["delta"] for e in events if e["type"] == "text"] == [
+        "Okay ", "let ", "me ", "set ", "that", "up. ", "And the rest"]
