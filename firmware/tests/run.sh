@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds and runs the host tests for firmware/overrides sources and the patched vendored MCP server
 # (the agent and MCP tests link cJSON from a firmware/build.sh scratch copy's managed components)
-# and the firmware/tools scripts.
+# and the firmware/tools and scripts/ Python tools.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 out="$(mktemp -d)"
@@ -44,3 +44,4 @@ c++ "${mcp_flags[@]}" -Wno-unused-parameter -Wno-unused-lambda-capture -DBOARD_N
   -o "$out/mcp_policy_test"
 "$out/mcp_policy_test"
 "$py" -m unittest discover -s "$root/firmware/tests" -p 'test_*.py'
+"$py" -m unittest discover -s "$root/scripts/tests" -p 'test_*.py'
