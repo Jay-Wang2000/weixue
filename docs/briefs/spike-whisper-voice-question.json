@@ -1,0 +1,10 @@
+{
+  "status": "open",
+  "blocking": false,
+  "task_id": "spike-whisper-voice",
+  "question": "Which recognizer should handle quiet or whispered speech once streaming STT returns?",
+  "context": "Offline on the device's captured microphone audio (-39..-60 dBFS), chirp_3 batch read 116/120 utterances correctly, latest_short only 56/120 (83/120 with +18 dB gain). Live is chirp_3 batch now (median 1.52-1.57 s after the utterance). Google Cloud STT model choice is an external-service decision.",
+  "options": ["A: chirp_3 batch for every turn", "B: streaming latest_short plus a chirp_3 batch re-recognition when the utterance is quiet (below about -45 dBFS) or the stream final is empty", "C: streaming latest_short only"],
+  "recommendation": "B",
+  "timestamp": "2026-10-11T09:05:20Z"
+}
