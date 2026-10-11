@@ -48,6 +48,9 @@ def problems(custom, defaults):
         if not name or name not in (config.get(module) or {}):
             found.append(f"selected_module.{module} names no {module} entry")
     llm = (config.get("LLM") or {}).get(selected.get("LLM"), {})
+    intent = ((config.get("Intent") or {}).get(selected.get("Intent")) or {}).get("type")
+    if isinstance(llm, dict) and llm.get("type") == "claude_agent" and intent != "nointent":
+        found.append(f"selected_module.LLM {selected.get('LLM')} needs an Intent of type nointent")
     key = llm.get("api_key") if isinstance(llm, dict) else None
     if "api_key" in (llm or {}) and (not isinstance(key, str) or not key.strip() or "你" in key):
         found.append(f"LLM.{selected.get('LLM')}.api_key is empty")

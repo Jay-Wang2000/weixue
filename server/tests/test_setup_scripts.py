@@ -82,6 +82,44 @@ def test_invalid_configs_are_reported_without_values(tmp_path, mutate, problem):
     assert "sk-test" not in result.stdout
 
 
+@pytest.mark.parametrize(
+    "voice, llm, intent",
+    [(None, "AnthropicLLM", "function_call"), ("", "AnthropicLLM", "function_call"),
+     ("anthropic", "AnthropicLLM", "function_call"), ("claude_agent", "ClaudeAgentLLM", "nointent")],
+)
+def test_voice_llm_selects_the_llm_and_intent(tmp_path, monkeypatch, voice, llm, intent):
+    monkeypatch.delenv("VOICE_LLM", raising=False)
+    text = _render() if voice is None else _render(VOICE_LLM=voice)
+    config = yaml.safe_load(text)
+    assert config["selected_module"]["LLM"] == llm and config["selected_module"]["Intent"] == intent
+    assert config["LLM"]["ClaudeAgentLLM"] == {"type": "claude_agent"}
+    assert config["LLM"]["AnthropicLLM"]["type"] == "anthropic"
+    assert _validate(tmp_path, text).returncode == 0
+
+
+def test_unknown_voice_llm_is_refused():
+    env = {**os.environ, **ENV, "VOICE_LLM": "groq"}
+    result = subprocess.run(
+        [sys.executable, str(SCRIPTS / "render_config.py"), str(SERVER_DIR / "config" / "config.template.yaml")],
+        env=env, capture_output=True, text=True,
+    )
+    assert result.returncode == 1 and "VOICE_LLM must be one of claude_agent, anthropic" in result.stderr
+
+
+def test_claude_agent_with_function_call_is_reported(tmp_path):
+    config = yaml.safe_load(_render(VOICE_LLM="claude_agent"))
+    config["selected_module"]["Intent"] = "function_call"
+    result = _validate(tmp_path, yaml.safe_dump(config, allow_unicode=True))
+    assert result.returncode == 1 and "ClaudeAgentLLM needs an Intent of type nointent" in result.stdout
+
+
+def test_agent_service_env_reaches_the_server_and_the_switch_is_documented():
+    environment = yaml.safe_load((SERVER_DIR / "docker-compose.yml").read_text())["services"]["xiaozhi-esp32-server"]["environment"]
+    assert {"AGENT_SERVICE_URL=http://${AGENT_SERVICE_HOST:-agent-service}:8010",
+            "AGENT_SERVICE_TOKEN=${AGENT_SERVICE_TOKEN:-}"} <= set(environment)
+    assert "VOICE_LLM=anthropic" in (SERVER_DIR / ".env.example").read_text().splitlines()
+
+
 def test_unparsable_yaml_is_rejected(tmp_path):
     result = _validate(tmp_path, "server: [unclosed\n  api_key: sk-secret")
     assert result.returncode == 1 and "cannot load YAML" in result.stdout

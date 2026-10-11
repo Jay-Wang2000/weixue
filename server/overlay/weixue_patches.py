@@ -82,12 +82,31 @@ def keep_decoded_text(text):
 keep_decoded_text.weixue_replacement = True
 
 
+_SESSIONS = {}
+
+
+def session_connection(session_id):
+    """The open connection whose session_id this is (LLM providers get only the session id)."""
+    return _SESSIONS.get(session_id)
+
+
+def stop_agent_stream(conn):
+    """Closes the connection's open agent-service reply stream (claude_agent provider), if any."""
+    stream = getattr(conn, "weixue_agent_stream", None)
+    if stream is not None:
+        stream.cancel()
+
+
 def register_sessions(handle_connection, proactive):
-    """Wraps ConnectionHandler.handle_connection: while it runs, a session whose device identity
-    proactive.auth verifies is registered for proactive delivery; its end is a connection event
-    and cancels a pending wake cue."""
+    """Wraps ConnectionHandler.handle_connection: while it runs, the connection is found by its
+    session_id (session_connection) and a session whose device identity proactive.auth verifies
+    is registered for proactive delivery; its end is a connection event, cancels a pending wake
+    cue and closes an open agent-service stream."""
 
     async def wrapper(self, ws):
+        session_id = getattr(self, "session_id", None)
+        if session_id:
+            _SESSIONS[session_id] = self
         device = proactive.auth.device(ws.request.headers)
         if device:
             proactive.on_session_open(device, self, ws)
@@ -96,6 +115,9 @@ def register_sessions(handle_connection, proactive):
         finally:
             note_event(self)
             cancel_wake_cue(self)
+            stop_agent_stream(self)
+            if session_id and _SESSIONS.get(session_id) is self:
+                del _SESSIONS[session_id]
             if device:
                 proactive.on_session_close(device, self)
 
@@ -237,10 +259,12 @@ def note_event(conn):
 
 
 def count_aborts(handle_abort):
-    """Wraps upstream handleAbortMessage(conn): every abort is a connection event (event_generation)."""
+    """Wraps upstream handleAbortMessage(conn): every abort is a connection event (event_generation)
+    and closes the open agent-service reply stream at once."""
 
     async def wrapper(conn, *args, **kwargs):
         note_event(conn)
+        stop_agent_stream(conn)
         return await handle_abort(conn, *args, **kwargs)
 
     wrapper.weixue_wrapped = handle_abort
@@ -460,8 +484,9 @@ def watch_sent_audio(send, first, last):
     """Wraps upstream sendAudioMessage. For the connection's current, unaborted sentence it counts
     the packets handed over (track_playback record and the transmit counters watch_transport
     attributes written packets with) and keeps each captioned sentence other than a wake cue for
-    echo_of_playback. A raised or cancelled send is a send error of the record; its LAST sets done
-    as SentencePlayback describes."""
+    echo_of_playback and, when conn.weixue_turn_metrics belongs to the sentence, in its segments.
+    A raised or cancelled send is a send error of the record; its LAST sets done as
+    SentencePlayback describes."""
 
     async def wrapper(conn, sentence_type, audios, text, sentence_id=None):
         sid = conn.sentence_id if sentence_id is None else sentence_id
@@ -471,7 +496,12 @@ def watch_sent_audio(send, first, last):
             tx = _transmit(conn, sid)
             spoken = conn.__dict__.setdefault("weixue_spoken", deque(maxlen=ECHO_SENTENCES))
             if sentence_type == first and text and sid != getattr(conn, "weixue_cue_sentence", None):
-                spoken.append({"sid": sid, "text": text, "start": tx["handed"], "end": tx["handed"], "first": None, "last": None})
+                entry = {"sid": sid, "text": text, "start": tx["handed"], "end": tx["handed"], "first": None, "last": None,
+                         "handed_at": time.monotonic()}
+                spoken.append(entry)
+                metrics = conn.__dict__.get("weixue_turn_metrics")
+                if metrics is not None and metrics.sid == sid:
+                    metrics.segments.append(entry)
             tx["handed"] += _packets(audios)
             if spoken and spoken[-1]["sid"] == sid:
                 spoken[-1]["end"] = tx["handed"]
@@ -624,6 +654,18 @@ def guard_playback_echo(start_to_chat, logger):
     return wrapper
 
 
+def note_speech_end(handle_voice_stop):
+    """Wraps ASRProviderBase.handle_voice_stop: the VAD's end of utterance is kept as
+    conn.weixue_speech_end (monotonic time) for the turn's latency line."""
+
+    async def wrapper(self, conn, *args, **kwargs):
+        conn.weixue_speech_end = time.monotonic()
+        return await handle_voice_stop(self, conn, *args, **kwargs)
+
+    wrapper.weixue_wrapped = handle_voice_stop
+    return wrapper
+
+
 def bind_device_auth(init, proactive):
     """Wraps SimpleHttpServer.__init__: proactive device requests use the server.auth of its config."""
 
@@ -659,6 +701,9 @@ def apply_playback_guards(proactive, logger):
             module.handleAbortMessage = count_aborts(handle_abort)
     if getattr(asr_base.startToChat, "weixue_wrapped", None) is None:
         asr_base.startToChat = guard_playback_echo(asr_base.startToChat, logger)
+    voice_stop = asr_base.ASRProviderBase.handle_voice_stop
+    if getattr(voice_stop, "weixue_wrapped", None) is None:
+        asr_base.ASRProviderBase.handle_voice_stop = note_speech_end(voice_stop)
     server = http_server.SimpleHttpServer
     if getattr(server.__init__, "weixue_wrapped", None) is None:
         server.__init__ = bind_device_auth(server.__init__, proactive)

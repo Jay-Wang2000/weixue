@@ -37,6 +37,20 @@ _ABBREVIATIONS = frozenset(
     "jan feb mar apr jun jul aug sep sept oct nov dec fig".split()
 )
 _CANCEL_POLL_S = 0.05
+# First segment of a reply (first_clause): cut at the earliest clause or sentence mark whose prefix holds
+# FIRST_CLAUSE_WORDS English words or FIRST_CLAUSE_HAN Chinese characters; without one, once the text holds
+# FIRST_CUT_WORDS words (cut at the last word boundary) or FIRST_CUT_HAN characters.
+FIRST_CLAUSE_WORDS = 2
+FIRST_CLAUSE_HAN = 4
+FIRST_CUT_WORDS = 8
+FIRST_CUT_HAN = 12
+_CLAUSE_MARKS = frozenset("，,、：:；;。.!?！？…—")
+_MARK_RUN = frozenset(".!?…。！？")
+_CLOSERS = frozenset("\"'”’)]）」』")
+_DIGIT_MARKS = frozenset(".,:")
+_HAN = re.compile(r"[\u3400-\u9fff]")
+_WORD = re.compile(r"[A-Za-z0-9]+(?:['’][A-Za-z]+)*")
+_WORD_THEN_SPACE = re.compile(r"[A-Za-z0-9]+(?:['’][A-Za-z]+)*(?=\s)")
 
 
 def _english_sentence_end(text):
@@ -50,6 +64,43 @@ def _english_sentence_end(text):
             continue
         end = match.end()
     return end
+
+
+def _abbreviation_before(text, i):
+    word = _LAST_WORD.search(text[:i])
+    token = word.group(1).lstrip("([\"'“‘").lower() if word else ""
+    return token in _ABBREVIATIONS or (len(token) == 1 and token.isalpha())
+
+
+def _holds(prefix, words, han):
+    return len(_WORD.findall(prefix)) >= words or len(_HAN.findall(prefix)) >= han
+
+
+def first_clause_cut(text):
+    """Index just past the first segment of a reply in text (the first_clause rule), 0 when it is not
+    complete yet. A `.` counts when whitespace, a closer or the end of the text follows it and it does
+    not end an abbreviation or initial; `.`, `,` and `:` after a digit never count before a non-digit
+    follows."""
+    for i, ch in enumerate(text):
+        if ch not in _CLAUSE_MARKS:
+            continue
+        prev = text[i - 1] if i else ""
+        nxt = text[i + 1] if i + 1 < len(text) else ""
+        if ch in _DIGIT_MARKS and prev.isdigit() and (nxt == "" or nxt.isdigit()):
+            continue
+        if ch == "." and ((nxt and not nxt.isspace() and nxt not in _CLOSERS and nxt != ".")
+                          or _abbreviation_before(text, i)):
+            continue
+        end = i + 1
+        while end < len(text) and (text[end] in _MARK_RUN or text[end] in _CLOSERS):
+            end += 1
+        if _holds(text[:end], FIRST_CLAUSE_WORDS, FIRST_CLAUSE_HAN):
+            return end
+    if len(_HAN.findall(text)) >= FIRST_CUT_HAN:
+        return len(text)
+    if len(_WORD_THEN_SPACE.findall(text)) >= FIRST_CUT_WORDS:
+        return _word_cut(text, len(text))
+    return 0
 
 
 def _word_cut(text, limit):
@@ -132,6 +183,7 @@ class TTSProvider(TTSProviderBase):
             self.voice_zh if self.default_language == "zh" else self.voice_en
         )
         self.speaking_rate = float(config.get("speaking_rate") or 1.0)
+        self.first_clause = str(config.get("first_clause", True)).lower() not in ("false", "0", "no", "off")
         self._apply_percentage_params(config)
         self.sample_rate = 24000
         self.credentials_file = config.get("credentials_file")
@@ -241,6 +293,14 @@ class TTSProvider(TTSProviderBase):
             self._process_before_stop_play_files()
 
     def _get_segment_text(self):
+        if self.first_clause and self.is_first_sentence:
+            current = "".join(self.tts_text_buff)[self.processed_chars :]
+            cut = first_clause_cut(current)
+            if not cut:
+                return None
+            self.processed_chars += cut
+            self.is_first_sentence = False
+            return textUtils.get_string_no_punctuation_or_emoji(current[:cut])
         segment = super()._get_segment_text()
         if segment is not None:
             return segment

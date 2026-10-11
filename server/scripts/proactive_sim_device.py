@@ -5,7 +5,9 @@ streams silence and optionally a 16 kHz mono WAV reply after the first `tts stop
 wake-word `listen detect` with TEXT. After a poll's 200 the invocation is `weixue:proactive`, as the
 firmware sends it, or with --bind `weixue:proactive:<id>:<lease>` from the poll answer;
 --invoke-delay waits before opening the session. --abort-after S sends `abort` S seconds after the
-detect. Requests carry Device-Id and Client-Id, plus Authorization when --token is given."""
+detect. Requests carry Device-Id and Client-Id, plus Authorization when --token is given.
+--mcp-tools answers the server's device MCP (initialize, tools/list with SIM_TOOLS, tools/call, each
+call logged as `mcp call <name> <args>`)."""
 import argparse
 import asyncio
 import json
@@ -29,6 +31,37 @@ def frames_from_wav(path):
 def log(*a):
     print(time.strftime("%H:%M:%S"), *a, flush=True)
 
+SIM_TOOLS = [
+    {"name": "self.get_device_status", "description": "Device status.", "inputSchema": {"type": "object", "properties": {}}},
+    {"name": "self.audio_speaker.set_volume", "description": "Set the volume.",
+     "inputSchema": {"type": "object", "properties": {"volume": {"type": "integer"}}, "required": ["volume"]}},
+    {"name": "self.screen.set_bedside", "description": "Bedside screen: mode night|day|auto|status.",
+     "inputSchema": {"type": "object", "properties": {"mode": {"type": "string"}}}},
+    {"name": "self.diag.gesture", "description": "Operator-only injection.",
+     "inputSchema": {"type": "object", "properties": {"name": {"type": "string"}}}},
+]
+
+def mcp_result(payload):
+    """The JSON-RPC result for a server request, or None when it needs no answer."""
+    method = payload.get("method")
+    if method == "initialize":
+        return {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}, "serverInfo": {"name": "sim-device", "version": "1"}}
+    if method == "tools/list":
+        return {"tools": SIM_TOOLS}
+    if method == "tools/call":
+        params = payload.get("params") or {}
+        name, args = params.get("name"), params.get("arguments") or {}
+        log("mcp call", name, json.dumps(args, sort_keys=True))
+        if name == "self.screen.set_bedside":
+            mode = args.get("mode", "status")
+            state = {"night": mode == "night", "showing": False, "hint": mode, "window": "22:00-07:00"}
+        elif name == "self.audio_speaker.set_volume":
+            state = {"volume": args.get("volume")}
+        else:
+            state = {"ok": True}
+        return {"content": [{"type": "text", "text": json.dumps(state)}], "isError": False}
+    return None
+
 async def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default="http://127.0.0.1:18003")
@@ -47,6 +80,7 @@ async def main():
     ap.add_argument("--bind", action="store_true", help="invoke with the id and lease of the poll answer")
     ap.add_argument("--invoke-delay", type=float, default=0, help="seconds between the poll's 200 and the session")
     ap.add_argument("--abort-after", type=float, default=None, help="send abort this many seconds after the detect")
+    ap.add_argument("--mcp-tools", action="store_true", help="answer device MCP requests with SIM_TOOLS")
     a = ap.parse_args()
     ident = {"Device-Id": a.device, "Client-Id": a.client_id}
     if a.token:
@@ -119,6 +153,11 @@ async def main():
                     continue
                 m = json.loads(msg)
                 if m.get("type") == "mcp":
+                    payload = m.get("payload") or {}
+                    result = mcp_result(payload) if a.mcp_tools else None
+                    if result is not None:
+                        await ws.send(json.dumps({"session_id": sid, "type": "mcp",
+                                                  "payload": {"jsonrpc": "2.0", "id": payload.get("id"), "result": result}}))
                     continue
                 log("<<", json.dumps({k: v for k, v in m.items() if k != "session_id"}, ensure_ascii=False), f"(audio frames so far {state['audio']})")
                 if m.get("type") == "tts" and m.get("state") == "stop":

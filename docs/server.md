@@ -58,6 +58,8 @@ Changes to upstream functions that are too small to justify overriding a whole m
 - `core.providers.asr.base.startToChat` is wrapped as the echo guard (see Echo guard); a transcript that passes it is a connection event and cancels a pending wake cue.
 - `SimpleHttpServer.__init__` is wrapped so proactive device requests use its `server.auth` (`docs/proactive.md`, Device identity).
 - `MCPClient.add_tool` and `call_mcp_tool` (in `device_mcp.mcp_handler`, `mcp_executor` and the package) are wrapped (`weixue_device_tools.py`): only agent-visible device tools enter the model's function list or are called on the device (`docs/agent-protocol.md`, Device tools).
+- `ConnectionHandler.handle_connection` also keeps the connection findable by its `session_id` while it runs (`session_connection`, used by the `claude_agent` provider) and closes the connection's open agent-service stream when the session ends; the `handleAbortMessage` wrapper closes that stream on every abort.
+- `ASRProviderBase.handle_voice_stop` is wrapped to keep the VAD's end of utterance as the turn's speech end (`turn_latency`, below); the playback record adds each captioned segment of a `claude_agent` turn to that turn's metrics.
 
 ## Conversation timing (ADR-7)
 
@@ -142,7 +144,60 @@ Switch back to batch recognition with `selected_module.ASR: GoogleSTT` in `confi
 
 ## Google Cloud TTS (`TTS.GoogleTTS`, `type: google_tts`)
 
-`server/overlay/core/providers/tts/google_tts.py`: Chirp 3 HD, one speaker for both locales (`speaker`, default `Charon`): CJK text goes to `cmn-CN-Chirp3-HD-<speaker>`, Latin text to `en-US-Chirp3-HD-<speaker>`, anything else to `default_language` (`en` | `zh`). The streaming path uses `streaming_synthesize` with raw PCM at the connection sample rate, one request per text segment, 60 ms Opus frames. Besides upstream's punctuation, a segment ends at an English sentence end (`.`/`…` followed by whitespace; abbreviations such as "Dr." and single-letter initials excluded, decimals never match), and unpunctuated text is cut at a word boundary once it exceeds 250 characters. A request is split to at most 5,000 UTF-8 bytes, preferring a sentence end, then a clause mark, then whitespace, then a character boundary. Each streaming call is cancelled within 50 ms of an abort, a newer turn (`sentence_id`) or `close()`, also while the first response is pending; a cancellation the provider did not request is logged as an error and still ends the turn; the sync path (`to_tts`, wake-word cache) uses `LINEAR16`. `speaking_rate` (0.25-2.0, or the `ttsRate` percentage) is the only streaming-path knob. A relative `credentials_file` resolves against the server directory; without one the client uses `GOOGLE_APPLICATION_CREDENTIALS`.
+`server/overlay/core/providers/tts/google_tts.py`: Chirp 3 HD, one speaker for both locales (`speaker`, default `Charon`): CJK text goes to `cmn-CN-Chirp3-HD-<speaker>`, Latin text to `en-US-Chirp3-HD-<speaker>`, anything else to `default_language` (`en` | `zh`). The streaming path uses `streaming_synthesize` with raw PCM at the connection sample rate, one request per text segment, 60 ms Opus frames. The first segment of a reply follows `first_clause` (default `true`): it ends at the earliest clause or sentence mark (`， , 、 ： : ； ; 。 . ! ? ！ ？ … —`) whose prefix holds at least 2 English words or 4 Chinese characters (a `.` counts when whitespace, a closing quote or bracket, or the end of the text follows it and it ends no abbreviation or single-letter initial; `.`, `,` and `:` after a digit wait for the next character); without one it ends at the last word boundary once the text holds 8 words, or at once with 12 Chinese characters. So "On it." and "Let me check." go to synthesis as soon as they arrive. `first_clause: false` restores the rule below for the first segment too. For later segments, besides upstream's punctuation, a segment ends at an English sentence end (`.`/`…` followed by whitespace; abbreviations such as "Dr." and single-letter initials excluded, decimals never match), and unpunctuated text is cut at a word boundary once it exceeds 250 characters. A request is split to at most 5,000 UTF-8 bytes, preferring a sentence end, then a clause mark, then whitespace, then a character boundary. Each streaming call is cancelled within 50 ms of an abort, a newer turn (`sentence_id`) or `close()`, also while the first response is pending; a cancellation the provider did not request is logged as an error and still ends the turn; the sync path (`to_tts`, wake-word cache) uses `LINEAR16`. `speaking_rate` (0.25-2.0, or the `ttsRate` percentage) is the only streaming-path knob. A relative `credentials_file` resolves against the server directory; without one the client uses `GOOGLE_APPLICATION_CREDENTIALS`.
+
+## Voice LLM switch (`VOICE_LLM`)
+
+`VOICE_LLM` in `server/.env` selects the voice LLM path when `scripts/render_config.py` renders the config (default `anthropic`; `setup.sh` applies a change):
+
+| `VOICE_LLM` | `selected_module.LLM` | `selected_module.Intent` | Voice path |
+|---|---|---|---|
+| `anthropic` | `AnthropicLLM` | `function_call` | xiaozhi's own tool loop: Anthropic Messages API, mcp-bridge voice tools, device MCP tools |
+| `claude_agent` | `ClaudeAgentLLM` | `nointent` | every turn goes to agent-service (`docs/agent-service.md`); HA calls and device actions run there |
+
+`validate_config.py` refuses a `claude_agent` LLM under any Intent but `nointent`. Under `claude_agent` the following stay in the tree, selectable for rollback with `VOICE_LLM=anthropic`, and have no effect: `decode_direct_answer`, `keep_decoded_text`, `_hex4`, `_RESPONSE_VALUE` and `_JSON_ESCAPES` in `weixue_patches.py` (`direct_answer` exists only under `function_call`); `overlay/core/providers/llm/anthropic/anthropic.py`; the bridge's voice tool path (`mcp-bridge/weixue_bridge/voice_filter.py`, `policy/voice_bridge.json`); the MCP endpoint executor's timeouts on the voice path. The bridge keeps running for its health check and the monitor. Every other patch in `weixue_patches.py` applies to both paths.
+
+## LLM: agent-service gateway (`LLM.ClaudeAgentLLM`, `type: claude_agent`)
+
+`server/overlay/core/providers/llm/claude_agent/claude_agent.py`. Upstream `chat()` calls `response()` and treats every yield as reply text. The provider sends only the last user message: agent-service keeps the conversation, and xiaozhi's local `dialogue` is not used. `response()` runs in `chat()`'s executor thread and reads a queue that an `AgentTurn` coroutine on the connection's event loop fills (aiohttp). URL and bearer are `AGENT_SERVICE_URL` and `AGENT_SERVICE_TOKEN` from the container environment; neither is in `.config.yaml`.
+
+- **Request**: `POST {AGENT_SERVICE_URL}/v1/chats/current/messages`, `Accept: text/event-stream`, `Idempotency-Key: <device>:<session_id>:<turn seq>`, a new 32-hex `X-Trace-Id`; body `{device_id, text, lang, origin: {kind: "voice", gateway_session_id, turn_seq}}`; `lang` from the STT language of the utterance, else `zh` for Chinese text, `en` for Latin text, else `auto`. Connect timeout 2 s, read timeout 6 s (`STALL_S`, three missed `: hb` frames).
+- **Chat**: always `current`. When the device's `switch_chat` or `new_chat` post to agent-service is still in flight (`ServiceSink.pending_switch`), the request waits for it up to 1 s (`SWITCH_WAIT_S`).
+- **Stream**: each `text` delta of the turn (`turn_id` of `accepted`) is yielded as it arrives; each heartbeat yields `""`, so `chat()` re-checks `client_abort` at least every 2 s. The turn ends at the `reply_end` of its `reply_id`, whatever its reason (`turn_done`, `hold_elapsed`, `ack`, `question`, `gateway_closed`); then `chat()` sends LAST and the normal 8 s no-voice window runs. The provider speaks nothing of its own while the stream is alive.
+- **Barge-in**: an abort (`handleAbortMessage`: wake, tap, IMU, or a transcript while the server holds the turn), a newer `chat()` on the connection and the end of the session close the open stream at once from the event loop; text not yet yielded is dropped, and a stream of a superseded `sentence_id` yields nothing more. agent-service handles the closed stream as `gateway_closed` (`docs/agent-service.md`, Steer, cancel, barge-in); the next utterance is the next request. The provider never calls `/interrupt`.
+- **device_action**: a `device_action` event `{action_id, tool, args}` on the turn's stream runs the device MCP tool on the connection (`call_mcp_tool`, 6 s) when `tool` is agent-visible (`weixue_device_tools.AGENT_VISIBLE_DEVICE_TOOLS`, DESIGN.md ADR-13), and posts `{ok, result | error}` to `/v1/chats/{chat}/device_actions/{action_id}`. Any other tool is refused without reaching the device. Logged as `device_action <tool> ok=<bool> action=<id> trace=<trace>`.
+- `response_no_stream` (memory and intent providers) returns `""`: the provider serves voice turns only.
+
+Errors (one log line each, never the token):
+
+| Case | Action |
+|---|---|
+| Connect error or 5xx (not 503 with `detail.speak`) before the stream opens, or a stream that ends before `accepted` | one retry after 300 ms with the same Idempotency-Key, then the fallback line |
+| 503 with `detail.speak` (busy) | that line; no retry; not a breaker failure |
+| 400, 401, 404, 409, 429 | the fallback line |
+| Read stall (6 s) or drop after `accepted` | once: `GET /v1/chats/{chat}/events?after=<last seq>`, this turn's text until its `reply_end`; a resumed `reply_end` of `gateway_closed`, or a second stall or drop, speaks the fallback line |
+| 3 failures within 60 s | breaker: for 30 s no request, the fallback line at once; `breaker open` / `breaker closed` log lines |
+
+The fallback line is "I can't reach my assistant right now." / 「我暂时连不上助手。」, or "Sorry, I lost the connection." / 「抱歉，连接断了。」 once reply text was spoken. It goes into the turn's sentence (`sentence_id`) directly and never into the dialogue history.
+
+Per turn, once its audio finished (or the turn was superseded, aborted or 120 s passed), one line:
+
+```
+turn_latency trace=<hex> chat=<id> routed=<routed> reply_end=<reason|fallback|busy|breaker|closed> stt_final_latency_ms=<ms> service_first_text_ms=<ms> tts_first_audio_ms=<ms> total_ms=<ms> answer_audio_ms=<ms> reply_end_ms=<ms>
+```
+
+| Key | From → to |
+|---|---|
+| `stt_final_latency_ms` | VAD end of utterance → final transcript (`GoogleSTTStream` value of the utterance) |
+| `service_first_text_ms` | request sent → first non-empty `text` |
+| `tts_first_audio_ms` | first segment handed to TTS → its first audio packet written to the device |
+| `total_ms` | VAD end of utterance → first audio packet written |
+| `answer_audio_ms` | VAD end of utterance → first packet of the first segment after the turn's last Home Assistant or server tool (`progress` phase `tool`); equals `total_ms` without one |
+| `reply_end_ms` | request sent → `reply_end` |
+
+`-` marks a value the turn does not have (no utterance timing for a text turn, no audio after an abort).
+
+Sim rounds: `server/sim/agent_scenarios.sh live` sends "What time is it?" from the scripted ASR through the deployed agent-service (the sim server joins the live compose network; nothing there restarts); `branch` builds this tree's agent-service beside the sim server and adds "Set bedside mode." (`device_action` → the sim device's MCP `tools/call`, `proactive_sim_device.py --mcp-tools`) and a stopped service (fallback line). Compose project `weixue-agent-sim`, `127.0.0.1:18200/18203`, config `server/sim/agent.config.yaml`.
 
 ## LLM: Anthropic Claude (`LLM.AnthropicLLM`, `type: anthropic`)
 
@@ -189,7 +244,7 @@ After all five pass it copies `.env` to `.env.deployed` (0600). If the recreate 
 
 The endpoint key (`data/mcp-endpoint/.mcp-endpoint-server.cfg`), the URL derived from it and its two consumers (`mcp_endpoint` in `data/.config.yaml` and `data/mcp-bridge/endpoint-url`) are one deployment unit: `setup.sh` copies the key file and the URL file to `.rollback` (0600) before it starts `mcp-endpoint-server`; a rollback restores both with the config and, when the key changed during the attempt, recreates `mcp-endpoint-server` with the restored key. A successful run removes those two copies. If that second recreate also fails, the stack is down: it prints a `manual restore:` block (retag each `:rollback` image to `:local`, then `docker compose [--profile …] up -d --force-recreate …` from `server/`) and exits 1. `docker-compose.yml` is not rolled back; without `.env.deployed` (first run) neither is `.env`. Logs: `docker logs -f xiaozhi-esp32-server`.
 
-Providers: VAD SileroVAD, ASR `GoogleSTTStream` (batch `GoogleSTT` stays configured), LLM `AnthropicLLM`, TTS `GoogleTTS`. Upstream `FunASR` (SenseVoiceSmall, local), `EdgeTTS` and the OpenAI-compatible `StopgapLLM` (Groq, `LLM_*` in `.env`) stay configured and are selected by editing `selected_module`. `wakeup_words` adds `Jarvis` to the upstream list.
+Providers: VAD SileroVAD, ASR `GoogleSTTStream` (batch `GoogleSTT` stays configured), LLM `AnthropicLLM` or `ClaudeAgentLLM` (`VOICE_LLM`), TTS `GoogleTTS`. Upstream `FunASR` (SenseVoiceSmall, local), `EdgeTTS` and the OpenAI-compatible `StopgapLLM` (Groq, `LLM_*` in `.env`) stay configured and are selected by editing `selected_module`. `wakeup_words` adds `Jarvis` to the upstream list.
 
 Optional web console (MySQL + Redis + manager-web, port 8002): set `MYSQL_ROOT_PASSWORD` in `.env`, then `docker compose --profile console up -d`. Not validated.
 

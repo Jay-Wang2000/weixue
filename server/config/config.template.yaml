@@ -36,9 +36,9 @@ wakeup_words:
 selected_module:
   VAD: SileroVAD
   ASR: GoogleSTTStream
-  LLM: AnthropicLLM
+  LLM: @@VOICE_LLM_MODULE@@
   TTS: GoogleTTS
-  Intent: function_call
+  Intent: @@VOICE_INTENT@@
 
 LLM:
   StopgapLLM:
@@ -56,6 +56,8 @@ LLM:
     thinking: adaptive
     timeout: 60
     max_retries: 1
+  ClaudeAgentLLM:
+    type: claude_agent
 
 ASR:
   GoogleSTTStream:
@@ -92,6 +94,7 @@ TTS:
     speaker: Charon
     default_language: en
     speaking_rate: 1.0
+    first_clause: true
     output_dir: tmp/
 
 mcp_endpoint: "@@MCP_ENDPOINT@@"
