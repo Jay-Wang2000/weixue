@@ -100,9 +100,9 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 ## Morning report 2026-10-11 (for Jay)
 
-**Progress overnight**: all M2 build tasks merged via PRs #1–#10 and deployed; board on main. Live stack: xiaozhi gateway (legacy voice provider still selected), agent-service, agent-monitor (127.0.0.1:8020), bridge, endpoint. Codex M2 review: FIX-FIRST — 3 P1 / 13 P2, no self-approval or operator-tool path found in release; two fix tasks are running under the heavy gate (service: ownership evidence, unknown-execution disposition, secret scrubbing in the data path, notify delivery, ack monotonicity; gateway: partial-STT-as-command, decision receipts after service acceptance, durable speech handoff, restart recovery, INTERRUPT tier, setup.sh transaction, lease-bound invocation).
+**Progress overnight**: all M2 build tasks merged via PRs #1–#10, then both Codex M2 fix tasks merged (#11 service, #12 gateway) and deployed; board flashed with the matching firmware (04:45). Live stack healthy. Live stack: xiaozhi gateway (legacy voice provider still selected), agent-service, agent-monitor (127.0.0.1:8020), bridge, endpoint. Codex M2 review: FIX-FIRST — 3 P1 / 13 P2, no self-approval or operator-tool path found in release; two fix tasks are running under the heavy gate (service: ownership evidence, unknown-execution disposition, secret scrubbing in the data path, notify delivery, ack monotonicity; gateway: partial-STT-as-command, decision receipts after service acceptance, durable speech handoff, restart recovery, INTERRUPT tier, setup.sh transaction, lease-bound invocation).
 
-**Blockers**: none technical. The voice path switch (VOICE_LLM=claude_agent) and M2 acceptance wait for the two fix tasks + the audio session with you.
+**Blockers**: none technical. The voice path switch (VOICE_LLM=claude_agent) and M2 acceptance wait only for the audio session with you (scripts/audio_session.sh, ~20 min) and the E2E checklist from the review.
 
 **Decisions needed (user-facing / external / security)**:
 - 47 ha-mcp HTTP transport diagnostics (A recommended).
@@ -114,7 +114,7 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 - 56 (Codex Q3) voice chat-switch commands ("switch to X", "new chat"): keep in M2 or defer to M3 (recommended: defer; tap switching exists).
 - 57 (Codex Q6) which reversible held HA action closes the real approval gate (needs a held tool in your policy; the light is free) and the audio window.
 
-**Next**: merge the two fix tasks → small spec-reconciliation pass → audio session (`scripts/audio_session.sh`, ~20 min, you nearby) incl. first-audio timing on the real device → flip VOICE_LLM → M2 end-to-end checklist (review §"milestone end-to-end session must verify") → M2 closed → Ubuntu move planning.
+**Next**: audio session (`scripts/audio_session.sh`, ~20 min, you nearby) incl. first-audio timing on the real device → flip VOICE_LLM → M2 end-to-end checklist (review §"milestone end-to-end session must verify") → M2 closed → Ubuntu move planning.
 
 ## M2 status 2026-10-11 03:00
 - All M2 build tasks merged (PRs #1-#10); Codex M2 review = FIX-FIRST (3 P1, 13 P2) → fix-m2-review-service / fix-m2-review-gateway running under the heavy gate. The voice path stays on the legacy provider (VOICE_LLM=anthropic) until those merge and the audio session passes.
