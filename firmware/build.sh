@@ -12,6 +12,7 @@ build_name=esp32-s3-touch-amoled-1.75c-weixue
 language=en-US
 wake_word=wn9_jarvis_tts
 face_diag="${WEIXUE_FACE_DIAG:-0}"
+audio_debug_udp="${WEIXUE_AUDIO_DEBUG_UDP:-}"
 
 die() { echo "error: $*" >&2; exit 1; }
 [ -z "${WEIXUE_AGENT_LOOPBACK:-}" ] || die "WEIXUE_AGENT_LOOPBACK is not supported; fixture runs use WEIXUE_FACE_DIAG=1"
@@ -42,6 +43,20 @@ diag_want="#define WEIXUE_FACE_DIAG $face_diag"
 [ "$(cat "$diag_h" 2>/dev/null)" = "$diag_want" ] || echo "$diag_want" > "$diag_h"
 echo "face_diag: $face_diag"
 cp "$root/firmware/board/config.weixue.json" "$work/main/boards/$board_dir/config.weixue.json"
+if [ -n "$audio_debug_udp" ]; then
+  # Diag builds only: the raw microphone + reference input is sent as UDP to this host:port.
+  [ "$face_diag" = 1 ] || die "WEIXUE_AUDIO_DEBUG_UDP needs WEIXUE_FACE_DIAG=1"
+  [[ "$audio_debug_udp" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}:[0-9]{1,5}$ ]] || die "WEIXUE_AUDIO_DEBUG_UDP must be <ipv4>:<port>"
+  python3 - "$work/main/boards/$board_dir/config.weixue.json" "$audio_debug_udp" <<'PY'
+import json, sys
+path, addr = sys.argv[1], sys.argv[2]
+cfg = json.load(open(path))
+for b in cfg["builds"]:
+    b["sdkconfig_append"] += ["CONFIG_USE_AUDIO_DEBUGGER=y", f'CONFIG_AUDIO_DEBUG_UDP_SERVER="{addr}"']
+json.dump(cfg, open(path, "w"), indent=4)
+PY
+fi
+echo "audio_debug_udp: ${audio_debug_udp:-off}"
 cp "$root/firmware/dependencies.lock" "$work/dependencies.lock"
 shopt -s nullglob
 for patch in "$root"/firmware/patches/*.patch; do
@@ -66,6 +81,11 @@ for want in CONFIG_SR_WN_WN9_JARVIS_TTS=y CONFIG_USE_AFE_WAKE_WORD=y CONFIG_LANG
             'CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions/v2/32m.csv"'; do
   grep -qxF "$want" sdkconfig || die "sdkconfig lacks $want"
 done
+if [ -n "$audio_debug_udp" ]; then
+  grep -qxF "CONFIG_AUDIO_DEBUG_UDP_SERVER=\"$audio_debug_udp\"" sdkconfig || die "sdkconfig lacks the audio debugger address"
+else
+  ! grep -qxF CONFIG_USE_AUDIO_DEBUGGER=y sdkconfig || die "sdkconfig has CONFIG_USE_AUDIO_DEBUGGER=y without WEIXUE_AUDIO_DEBUG_UDP"
+fi
 wn="$(grep -E '^CONFIG_SR_WN_.*=y$' sdkconfig || true)"
 [ "$wn" = "CONFIG_SR_WN_WN9_JARVIS_TTS=y" ] || die "unexpected wake word models: $wn"
 ota_want="$(python3 -c 'import json,sys

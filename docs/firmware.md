@@ -35,6 +35,8 @@ xiaozhi-esp32 2.5.1 (vendored clone pinned in `vendor.lock`) built for the Waves
 | `diag_input.h` (board directory), `firmware/patches/33-board-diag-injection.patch` | Diag build only: injected gestures, touches and BOOT clicks from the USB serial console and device MCP tools (see Diag injection) |
 | `firmware/tools/diag_inject.py` | Serial console owner that logs the console and injects diag commands from a script, a control socket or the command line (see Diag injection) |
 | `scripts/audio_session.sh`, `scripts/audio_session.py`, `scripts/session_tts.py` | Scripted device session: diag build flashed, Google TTS clips played with `afplay` and injected gestures, results table in `docs/logs/session-<date>.md`, release build flashed back (see Diag injection) |
+| `firmware/overrides/main/weixue_audio_tune.h`, `firmware/patches/37-audio-tune-diag.patch` | Microphone tuning: `BoxAudioCodec::SetInputGain` applies to the open input, a requested WakeNet threshold is applied by the AFE processing task (and again on every WakeNet enable); set only from the diag console (`diag audio`, see Diag injection) |
+| `scripts/spike_whisper.py` | Whisper spike driver: proxy-whisper clips, device trials, silence runs and offline analysis of the captured microphone (`docs/logs/spike-whisper-2026-10-11.md`) |
 | `firmware/tools/usb_provision.py`, `firmware/tests/test_usb_provision.py` | Wi-Fi credentials and OTA URL override written into the `nvs` partition over USB (see Provisioning over USB) |
 
 ## Build
@@ -46,6 +48,8 @@ firmware/build.sh            # prints build_seconds, binary sizes, the manifest 
 Each checkout (main or a task worktree) builds in its own scratch copy, `~/Projects/weixue-vendor/fw-work/<checkout dir name>` (for example `fw-work/weixue-wt-feat-firmware-base`), so parallel tasks never share build state. The first build of a scratch copy is a full build and downloads managed components from components.espressif.com. The mirror keeps the generated `main/assets/lang_config.h`; ninja regenerates it when the language or its `language.json` changes. `build.sh` stops with `dependencies.lock differs` when the component manager resolved different managed components than `firmware/dependencies.lock`, and writes no manifest; after an intentional component update, copy `<work_dir>/dependencies.lock` to `firmware/dependencies.lock`, commit it and rebuild. Changing the backend address means editing `CONFIG_OTA_URL` in `firmware/board/config.weixue.json` and rebuilding.
 
 `WEIXUE_FACE_DIAG=1 firmware/build.sh` builds the face diagnostics in (see Face); without it `build.sh` builds them out. The flag is written to the scratch copy's `face_diag.h`, so switching it recompiles only the face sources.
+
+`WEIXUE_FACE_DIAG=1 WEIXUE_AUDIO_DEBUG_UDP=<ipv4>:<port> firmware/build.sh` also enables the upstream audio debugger (`CONFIG_USE_AUDIO_DEBUGGER`): every microphone read (16 kHz, interleaved microphone and playback reference, int16) is sent as one UDP datagram to that address, in idle as well. `build.sh` refuses the knob without `WEIXUE_FACE_DIAG=1` and fails a build without it whose sdkconfig has the debugger on.
 
 ## Source patches
 
@@ -272,6 +276,7 @@ Diag build only (`WEIXUE_FACE_DIAG=1`; the release build has no injection code a
 | `diag volume <0-100>` | Output volume for this boot on the main task; the stored volume is kept for the next boot | `Volume diag: output volume <n> this boot (stored <m> kept)` |
 | `diag bedside night\|day\|auto` | `FaceDisplay::SetBedsideHint`, the RAM hint the `self.screen.set_bedside` tool sets | `bedside hint=<hint> local=<HH:MM>` |
 | `diag dump` | `{"device_state","panel_off","brightness","display":{mode,mood,ring,bedside,panel,page,card,chats},"imu":<self.imu.get_state>}` and a screen dump (`FACEDUMP`) at the next face tick | |
+| `diag audio gain <0-37.5>`, `diag audio wakenet <0.4-0.9999\|default>`, `diag audio` | ES7210 microphone PGA gain in dB (board default 30), applied at once; WakeNet threshold for this boot (`wn9_jarvis_tts` model default 0.627 for DET_MODE_90) | `AudioCodec: Set input gain to <g>`, `AfeAudioEngine: WakeNet threshold <t> (set)` / `model default (reset)`; the answer is `{"input_gain","wakenet","output_volume"}` |
 
 Serial: the `diag_console` task reads the USB Serial/JTAG receive FIFO (the console port, `/dev/cu.usbmodem*`) every 20 ms; one command per line (at most 120 bytes), answered `DiagConsole: ok <line>: <result>` or `DiagConsole: error <line>: <reason>`; `diag help` lists the commands.
 

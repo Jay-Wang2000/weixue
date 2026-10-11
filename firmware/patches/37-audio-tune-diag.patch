@@ -1,0 +1,179 @@
+diff --git a/main/audio/codecs/box_audio_codec.cc b/main/audio/codecs/box_audio_codec.cc
+index 5210ecb..0bc7ff2 100644
+--- a/main/audio/codecs/box_audio_codec.cc
++++ b/main/audio/codecs/box_audio_codec.cc
+@@ -190,6 +190,19 @@ void BoxAudioCodec::SetOutputVolume(int volume) {
+     AudioCodec::SetOutputVolume(volume);
+ }
+ 
++// Applies to the open input at once and to every later EnableInput(true).
++void BoxAudioCodec::SetInputGain(float gain) {
++    std::lock_guard<std::mutex> lock(data_if_mutex_);
++    AudioCodec::SetInputGain(gain);
++    if (input_enabled_) {
++        int ret = esp_codec_dev_set_in_channel_gain(
++            input_dev_, ESP_CODEC_DEV_MAKE_CHANNEL_MASK(0), input_gain_);
++        if (ret != ESP_CODEC_DEV_OK) {
++            ESP_LOGW(TAG, "Input gain %.1f not applied: %d", input_gain_, ret);
++        }
++    }
++}
++
+ void BoxAudioCodec::EnableInput(bool enable) {
+     std::lock_guard<std::mutex> lock(data_if_mutex_);
+     if (enable == input_enabled_) {
+diff --git a/main/audio/codecs/box_audio_codec.h b/main/audio/codecs/box_audio_codec.h
+index 3f85ed5..a1a82d8 100644
+--- a/main/audio/codecs/box_audio_codec.h
++++ b/main/audio/codecs/box_audio_codec.h
+@@ -38,6 +38,7 @@ public:
+     virtual ~BoxAudioCodec();
+ 
+     virtual void SetOutputVolume(int volume) override;
++    virtual void SetInputGain(float gain) override;
+     virtual void EnableInput(bool enable) override;
+     virtual void EnableOutput(bool enable) override;
+ };
+diff --git a/main/audio/engines/afe_audio_engine.cc b/main/audio/engines/afe_audio_engine.cc
+index 2ce3cc1..badf5ee 100644
+--- a/main/audio/engines/afe_audio_engine.cc
++++ b/main/audio/engines/afe_audio_engine.cc
+@@ -12,6 +12,7 @@
+ 
+ #include "audio_service.h"
+ #include "wake_words/custom_wake_word.h"
++#include "weixue_audio_tune.h"
+ 
+ #define TAG "AfeAudioEngine"
+ 
+@@ -378,6 +379,7 @@ void AfeAudioEngine::ApplyAfeControls() {
+     if (wake_detector_ == WakeDetector::kWakeNet) {
+         if (bits & kWakeWordEnabled) {
+             afe_iface_->enable_wakenet(afe_data_);
++            ApplyWakeNetThreshold();
+         } else {
+             afe_iface_->disable_wakenet(afe_data_);
+         }
+@@ -393,6 +395,18 @@ void AfeAudioEngine::ApplyAfeControls() {
+     }
+ }
+ 
++void AfeAudioEngine::ApplyWakeNetThreshold() {
++    const float threshold = weixue_audio_tune::wakenet_threshold.load();
++    if (threshold > 0.0f) {
++        int ret = afe_iface_->set_wakenet_threshold(afe_data_, 1, threshold);
++        ESP_LOGI(TAG, "WakeNet threshold %.4f (%s)", threshold, ret == 1 ? "set" : "failed");
++    } else if (weixue_audio_tune::wakenet_threshold_dirty.load()) {
++        int ret = afe_iface_->reset_wakenet_threshold(afe_data_, 1);
++        ESP_LOGI(TAG, "WakeNet threshold model default (%s)", ret == 1 ? "reset" : "failed");
++    }
++    weixue_audio_tune::wakenet_threshold_dirty.store(false);
++}
++
+ void AfeAudioEngine::ApplyPendingReset() {
+     if (!reset_pending_.exchange(false)) {
+         return;
+@@ -411,6 +425,10 @@ void AfeAudioEngine::ProcessingTask() {
+         if ((xEventGroupGetBits(event_group_) & kAfeActive) == 0) {
+             continue;
+         }
++        if (weixue_audio_tune::wakenet_threshold_dirty.load() &&
++            wake_detector_ == WakeDetector::kWakeNet) {
++            ApplyWakeNetThreshold();
++        }
+         if (afe_control_dirty_.exchange(false)) {
+             // WakeNet/AEC toggles are not safe against a concurrent fetch,
+             // so they are applied here, in the task that owns the fetch side.
+diff --git a/main/audio/engines/afe_audio_engine.h b/main/audio/engines/afe_audio_engine.h
+index 21fe38b..9a99584 100644
+--- a/main/audio/engines/afe_audio_engine.h
++++ b/main/audio/engines/afe_audio_engine.h
+@@ -112,6 +112,7 @@ private:
+     void UpdateActiveState();
+     void UpdateAecState();
+     void ApplyAfeControls();
++    void ApplyWakeNetThreshold();
+     void ApplyPendingReset();
+     void OutputRawAudio(const std::vector<int16_t>& data);
+     void HandleWakeWordResult(const afe_fetch_result_t* result);
+diff --git a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
+index 04bc1c0..ea6db6f 100644
+--- a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
++++ b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
+@@ -16,6 +16,8 @@
+ #include "diag_input.h"
+ #if WEIXUE_FACE_DIAG
+ #include "device_state_machine.h"
++#include "weixue_audio_tune.h"
++#include <cstdio>
+ #include <sstream>
+ #include <vector>
+ #endif
+@@ -822,10 +824,47 @@ private:
+         return true;
+     }
+ 
++    // `diag audio gain <dB>` (ES7210 microphone PGA, 0-37.5), `diag audio wakenet <0.4-0.9999|default>`,
++    // `diag audio`.
++    bool DiagAudio(const std::vector<std::string>& args, std::string* result) {
++        auto* codec = GetAudioCodec();
++        if (args.size() == 2 && args[0] == "gain") {
++            char* end = nullptr;
++            float gain = strtof(args[1].c_str(), &end);
++            if (args[1].empty() || *end != '\0' || gain < 0.0f || gain > 37.5f) {
++                *result = "gain needs 0-37.5 (dB)";
++                return false;
++            }
++            codec->SetInputGain(gain);
++        } else if (args.size() == 2 && args[0] == "wakenet") {
++            float threshold = 0.0f;
++            if (args[1] != "default") {
++                char* end = nullptr;
++                threshold = strtof(args[1].c_str(), &end);
++                if (args[1].empty() || *end != '\0') {
++                    threshold = -1.0f;
++                }
++            }
++            if (!weixue_audio_tune::RequestWakeNetThreshold(threshold)) {
++                *result = "wakenet needs 0.4-0.9999 or default";
++                return false;
++            }
++        } else if (!args.empty()) {
++            *result = "audio needs gain <dB> or wakenet <threshold|default>";
++            return false;
++        }
++        char line[96];
++        snprintf(line, sizeof(line), "{\"input_gain\":%.1f,\"wakenet\":%.4f,\"output_volume\":%d}",
++                 codec->input_gain(), weixue_audio_tune::wakenet_threshold.load(),
++                 codec->output_volume());
++        *result = line;
++        return true;
++    }
++
+     // One line: `diag gesture <name>`, `diag touch tap <x> <y>` (or `diag tap <x> <y>`),
+     // `diag touch swipe <dir>` (or `diag swipe <dir>`), `diag touch press_boot` (or
+     // `diag press_boot`), `diag touch tour`, `diag card approve|deny|later|option <n>`,
+-    // `diag volume <0-100>`, `diag bedside night|day|auto`, `diag dump`, `diag help`.
++    // `diag volume <0-100>`, `diag bedside night|day|auto`, `diag audio ...`, `diag dump`, `diag help`.
+     bool DiagCommand(const std::string& line, std::string* result) {
+         std::vector<std::string> args;
+         std::istringstream in(line);
+@@ -862,6 +901,9 @@ private:
+             *result = "bedside " + rest[0];
+             return true;
+         }
++        if (cmd == "audio") {
++            return DiagAudio(rest, result);
++        }
+         if (cmd == "dump" && rest.empty()) {
+             *result = DiagStateJson();
+             display_->DiagRequestDump();
+@@ -871,7 +913,7 @@ private:
+             *result = "diag gesture pick_up|face_down|face_up|double_tap; diag tap <x> <y>; "
+                       "diag swipe left|right|up|down; diag press_boot; diag touch tour; "
+                       "diag card approve|deny|later|option <n>; diag volume <0-100>; "
+-                      "diag bedside night|day|auto; diag dump";
++                      "diag bedside night|day|auto; diag audio [gain <dB>|wakenet <t|default>]; diag dump";
+             return true;
+         }
+         *result = "unknown command; try diag help";
