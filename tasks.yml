@@ -345,6 +345,15 @@ tasks:
     status: in_progress
     retries: 0
     model: opus
+  - id: fix-ui-chat-list-polish
+    name: "Chat list: fresh ages after reboot, Working chip, dump timing"
+    branch: fix/ui-chat-list-polish
+    description: |
+      docs/logs/mgmt-view-check-2026-10-11.md: (1) after a reboot the boot snapshot resends ages computed at the original send (17/57 min shown for 28/68 min); recompute ages from timestamps on the device or resend fresh on boot; (2) a chat with state=working and an open task shows no Working chip — trace the gateway chat-state mapping; (3) identical service titles for two chats (cosmetic; truncate-to-distinguish or add time); (4) diag dump 2 s after the expand tap shows the collapsed page while JSON says chats:true (dump timing). Firmware/gateway change: flash + device check per the hardware rule.
+    depends_on: [feat-ui-sessions]
+    status: pending
+    retries: 0
+    model: sonnet
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
