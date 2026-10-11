@@ -306,7 +306,7 @@ tasks:
     description: |
       DESIGN.md M2 feat-ui-sessions：设备上在多个 agent 会话（chat）间切换——chats 在现有横滑进入的单一管理视图内选择（决定 27，不设独立会话页）：标题/最近活动/状态芯片/当前高亮、点按切换、新对话入口、语音同义指令；服务端按会话 resume SDK session；列表来自 agent 服务持久化的会话索引。依赖 agent 服务的会话 API。实机端到端验收见 DESIGN 行。 2026-10-08：设备侧（管理视图内的 chats 列表、切换/新建）在 feat-ui-agent-states 中实现（数据源先用网关镜像/fixture）；本任务只剩 agent 服务侧的 chats API 对接与实机验收，待 feat-agent-service。
     depends_on: [feat-ui-panel, feat-agent-service]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: fix-wave3-firmware
