@@ -264,6 +264,24 @@ tasks:
     status: done
     retries: 0
     model: opus
+  - id: fix-session-tts
+    name: "Audio session driver speaks with Google Cloud TTS, not macOS say"
+    branch: fix/session-tts
+    description: |
+      Jay 2026-10-11：`say` 的声音设备识别率差。scripts/audio_session.py 改为用 Google Cloud TTS（Chirp 3 HD，en-US 与 cmn-CN 语音，GOOGLE_SA_FILE 凭据）合成每条测试话语为 24 kHz wav，按文本哈希缓存到 ~/Projects/weixue-vendor/session-clips/，用 afplay 播放（音量 55），唤醒词「Jarvis」用同一语音；保留 --voice 选项映射到 Google 语音名；中文项同样合成。不改设备侧。验收：在 diag 构建上 10 次一口气「Jarvis, what time is it?」识别 ≥ 9（session 表）。
+    depends_on: [tool-diag-injection]
+    status: pending
+    retries: 0
+    model: sonnet
+  - id: fix-remove-debug-reply
+    name: "Remove debug_reply from every build (ADR-13 unconditional)"
+    branch: fix/remove-debug-reply
+    description: |
+      决定 53：删除 loopback 构建中服务端脚本化的 debug_reply 自动应答（固件 weixue_agent.cc、服务端 fixture 的 debug_reply 字段与网关 replied 标记），fixture 的 card 场景改为由 scripts/audio_session.py 经 diag 串口 `diag tap` 点击卡片；文档与协议说明同步；release 与 diag 构建都不含服务端→卡片应答路径（host 测试断言）。
+    depends_on: [fix-device-tool-exposure]
+    status: pending
+    retries: 0
+    model: opus
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
