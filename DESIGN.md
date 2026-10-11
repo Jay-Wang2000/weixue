@@ -57,7 +57,7 @@
 - **ADR-3 语音服务**：Google Cloud STT+TTS（中英、凭据已就绪、零维护）；自托管留作后续。
 - **ADR-4 后端宿主**：开发期 Mac（Docker Compose）；后期迁到家里 Ubuntu 主机，配置与数据卷保持可迁移。
 - **ADR-6 唤醒词**：单一英文唤醒词 `Hi Jarvis`，用 ESP-SR 现成 WakeNet 模型（`wn9_jarvis_tts`，sdkconfig `CONFIG_SR_WN_WN9_JARVIS_TTS=y`；若乐鑫模型实际短语为 "Jarvis" 则以模型为准）。不用 MultiNet 自定义短语、不走付费定制、不加第二个唤醒词。调研：`research/reports/weixue-q3-wakeword.md`。
-- **ADR-7 对话逻辑**：仿 ChatGPT 语音：英语为主、中文为辅；STT 多语言识别，LLM 用用户所用语言回答，TTS 随之切换声音；回答结束后保持数秒免唤醒追问；支持打断（设备端 AEC）。
+- **ADR-7 对话逻辑**：仿 ChatGPT 语音：英语为主、中文为辅；STT 多语言识别，LLM 用用户所用语言回答，TTS 随之切换声音；回答结束后保持数秒免唤醒追问；语音打断受服务端 `VOICE_BARGE_IN` 控制（2026-10-11 决定 58：默认 0，播放期间的说话被丢弃；双击/BOOT 物理打断不受影响）。
 - **ADR-8 代码托管**：按 CLAUDE.md 的 remote-deferred 例外工作：共享 `weixue-vendor` 只作只读基线，改动在每任务的本地 `feat/*` 分支完成并记录基线提交；review/test 通过后本地 `--no-ff` 合并。个人 remote 建立后创建两个上游 fork，切换到一任务一提交一 PR；不直接推送 main。Flash 覆盖前保存带时间戳和校验值的备份。
 - **ADR-9 设备审批（2026-10-07 修订，决定 18 = B）**：后端持有 HA 凭据；设备只发送与当前审批卡关联的决定。ha-mcp 的同步挂起在 xiaozhi-server 内走不通（接入点执行器写死 30 s；进度通知两跳丢弃；拉长等待撞固件 120 s 信道静默），故**时限放在我们自己的层，不改 ha-mcp 策略的 `wait_seconds`**。唯一契约：每个 HA 调用自设约 8 s 预算，超时即向 LLM 返回「待批准 / 结果待定」（超时只说明结果未到，不证明 HA 在等审批），同时保持对 ha-mcp 的原始请求继续等待（最长至 `wait_seconds`）；裁决经 ha-mcp 的 HTTP `/api/policy/approve|deny`（既有 secret path）；有 pending 时每 2 s 轮询 `/api/policy/pending` 做关联与对账；事件总线仅作日后可选的推送优化。记录 token、原始工具及参数、来源设备/会话、到期时间、状态；只有能证明属于本服务原始调用的 token 可在设备上裁决，歧义匹配只读；拒绝/过期/未知 token 不得执行；重复决定不得重复执行；从 pending 列表消失不等于已执行；结果未知时不得盲目重试。实现归属：agent 路径由 feat-agent-service 实现（服务内进程内适配器，经 HTTP 直连 ha-mcp）；feat-llm-claude-agent 接管语音 LLM 路径之前，现有 mcp-bridge 在旧语音路径上保持现有行为。验收覆盖早到批准、延迟批准、拒绝、过期、重复点击、断连和 HA/后端重启。调研：`research/reports/weixue-q7-hamcp-approval.md`。
 - **ADR-5 UI**：程序化眼睛而非精灵图/Lottie（无 466 px 素材、性能、烧屏）。
