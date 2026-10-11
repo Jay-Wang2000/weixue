@@ -64,6 +64,7 @@ class Ack(Strict):
     reason: Optional[str] = Field(None, max_length=32)
     boot: Optional[int] = Field(None, ge=0)
     device_seq: Optional[int] = Field(None, ge=0)
+    attempt: Optional[int] = Field(None, ge=1)
 
 
 class DeviceActionResult(Strict):

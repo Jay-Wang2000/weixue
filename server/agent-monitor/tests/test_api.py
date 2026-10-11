@@ -66,7 +66,7 @@ async def test_overview_tiles_from_live_sources(api, upstream):
     assert mcp["pending_not_ours"] == 2 and [a["approval_id"] for a in mcp["pending_ours"]] == ["apr_3"]
     assert mcp["pending_ours"][0]["age_s"] == 60 and mcp["pending_ours"][0]["expires_in_s"] == 240
     assert overview["counts"]["open_tasks"] == 1 and overview["counts"]["errors_24h"] == 1
-    assert overview["db"] == {"state": "ok", "schema": 1, "banner": None} and overview["tz"] == "Europe/Dublin"
+    assert overview["db"] == {"state": "ok", "schema": 2, "banner": None} and overview["tz"] == "Europe/Dublin"
     assert {(p, a) for p, a in upstream.auth} >= {("/v1/status", f"Bearer {MONITOR_TOKEN}"),
                                                   ("/weixue/proactive", f"Bearer {MONITOR_TOKEN}"), ("/healthz", None)}
 

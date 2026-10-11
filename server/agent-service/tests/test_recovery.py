@@ -104,3 +104,23 @@ async def test_restart_never_repeats_speech_that_may_have_started(make):
     assert all(o["speak"] is None for o in offers)
     card = json.loads(h.deliveries(slot=f"task:{task_id}")[-1]["payload_json"])
     assert card["playback"] == "uncertain" and card["unread"] is True
+
+
+def test_a_v1_database_migrates_to_v2(tmp_path):
+    import sqlite3
+    from weixue_agent import store as st
+    v1 = st._SCHEMA.replace("  token_source TEXT,\n", "").replace(",\n  dispatch_id TEXT\n", "\n")
+    assert "token_source" not in v1 and "dispatch_id" not in v1
+    path = tmp_path / "v1.db"
+    raw = sqlite3.connect(path)
+    raw.executescript("BEGIN;" + v1 + "PRAGMA user_version=1;COMMIT;")
+    raw.execute("INSERT INTO approvals (approval_id, tool, args_json, args_hash, state, ha_token, created_at, "
+                "updated_at) VALUES ('apr_old', 'ha_call_service', '{}', 'h', 'pending', 'listed-token', 'x', 'x')")
+    raw.commit()
+    raw.close()
+    store = st.Store(path)
+    assert store.scalar("PRAGMA user_version") == st.SCHEMA_VERSION == 2
+    row = store.approval("apr_old")
+    assert row["token_source"] is None and not ha_adapter.HaGateway.owned(row)
+    assert "dispatch_id" in [c["name"] for c in store.all("PRAGMA table_info(tool_calls)")]
+    store.close()

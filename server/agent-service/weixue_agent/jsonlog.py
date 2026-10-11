@@ -11,7 +11,16 @@ _SECRETS: set = set()
 _LOCK = threading.Lock()
 _SENSITIVE_KEY = re.compile(r"(token|pin|password|secret|key|url)", re.I)
 _PATTERNS = [
+    # Ends at the END line, an unescaped quote or the end of the string; an escape pair is consumed whole.
+    re.compile(r'-----BEGIN [A-Z ]*PRIVATE KEY-----(?:\\.|[^"\\])*?'
+               r'(?:-----END [A-Z ]*PRIVATE KEY-----|(?=")|(?=\\?\Z))', re.S),
     re.compile(r"sk-ant-[A-Za-z0-9_\-]+"),
+    re.compile(r"\bsk-[A-Za-z0-9_\-]{20,}"),
+    re.compile(r"\bAIza[0-9A-Za-z_\-]{30,}"),
+    re.compile(r"\bgh[pousr]_[A-Za-z0-9]{30,}"),
+    re.compile(r"\bxox[abprs]-[A-Za-z0-9\-]{10,}"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"\beyJ[A-Za-z0-9_\-]{8,}\.eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]+"),
     re.compile(r"https?://[^\s\"'<>]*private_[^\s\"'<>]*"),
     re.compile(r"private_[A-Za-z0-9_\-]+"),
     re.compile(r"token=[^\s&\"'<>]+"),
@@ -42,6 +51,19 @@ def redact_text(text: str) -> str:
     for pattern in _PATTERNS:
         text = pattern.sub("[redacted]", text)
     return text
+
+
+def scrub(value: Any, depth: int = 0) -> Any:
+    """Every string inside `value` redacted; structure and lengths otherwise unchanged."""
+    if depth > 20:
+        return redact_text(json.dumps(value, ensure_ascii=False, default=str))
+    if isinstance(value, str):
+        return redact_text(value)
+    if isinstance(value, dict):
+        return {k: scrub(v, depth + 1) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [scrub(v, depth + 1) for v in value]
+    return value
 
 
 def redact_args(value: Any, depth: int = 0) -> Any:
@@ -75,7 +97,7 @@ def log(msg: str, level: str = "info", **fields: Any) -> None:
     for key, value in fields.items():
         if value is not None:
             record[key] = value
-    line = redact_text(json.dumps(record, ensure_ascii=False, default=str))
+    line = json.dumps(scrub(json.loads(json.dumps(record, default=str))), ensure_ascii=False)
     with _LOCK:
         sys.stdout.write(line + "\n")
         sys.stdout.flush()

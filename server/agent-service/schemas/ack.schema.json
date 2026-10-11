@@ -138,6 +138,19 @@
       ],
       "default": null,
       "title": "Device Seq"
+    },
+    "attempt": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Attempt"
     }
   },
   "required": [

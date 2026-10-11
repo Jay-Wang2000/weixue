@@ -8,6 +8,8 @@ NAMES = ("ask_user", "start_task", "set_chat_title", "notify_user", "set_result_
 # Agent-visible device MCP tools (DESIGN.md ADR-13); the gateway enforces the same list.
 DEVICE_TOOLS = ("self.get_device_status", "self.audio_speaker.set_volume", "self.screen.set_brightness",
                 "self.screen.set_theme", "self.screen.set_bedside", "self.imu.get_state")
+DEVICE_SETTERS = ("self.audio_speaker.set_volume", "self.screen.set_brightness", "self.screen.set_theme",
+                  "self.screen.set_bedside")
 
 _SPECS: Dict[str, Dict[str, Any]] = {
     "ask_user": {

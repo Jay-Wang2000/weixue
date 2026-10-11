@@ -28,10 +28,12 @@ async def recover(engine: "Engine") -> Dict[str, Any]:
     for turn in running:
         store.update("turns", "turn_id", turn["turn_id"], {
             "state": "failed", "terminal_reason": "service_restart", "ended_at": now})
-    store.execute("UPDATE tool_calls SET status = 'unknown', ended_at = ? WHERE status = 'running' AND read_only = 0",
+    store.execute("UPDATE tool_calls SET status = 'not_run', ended_at = ? WHERE status = 'running' AND kind = 'device'",
                   (now,))
-    store.execute("UPDATE tool_calls SET status = 'error', ended_at = ? WHERE status = 'running' AND read_only = 1",
-                  (now,))
+    store.execute("UPDATE tool_calls SET status = 'unknown', ended_at = ? WHERE status IN ('running', 'dispatched') "
+                  "AND read_only = 0", (now,))
+    store.execute("UPDATE tool_calls SET status = 'error', ended_at = ? WHERE status IN ('running', 'dispatched') "
+                  "AND read_only = 1", (now,))
     summary["interactions"] = store.execute(
         "UPDATE interactions SET state = 'expired', via = 'timeout', decided_at = ? "
         "WHERE state IN ('pending', 'uncorrelated') AND source = 'sdk'", (now,))

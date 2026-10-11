@@ -123,6 +123,16 @@ The device outbox (`weixue_agent_outbox.h`) holds 8 entries in RAM, sends one at
 - **Closing window.** A session the device opened for a proactive invocation that no longer has a lease (`proactive session opened with no current lease for it; closing once the device is quiet`) hears no voice and stays open until no agent notification arrived for 2 s (at most 8 s), so responses and `shown` acks the device sends in it are handled and receipted; then it closes. The rest are logged as `agent response …`; in live mode posted to agent-service with `Idempotency-Key = uuid5(device:boot:seq)`: `approve`/`deny`/`answer` to the chat's routes (chat id URL-quoted), `cancel` to `interrupt{reason:"panel"}`, `switch_chat`/`new_chat`/`ack_seen` to the chat routes.
 - **Persistence.** Acks are logged (`agent ack <outcome> …`), kept at `GET /weixue/agent/deliveries`, and in live mode posted to `POST /v1/deliveries/{id}/ack`; the gateway writes no database.
 
+## Service deliveries (agent-service outbox)
+
+Offers on `GET /v1/deliveries/stream` have kind `agent` (task cards and notices) or `chats`; acks go to `POST /v1/deliveries/{id}/ack`.
+
+- **Notices.** `notify_user` is an `agent` delivery of its own card: `task_id` = `ntf_<ulid>` (no task row), `state: unread`, `title` `Notice` / `通知`, `summary` its text (≤ 60), `speak` its text, tier `INTERRUPT` (`urgent`) or `WHEN_IDLE`, `expires_at` 1 h; the payload adds `notice: true` and `origin_task_id`. The gateway carries it as any task item (mirror, speech through the proactive queue with `urgent` for INTERRUPT, playback and `ack_seen` acks); a tap on it clears it.
+- **Lease and attempt.** Every ack carries the offer's `lease_id` and may carry its `attempt`; one that is not the current offer's is `409 stale_lease`, and the gateway forgets that offer. A revoked stream's offers return to pending without a lease.
+- **Retry owner.** The service: `deferred` (only before any audio) returns the delivery to pending with `attempt + 1`; the next offer has a new lease and `Idempotency-Key` `<delivery_id>:<attempt>`. The gateway does not resubmit an offer it acked `deferred`.
+- **Monotonic acks.** `accepted` only from `offered` (a repeat is idempotent; otherwise `409`, and the speech is not queued); `spoken` from `offered|handed_off`; `played` and `cut_off` from `offered|handed_off|uncertain` (a late `played` upgrades an uncertain card); `lost` from `offered|handed_off`; `dropped` from `pending|offered|handed_off`; `shown` from `pending|offered`. Any other ack is recorded and changes nothing (`200`, `detail: ignored in <state>`); `deferred` after playback evidence is `409`.
+- **Restart.** Speech that was offered or handed off without `played|cut_off` is never offered again: its card goes unread with `playback: uncertain`. Unspoken offers return to pending.
+
 ## Device tools (ADR-13)
 
 The agent backend never operates the device's physical inputs (touch, BOOT button, gestures) and never answers an approval or clarify card itself: card responses come only from a person at the device. Device MCP tools have two classes:

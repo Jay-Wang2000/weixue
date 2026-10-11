@@ -1,0 +1,33 @@
+# fix-m2-review-service: notify_user on the sim stack (scratch compose project weixue-svcfix-sim: this tree's agent-service + gateway overlay, agent_sim_device.py --device aa:bb:cc:dd:ee:01). Two notices enqueued through Engine._notify (urgent, then not urgent).
+## gateway
+261011 02:24:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4MCDGW6WWARKM1QFZYYBS9V device=aa:bb:cc:dd:ee:01 seq=1791685484990 via=poll
+261011 02:25:05[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=cht_01M4MCDGCDT53K4RZQQJQCTWPX task=ntf_01M4MCEA37MAZSP4CA3K34DVX8 state=unread seq=1791685505018 tier=interrupt speaks=True delivery=dlv_01M4MCEA37057PP4ASJRFM09ZM
+261011 02:25:05[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 35ea98e6dc264725 handed off: delivery=dlv_01M4MCEA37057PP4ASJRFM09ZM proactive=… urgent=True attempt=1 reason=-
+261011 02:25:05[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=dlv_01M4MCEA37057PP4ASJRFM09ZM device=aa:bb:cc:dd:ee:01 proactive_id=… ttl_s=600
+261011 02:25:05[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 35ea98e6dc264725 tts start sentence=4af5962524884f30931539012799846a device=aa:bb:cc:dd:ee:01
+261011 02:25:05[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4MCEA37057PP4ASJRFM09ZM device=aa:bb:cc:dd:ee:01 seq=1791685505018 via=shown
+261011 02:25:07[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 35ea98e6dc264725 tts stop sentence=4af5962524884f30931539012799846a
+261011 02:25:07[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 35ea98e6dc264725 played: sentence=4af5962524884f30931539012799846a cut_at_ms=None reason=None
+261011 02:25:07[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack spoken delivery=dlv_01M4MCEA37057PP4ASJRFM09ZM device=aa:bb:cc:dd:ee:01 proactive_id=…
+261011 02:25:07[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack played delivery=dlv_01M4MCEA37057PP4ASJRFM09ZM device=aa:bb:cc:dd:ee:01 sentence_id=4af5962524884f30931539012799846a boot=67307937 device_seq=2
+261011 02:25:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=aa:bb:cc:dd:ee:01 chat=cht_01M4MCDGCDT53K4RZQQJQCTWPX task=ntf_01M4MCF3T12G4TF2A8KGAWC0JW state=unread seq=1791685530048 tier=when_idle speaks=True delivery=dlv_01M4MCF3T2FETY6JFKMMRDN48F
+261011 02:25:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 83d768655c0f45f7 handed off: delivery=dlv_01M4MCF3T2FETY6JFKMMRDN48F proactive=… urgent=False attempt=1 reason=-
+261011 02:25:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=dlv_01M4MCF3T2FETY6JFKMMRDN48F device=aa:bb:cc:dd:ee:01 proactive_id=… ttl_s=600
+261011 02:25:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 83d768655c0f45f7 tts start sentence=cf6dbb131c1c476eb199b4bd60e53819 device=aa:bb:cc:dd:ee:01
+261011 02:25:30[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4MCF3T2FETY6JFKMMRDN48F device=aa:bb:cc:dd:ee:01 seq=1791685530048 via=shown
+261011 02:25:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 83d768655c0f45f7 tts stop sentence=cf6dbb131c1c476eb199b4bd60e53819
+261011 02:25:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 83d768655c0f45f7 played: sentence=cf6dbb131c1c476eb199b4bd60e53819 cut_at_ms=None reason=None
+261011 02:25:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack spoken delivery=dlv_01M4MCF3T2FETY6JFKMMRDN48F device=aa:bb:cc:dd:ee:01 proactive_id=…
+261011 02:25:31[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack played delivery=dlv_01M4MCF3T2FETY6JFKMMRDN48F device=aa:bb:cc:dd:ee:01 sentence_id=cf6dbb131c1c476eb199b4bd60e53819 boot=67307937 device_seq=4
+## agent-service deliveries and acks
+('dlv_01M4MCEA37057PP4ASJRFM09ZM', 'agent', 'INTERRUPT', 'notify:ntf_01M4MCEA37MAZSP4CA3K34DVX8', 'delivered', 'played', 1)
+('dlv_01M4MCF3T2FETY6JFKMMRDN48F', 'agent', 'WHEN_IDLE', 'notify:ntf_01M4MCF3T12G4TF2A8KGAWC0JW', 'delivered', 'played', 1)
+('dlv_01M4MCEA37057PP4ASJRFM09ZM', 'accepted', None)
+('dlv_01M4MCEA37057PP4ASJRFM09ZM', 'shown', 'ignored in handed_off')
+('dlv_01M4MCEA37057PP4ASJRFM09ZM', 'spoken', None)
+('dlv_01M4MCEA37057PP4ASJRFM09ZM', 'played', None)
+('dlv_01M4MCF3T2FETY6JFKMMRDN48F', 'accepted', None)
+('dlv_01M4MCF3T2FETY6JFKMMRDN48F', 'shown', 'ignored in handed_off')
+('dlv_01M4MCF3T2FETY6JFKMMRDN48F', 'spoken', None)
+('dlv_01M4MCF3T2FETY6JFKMMRDN48F', 'played', None)
+schema 2

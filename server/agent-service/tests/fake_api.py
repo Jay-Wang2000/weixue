@@ -22,6 +22,31 @@ def _sse(event: Dict[str, Any]) -> bytes:
     return f"event: {event['type']}\ndata: {json.dumps(event)}\n\n".encode()
 
 
+def contract_error(body: Dict[str, Any]) -> Optional[str]:
+    """The API's server-tool rule: after a server tool use without a result only a user message of client tool
+    results may follow, and the next assistant message starts with that result."""
+    messages = body["messages"]
+    for i, message in enumerate(messages):
+        if message["role"] != "assistant":
+            continue
+        content = blocks(message)
+        paired = {b.get("tool_use_id") for b in content if str(b.get("type", "")).endswith("_tool_result")}
+        pending = [b for b in content if b.get("type") == "server_tool_use" and b.get("id") not in paired]
+        rest = messages[i + 1:]
+        if not pending or not rest:
+            continue
+        if rest[0]["role"] == "user":
+            if any(b.get("type") != "tool_result" for b in blocks(rest[0])):
+                return (f"`{pending[0]['name']}` tool use with id `{pending[0]['id']}` was found without a "
+                        f"corresponding `{pending[0]['name']}_tool_result` block")
+            rest = rest[1:]
+        if rest:
+            later = {b.get("tool_use_id") for b in blocks(rest[0]) if str(b.get("type", "")).endswith("_tool_result")}
+            if rest[0]["role"] != "assistant" or any(p["id"] not in later for p in pending):
+                return f"`{pending[0]['name']}` tool use with id `{pending[0]['id']}` was found without a result"
+    return None
+
+
 def last_user(body: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     for message in reversed(body["messages"]):
         if message["role"] == "user":
@@ -169,10 +194,18 @@ class Turn:
             {"type": "web_search_result", "title": "Weather", "url": "https://example.test/w",
              "encrypted_content": "e", "page_age": None}]}, [])
 
-    def server_tool_unpaired(self, name: str = "tool_search_tool_bm25") -> None:
-        """A server tool use whose result the response does not carry (as Fable 5.1 sends next to a client call)."""
-        self.response.block({"type": "server_tool_use", "id": f"srvtoolu_{next(_ids):06d}", "name": name, "input": {}},
-                            [{"type": "input_json_delta", "partial_json": json.dumps({"query": "automation"})}])
+    def server_tool_unpaired(self, name: str = "web_fetch") -> str:
+        """A server tool use whose result the response does not carry (sent next to a client call)."""
+        tool_id = f"srvtoolu_{next(_ids):06d}"
+        self.response.block({"type": "server_tool_use", "id": tool_id, "name": name, "input": {}},
+                            [{"type": "input_json_delta", "partial_json": json.dumps({"url": "https://example.test/a"})}])
+        return tool_id
+
+    def server_result(self, tool_id: str) -> None:
+        """The result block of a server tool use of an earlier response (the API runs it at the next request)."""
+        self.response.block({"type": "web_search_tool_result", "tool_use_id": tool_id, "content": [
+            {"type": "web_search_result", "title": "Page", "url": "https://example.test/a",
+             "encrypted_content": "e", "page_age": None}]}, [])
 
     async def _wait_next(self, keys: List[str]) -> Dict[str, Any]:
         loop = asyncio.get_running_loop()
@@ -216,12 +249,15 @@ class Turn:
     async def ask(self, question: str, options: List[str]) -> str:
         return await self.tool("ask_user", {"question": question, "options": options})
 
-    async def pause(self) -> None:
+    async def pause(self) -> str:
+        """Ends the response with pause_turn; the resumed response starts with the paused tool's result."""
         tool_id = f"srvtoolu_{next(_ids):06d}"
         self.response.block({"type": "server_tool_use", "id": tool_id, "name": "web_search", "input": {}},
                             [{"type": "input_json_delta", "partial_json": json.dumps({"query": "long"})}])
         self.response.finish("pause_turn")
         await self._wait_next([tool_id])
+        self.server_result(tool_id)
+        return tool_id
 
 
 class FakeApi:
@@ -239,6 +275,7 @@ class FakeApi:
         self.reject_models: Dict[str, Callable[[], httpx2.Response]] = {}
         self.compactions = 0
         self.errors: List[BaseException] = []
+        self.violations: List[str] = []
 
     @property
     def prompts(self) -> List[str]:
@@ -275,6 +312,10 @@ class FakeApi:
         if self.fail_next is not None:
             response, self.fail_next = self.fail_next, None
             return response
+        violation = contract_error(body)
+        if violation:
+            self.violations.append(violation)
+            return error_response(400, violation)
         if body["model"] in self.reject_models:
             return self.reject_models[body["model"]]()
         headers = {"content-type": "text/event-stream", "request-id": f"req_{next(_ids):06d}"}

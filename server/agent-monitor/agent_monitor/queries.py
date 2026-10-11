@@ -1,4 +1,4 @@
-"""Every query the monitor runs. Columns come only from the allowlists below; user text is clipped."""
+"""Every query the monitor runs. Columns come only from the allowlists below; text is scrubbed and clipped."""
 import json
 import re
 from collections import defaultdict
@@ -47,7 +47,10 @@ HOME_COLS = ("entity_id", "name", "state", "last_changed", "fetched_at")
 
 TOKEN_FIELDS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_creation_tokens")
 _URL = re.compile(r"[a-z][a-z0-9+.-]*://\S+", re.I)
-_SECRETISH = re.compile(r"(private_\S+|token=\S+|sk-ant-\S+|Bearer\s+\S+)", re.I)
+_SECRETISH = re.compile(r"(private_\S+|token=\S+|sk-ant-\S+|Bearer\s+\S+|\bsk-[A-Za-z0-9_\-]{20,}|"
+                        r"\bAIza[0-9A-Za-z_\-]{30,}|\bgh[pousr]_[A-Za-z0-9]{30,}|\bxox[abprs]-[A-Za-z0-9\-]{10,}|"
+                        r"\bAKIA[0-9A-Z]{16}\b|\beyJ[A-Za-z0-9_\-]{8,}\.eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]+|"
+                        r"-----BEGIN [A-Z ]*PRIVATE KEY-----)", re.I)
 
 
 def cols(names: Sequence[str], alias: str = "") -> str:
@@ -59,6 +62,11 @@ def clip(value: Optional[str], limit: int = TEXT_MAX) -> Optional[str]:
     if value is None:
         return None
     return value if len(value) <= limit else value[: limit - 1] + "…"
+
+
+def text(value: Optional[str], limit: int = TEXT_MAX) -> Optional[str]:
+    """User or model text: token-like strings replaced, then clipped."""
+    return scrub(value, limit)
 
 
 def scrub(value: Optional[str], limit: int = MESSAGE_MAX) -> Optional[str]:
@@ -140,8 +148,8 @@ def _finish(total: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _turn(row: Dict[str, Any]) -> Dict[str, Any]:
-    row["text"] = clip(row.get("text"))
-    row["final_text"] = clip(row.get("final_text"))
+    row["text"] = text(row.get("text"))
+    row["final_text"] = text(row.get("final_text"))
     return row
 
 
@@ -153,8 +161,8 @@ def _tool_call(row: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _task(row: Dict[str, Any]) -> Dict[str, Any]:
-    row["title"] = clip(row.get("title"))
-    row["summary"] = clip(row.get("summary"))
+    row["title"] = text(row.get("title"))
+    row["summary"] = text(row.get("summary"))
     row["side_effects"] = _scrub_obj(_json(row.pop("side_effects_json", None), []))
     return row
 
@@ -321,7 +329,7 @@ def cost(db: ReadOnlyDb, group: str, days: int, tz: ZoneInfo, now: datetime) -> 
         rows = []
         for chat_id in set(sums) | set(chats):
             chat = chats.get(chat_id, {})
-            rows.append({"chat_id": chat_id, "title": clip(chat.get("title")),
+            rows.append({"chat_id": chat_id, "title": text(chat.get("title")),
                          "cost_all_usd": round(chat.get("cost_all_usd") or 0.0, 6),
                          **_finish(sums.get(chat_id, _empty_tokens()))})
         out["rows"] = sorted(rows, key=lambda r: (r["cost_usd"], r["cost_all_usd"]), reverse=True)
@@ -331,7 +339,7 @@ def cost(db: ReadOnlyDb, group: str, days: int, tz: ZoneInfo, now: datetime) -> 
             _add(sums[row["task_id"]], row)
         tasks = db.query(f"SELECT task_id, chat_id, title, state, mode, created_at, cost_usd AS cost_all_usd "
                          "FROM tasks WHERE created_at >= ? ORDER BY created_at DESC LIMIT ?", (since, TIMELINE_MAX))
-        out["rows"] = [{**t, "title": clip(t["title"]), **_finish(sums.get(t["task_id"], _empty_tokens()))}
+        out["rows"] = [{**t, "title": text(t["title"]), **_finish(sums.get(t["task_id"], _empty_tokens()))}
                        for t in tasks]
     else:
         out["rows"] = out["by_day"]
@@ -353,8 +361,8 @@ def chats(db: ReadOnlyDb, limit: int = 100) -> List[Dict[str, Any]]:
                     (limit,))
     current = {d["current_chat_id"] for d in db.query(f"SELECT {cols(DEVICE_COLS)} FROM devices")}
     for row in rows:
-        row["title"] = clip(row["title"])
-        row["summary"] = clip(row["summary"])
+        row["title"] = text(row["title"])
+        row["summary"] = text(row["summary"])
         row["unread"] = (row["activity_seq"] or 0) > (row["last_read_seq"] or 0)
         row["current"] = row["chat_id"] in current
         row["side_effects"] = _scrub_obj(_json(row.pop("side_effects_json"), []))

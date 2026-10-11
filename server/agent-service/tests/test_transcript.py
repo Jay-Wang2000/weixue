@@ -2,6 +2,8 @@
 (only the uncommitted tail may change), pause_turn resumes, fallback echo form, compaction epochs, frozen
 system and tools across restarts."""
 import asyncio
+import json
+import uuid
 
 from weixue_agent import actor
 from weixue_agent.transcript import echo_form
@@ -116,18 +118,111 @@ async def test_compaction_starts_a_new_epoch_with_a_fresh_prompt_row(make, monke
     assert h.store.scalar("SELECT COUNT(*) FROM chat_prompts WHERE chat_id = ?", (chat_id,)) == 2
 
 
-async def test_an_unpaired_server_tool_use_is_not_kept_next_to_a_client_call(make):
+def user_only_results(message):
+    return message["role"] == "user" and all(b.get("type") == "tool_result" for b in message["content"])
+
+
+async def test_mixed_turn_keeps_the_server_call_and_sends_only_client_results(make):
+    """F07: the pending server tool stays; the next message holds the client results alone, and a steer that
+    arrived meanwhile follows once the server tool settled."""
     async def script(turn):
+        if "and the news" in turn.user_text:
+            await turn.text("And the news is quiet.")
+            return
         await turn.text("Looking.")
         turn.response.block({"type": "tool_use", "id": "toolu_pair", "name": "ha_search", "input": {}},
                             [{"type": "input_json_delta", "partial_json": '{"query": "x"}'}])
-        turn.server_tool_unpaired()
+        server = turn.server_tool_unpaired()
         turn.response.finish("tool_use")
         await turn._wait_next(["toolu_pair"])
+        turn.server_result(server)
         await turn.text("Done.")
     h = await make(script)
-    _, events = await h.send("Search")
-    await h.wait_task(events[0]["task_id"], "done")
-    sent = h.api.requests[1]["messages"]
-    assistant = [m for m in sent if m["role"] == "assistant"][0]
-    assert [b["type"] for b in assistant["content"]] == ["text", "tool_use"]
+    h.fake_ha.call_delay = 0.4
+    first = asyncio.create_task(h.send("Search"))
+    await h.wait_for(lambda: h.fake_ha.calls, what="client tool running")
+    _, steer = await h.send("and the news")
+    _, events = await first
+    await h.idle(events[0]["chat_id"])
+    assert h.api.violations == []
+    continuation = h.api.requests[1]["messages"]
+    assistant = [m for m in continuation if m["role"] == "assistant"][0]
+    assert [b["type"] for b in assistant["content"]] == ["text", "tool_use", "server_tool_use"]
+    assert continuation[-1] == continuation[-1] and user_only_results(continuation[-1])
+    assert any("and the news" in json.dumps(m) for m in h.api.requests[-1]["messages"][-3:])
+    server_rows = h.store.all("SELECT status FROM tool_calls WHERE kind = 'server'")
+    assert [r["status"] for r in server_rows] == ["ok"]
+
+
+async def test_cancel_after_pause_turn_settles_the_server_tool_before_the_next_message(make):
+    resumed = asyncio.Event()
+
+    async def script(turn):
+        last = turn.body["messages"][-1]
+        if last["role"] == "assistant":
+            pending = [b["id"] for b in last["content"] if b["type"] == "server_tool_use"]
+            turn.server_result(pending[-1])
+            await turn.text("It is sunny.")
+            return
+        if turn.user_text == "hello":
+            await turn.text("Hi.")
+            return
+        await turn.text("Searching.")
+        turn.response.block({"type": "server_tool_use", "id": "srvtoolu_paused", "name": "web_search", "input": {}},
+                            [{"type": "input_json_delta", "partial_json": '{"query": "long"}'}])
+        turn.response.finish("pause_turn")
+        await turn._wait_next(["srvtoolu_paused"])
+        resumed.set()
+        await asyncio.sleep(30)
+    h = await make(script)
+    _, events = await h.send("What's the weather?")
+    chat_id = events[0]["chat_id"]
+    await asyncio.wait_for(resumed.wait(), 5)
+    resp = await h.http.post(f"/v1/chats/{chat_id}/interrupt", json={"decision_id": str(uuid.uuid4()), "reason": "panel"})
+    assert resp.status_code == 200
+    await h.idle(chat_id)
+    _, hello = await h.send("hello")
+    await h.idle(chat_id)
+    assert h.api.violations == []
+    settle = h.api.requests[-2]["messages"]
+    assert settle[-1]["role"] == "assistant" and settle[-1]["content"][-1]["id"] == "srvtoolu_paused"
+    said = "".join(e["data"]["delta"] for e in hello if e["type"] == "text")
+    assert "Hi." in said and "sunny" not in said
+    final = h.api.requests[-1]["messages"]
+    assert final[-3]["content"][0]["type"] == "web_search_tool_result"
+    assert_append_only(h.api.requests)
+
+
+async def test_cancel_during_a_mixed_turn_answers_the_client_call_alone_first(make, monkeypatch):
+    from weixue_agent import ha_adapter
+    monkeypatch.setattr(ha_adapter, "HA_CALL_BUDGET_S", 5.0)
+
+    async def script(turn):
+        if turn.user_text == "hello":
+            await turn.text("Hi.")
+            return
+        await turn.text("Looking.")
+        turn.response.block({"type": "tool_use", "id": "toolu_slow", "name": "ha_search", "input": {}},
+                            [{"type": "input_json_delta", "partial_json": '{"query": "x"}'}])
+        server = turn.server_tool_unpaired()
+        turn.response.finish("tool_use")
+        await turn._wait_next(["toolu_slow"])
+        turn.server_result(server)
+        await turn.text("Found it.")
+    h = await make(script)
+    h.fake_ha.call_delay = 2.0
+    first = asyncio.create_task(h.send("Search"))
+    await h.wait_for(lambda: h.fake_ha.calls, what="client tool running")
+    _, events = await first
+    chat_id = events[0]["chat_id"]
+    resp = await h.http.post(f"/v1/chats/{chat_id}/interrupt", json={"decision_id": str(uuid.uuid4()), "reason": "panel"})
+    assert resp.status_code == 200
+    await h.idle(chat_id)
+    _, hello = await h.send("hello")
+    await h.idle(chat_id)
+    assert h.api.violations == []
+    settle = h.api.requests[-2]["messages"]
+    assert user_only_results(settle[-1]) and settle[-1]["content"][0]["tool_use_id"] == "toolu_slow"
+    assert settle[-1]["content"][0]["content"].startswith("not run")
+    said = "".join(e["data"]["delta"] for e in hello if e["type"] == "text")
+    assert "Hi." in said and "Found it" not in said

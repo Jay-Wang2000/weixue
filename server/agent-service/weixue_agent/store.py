@@ -11,9 +11,9 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
-from . import timeutil
+from . import jsonlog, timeutil
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 _SCHEMA = """
 CREATE TABLE devices (
@@ -130,7 +130,8 @@ CREATE TABLE tool_calls (
   approval_decision TEXT,
   decided_via TEXT,
   decided_by_device TEXT,
-  decided_at TEXT
+  decided_at TEXT,
+  dispatch_id TEXT
 );
 CREATE INDEX tool_calls_task ON tool_calls(task_id);
 CREATE INDEX tool_calls_turn ON tool_calls(turn_id);
@@ -193,6 +194,7 @@ CREATE TABLE approvals (
   args_hash TEXT NOT NULL,
   state TEXT NOT NULL,
   ha_token TEXT,
+  token_source TEXT,
   ha_expires_at TEXT,
   decision TEXT,
   via TEXT,
@@ -358,6 +360,27 @@ CREATE TABLE chat_prompts (
 );
 """
 
+_MIGRATIONS = {
+    2: ("ALTER TABLE approvals ADD COLUMN token_source TEXT;"
+        "ALTER TABLE tool_calls ADD COLUMN dispatch_id TEXT;"),
+}
+# Free-text columns: redacted before they are first written (the transcript is composed from redacted inputs).
+# `*_json` columns and JSON_COLUMNS take structured values: each string inside is redacted before serialization.
+SCRUBBED = {
+    "chats": {"title", "summary"},
+    "tasks": {"title", "summary", "progress_json", "error_json", "side_effects_json"},
+    "turns": {"text", "final_text", "late_text"},
+    "chat_notes": {"text"},
+    "tool_calls": {"args_summary", "target", "result_summary"},
+    "interactions": {"question_json", "action_json", "decision_json"},
+    "approvals": {"result_text"},
+    "deliveries": {"payload_json", "speak"},
+    "errors": {"message"},
+    "connection_events": {"detail_json"},
+    "health_probes": {"detail_json"},
+}
+JSON_COLUMNS = {"args_summary"}
+
 TERMINAL_STATES = ("done", "failed", "cancelled")
 RETENTION_TABLES = {
     "chat_events": "ts",
@@ -379,6 +402,14 @@ def loads(value: Optional[str], default: Any = None) -> Any:
     if value is None:
         return default
     return json.loads(value)
+
+
+def loads_or(value: Optional[str], default: Any) -> Any:
+    """`default` also for a malformed value."""
+    try:
+        return loads(value, default)
+    except ValueError:
+        return default
 
 
 class Store:
@@ -404,6 +435,10 @@ class Store:
         if version == 0:
             with self._lock:
                 self.db.executescript("BEGIN;" + _SCHEMA + f"PRAGMA user_version={SCHEMA_VERSION};COMMIT;")
+            return
+        for target in range(version + 1, SCHEMA_VERSION + 1):
+            with self._lock:
+                self.db.executescript("BEGIN;" + _MIGRATIONS[target] + f"PRAGMA user_version={target};COMMIT;")
 
     @contextmanager
     def tx(self):
@@ -453,8 +488,29 @@ class Store:
         with self._lock:
             return self.db.execute(sql, tuple(params)).rowcount
 
+    @staticmethod
+    def _scrub_column(column: str, value: Any) -> Any:
+        if value is None:
+            return None
+        if column.endswith("_json") or column in JSON_COLUMNS:
+            if isinstance(value, str):
+                try:
+                    value = json.loads(value)
+                except ValueError:
+                    pass
+            return dumps(jsonlog.scrub(value))
+        return jsonlog.redact_text(value) if isinstance(value, str) else value
+
+    @classmethod
+    def _scrubbed(cls, table: str, values: Dict[str, Any]) -> Dict[str, Any]:
+        columns = SCRUBBED.get(table)
+        if not columns:
+            return values
+        return {k: cls._scrub_column(k, v) if k in columns else v for k, v in values.items()}
+
     def insert(self, table: str, row: Dict[str, Any], or_ignore: bool = False) -> int:
         """Rowid of the new row."""
+        row = self._scrubbed(table, row)
         cols = ", ".join(row)
         marks = ", ".join("?" for _ in row)
         verb = "INSERT OR IGNORE" if or_ignore else "INSERT"
@@ -464,6 +520,7 @@ class Store:
     def update(self, table: str, key: str, key_value: Any, values: Dict[str, Any]) -> int:
         if not values:
             return 0
+        values = self._scrubbed(table, values)
         sets = ", ".join(f"{k} = ?" for k in values)
         with self._lock:
             return self.db.execute(f"UPDATE {table} SET {sets} WHERE {key} = ?", (*values.values(), key_value)).rowcount
@@ -549,11 +606,11 @@ class Store:
 
     def record_connection(self, kind: str, device_id: Optional[str], detail: Optional[Dict[str, Any]] = None) -> None:
         self.insert("connection_events", {"ts": timeutil.iso(), "device_id": device_id, "kind": kind,
-                                          "detail_json": dumps(detail or {})})
+                                          "detail_json": detail or {}})
 
     def record_probe(self, probe: str, ok: bool, latency_ms: Optional[int], detail: Dict[str, Any]) -> None:
         self.insert("health_probes", {"ts": timeutil.iso(), "probe": probe, "ok": int(ok), "latency_ms": latency_ms,
-                                      "detail_json": dumps(detail)})
+                                      "detail_json": detail})
 
     def prune(self, days: int) -> Dict[str, int]:
         cutoff = timeutil.iso(timeutil.now() - timedelta(days=days))

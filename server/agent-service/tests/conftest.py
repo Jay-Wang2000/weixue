@@ -40,13 +40,17 @@ def parse_sse(text: str):
 
 
 class DroppingTransport(httpx.AsyncBaseTransport):
-    """Forwards to the fake ha-mcp; for paths in `drop`, the response is lost after the request was handled."""
+    """Forwards to the fake ha-mcp; for paths in `drop`, the response is lost after the request was handled; for
+    paths in `refuse`, the connection fails before anything is sent."""
 
     def __init__(self, inner):
         self.inner = inner
         self.drop = set()
+        self.refuse = set()
 
     async def handle_async_request(self, request):
+        if any(request.url.path.endswith(p) for p in self.refuse):
+            raise httpx.ConnectError("connection refused", request=request)
         response = await self.inner.handle_async_request(request)
         if any(request.url.path.endswith(p) for p in self.drop):
             raise httpx.ReadError("connection dropped", request=request)
