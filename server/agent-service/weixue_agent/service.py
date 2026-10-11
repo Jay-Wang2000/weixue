@@ -17,6 +17,7 @@ from .chats import ChatIndex
 from .config import NAMESPACE_CHECK_S, Settings
 from .deliveries import Outbox
 from .ha_adapter import HaGateway, tunnel_iface_present
+from .home import HomeSnapshot
 from .monitor import Monitor
 from .sse import EventHub
 from .store import Store
@@ -57,6 +58,7 @@ class Service:
         self.engine = Engine(settings, self.store, self.hub, self.client, self.ha, self.outbox, self.chats)
         self.monitor = Monitor(self.store, self.ha, self.engine, self.outbox, settings.mcp_endpoint_host,
                                probe_s=settings.probe_s, probe_timeout_s=settings.probe_timeout_s)
+        self.home = HomeSnapshot(self.store, self.ha, settings.home_snapshot_s, settings.home_entities)
         self.recovery_summary: Dict[str, Any] = {}
         self._chats_pending: set = set()
         self._watch: Optional[asyncio.Task] = None
@@ -72,6 +74,7 @@ class Service:
         self.recovery_summary = await recovery.recover(self.engine)
         if background:
             self.monitor.start()
+            self.home.start()
             self._watch = asyncio.create_task(self._namespace_watch(), name="namespace-watch")
             asyncio.create_task(self.monitor.probe_all(), name="first-probe")
         jsonlog.log("service started", event="start", detail=f"anthropic {VERSIONS['anthropic']} mcp {VERSIONS['mcp']}",
@@ -81,6 +84,7 @@ class Service:
         if self._watch:
             self._watch.cancel()
         await self.monitor.stop()
+        await self.home.stop()
         await self.engine.shutdown()
         await self.ha.stop()
         with contextlib.suppress(Exception):

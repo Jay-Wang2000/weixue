@@ -87,6 +87,8 @@ services:
       - AGENT_DB=/data/db/agent.db
       - AGENT_HA_PROBE_S=${AGENT_HA_PROBE_S:-10}
       - AGENT_HA_PROBE_TIMEOUT_S=${AGENT_HA_PROBE_TIMEOUT_S:-5}
+      - AGENT_HOME_SNAPSHOT_S=${AGENT_HOME_SNAPSHOT_S:-300}
+      - AGENT_HOME_ENTITIES=${AGENT_HOME_ENTITIES:-}
       - TZ=${TZ:-UTC}
     volumes:
       - ./data/agent-service:/data
@@ -115,7 +117,7 @@ services:
       - MCP_ENDPOINT=mcp-endpoint-server:8004
       - WG_TUNNEL=${WG_TUNNEL:-}
       - AGENT_HA_PROBE_S=${AGENT_HA_PROBE_S:-10}
-      - MONITOR_HOME=${MONITOR_HOME:-}
+      - MONITOR_HOME=${MONITOR_HOME:-1}
       - TZ=${TZ:-UTC}
     ports:
       - "127.0.0.1:8020:8020"

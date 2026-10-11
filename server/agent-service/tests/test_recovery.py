@@ -106,11 +106,19 @@ async def test_restart_never_repeats_speech_that_may_have_started(make):
     assert card["playback"] == "uncertain" and card["unread"] is True
 
 
-def test_a_v1_database_migrates_to_v2(tmp_path):
+def _schema_columns(store):
+    tables = [t["name"] for t in store.all("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")]
+    return {name: sorted((c["name"], c["type"], c["notnull"], c["pk"]) for c in store.all(f"PRAGMA table_info({name})"))
+            for name in tables}
+
+
+def test_a_v1_database_migrates_to_the_current_schema(tmp_path):
+    import re
     import sqlite3
     from weixue_agent import store as st
     v1 = st._SCHEMA.replace("  token_source TEXT,\n", "").replace(",\n  dispatch_id TEXT\n", "\n")
-    assert "token_source" not in v1 and "dispatch_id" not in v1
+    v1 = re.sub(r"CREATE TABLE home_snapshot(?:_meta)? \(.*?\n\);\n", "", v1, flags=re.S)
+    assert "token_source" not in v1 and "dispatch_id" not in v1 and "home_snapshot" not in v1
     path = tmp_path / "v1.db"
     raw = sqlite3.connect(path)
     raw.executescript("BEGIN;" + v1 + "PRAGMA user_version=1;COMMIT;")
@@ -119,8 +127,29 @@ def test_a_v1_database_migrates_to_v2(tmp_path):
     raw.commit()
     raw.close()
     store = st.Store(path)
-    assert store.scalar("PRAGMA user_version") == st.SCHEMA_VERSION == 2
+    assert store.scalar("PRAGMA user_version") == st.SCHEMA_VERSION == 3
     row = store.approval("apr_old")
     assert row["token_source"] is None and not ha_adapter.HaGateway.owned(row)
     assert "dispatch_id" in [c["name"] for c in store.all("PRAGMA table_info(tool_calls)")]
+    assert store.all("SELECT * FROM home_snapshot") == [] and store.all("SELECT * FROM home_snapshot_meta") == []
+    fresh = st.Store(tmp_path / "fresh.db")
+    assert _schema_columns(store) == _schema_columns(fresh)
+    fresh.close()
+    store.close()
+
+
+def test_a_v2_database_gains_the_home_tables_and_keeps_its_rows(tmp_path):
+    import re
+    import sqlite3
+    from weixue_agent import store as st
+    v2 = re.sub(r"CREATE TABLE home_snapshot(?:_meta)? \(.*?\n\);\n", "", st._SCHEMA, flags=re.S)
+    path = tmp_path / "v2.db"
+    raw = sqlite3.connect(path)
+    raw.executescript("BEGIN;" + v2 + "PRAGMA user_version=2;COMMIT;")
+    raw.execute("INSERT INTO errors (ts, source, code) VALUES ('2026-10-11T00:00:00.000Z', 'x', 'kept')")
+    raw.commit()
+    raw.close()
+    store = st.Store(path)
+    assert store.scalar("PRAGMA user_version") == 3
+    assert store.scalar("SELECT code FROM errors") == "kept"
     store.close()

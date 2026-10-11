@@ -4,7 +4,7 @@ import threading
 from typing import Any, Dict, Iterable, List, Optional
 from urllib.parse import quote
 
-SUPPORTED_SCHEMAS = (1, 2)
+SUPPORTED_SCHEMAS = (1, 2, 3)
 BUSY_TIMEOUT_MS = 2000
 
 

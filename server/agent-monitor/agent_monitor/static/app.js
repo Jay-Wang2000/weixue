@@ -265,13 +265,32 @@
       e.message ? h("div", { class: "sub", text: e.message }) : null))) : empty("No errors."));
   }
 
+  function homeDetail(a) {
+    const parts = [];
+    if (a.brightness !== undefined) parts.push(`${Math.round(Number(a.brightness) / 2.55)}%`);
+    if (a.current_position !== undefined) parts.push(`${a.current_position}%`);
+    if (a.current_temperature !== undefined) parts.push(`${a.current_temperature}°`);
+    if (a.temperature !== undefined) parts.push(`set ${a.temperature}°`);
+    if (a.hvac_action) parts.push(a.hvac_action);
+    if (a.unit_of_measurement) parts.push(a.unit_of_measurement);
+    return parts.join(" · ");
+  }
+
   function renderHome(data) {
+    if (data) state.home = data;
+    data = state.home;
+    if (!data) return;
     $("home-card").hidden = !data.enabled;
     if (!data.enabled) return;
     if (data.code) { fill($("home"), empty("No home snapshot yet.")); return; }
+    const now = Date.now() / 1000;
+    const since = (e) => { const t = Date.parse(e.last_changed || e.updated_at); return isNaN(t) ? "" : fmtAge(Math.max(0, now - t / 1000)); };
+    const header = data.fetched_at ? `fetched ${fmtAge(Math.max(0, now - Date.parse(data.fetched_at) / 1000))} ago` : "not fetched yet";
     fill($("home"),
-      h("div", { class: "sub", text: `fetched ${fmtTime(data.fetched_at, true)}${data.stale ? " · stale" : ""}` }),
-      table([["Entity"], ["State"], ["Changed"]], data.entities.map((e) => [[e.name || e.entity_id], [e.state], [fmtTime(e.last_changed, true)]])));
+      h("div", { class: "sub", text: [header, data.stale ? "stale" : "", data.error ? `last attempt failed: ${data.error}` : ""].filter(Boolean).join(" · ") }),
+      data.entities.length ? table([["Entity"], ["State"], ["Detail"], ["Since"]],
+        data.entities.map((e) => [[e.name || e.entity_id], [e.state], [homeDetail(e.attributes || {})], [since(e)]])) :
+        empty("No entities selected."));
   }
 
   // ------------------------------------------------------------------ wiring
@@ -298,5 +317,6 @@
     }
     $("older").addEventListener("click", () => { if (state.nextBefore) fetchTimeline(state.nextBefore); });
     connect();
+    setInterval(() => renderHome(null), 30000);
   });
 })();

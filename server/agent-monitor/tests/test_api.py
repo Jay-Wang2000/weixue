@@ -3,6 +3,7 @@ import asyncio
 import json
 import re
 import sqlite3
+from datetime import timedelta
 
 import httpx
 import pytest
@@ -66,7 +67,7 @@ async def test_overview_tiles_from_live_sources(api, upstream):
     assert mcp["pending_not_ours"] == 2 and [a["approval_id"] for a in mcp["pending_ours"]] == ["apr_3"]
     assert mcp["pending_ours"][0]["age_s"] == 60 and mcp["pending_ours"][0]["expires_in_s"] == 240
     assert overview["counts"]["open_tasks"] == 1 and overview["counts"]["errors_24h"] == 1
-    assert overview["db"] == {"state": "ok", "schema": 2, "banner": None} and overview["tz"] == "Europe/Dublin"
+    assert overview["db"] == {"state": "ok", "schema": 3, "banner": None} and overview["tz"] == "Europe/Dublin"
     assert {(p, a) for p, a in upstream.auth} >= {("/v1/status", f"Bearer {MONITOR_TOKEN}"),
                                                   ("/weixue/proactive", f"Bearer {MONITOR_TOKEN}"), ("/healthz", None)}
 
@@ -136,10 +137,58 @@ async def test_chats_carry_live_actor_state(api):
     assert chats[fx.CHAT_A]["busy"] is False
 
 
-async def test_home_tile_is_disabled_by_default_and_reports_a_missing_table(make_app):
-    assert make_app().state.board.home() == {"enabled": False, "entities": [], "fetched_at": None, "stale": None}
-    home = make_app(home=True).state.board.home()
-    assert home["enabled"] is True and home["code"] == "no_snapshot_table"
+async def test_home_tile_is_enabled_by_default_and_can_be_switched_off(make_app):
+    home = make_app().state.board.home()
+    assert home["enabled"] is True and home["period_s"] == 300 and home["error"] is None
+    assert home["fetched_at"] == fx.ts(fx.NOW - timedelta(seconds=60)) and home["stale"] is False
+    assert [e["entity_id"] for e in home["entities"]] == ["climate.house", "cover.curtain", "light.lamp", "lock.front_door"]
+    off = make_app(home=False).state.board.home()
+    assert off["enabled"] is False and off["entities"] == []
+
+
+async def test_home_rows_carry_name_state_attributes_and_age_inputs(api):
+    body = (await api.get("/api/home")).json()
+    rows = {e["entity_id"]: e for e in body["entities"]}
+    assert set(rows["climate.house"]) == {"entity_id", "name", "state", "attributes", "last_changed", "updated_at"}
+    assert rows["climate.house"]["attributes"] == {"current_temperature": 19.5, "temperature": 21, "hvac_action": "heating"}
+    assert rows["cover.curtain"]["attributes"] == {"current_position": 36} and rows["lock.front_door"]["state"] == "locked"
+    assert rows["lock.front_door"]["last_changed"] == fx.ts(fx.NOW - timedelta(hours=3))
+    assert "private_abc" not in json.dumps(body) and rows["light.lamp"]["name"] == "Lamp [url]"
+
+
+async def test_home_is_stale_after_two_periods_and_reports_a_failed_attempt(make_app, db_path):
+    now = [fx.NOW.timestamp()]
+    app = make_app(clock=lambda: now[0])
+    assert app.state.board.home()["stale"] is False
+    now[0] += 2 * 300 - 60 + 1
+    assert app.state.board.home()["stale"] is True
+    writer = sqlite3.connect(db_path)
+    writer.execute("UPDATE home_snapshot_meta SET period_s = 60, error_code = 'ha_error'")
+    writer.commit()
+    writer.close()
+    home = app.state.board.home()
+    assert home["period_s"] == 60 and home["error"] == "ha_error" and home["stale"] is True
+
+
+async def test_home_reports_a_missing_table_on_a_v2_database(make_app, db_path):
+    writer = sqlite3.connect(db_path)
+    writer.executescript("DROP TABLE home_snapshot; DROP TABLE home_snapshot_meta; PRAGMA user_version=2;")
+    writer.close()
+    app = make_app()
+    assert app.state.board.home()["code"] == "no_snapshot_table"
+    assert app.state.board.overview()["db"]["state"] == "ok"
+
+
+async def test_home_section_follows_the_clock_between_database_writes(make_app):
+    now = [fx.NOW.timestamp()]
+    app = make_app(clock=lambda: now[0])
+    hub = app.state.hub
+    await hub.live_tick()
+    first = json.loads(hub.cache["home"])["data"]
+    assert first["stale"] is False
+    now[0] += 3600
+    await hub.live_tick()
+    assert json.loads(hub.cache["home"])["data"]["stale"] is True
 
 
 async def test_unknown_schema_shows_the_banner_and_no_rows(make_app, db_path):
@@ -213,3 +262,10 @@ def test_settings_from_env_never_echo_values():
         with pytest.raises(ConfigError) as e:
             load_settings(env)
         assert not any(v in str(e.value) for v in env.values())
+
+
+def test_monitor_home_defaults_on():
+    from agent_monitor.config import load_settings
+    assert load_settings({}).home is True
+    assert load_settings({"MONITOR_HOME": "1"}).home is True
+    assert load_settings({"MONITOR_HOME": "0"}).home is False

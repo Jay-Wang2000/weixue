@@ -17,7 +17,7 @@ A read-only web board for the agent backend: one FastAPI process (`python -m age
 | Timeline | tasks newest first with turns, every tool call (args summary, result, duration, held-call decision, `decided_via`, time), task transitions incl. steers and cancels, interactions, deliveries and acks; filters chat, state, tool kind; paged by `before` |
 | Cost | today / 7 d / 30 d, a 30-day bar chart by model, tables per chat, task and day (tokens, cache hit %, web requests, USD) |
 | Chats, Errors | `chats` (+ live busy/queued from `/v1/status.actors`), `errors` newest first |
-| Home | hidden until decision 48 (`MONITOR_HOME=1` shows it; it reads `home_snapshot` when that table exists) |
+| Home | `home_snapshot` and `home_snapshot_meta` (decision 48; `MONITOR_HOME=0` hides it): entity name, state, key attributes, time since the state last changed (`last_changed`, else `updated_at`), the fetch age of the snapshot, "stale" after two periods (`period_s` of the meta row, 300 s at the default) and the last failure code; no actions |
 
 Times are stored UTC and shown in `TZ` (Europe/Dublin when unset or UTC); cost days are Dublin days. Days older than the oldest `usage` row (retention 30 days, decision 21) come from `usage_daily`, which keeps UTC days, and are marked "(UTC)".
 
@@ -38,6 +38,7 @@ Times are stored UTC and shown in `TZ` (Europe/Dublin when unset or UTC); cost d
 - The monitor sees only `data/agent-service/db/` (not `memory/`) and `data/mcp-bridge/status/` (`:ro`).
 - Columns come from the allowlists in `agent_monitor/queries.py`; it never selects `approvals.ha_token|args_json`, `transcript`, `chat_prompts`, `idempotency`, `decisions`, `deliveries.payload_json|lease_id|speak`, `interactions.question_json|action_json|decision_json`. User text is clipped to 120 characters; error messages and probe details have URLs and token-like strings replaced.
 - `/v1/status` and the gateway summary are reduced to allowlisted fields before use.
+- Home columns: `home_snapshot.entity_id|name|state|attributes_json|last_changed|updated_at` and `home_snapshot_meta.period_s|attempted_at|fetched_at|entity_count|error_code`; names and attribute strings are scrubbed like other text. Schemas 1 to 3 are supported; a database without the home tables (schema 1 or 2) shows an empty tile.
 - An unknown `PRAGMA user_version` shows "schema N not supported" and no rows.
 
 ## API (all GET)
@@ -46,15 +47,14 @@ Times are stored UTC and shown in `TZ` (Europe/Dublin when unset or UTC); cost d
 
 ## Deployment
 
-Compose service `agent-monitor`: image `weixue/agent-monitor:local` (`python:3.12-slim` by digest, `requirements.lock` with `--no-deps` + `pip check`), `ports: 127.0.0.1:8020:8020`, environment `AGENT_SERVICE_URL`, `MONITOR_TOKEN`, `GATEWAY_URL`, `MCP_ENDPOINT`, `WG_TUNNEL`, `AGENT_HA_PROBE_S`, `MONITOR_HOME`, `TZ` (no `HA_MCP_URL`, no API key, no `env_file`), `mem_limit 128m`, healthcheck `python -m agent_monitor.health`. `scripts/setup.sh` generates `MONITOR_TOKEN` once into `server/.env` (never printed), moves an existing `data/agent-service/agent.db*` into `data/agent-service/db/` while agent-service is stopped, builds and recreates the monitor with the stack and waits for its healthcheck; a first deployment that fails rolls back without it.
+Compose service `agent-monitor`: image `weixue/agent-monitor:local` (`python:3.12-slim` by digest, `requirements.lock` with `--no-deps` + `pip check`), `ports: 127.0.0.1:8020:8020`, environment `AGENT_SERVICE_URL`, `MONITOR_TOKEN`, `GATEWAY_URL`, `MCP_ENDPOINT`, `WG_TUNNEL`, `AGENT_HA_PROBE_S`, `MONITOR_HOME` (default `1`), `TZ` (no `HA_MCP_URL`, no API key, no `env_file`), `mem_limit 128m`, healthcheck `python -m agent_monitor.health`. `scripts/setup.sh` generates `MONITOR_TOKEN` once into `server/.env` (never printed), moves an existing `data/agent-service/agent.db*` into `data/agent-service/db/` while agent-service is stopped, builds and recreates the monitor with the stack and waits for its healthcheck; a first deployment that fails rolls back without it.
 
 `MONITOR_TOKEN` is a read scope: agent-service accepts it on `GET /v1/status` and `GET /v1/tasks/{id}/trace` only, the gateway on `GET /weixue/proactive` only.
 
 ## Pending decisions
 
-- 48 (home snapshot): no `home_snapshot` table or job yet; the tile stays hidden. `MONITOR_HOME=1` shows it once option A or B is built.
 - 49 (ha-mcp probe cadence): built with the recommended 10 s ping and 5 s timeout (`AGENT_HA_PROBE_S`, `AGENT_HA_PROBE_TIMEOUT_S` in `server/.env`); `AGENT_HA_PROBE_S=30` gives option b (red after 45 s).
 
 ## Tests
 
-`cd server/agent-monitor && python -m pytest` (fixture database built with `weixue_agent.store`, fake agent and gateway over `httpx.MockTransport`): queries and aggregations, Dublin days across the DST change, the 40-day row and `usage_daily` fallback, the column allowlist and a response scan for forbidden keys and seeded secrets, tile rules with a fake clock (bridge down via the status-file age), `data_version` change detection and SSE frames, the schema banner, `INSERT` failing, GET-only routes.
+`cd server/agent-monitor && python -m pytest` (fixture database built with `weixue_agent.store`, fake agent and gateway over `httpx.MockTransport`): queries and aggregations, Dublin days across the DST change, the 40-day row and `usage_daily` fallback, the column allowlist and a response scan for forbidden keys and seeded secrets, tile rules with a fake clock (bridge down via the status-file age), `data_version` change detection and SSE frames, the schema banner, `INSERT` failing, GET-only routes, the home tile (rows from fixture data, scrubbing, stale after two periods, failure code, a database without the home tables, default on).

@@ -167,4 +167,15 @@ def build(path: Path) -> Store:
                             "message": "529"})
     store.insert("connection_events", {"ts": at(100), "device_id": DEVICE, "kind": "open",
                                        "detail_json": json.dumps({"gateway_session_id": "s1"})})
+    # Raw inserts: the board must scrub what the service stored.
+    home = [("lock.front_door", "Front door", "locked", {}, 3 * 3600), ("light.lamp", "Lamp http://ha.local:9584/private_abc",
+             "on", {"brightness": 128}, 90), ("climate.house", "House", "heat", {"current_temperature": 19.5,
+             "temperature": 21, "hvac_action": "heating"}, 600), ("cover.curtain", "Curtain", "open",
+             {"current_position": 36}, 86400)]
+    for entity_id, name, state, attributes, age_s in home:
+        store.execute("INSERT INTO home_snapshot (entity_id, name, state, attributes_json, last_changed, updated_at) "
+                      "VALUES (?, ?, ?, ?, ?, ?)", (entity_id, name, state, json.dumps(attributes),
+                                                    ts(NOW - timedelta(seconds=age_s)), ts(NOW - timedelta(seconds=age_s))))
+    store.execute("INSERT INTO home_snapshot_meta (id, period_s, attempted_at, fetched_at, entity_count, error_code) "
+                  "VALUES (1, 300, ?, ?, 4, NULL)", (ts(NOW - timedelta(seconds=60)), ts(NOW - timedelta(seconds=60))))
     return store

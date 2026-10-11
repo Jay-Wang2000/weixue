@@ -171,16 +171,19 @@ class Board:
         return {"errors": queries.errors(self.db, limit)}
 
     def home(self) -> Dict[str, Any]:
-        out: Dict[str, Any] = {"enabled": self.settings.home, "entities": [], "fetched_at": None, "stale": None}
+        out: Dict[str, Any] = {"enabled": self.settings.home, "entities": [], "fetched_at": None, "stale": None,
+                               "period_s": HOME_PERIOD_S, "error": None}
         if not self.settings.home or not self._readable():
             return out
-        rows = queries.home(self.db)
-        if rows is None:
+        snapshot = queries.home(self.db)
+        if snapshot is None:
             out["code"] = "no_snapshot_table"
             return out
-        fetched = max((r["fetched_at"] for r in rows if r.get("fetched_at")), default=None)
-        out.update(entities=rows, fetched_at=fetched,
-                   stale=fetched is None or self.clock() - _epoch(fetched) > 2 * HOME_PERIOD_S)
+        meta = snapshot["meta"] or {}
+        period = meta.get("period_s") or HOME_PERIOD_S
+        fetched = meta.get("fetched_at")
+        out.update(entities=snapshot["rows"], fetched_at=fetched, period_s=period, error=meta.get("error_code"),
+                   stale=fetched is None or self.clock() - _epoch(fetched) > 2 * period)
         return out
 
     def section(self, name: str) -> Dict[str, Any]:
@@ -240,7 +243,7 @@ class Hub:
 
     async def live_tick(self) -> None:
         await self.board.live.refresh()
-        await self._build(("overview", "chats"))
+        await self._build(("overview", "chats", "home"))
 
     async def _run(self) -> None:
         last_live = 0.0

@@ -1,0 +1,58 @@
+# feat-monitor-home-snapshot live run, 2026-10-11 (times UTC unless marked IST)
+# setup.sh from the branch worktree, device lock held (pid 22749), no audio
+
+## setup.sh (ready lines)
+ready: OTA :8003, WebSocket :8000
+ready: bridge healthy, Home Assistant answered via the voice path, agent-service healthy, agent-monitor healthy
+OTA: http://192.168.8.220:8003/xiaozhi/ota/
+WS:  ws://192.168.8.220:8000/xiaozhi/v1/
+Monitor: http://127.0.0.1:8020/
+
+## database after deploy
+user_version|3
+total 17360
+drwx------@ 3       96 11 Oct 09:04 .
+drwxr-xr-x@ 5      160 11 Oct 09:04 ..
+-rw-r--r--@ 1  8888320 11 Oct 09:04 agent.db
+
+## service log: home snapshot cycles and ha calls
+{"ts": "2026-10-11T08:04:21.366Z", "level": "info", "msg": "ha call finished", "tool": "ha_get_overview", "outcome": "executed", "latency_ms": 266, "detail": "apr_01M4MZVJZA7J2G83H4Z9KWGGMN", "event": "ha_call"}
+{"ts": "2026-10-11T08:04:21.418Z", "level": "info", "msg": "ha call finished", "tool": "ha_get_state", "outcome": "executed", "latency_ms": 49, "detail": "apr_01M4MZVK7QZF7QZ2K63MCH4Z9Z", "event": "ha_call"}
+{"ts": "2026-10-11T08:04:21.420Z", "level": "info", "msg": "home snapshot", "event": "home_snapshot", "outcome": "ok", "detail": "entities=15 written=15 calls=2 held=0", "latency_ms": 322}
+{"ts": "2026-10-11T08:09:21.301Z", "level": "info", "msg": "ha call finished", "tool": "ha_get_overview", "outcome": "executed", "latency_ms": 198, "detail": "apr_01M4N04QYEEC70XVCYCFWWYQ5P", "event": "ha_call"}
+{"ts": "2026-10-11T08:09:21.351Z", "level": "info", "msg": "ha call finished", "tool": "ha_get_state", "outcome": "executed", "latency_ms": 48, "detail": "apr_01M4N04R4P6FZDX2JGK9PT7M2X", "event": "ha_call"}
+{"ts": "2026-10-11T08:09:21.352Z", "level": "info", "msg": "home snapshot", "event": "home_snapshot", "outcome": "ok", "detail": "entities=15 written=0 calls=2 held=0", "latency_ms": 251}
+
+## approvals rows of the job (free reads: no held/pending states)
+ha_get_overview|executed|2
+ha_get_state|executed|2
+open holds|0
+
+## home_snapshot_meta and write-on-change (second cycle wrote 0 rows)
+id|period_s|attempted_at|fetched_at|entity_count|error_code
+1|300.0|2026-10-11T08:09:21.352Z|2026-10-11T08:09:21.352Z|15|
+rows|distinct_updated_at|min_updated|max_updated
+15|1|2026-10-11T08:04:21.418Z|2026-10-11T08:04:21.418Z
+
+## monitor /api/home
+{'enabled': True, 'fetched_at': '2026-10-11T08:09:21.352Z', 'stale': False, 'period_s': 300.0, 'error': None}
+cover.curtain_partner_1 | curtain partner 1 | open | {'current_position': 36} | 2026-10-05T20:48:35.007609+01:00
+light.bedroom_ceiling_light_bed | Ceiling Light Bed | off | {} | 2026-10-10T23:03:49.951557+01:00
+light.bedroom_ceiling_light_entry | Ceiling Light Entry | off | {} | 2026-10-10T22:15:38.542324+01:00
+light.bedroom_lamp | Lamp | off | {} | 2026-10-10T23:03:51.971208+01:00
+light.kajplats_e27_ws_globe_1055lm | KAJPLATS E27 WS globe 1055lm | off | {} | 2026-10-11T07:51:14.843338+01:00
+light.kitchen_ceiling_light | ceiling light | off | {} | 2026-10-11T08:53:40.543587+01:00
+light.kitchen_working_light | Kitchen working light | off | {} | 2026-10-11T08:53:40.504149+01:00
+light.living_room_ceiling_light | Ceiling Light | off | {} | 2026-10-11T00:06:51.425452+01:00
+light.living_room_ceiling_lights | Living room ceiling lights | off | {} | 2026-10-11T00:06:51.426294+01:00
+light.living_room_dining_ceiling_light | Dining Ceiling Light | off | {} | 2026-10-11T00:06:51.411232+01:00
+light.living_room_donut_light_dnd | Donut Light Dnd | unavailable | {} | 2026-10-05T20:47:41.821674+01:00
+light.living_room_donut_light_outlet | Donut light | unavailable | {} | 2026-10-05T20:46:58.932162+01:00
+light.living_room_smart_led_light_strip | Smart LED Light Strip | off | {} | 2026-10-10T16:29:55.211474+01:00
+light.smart_switch_24110844476400510301c4e7ae0f5a9f_dnd | Smart Plug Mini Dnd | on | {} | 2026-10-08T13:45:52.249051+01:00
+light.working_area_study_room_ceiling_light | Study room ceiling light | off | {} | 2026-10-11T08:50:10.116208+01:00
+
+## monitor home card text (playwright, 1280 px)
+### Result
+"HOME\nfetched 1 s ago\nEntity\tState\tDetail\tSince\ncurtain partner 1\topen\t36%\t132.3 h\nCeiling Light Bed\toff\t\t10.1 h\nCeiling Light Entry\toff\t\t10.9 h\nLamp\toff\t\t10.1 h\nKAJPLATS E27 WS globe 1055lm\toff\t\t1.3 h\nceiling light\toff\t\t16 min\nKitchen working light\toff\t\t16 min\nCeiling Light\toff\t\t9.0 h\nLiving room ceiling lights\toff\t\t9.0 h\nDining Ceiling Light\toff\t\t9.0 h\nDonut Light Dnd\tunavailable\t\t132.4 h\nDonut light\tunavailable\t\t132.4 h\nSmart LED Light Strip\toff\t\t16.7 h\nSmart Plug Mini Dnd\ton\t\t67.4 h\nStudy room ceiling light\toff\t\t19 min"
+### Ran Playwright code

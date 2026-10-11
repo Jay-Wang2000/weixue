@@ -148,7 +148,7 @@ def test_pending_lists_held_calls_without_tokens(db):
     probes = queries.latest_probes(db)
     assert probes["ha_mcp"]["detail"]["pending_not_ours"] == 2
     assert queries.tools_cache(db)["tool_count"] == 77
-    assert queries.home(db) is None
+    assert queries.home(db)["meta"]["entity_count"] == 4
 
 
 def test_queries_module_selects_only_allowlisted_columns():
@@ -174,3 +174,11 @@ def test_text_fields_are_scrubbed_even_when_the_row_holds_a_secret(db_path, db):
     raw.close()
     blob = json.dumps([queries.task_detail(db, task_id), queries.chats(db), queries.timeline(db)])
     assert secret not in blob and "AIza" + "B" * 35 not in blob and "abc.def.ghi" not in blob
+
+
+def test_home_selects_only_its_allowlisted_columns(db):
+    assert queries.HOME_COLS == ("entity_id", "name", "state", "attributes_json", "last_changed", "updated_at")
+    assert queries.HOME_META_COLS == ("period_s", "attempted_at", "fetched_at", "entity_count", "error_code")
+    snapshot = queries.home(db)
+    assert set(snapshot["rows"][0]) == {"entity_id", "name", "state", "attributes", "last_changed", "updated_at"}
+    assert set(snapshot["meta"]) == set(queries.HOME_META_COLS)
