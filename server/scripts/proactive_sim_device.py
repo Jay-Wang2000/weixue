@@ -10,7 +10,10 @@ detect. Requests carry Device-Id and Client-Id, plus Authorization when --token 
 call logged as `mcp call <name> <args>`). --replies N sends the reply WAV after each of the first N
 `tts stop`s; --barge-in S sends it once more (its first --barge-frames frames) S seconds after the first
 audio frame that follows the first reply (while the answer plays); --agent adds `features.agent` to the hello and answers a `tts stop` that
-carries `ack` with a complete `notifications/weixue/played` (logged as `played <sentence_id>`)."""
+carries `ack` with a complete `notifications/weixue/played` (logged as `played <sentence_id>`).
+--wake-audio WAV (with --wake) sends the first --wake-burst seconds of WAV at once before the
+`listen detect`, as the firmware sends the wake-word audio and the packets held after it, and
+streams the rest of WAV in real time from the `listen start`."""
 import argparse
 import asyncio
 import json
@@ -80,6 +83,9 @@ async def main():
     ap.add_argument("--direct", action="store_true", help="open a session without polling (user-started session)")
     ap.add_argument("--invoke", action="store_true", help="with --direct, still send the proactive listen detect")
     ap.add_argument("--wake", default=None, help="with --direct, send a wake-word listen detect with this text")
+    ap.add_argument("--wake-audio", default=None, help="with --wake, a 16 kHz mono WAV said with the wake word")
+    ap.add_argument("--wake-burst", type=float, default=2.34,
+                    help="seconds of --wake-audio sent at once before the detect (1.98 s wake word + 6 held packets)")
     ap.add_argument("--bind", action="store_true", help="invoke with the id and lease of the poll answer")
     ap.add_argument("--invoke-delay", type=float, default=0, help="seconds between the poll's 200 and the session")
     ap.add_argument("--abort-after", type=float, default=None, help="send abort this many seconds after the detect")
@@ -132,9 +138,17 @@ async def main():
             return
         sid = hello.get("session_id")
         log("hello", sid)
+        live_wake = []
         if not a.direct or a.invoke:
             await ws.send(json.dumps({"session_id": sid, "type": "listen", "state": "detect", "text": invoke_text}))
         elif a.wake:
+            wake_frames = [enc.encode(f, FRAME) for f in frames_from_wav(a.wake_audio)] if a.wake_audio else []
+            burst = round(a.wake_burst / 0.06)
+            for packet in wake_frames[:burst]:
+                await ws.send(packet)
+            if wake_frames:
+                log("sent", min(burst, len(wake_frames)), "wake-audio frames at once")
+            live_wake = wake_frames[burst:]
             await ws.send(json.dumps({"session_id": sid, "type": "listen", "state": "detect", "text": a.wake}))
         await ws.send(json.dumps({"session_id": sid, "type": "listen", "state": "start", "mode": "realtime"}))
         if a.abort_after is not None:
@@ -144,7 +158,7 @@ async def main():
         state = {"stops": 0, "reply_at": None, "audio": 0, "clips": 0, "barge": a.barge_in is not None, "events": 0}
         boot = int(time.time()) % 2 ** 32
         async def sender():
-            queue = []
+            queue = list(live_wake)
             while not ws.close_code:
                 if state["reply_at"] and time.time() >= state["reply_at"] and reply:
                     queue, state["reply_at"] = list(reply[:state.pop("frames", None)]), None

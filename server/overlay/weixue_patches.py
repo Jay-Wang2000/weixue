@@ -9,6 +9,8 @@ import uuid
 from collections import deque
 from difflib import SequenceMatcher
 
+import weixue_stt_probe
+
 _RESPONSE_VALUE = re.compile(r'"response"\s*:\s*"')
 _JSON_ESCAPES = {'"': '"', "\\": "\\", "/": "/", "b": "\b", "f": "\f", "n": "\n", "r": "\r", "t": "\t"}
 
@@ -97,11 +99,22 @@ def stop_agent_stream(conn):
         stream.cancel()
 
 
-def register_sessions(handle_connection, proactive):
+class _NoLogger:
+    def bind(self, **_kwargs):
+        return self
+
+    def __getattr__(self, _level):
+        return lambda *_args, **_kwargs: None
+
+
+def register_sessions(handle_connection, proactive, logger=None):
     """Wraps ConnectionHandler.handle_connection: while it runs, the connection is found by its
     session_id (session_connection) and a session whose device identity proactive.auth verifies
     is registered for proactive delivery; its end is a connection event, cancels a pending wake
-    cue and closes an open agent-service stream."""
+    cue and closes an open agent-service stream, and logs `audio session end packets=<n>
+    frames=<n> bytes=<n> segments=<n> detects=<n> listen_starts=<n>` (audio messages received;
+    frames and bytes handed to ASR)."""
+    logger = logger or _NoLogger()
 
     async def wrapper(self, ws):
         session_id = getattr(self, "session_id", None)
@@ -116,6 +129,12 @@ def register_sessions(handle_connection, proactive):
             note_event(self)
             cancel_wake_cue(self)
             stop_agent_stream(self)
+            logger.bind(tag=__name__).info(
+                f"audio session end packets={getattr(self, 'weixue_packets_in', 0)} "
+                f"frames={getattr(self, 'weixue_frames_in', 0)} "
+                f"bytes={getattr(self, 'weixue_bytes_in', 0)} segments={getattr(self, 'weixue_segments', 0)} "
+                f"detects={getattr(self, 'weixue_detects', 0)} listen_starts={getattr(self, 'weixue_listen_starts', 0)}"
+            )
             if session_id and _SESSIONS.get(session_id) is self:
                 del _SESSIONS[session_id]
             if device:
@@ -138,6 +157,43 @@ def intercept_invoke(handle, proactive, invoke_text):
                 conn.client_listen_mode = msg_json["mode"]
             await proactive.on_invoke(conn, text)
             return None
+        return await handle(self, conn, msg_json)
+
+    wrapper.weixue_wrapped = handle
+    return wrapper
+
+
+def count_packets(route_message):
+    """Wraps ConnectionHandler._route_message: counts the binary (audio) messages the connection
+    received (conn.weixue_packets_in), whether or not they reach ASR."""
+
+    async def wrapper(self, message):
+        if isinstance(message, (bytes, bytearray)):
+            self.weixue_packets_in = getattr(self, "weixue_packets_in", 0) + 1
+        return await route_message(self, message)
+
+    wrapper.weixue_wrapped = route_message
+    return wrapper
+
+
+def note_listen(handle, logger):
+    """Wraps ListenTextMessageHandler.handle: counts `listen detect` and `listen start` per
+    connection (conn.weixue_detects, conn.weixue_listen_starts) and logs a `listen start` that
+    no `listen detect` preceded since the previous one, with the frames handed to ASR so far."""
+
+    async def wrapper(self, conn, msg_json):
+        state = msg_json.get("state")
+        if state == "detect":
+            conn.weixue_detects = getattr(conn, "weixue_detects", 0) + 1
+            conn.weixue_detect_pending = True
+        elif state == "start":
+            conn.weixue_listen_starts = getattr(conn, "weixue_listen_starts", 0) + 1
+            if not getattr(conn, "weixue_detect_pending", False):
+                logger.bind(tag=__name__).info(
+                    f"listen start without a wake detect: mode={msg_json.get('mode')} "
+                    f"start={conn.weixue_listen_starts} frames_before={getattr(conn, 'weixue_frames_in', 0)}"
+                )
+            conn.weixue_detect_pending = False
         return await handle(self, conn, msg_json)
 
     wrapper.weixue_wrapped = handle
@@ -208,22 +264,28 @@ TTS_READY_S = 3
 CUE_DELAY_S = 0.6
 # Live microphone audio after the wake: the first WAKE_HOLD_S cannot end the utterance,
 # so the wake-word audio and the speech after the device's detect-to-listen gap form one
-# ASR segment; VAD results from VAD_FLUSH_S on describe live audio only.
+# ASR segment; VAD results from VAD_FLUSH_FRAMES frames after the audio sent before the
+# `listen start` (VAD_FLUSH_S when that count is unknown) describe live audio only.
 WAKE_HOLD_S = 0.8
 VAD_FLUSH_S = 0.25
+VAD_FLUSH_FRAMES = 4
 
 
 def hold_wake_utterance(is_vad):
-    """Wraps the VAD provider's is_vad(conn, pcm_frame) for the WAKE_HOLD_S after a wake's
-    `listen start` (conn.weixue_live_since): an end of utterance is withheld, and voice
-    heard after VAD_FLUSH_S sets conn.weixue_live_voice. The start of every utterance is kept
-    as conn.weixue_voice_onset (monotonic time), and as conn.weixue_onset_playback the event
-    generation at that start when a reply was playing (reply_playing), else None. A session the
-    proactive gate rejected (conn._weixue_rejected) hears no voice."""
+    """Wraps the VAD provider's is_vad(conn, pcm_frame), counting frames (conn.weixue_vad_frames).
+    For the WAKE_HOLD_S after a wake's `listen start` (conn.weixue_live_since) an end of
+    utterance is withheld; voice on a frame from conn.weixue_live_from on (the first frame
+    VAD_FLUSH_FRAMES after those received before the `listen start`) sets conn.weixue_live_voice.
+    The start of every utterance is kept as conn.weixue_voice_onset (monotonic time), and as
+    conn.weixue_onset_playback the event generation at that start when a reply was playing
+    (reply_playing), else None. A session the proactive gate rejected (conn._weixue_rejected)
+    hears no voice."""
 
     def wrapper(self, conn, pcm_frame):
         if getattr(conn, "_weixue_rejected", False):
             return False
+        index = getattr(conn, "weixue_vad_frames", 0)
+        conn.weixue_vad_frames = index + 1
         before = getattr(conn, "client_have_voice", False)
         have_voice = is_vad(self, conn, pcm_frame)
         if not before and getattr(conn, "client_have_voice", False):
@@ -234,7 +296,9 @@ def hold_wake_utterance(is_vad):
             elapsed = time.time() - since
             if elapsed < WAKE_HOLD_S:
                 conn.client_voice_stop = False
-            if have_voice and elapsed >= VAD_FLUSH_S:
+            live_from = getattr(conn, "weixue_live_from", None)
+            live = index >= live_from if live_from is not None else elapsed >= VAD_FLUSH_S
+            if have_voice and live:
                 conn.weixue_live_voice = True
         return have_voice
 
@@ -392,7 +456,9 @@ def acknowledge_wake(handle, remove_punctuation_and_length, play):
     whose text is a wake word is a connection event (a pending cue is cancelled and the speaking
     state it set is cleared) and starts one random cue in the background; neither it nor the next
     `listen start` resets the audio state, so the wake-word audio the device sends before the
-    detect reaches VAD and ASR; that `listen start` sets conn.weixue_live_since."""
+    detect reaches VAD and ASR; the detect marks the next segment as the wake segment
+    (conn.weixue_wake_segment, see segment_kind); that `listen start` sets conn.weixue_live_since
+    and conn.weixue_live_from (see hold_wake_utterance)."""
 
     async def wrapper(self, conn, msg_json):
         state = msg_json.get("state")
@@ -405,9 +471,13 @@ def acknowledge_wake(handle, remove_punctuation_and_length, play):
             if state == "start":
                 conn.weixue_keep_audio = False
                 conn.weixue_live_since = time.time()
+                pending = getattr(conn, "asr_audio_queue", None)
+                queued = pending.qsize() if pending is not None else 0
+                conn.weixue_live_from = getattr(conn, "weixue_vad_frames", 0) + queued + VAD_FLUSH_FRAMES
                 return None
             conn.weixue_keep_audio = True
             conn.weixue_live_voice = False
+            conn.weixue_wake_segment = True
             conn.last_activity_time = time.time() * 1000
             cue = random.choice(conn.config["wake_cues"])
             cancel_wake_cue(conn)
@@ -688,15 +758,103 @@ def guard_playback_echo(start_to_chat, logger):
     return wrapper
 
 
-def note_speech_end(handle_voice_stop):
-    """Wraps ASRProviderBase.handle_voice_stop: the VAD's end of utterance is kept as
-    conn.weixue_speech_end (monotonic time) for the turn's latency line."""
+# 60 ms of 16 kHz 16-bit mono: one decoded device packet.
+FRAME_BYTES = 1920
+
+
+def segment_kind(conn):
+    """`wake_only` for the first segment after a wake detect (conn.weixue_wake_segment) with no
+    live voice (conn.weixue_live_voice), `wake` for that segment with live voice, else `follow`.
+    Clears conn.weixue_wake_segment."""
+    if not getattr(conn, "weixue_wake_segment", False):
+        return "follow"
+    conn.weixue_wake_segment = False
+    return "wake" if getattr(conn, "weixue_live_voice", False) else "wake_only"
+
+
+def note_speech_end(handle_voice_stop, logger=None):
+    """Wraps ASRProviderBase.handle_voice_stop(conn, frames): the VAD's end of utterance is kept as
+    conn.weixue_speech_end (monotonic time) for the turn's latency line; every segment logs
+    `stt_segment kind=<wake|wake_only|follow> frames=<n> seconds=<s> burst=<n> peak_dbfs=<db>
+    rms_dbfs=<db>` (burst: leading frames handed to ASR together) and keeps the kind as
+    conn.weixue_segment_kind. A `wake_only` segment holds only the wake word the device already
+    reported and is dropped before STT. With
+    WEIXUE_STT_CAPTURE=1 every segment is written to the capture directory with a sidecar of the
+    same facts and, once recognized, the provider's transcript."""
+    logger = logger or _NoLogger()
 
     async def wrapper(self, conn, *args, **kwargs):
         conn.weixue_speech_end = time.monotonic()
-        return await handle_voice_stop(self, conn, *args, **kwargs)
+        conn.weixue_segments = getattr(conn, "weixue_segments", 0) + 1
+        frames = args[0] if args else kwargs.get("asr_audio_task") or []
+        pcm = b"".join(frames)
+        kind = conn.weixue_segment_kind = segment_kind(conn)
+        count = -(-len(pcm) // FRAME_BYTES)
+        arrivals = weixue_stt_probe.segment_arrivals(conn, count)
+        peak, rms = weixue_stt_probe.level_dbfs(pcm)
+        facts = {
+            "kind": kind,
+            "frames": count,
+            "seconds": round(len(pcm) / 32000, 2),
+            "burst": weixue_stt_probe.leading_burst(arrivals),
+            "peak_dbfs": round(peak, 1),
+            "rms_dbfs": round(rms, 1),
+        }
+        capture = None
+        if weixue_stt_probe.capture_enabled():
+            meta = {
+                **facts,
+                "provider": type(self).__module__.rsplit(".", 1)[-1],
+                "arrival_offsets_s": [round(t - arrivals[0], 3) for t in arrivals] if arrivals else [],
+            }
+            try:
+                capture = await asyncio.to_thread(weixue_stt_probe.write_capture, pcm, meta)
+            except OSError as e:
+                logger.bind(tag=__name__).warning(f"stt capture not written: {type(e).__name__}: {e}")
+        logger.bind(tag=__name__).info(
+            "stt_segment " + " ".join(f"{key}={value}" for key, value in facts.items())
+            + (f" capture={capture}" if capture else "")
+        )
+        if kind == "wake_only":
+            logger.bind(tag=__name__).info("wake-only segment dropped before STT")
+            return None
+        self.weixue_last_text = None
+        try:
+            return await handle_voice_stop(self, conn, *args, **kwargs)
+        finally:
+            if capture:
+                result = {"text": getattr(self, "weixue_last_text", None), **(getattr(self, "weixue_last_stt", None) or {})}
+                try:
+                    await asyncio.to_thread(weixue_stt_probe.update_capture, capture, {"result": result})
+                except OSError:
+                    pass
 
     wrapper.weixue_wrapped = handle_voice_stop
+    return wrapper
+
+
+def keep_transcript(speech_to_text_wrapper):
+    """Wraps ASRProviderBase.speech_to_text_wrapper: the provider keeps the last transcript as
+    self.weixue_last_text (the capture sidecar's result)."""
+
+    async def wrapper(self, *args, **kwargs):
+        result = await speech_to_text_wrapper(self, *args, **kwargs)
+        self.weixue_last_text = result[0] if isinstance(result, tuple) and result else None
+        return result
+
+    wrapper.weixue_wrapped = speech_to_text_wrapper
+    return wrapper
+
+
+def note_frames(receive_audio):
+    """Wraps ASRProviderBase.receive_audio: every frame handed to ASR is recorded
+    (weixue_stt_probe.note_frame) before upstream buffers it."""
+
+    async def wrapper(self, conn, pcm_frame, *args, **kwargs):
+        weixue_stt_probe.note_frame(conn, pcm_frame)
+        return await receive_audio(self, conn, pcm_frame, *args, **kwargs)
+
+    wrapper.weixue_wrapped = receive_audio
     return wrapper
 
 
@@ -735,9 +893,13 @@ def apply_playback_guards(proactive, logger):
             module.handleAbortMessage = count_aborts(handle_abort)
     if getattr(asr_base.startToChat, "weixue_wrapped", None) is None:
         asr_base.startToChat = guard_playback_echo(asr_base.startToChat, logger)
-    voice_stop = asr_base.ASRProviderBase.handle_voice_stop
-    if getattr(voice_stop, "weixue_wrapped", None) is None:
-        asr_base.ASRProviderBase.handle_voice_stop = note_speech_end(voice_stop)
+    base = asr_base.ASRProviderBase
+    if getattr(base.handle_voice_stop, "weixue_wrapped", None) is None:
+        base.handle_voice_stop = note_speech_end(base.handle_voice_stop, logger)
+    if getattr(base.speech_to_text_wrapper, "weixue_wrapped", None) is None:
+        base.speech_to_text_wrapper = keep_transcript(base.speech_to_text_wrapper)
+    if getattr(base.receive_audio, "weixue_wrapped", None) is None:
+        base.receive_audio = note_frames(base.receive_audio)
     server = http_server.SimpleHttpServer
     if getattr(server.__init__, "weixue_wrapped", None) is None:
         server.__init__ = bind_device_auth(server.__init__, proactive)
@@ -835,8 +997,11 @@ def apply():
 
     proactive = weixue_proactive.instance()
     apply_playback_guards(proactive, logger)
+    route = getattr(ConnectionHandler, "_route_message", None)
+    if route is not None and getattr(route, "weixue_wrapped", None) is None:
+        ConnectionHandler._route_message = count_packets(route)
     if getattr(ConnectionHandler.handle_connection, "weixue_wrapped", None) is None:
-        ConnectionHandler.handle_connection = register_sessions(ConnectionHandler.handle_connection, proactive)
+        ConnectionHandler.handle_connection = register_sessions(ConnectionHandler.handle_connection, proactive, logger)
     if getattr(ListenTextMessageHandler.handle, "weixue_wrapped", None) is None:
         play = wake_cue_player(
             audio_to_data,
@@ -846,10 +1011,13 @@ def apply():
             sendAudioHandle.SentenceType.LAST,
             logger,
         )
-        ListenTextMessageHandler.handle = intercept_invoke(
-            acknowledge_wake(ListenTextMessageHandler.handle, remove_punctuation_and_length, play),
-            proactive,
-            weixue_proactive.INVOKE_TEXT,
+        ListenTextMessageHandler.handle = note_listen(
+            intercept_invoke(
+                acknowledge_wake(ListenTextMessageHandler.handle, remove_punctuation_and_length, play),
+                proactive,
+                weixue_proactive.INVOKE_TEXT,
+            ),
+            logger,
         )
     if not isinstance(http_server.web, WebWithRoutes):
         http_server.web = WebWithRoutes(

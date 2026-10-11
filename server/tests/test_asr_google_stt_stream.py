@@ -576,6 +576,198 @@ async def test_close_cancels_the_open_stream(tmp_path, monkeypatch):
     assert provider._streams == []
 
 
+def empty_final_after_half_close(interims=2):
+    """Interims, then a final without alternatives once the stream is half-closed."""
+
+    def run(call, requests):
+        call.config = next(requests)
+        for request in requests:
+            call.audio.append(request.audio)
+            if len(call.audio) <= interims:
+                yield _result("Swit", final=False)
+        yield Streaming(results=[cloud_speech.StreamingRecognitionResult(is_final=True, language_code="en-US")])
+
+    return run
+
+
+def silent_stream():
+    def run(call, requests):
+        call.config = next(requests)
+        for request in requests:
+            call.audio.append(request.audio)
+        yield from ()
+
+    return run
+
+
+def utterance_end_at(frames, seconds, text, lang="cmn-hans-cn", confidence=0.91):
+    """The service ends the utterance at audio offset `seconds` after reading `frames` requests."""
+
+    def run(call, requests):
+        from datetime import timedelta
+
+        call.config = next(requests)
+        for request in requests:
+            call.audio.append(request.audio)
+            if len(call.audio) >= frames:
+                break
+        yield Streaming(
+            speech_event_type=Streaming.SpeechEventType.END_OF_SINGLE_UTTERANCE,
+            speech_event_offset=timedelta(seconds=seconds),
+        )
+        yield _result(text, lang, confidence)
+
+    return run
+
+
+@pytest.mark.parametrize("behaviour, reason", [
+    (empty_final_after_half_close(), "empty_final"),
+    (empty_final_after_half_close(interims=0), "no_speech"),
+    (silent_stream(), "no_response"),
+])
+async def test_no_final_is_re_recognized_with_chirp_3(tmp_path, monkeypatch, started, log_records, behaviour, reason):
+    client = FakeClient(behaviour, recognize=[_response(("Switch the screen to bedside mode.", "en-US"))])
+    provider = make_provider(tmp_path, monkeypatch, client)
+    conn = make_listening_conn(provider)
+    await speak(provider, conn)
+    await stop(provider, conn)
+
+    assert started == ["Switch the screen to bedside mode."]
+    (request,) = client.recognize_calls
+    assert request.config.model == "chirp_3" and request.content == FRAME * 20 + SILENCE
+    (line,) = stt_lines(log_records)
+    assert "model=chirp_3" in line and "fallback=no_final" in line and f"no_final={reason}" in line
+    assert provider.weixue_last_stt == {"model": "chirp_3", "fallback": "no_final", "no_final": reason, "streams": 1}
+    (summary,) = [msg for level, msg in log_records if msg.startswith("stt_stream 0 ")]
+    assert "burst=1 frames=21" in summary and "half_close_ms=" in summary
+    if reason == "empty_final":
+        assert "empty_finals=1" in summary and "interims=2" in summary
+
+
+@pytest.mark.parametrize("outcome", [_response(), gexc.ServiceUnavailable("down")])
+async def test_no_final_with_an_empty_or_failed_fallback_is_no_turn_and_no_repeat(
+        tmp_path, monkeypatch, started, log_records, outcome):
+    client = FakeClient(empty_final_after_half_close(), recognize=[outcome])
+    provider = make_provider(tmp_path, monkeypatch, client)
+    conn = make_listening_conn(provider)
+    await speak(provider, conn)
+    await stop(provider, conn)
+    assert started == [] and len(client.recognize_calls) == 1
+    line = stt_lines(log_records)[0]
+    assert "fallback=no_final" in line and "rejected" not in line
+    assert spoken_text(conn) == ""
+
+
+async def test_no_final_without_fallback_model_is_no_turn(tmp_path, monkeypatch, started, log_records):
+    client = FakeClient(empty_final_after_half_close())
+    provider = make_provider(tmp_path, monkeypatch, client, fallback_model="")
+    conn = make_listening_conn(provider)
+    await speak(provider, conn)
+    await stop(provider, conn)
+    assert started == [] and client.recognize_calls == []
+    assert "fallback=no_final" in stt_lines(log_records)[0] and spoken_text(conn) == ""
+
+
+async def test_utterance_end_long_before_the_audio_end_is_re_recognized(tmp_path, monkeypatch, started, log_records):
+    client = FakeClient(
+        utterance_end_at(30, 0.6, "China。"),
+        recognize=[_response(("Jarvis, what time is it?", "en-US"))],
+    )
+    provider = make_provider(tmp_path, monkeypatch, client)
+    conn = make_listening_conn(provider)
+    await speak(provider, conn, voiced=30)
+    await stop(provider, conn)
+
+    assert started == ["Jarvis, what time is it?"]
+    (line,) = stt_lines(log_records)
+    assert "fallback=truncated" in line and "model=chirp_3" in line
+
+
+async def test_truncated_stream_with_a_failed_fallback_is_rejected(tmp_path, monkeypatch, started, log_records):
+    client = FakeClient(utterance_end_at(30, 0.6, "China。"), recognize=[gexc.ServiceUnavailable("down")])
+    provider = make_provider(tmp_path, monkeypatch, client)
+    conn = make_listening_conn(provider)
+    await speak(provider, conn, voiced=30)
+    await stop(provider, conn)
+    assert started == []
+    assert "rejected=fallback_failed" in stt_lines(log_records)[0]
+    assert spoken_text(conn) == google_stt_stream.DEFAULT_REPEAT_REPLY
+
+
+async def test_utterance_end_at_the_audio_end_keeps_the_stream_text(tmp_path, monkeypatch, started, log_records):
+    client = FakeClient(utterance_end_at(21, 21 * 0.06 - 0.3, "What time is it?", "en-US", 0.95))
+    provider = make_provider(tmp_path, monkeypatch, client)
+    conn = make_listening_conn(provider)
+    await speak(provider, conn, voiced=20)
+    await stop(provider, conn)
+    assert started == ["What time is it?"] and client.recognize_calls == []
+    assert "fallback=-" in stt_lines(log_records)[0]
+
+
+async def test_follow_on_stream_starts_at_the_reported_utterance_end(tmp_path, monkeypatch, started, log_records):
+    client = FakeClient(
+        utterance_end_at(25, 0.48, "Jarvis.", "en-US", 0.95),
+        final_after_half_close("What time is it?"),
+    )
+    provider = make_provider(tmp_path, monkeypatch, client)
+    conn = make_listening_conn(provider)
+    voiced = [bytes([i]) * 1920 for i in range(25)]
+    conn.client_have_voice = True
+    for frame in voiced:
+        await provider.receive_audio(conn, frame, True)
+    wait_for(lambda: provider._streams[0].finished)
+    await speak(provider, conn, voiced=5)
+    await stop(provider, conn)
+
+    assert started == ["Jarvis. What time is it?"]
+    first, second = client.calls
+    assert provider_index(0.48) == 8
+    assert second.audio[: 25 - 6] == voiced[6:]
+    assert "streams=2" in stt_lines(log_records)[0] and "fallback=-" in stt_lines(log_records)[0]
+
+
+@pytest.mark.parametrize("kind, text, fallback", [
+    ("wake", "Jarvis.", True),
+    ("wake", "jarvis。", True),
+    ("follow", "Jarvis.", False),
+    ("wake", "Jarvis, what time is it?", False),
+])
+async def test_wake_segment_heard_as_only_the_wake_word_is_re_recognized(
+        tmp_path, monkeypatch, started, log_records, kind, text, fallback):
+    client = FakeClient(
+        final_after_half_close(text, confidence=0.8),
+        recognize=[_response(("Jarvis, what time is it?", "en-US"))],
+    )
+    provider = make_provider(tmp_path, monkeypatch, client)
+    conn = make_listening_conn(provider)
+    conn.config = {"wakeup_words": ["你好小智", "Jarvis"]}
+    conn.weixue_segment_kind = kind
+    await speak(provider, conn)
+    await stop(provider, conn)
+    line = stt_lines(log_records)[0]
+    if fallback:
+        assert started == ["Jarvis, what time is it?"] and "fallback=wake_word_only" in line
+    else:
+        assert started == [text] and client.recognize_calls == []
+
+
+async def test_no_fallback_for_an_utterance_dropped_during_playback(tmp_path, monkeypatch, started, log_records):
+    client = FakeClient(empty_final_after_half_close(), recognize=[_response(("It is ten past eight.", "en-US"))])
+    provider = make_provider(tmp_path, monkeypatch, client)
+    conn = make_listening_conn(provider)
+    conn.config = {"barge_in": False}
+    conn.weixue_event_gen = 3
+    conn.weixue_onset_playback = 3
+    await speak(provider, conn)
+    await stop(provider, conn)
+    assert client.recognize_calls == [] and started == []
+    assert any("fallback (no_final) skipped" in msg for _level, msg in log_records)
+
+
+def provider_index(seconds):
+    return int(seconds / google_stt_stream.FRAME_S)
+
+
 def _pcm_from_wav(path):
     with wave.open(str(path)) as wav:
         assert (wav.getnchannels(), wav.getsampwidth(), wav.getframerate()) == (1, 2, 16000)

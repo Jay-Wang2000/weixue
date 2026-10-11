@@ -19,6 +19,7 @@ services:
       - AGENT_SERVICE_URL=http://${AGENT_SERVICE_HOST:-agent-service}:8010
       - AGENT_SERVICE_TOKEN=${AGENT_SERVICE_TOKEN:-}
       - MONITOR_TOKEN=${MONITOR_TOKEN:-}
+      - WEIXUE_STT_CAPTURE=${WEIXUE_STT_CAPTURE:-0}
     ports:
       - "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8000:8000"
       - "${BIND_IP:-${LAN_IP:?set LAN_IP in server/.env}}:8003:8003"

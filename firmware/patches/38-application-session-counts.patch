@@ -1,0 +1,171 @@
+diff --git a/main/application.cc b/main/application.cc
+index 9117aaf..766d7ec 100644
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -279,13 +279,13 @@ void Application::Run() {
+                 HoldWakeAudio();
+             }
+             while (auto packet = audio_service_.PopPacketFromSendQueue()) {
+-                if (protocol_ && !protocol_->SendAudio(std::move(packet))) {
++                if (protocol_ && !SendChannelAudio(std::move(packet))) {
+                     // Drop the remaining packets. Leaving them in the queue would
+                     // stall the Opus codec task (it waits for queue space), which in
+                     // turn deadlocks the whole audio input pipeline, as no new
+                     // MAIN_EVENT_SEND_AUDIO event would ever be triggered again.
+                     while (audio_service_.PopPacketFromSendQueue())
+-                        ;
++                        channel_packets_dropped_++;
+                     break;
+                 }
+             }
+@@ -602,6 +602,9 @@ void Application::InitializeProtocol() {
+ 
+     protocol_->OnAudioChannelOpened([this, codec, &board]() {
+         channel_open_ = true;
++        channel_packets_sent_ = 0;
++        channel_packets_dropped_ = 0;
++        channel_packet_max_age_us_ = 0;
+         board.SetPowerSaveLevel(PowerSaveLevel::PERFORMANCE);
+         if (protocol_->server_sample_rate() != codec->output_sample_rate()) {
+             ESP_LOGW(TAG,
+@@ -613,6 +616,10 @@ void Application::InitializeProtocol() {
+ 
+     protocol_->OnAudioChannelClosed([this, &board]() {
+         channel_open_ = false;
++        ESP_LOGI(TAG, "Audio channel closed: %u packets sent, %u dropped, oldest sent %lld ms after encoding",
++                 static_cast<unsigned>(channel_packets_sent_.load()),
++                 static_cast<unsigned>(channel_packets_dropped_.load()),
++                 static_cast<long long>(channel_packet_max_age_us_.load() / 1000));
+         board.SetPowerSaveLevel(PowerSaveLevel::LOW_POWER);
+         Schedule([this]() {
+             WeixueAgent::GetInstance().OnPlaybackCut("closed");
+@@ -879,7 +886,7 @@ void Application::HandleToggleChatEvent() {
+         }
+         ListeningMode mode = GetDefaultListeningMode();
+         if (!protocol_->IsAudioChannelOpened()) {
+-            SetDeviceState(kDeviceStateConnecting);
++            BeginConnecting("toggle");
+             // Schedule to let the state change be processed first (UI update)
+             Schedule([this, mode]() { ContinueOpenAudioChannel(mode); });
+             return;
+@@ -943,7 +950,7 @@ void Application::HandleStartListeningEvent() {
+             return;
+         }
+         if (!protocol_->IsAudioChannelOpened()) {
+-            SetDeviceState(kDeviceStateConnecting);
++            BeginConnecting("start_listening");
+             // Schedule to let the state change be processed first (UI update)
+             Schedule([this]() { ContinueOpenAudioChannel(kListeningModeManualStop); });
+             return;
+@@ -1029,7 +1036,7 @@ void Application::BeginWakeWordInvoke(const std::string& wake_word, bool capture
+     // Always pass through the connecting state, even if the audio channel is
+     // already opened. ContinueWakeWordInvoke() rejects any other state, so
+     // skipping this transition would silently drop the wake word invocation.
+-    if (!SetDeviceState(kDeviceStateConnecting)) {
++    if (!BeginConnecting("wake_word")) {
+         if (capture) {
+             audio_service_.EnableVoiceProcessing(false);
+         }
+@@ -1076,13 +1083,13 @@ void Application::ContinueWakeWordInvoke(const std::string& wake_word) {
+ #if CONFIG_SEND_WAKE_WORD_DATA
+     // Encode and send the wake word data to the server
+     while (auto packet = audio_service_.PopWakeWordPacket()) {
+-        protocol_->SendAudio(std::move(packet));
++        SendChannelAudio(std::move(packet));
+     }
+     if (wake_capture_) {
+         // The capture after the wake word follows the wake word audio, in order.
+         HoldWakeAudio();
+         size_t held = wake_audio_.Drain([this](std::unique_ptr<AudioStreamPacket> packet) {
+-            protocol_->SendAudio(std::move(packet));
++            SendChannelAudio(std::move(packet));
+         });
+         ESP_LOGI(TAG, "Sent %u packets captured after the wake word", static_cast<unsigned>(held));
+     }
+@@ -1206,6 +1213,27 @@ void Application::StartListeningAudio() {
+     }
+ }
+ 
++// Every idle -> connecting transition goes through here and logs what started the session.
++bool Application::BeginConnecting(const char* reason) {
++    ESP_LOGI(TAG, "Session start: %s", reason);
++    return SetDeviceState(kDeviceStateConnecting);
++}
++
++bool Application::SendChannelAudio(std::unique_ptr<AudioStreamPacket> packet) {
++    if (packet->encoded_us > 0) {
++        int64_t age = esp_timer_get_time() - packet->encoded_us;
++        if (age > channel_packet_max_age_us_) {
++            channel_packet_max_age_us_ = age;
++        }
++    }
++    if (!protocol_->SendAudio(std::move(packet))) {
++        channel_packets_dropped_++;
++        return false;
++    }
++    channel_packets_sent_++;
++    return true;
++}
++
+ // Moves the packets encoded since the wake word from the send queue into wake_audio_.
+ void Application::HoldWakeAudio() {
+     while (auto packet = audio_service_.PopPacketFromSendQueue()) {
+@@ -1408,7 +1436,7 @@ void Application::ProactiveInvoke(bool urgent, const std::string& invoke_text) {
+         return;
+     }
+     next_session_origin_ = urgent ? SessionOrigin::kProactiveUrgent : SessionOrigin::kProactive;
+-    if (!SetDeviceState(kDeviceStateConnecting)) {
++    if (!BeginConnecting(urgent ? "proactive_urgent" : "proactive")) {
+         next_session_origin_ = SessionOrigin::kUser;
+         return;
+     }
+diff --git a/main/application.h b/main/application.h
+index 7ee6c0e..6b9bd76 100644
+--- a/main/application.h
++++ b/main/application.h
+@@ -211,6 +211,11 @@ private:
+     std::string proactive_poll_url_;
+     TaskHandle_t proactive_task_handle_ = nullptr;
+     std::atomic<bool> channel_open_{false};
++    // Audio packets of the current audio channel: sent, and dropped after the transport refused one.
++    std::atomic<uint32_t> channel_packets_sent_{0};
++    std::atomic<uint32_t> channel_packets_dropped_{0};
++    // Largest time from encoding to sending among the channel's microphone packets.
++    std::atomic<int64_t> channel_packet_max_age_us_{0};
+     std::atomic<int> poll_status_{0};
+     std::atomic<int64_t> poll_done_us_{0};
+     std::atomic<int64_t> poll_resumed_us_{0};
+@@ -236,6 +241,8 @@ private:
+     void ContinueOpenAudioChannel(ListeningMode mode);
+     void BeginWakeWordInvoke(const std::string& wake_word, bool capture = false);
+     void HoldWakeAudio();
++    bool BeginConnecting(const char* reason);
++    bool SendChannelAudio(std::unique_ptr<AudioStreamPacket> packet);
+     void EndWakeCapture();
+     void ContinueWakeWordInvoke(const std::string& wake_word);
+     void StartListeningAudio();
+diff --git a/main/audio/audio_service.cc b/main/audio/audio_service.cc
+index 6256dd8..a8ecd29 100644
+--- a/main/audio/audio_service.cc
++++ b/main/audio/audio_service.cc
+@@ -530,6 +530,7 @@ void AudioService::OpusCodecTask() {
+                     packet->payload.resize(out.encoded_bytes);
+ 
+                     if (task.type == kAudioTaskTypeEncodeToSendQueue) {
++                        packet->encoded_us = esp_timer_get_time();
+                         {
+                             std::lock_guard<std::mutex> lock2(audio_queue_mutex_);
+                             /* Never let a full send queue stall encoding: stale realtime
+diff --git a/main/protocols/protocol.h b/main/protocols/protocol.h
+index 86680f5..b3b97ef 100644
+--- a/main/protocols/protocol.h
++++ b/main/protocols/protocol.h
+@@ -13,6 +13,8 @@ struct AudioStreamPacket {
+     uint32_t timestamp = 0;
+     uint32_t playback_id = 0;
+     uint32_t media_position_ms = 0;
++    // esp_timer time the microphone packet was encoded (0: not a microphone packet).
++    int64_t encoded_us = 0;
+     std::vector<uint8_t> payload;
+ };
+ 
