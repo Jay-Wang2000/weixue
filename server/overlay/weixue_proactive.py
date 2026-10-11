@@ -22,6 +22,8 @@ _CJK = re.compile(r"[\u3400-\u9fff]")
 INVOKE_TEXT = "weixue:proactive"
 TOKEN_ENV = "WEIXUE_PROACTIVE_TOKEN"
 MONITOR_TOKEN_ENV = "MONITOR_TOKEN"
+STATE_DIR_ENV = "WEIXUE_GATEWAY_STATE_DIR"
+DEFAULT_STATE_DIR = "data/weixue-gateway"
 
 MODES = ("announce", "conversation")
 MAX_MESSAGE_CHARS = 500
@@ -57,6 +59,8 @@ DISPATCH_INTERVAL_SECONDS = 0.5
 # DRAIN_QUIET_SECONDS, at most DRAIN_MAX_SECONDS after the invocation.
 DRAIN_QUIET_SECONDS = 2
 DRAIN_MAX_SECONDS = 8
+# Agent feature level from which an invocation must name its message id and lease.
+BOUND_INVOKE_LEVEL = 2
 
 FINAL = ("delivered", "answered", "no_reply", "partial", "expired", "failed")
 # Proactive.poll's result for a poll a newer poll from the same device replaced.
@@ -68,6 +72,82 @@ PARTIAL = {
     "partial": "session lost after audio started",
     "incomplete": "synthesis failed after audio started",
 }
+
+
+class StateFile:
+    """A JSON document at path, written atomically and durably with mode 0600, plus the previous
+    generation at path.prev, read when the current one is missing or does not parse; path None
+    keeps nothing."""
+
+    def __init__(self, path, logger=None):
+        self.path = path
+        self.logger = logger or setup_logging()
+        # The file at path parsed (or is absent), so a save may keep it as the previous generation.
+        self._current_ok = True
+
+    def _read(self, path):
+        with open(path, encoding="utf-8") as f:
+            doc = json.load(f)
+        if not isinstance(doc, dict):
+            raise ValueError("not a JSON object")
+        return doc
+
+    def load(self):
+        if not self.path:
+            return {}
+        try:
+            self._current_ok = True
+            return self._read(self.path)
+        except FileNotFoundError:
+            pass
+        except (OSError, ValueError) as e:
+            self._current_ok = False
+            self.logger.bind(tag=TAG).warning(f"state file {self.path} unreadable ({type(e).__name__})")
+        try:
+            doc = self._read(f"{self.path}.prev")
+            self.logger.bind(tag=TAG).warning(f"state file {self.path}: previous generation used")
+            return doc
+        except FileNotFoundError:
+            return {}
+        except (OSError, ValueError) as e:
+            self.logger.bind(tag=TAG).warning(f"state file {self.path}.prev unreadable ({type(e).__name__}); starting empty")
+            return {}
+
+    def save(self, doc):
+        """Writes doc; returns whether it is on disk (True when path is None)."""
+        if not self.path:
+            return True
+        directory = os.path.dirname(self.path) or "."
+        tmp = f"{self.path}.{os.getpid()}.tmp"
+        try:
+            os.makedirs(directory, mode=0o700, exist_ok=True)
+            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(doc, f, separators=(",", ":"))
+                f.flush()
+                os.fsync(f.fileno())
+            if self._current_ok and os.path.exists(self.path):
+                os.replace(self.path, f"{self.path}.prev")
+            os.replace(tmp, self.path)
+            dfd = os.open(directory, os.O_RDONLY)
+            try:
+                os.fsync(dfd)
+            finally:
+                os.close(dfd)
+            self._current_ok = True
+            return True
+        except OSError as e:
+            self.logger.bind(tag=TAG).warning(f"state file {self.path} not written: {type(e).__name__}")
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            return False
+
+
+def state_path(name):
+    """Path of a gateway state file under WEIXUE_GATEWAY_STATE_DIR (default DEFAULT_STATE_DIR)."""
+    return os.path.join(os.environ.get(STATE_DIR_ENV) or DEFAULT_STATE_DIR, name)
 
 
 def _iso(wall):
@@ -261,7 +341,8 @@ class DeviceAuth:
 
 
 class Proactive:
-    def __init__(self, token, clock=time.monotonic, wall=time.time, speaker=None, auth=None, monitor_token=""):
+    def __init__(self, token, clock=time.monotonic, wall=time.time, speaker=None, auth=None, monitor_token="",
+                 state=None, interrupter=None):
         self.token = token or ""
         # Read scope: accepted on GET /weixue/proactive only.
         self.monitor_token = monitor_token or ""
@@ -286,6 +367,46 @@ class Proactive:
         self._delivery = None
         # weixue_agent_delivery.AgentGateway when installed: agent poll items, speech hold, routes.
         self.agent = None
+        # Stops the session's current playback and voice turn (default: upstream handleAbortMessage).
+        self.interrupter = interrupter
+        self.state = state or StateFile(None)
+        self._load()
+
+    # Idempotency keys survive a restart: a key seen before is a duplicate, never queued again.
+
+    def _load(self):
+        now, wall = self.clock(), self.wall()
+        for record in self.state.load().get("keyed") or []:
+            try:
+                status = record["status"]
+                if status not in FINAL:
+                    status, error = ("partial", "gateway restarted during delivery") if status == "delivering" \
+                        else ("failed", "gateway restarted before delivery")
+                else:
+                    error = record.get("error") or ""
+                created = now - max(0.0, wall - float(record["created_wall"]))
+                item = Message(
+                    id=record["id"], mode=record["mode"], text="", context="", device=record.get("device"),
+                    urgent=bool(record.get("urgent")), key=record["key"], fingerprint=record["fingerprint"],
+                    created=created, expires=created, created_wall=float(record["created_wall"]), status=status,
+                    attempts=int(record.get("attempts") or 0), error=error,
+                    finished_wall=record.get("finished_wall") or wall,
+                )
+            except (KeyError, TypeError, ValueError):
+                continue
+            if wall - item.created_wall > KEY_RETENTION_SECONDS:
+                continue
+            self.messages[item.id] = item
+            self.keys[item.key] = item.id
+
+    def _save(self):
+        keyed = [
+            {"id": m.id, "key": m.key, "fingerprint": m.fingerprint, "mode": m.mode, "device": m.device,
+             "urgent": m.urgent, "status": m.status, "attempts": m.attempts, "error": m.error,
+             "created_wall": m.created_wall, "finished_wall": m.finished_wall}
+            for m in self.messages.values() if m.key
+        ]
+        self.state.save({"keyed": keyed})
 
     def configure_auth(self, config):
         self.auth = DeviceAuth.from_config(config)
@@ -320,6 +441,8 @@ class Proactive:
         item.finished_wall = self.wall()
         if item in self.queue:
             self.queue.remove(item)
+        if item.key:
+            self._save()
         self.logger.bind(tag=TAG).info(f"proactive {item.id} {status}{(': ' + error) if error else ''}")
         self._notify()
 
@@ -337,6 +460,7 @@ class Proactive:
                 del self.messages[mid]
                 if item.key and self.keys.get(item.key) == mid:
                     del self.keys[item.key]
+                    self._save()
 
     def next_for(self, device, reserved=True):
         """First queued message the device may play now (mute holds all but urgent ones, a retry
@@ -444,7 +568,7 @@ class Proactive:
             raise RequestError(429, "queue full", retry_after=30)
 
         item = Message(
-            id=uuid.uuid4().hex,
+            id=fields.get("id") or uuid.uuid4().hex,
             mode=fields["mode"],
             text=fields["text"],
             context=fields["context"],
@@ -460,6 +584,7 @@ class Proactive:
         self.messages[item.id] = item
         if item.key:
             self.keys[item.key] = item.id
+            self._save()
         self.queue.append(item)
         self.logger.bind(tag=TAG).info(
             f"proactive {item.id} queued: mode={item.mode} device={item.device or 'any'} urgent={item.urgent} ttl={fields['ttl']}"
@@ -575,15 +700,19 @@ class Proactive:
         self._release(item)
         item.claim = uuid.uuid4().hex
         conn._weixue_busy = True
+        conn._weixue_item = item
+        if item.key:
+            self._save()
         self._delivery = asyncio.get_running_loop().create_task(self.deliver(conn, item, item.claim))
         return self._delivery
 
     async def on_invoke(self, conn, text=INVOKE_TEXT):
         """The device opened this session because a poll answered 200: the message leased to this
-        verified device is delivered (`leased`; text INVOKE_TEXT + ":<id>:<lease>" names it).
-        Anything else, including a stale or expired lease, closes the session and consumes
-        nothing; a verified device's session is rejected (no voice turn) and closes after the
-        agent notifications it is still sending were handled (_drain_and_close). Delivery and
+        verified device is delivered (`leased`; text INVOKE_TEXT + ":<id>:<lease>" names it; a
+        device at agent level BOUND_INVOKE_LEVEL or above must name it). Anything else, including a
+        stale or expired lease, closes the session and consumes nothing; a verified device's
+        session is rejected (no voice turn) and closes after the agent notifications it is still
+        sending were handled (_drain_and_close). Delivery and
         the drain run as tasks: the caller is the session's message loop, which must keep reading
         the device's messages."""
         conn._weixue_invoked = True
@@ -593,6 +722,10 @@ class Proactive:
             return
         device = self.auth.device(getattr(conn, "headers", None))
         binding = parse_invoke(text)
+        if binding == (None, None) and device and self._agent_level(conn, device) >= BOUND_INVOKE_LEVEL:
+            self.logger.bind(tag=TAG).info(
+                f"proactive invocation without its message id and lease from a level-{BOUND_INVOKE_LEVEL} device: rejected")
+            binding = None
         item = None
         if device and binding is not None:
             item = self.leased(device, getattr(conn, "_weixue_opened", None), *binding)
@@ -611,6 +744,16 @@ class Proactive:
             await conn.close()
             return
         self.claim(conn, item)
+
+    def _agent_level(self, conn, device):
+        """features.agent of the session's hello, else the level the agent gateway recorded for
+        the device (0 = unknown)."""
+        features = getattr(conn, "features", None)
+        level = features.get("agent") if isinstance(features, dict) else None
+        if isinstance(level, int) and not isinstance(level, bool):
+            return level
+        dev = getattr(self.agent, "devices", {}).get(device) if self.agent is not None else None
+        return getattr(dev, "level", 0) or 0
 
     async def _drain_and_close(self, conn):
         """Closes a rejected session once no agent notification (conn._weixue_agent_event_at, set
@@ -644,8 +787,49 @@ class Proactive:
                 continue
             conn = conns[-1]
             item = self.next_for(device, reserved=False)
-            if item is not None and self.quiescent(conn):
+            if item is None:
+                continue
+            if self.quiescent(conn):
                 self.claim(conn, item)
+            elif item.urgent and item.agent is not None:
+                self._interrupt_for(conn, item)
+
+    def _interrupt_for(self, conn, item):
+        """An agent INTERRUPT item on a session that is not quiet: once the user is not speaking and
+        no urgent or conversation delivery holds the session, the current playback and voice turn
+        are stopped (interrupter), then the item is claimed."""
+        if conn.stop_event.is_set() or conn.tts is None or conn.client_have_voice:
+            return
+        if time.time() * 1000 - conn.first_activity_time < SESSION_SETTLE_SECONDS * 1000:
+            return
+        pending = getattr(conn, "_weixue_preempt", None)
+        if pending is not None and pending[0] == item.id:
+            if pending[1].done() and not getattr(conn, "_weixue_busy", False):
+                conn._weixue_preempt = None
+                self.claim(conn, item)
+            return
+        current = getattr(conn, "_weixue_item", None)
+        if getattr(conn, "_weixue_busy", False) and (current is None or current.urgent or current.mode != "announce"):
+            return
+        self.logger.bind(tag=TAG).info(
+            f"proactive {item.id} interrupts session {getattr(conn, 'session_id', None)}: "
+            f"{'delivery ' + current.id if current is not None and getattr(conn, '_weixue_busy', False) else 'voice turn'} stopped")
+        conn._weixue_preempt = (item.id, asyncio.get_running_loop().create_task(self._stop_playback(conn)))
+
+    async def _stop_playback(self, conn):
+        if self.agent is not None:
+            self.agent.on_interrupted(conn)
+        try:
+            interrupter = self.interrupter
+            if interrupter is None:
+                import importlib
+
+                interrupter = importlib.import_module("core.handle.abortHandle").handleAbortMessage
+            await interrupter(conn)
+        except Exception as e:
+            self.logger.bind(tag=TAG).warning(f"proactive interrupt failed: {type(e).__name__}: {e}")
+        finally:
+            self._notify()
 
     async def run(self):
         while True:
@@ -714,6 +898,8 @@ class Proactive:
                     self._retry_or_fail(item, "error")
         finally:
             conn._weixue_busy = False
+            if getattr(conn, "_weixue_item", None) is item:
+                conn._weixue_item = None
             self._notify()
 
     async def _await_reply(self, conn, item, invoked, claim):
@@ -948,5 +1134,6 @@ INSTANCE: Optional[Proactive] = None
 def instance():
     global INSTANCE
     if INSTANCE is None:
-        INSTANCE = Proactive(os.environ.get(TOKEN_ENV, ""), monitor_token=os.environ.get(MONITOR_TOKEN_ENV, ""))
+        INSTANCE = Proactive(os.environ.get(TOKEN_ENV, ""), monitor_token=os.environ.get(MONITOR_TOKEN_ENV, ""),
+                             state=StateFile(state_path("proactive.json")))
     return INSTANCE

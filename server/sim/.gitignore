@@ -2,3 +2,4 @@ data/sim_transcripts.txt
 *.out
 data/agent-service/
 data/agent.rendered.yaml
+data/weixue-gateway/

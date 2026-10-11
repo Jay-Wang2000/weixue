@@ -5,9 +5,12 @@ items through the proactive queue, turns device responses and `played` acks into
 and answers each device response with an `agent_ack` receipt.
 
 Sources: fixture injection at POST /weixue/agent/messages (always), and in live mode
-(AGENT_SERVICE_URL set) the agent-service outbox stream and its chat index (GET /v1/chats). Acks
-go to the sink: logged and kept for GET /weixue/agent/deliveries, and posted to agent-service in
-live mode."""
+(AGENT_SERVICE_URL set) the agent-service device snapshot (restored before the first pruning
+agent_sync), outbox stream and chat index (GET /v1/chats). Acks go to the sink: logged and kept
+for GET /weixue/agent/deliveries, and in live mode posted to agent-service in order per delivery,
+retried until the service answers. Speech plays only after agent-service recorded its hand-off;
+card decisions are receipted after agent-service answered them. Hand-offs, card decisions, wire
+seqs and unsent acks are kept in a state file across restarts."""
 import asyncio
 import json
 import os
@@ -46,8 +49,26 @@ POLL_BASE_BYTES = 96
 # Times a snapshot page the device did not apply is sent again before the snapshot moves on.
 PAGE_RETRIES = 3
 SWITCH_TIMEOUT_SECONDS = 3
-SPEECH_FINAL = ("played", "cut_off", "lost", "dropped")
+# A card decision is retried with the same decision id for this long before the device is told
+# it was not recorded (the device outbox gives a response up about 20 s after its first send).
+DECISION_WINDOW_SECONDS = 12
+REQUEST_SECONDS = 4
+# A spoken item's `accepted` ack is retried for this long; without the service's answer it is not played.
+ACCEPT_WINDOW_SECONDS = 8
+# Other acks are retried (backoff up to ACK_BACKOFF_MAX_SECONDS) for this long.
+ACK_RETRY_SECONDS = 600
+ACK_BACKOFF_MAX_SECONDS = 30
+# First retry delay of a decision or `accepted` post, and of other acks; each later one doubles.
+RETRY_FIRST_SECONDS = 0.5
+ACK_RETRY_FIRST_SECONDS = 1
+# HTTP answers after which an ack or a decision is not sent again.
+FINAL_STATUSES = (400, 401, 403, 404, 409, 422)
+DEFERRED_RETRY_MS = 5000
+SPEECH_FINAL = ("played", "cut_off", "lost", "dropped", "deferred", "stale", "unaccepted")
+# Speech states after which the hand-off was made: the delivery is never spoken again.
+HANDED_OFF = ("handed_off", "played", "cut_off", "lost")
 OPEN_CARD_STATES = ("needs_approval", "needs_input")
+STATE_KEEP = 256
 
 
 @dataclass
@@ -56,6 +77,8 @@ class Entry:
     payload: dict
     delivery_id: Optional[str] = None
     lease_id: Optional[str] = None
+    # agent-service gseq of the delivery (live mode), the order of restored and offered cards.
+    gseq: Optional[int] = None
     raw: bool = False
     replied: bool = False
     sends: int = 0
@@ -85,6 +108,8 @@ class Device:
     listing_delivery: tuple = (None, None)
     chats: Optional[Entry] = None
     chats_key: Optional[tuple] = None
+    # The agent-service device snapshot was restored into the mirror (fixture mode: always).
+    restored: bool = True
 
 
 @dataclass
@@ -105,10 +130,10 @@ class Speech:
     urgent: bool
     ttl: int
     attempt: int = 1
+    # queued (fixture) | accepting | handed_off | SPEECH_FINAL
     state: str = "queued"
     proactive_id: Optional[str] = None
     sentence_id: Optional[str] = None
-    retry_at: float = 0.0
     started: float = 0.0
     stop_at: Optional[float] = None
     ended_at: Optional[float] = None
@@ -133,6 +158,8 @@ def _eviction_victim(mirror):
 
 class FixtureSink:
     """Delivery acks and device responses: logged and kept for GET /weixue/agent/deliveries."""
+
+    live = False
 
     def __init__(self, logger, wall=time.time):
         self.logger = logger
@@ -159,17 +186,38 @@ class FixtureSink:
         )
 
 
-class ServiceSink(FixtureSink):
-    """FixtureSink plus the agent-service routes: POST /v1/deliveries/{id}/ack and the chat routes.
-    A device's switch_chat / new_chat post in flight is pending_switch(device) until it returns."""
+def _ack_body(lease_id, outcome, detail):
+    body = {"lease_id": lease_id, "outcome": outcome}
+    for key in ("proactive_id", "ttl_s", "retry_after_ms", "detail", "sentence_id", "boot", "device_seq",
+                "cut_at_ms", "reason"):
+        if detail.get(key) is not None:
+            body[key] = detail[key]
+    if detail.get("info"):
+        body["detail"] = json.dumps(detail["info"], separators=(",", ":"))[:200]
+    return body
 
-    def __init__(self, logger, base_url, token, session_factory=None, wall=time.time):
+
+class ServiceSink(FixtureSink):
+    """FixtureSink plus the agent-service routes. Acks are posted in order per delivery, each
+    retried until the service answers (pending_acks; on_change runs after every change so the
+    gateway can keep them). accept() posts a spoken item's `accepted` ack and returns once the
+    service recorded it; a card decision's post (response) is retried with its decision id until
+    the service answers. A device's switch_chat / new_chat post in flight is pending_switch(device)
+    until it returns."""
+
+    live = True
+
+    def __init__(self, logger, base_url, token, session_factory=None, wall=time.time, clock=time.monotonic):
         super().__init__(logger, wall)
         self.base = base_url.rstrip("/")
         self.token = token
+        self.clock = clock
         self._session_factory = session_factory
         self._session = None
         self.switches = {}
+        self.pending_acks = OrderedDict()
+        self._ack_workers = {}
+        self.on_change = None
 
     def pending_switch(self, device):
         return self.switches.get(device)
@@ -194,29 +242,58 @@ class ServiceSink(FixtureSink):
             self._session = factory(headers={"Authorization": f"Bearer {self.token}"})
         return self._session
 
-    async def _post(self, path, body, headers=None):
-        try:
+    async def _post(self, path, body, headers=None, timeout=None):
+        async def send():
             async with self._http().post(self.base + path, json=body, headers=headers) as resp:
                 if resp.status >= 400:
                     self.logger.bind(tag=TAG).warning(f"agent-service {path}: HTTP {resp.status}")
                 return resp.status
+
+        try:
+            return await (asyncio.wait_for(send(), timeout) if timeout else send())
         except Exception as e:
             self.logger.bind(tag=TAG).warning(f"agent-service {path}: {type(e).__name__}")
             return 0
 
-    async def get_chats(self, device):
-        """The agent-service chat index of the device (GET /v1/chats), or None."""
-        path = "/v1/chats"
-        try:
-            async with self._http().get(self.base + path, params={"device_id": device}) as resp:
+    async def _post_until(self, path, body, headers, window, first_delay=None, whole_window=False):
+        """Posts body until a 2xx or a FINAL_STATUSES answer, or window seconds passed; returns the
+        last status (0: no answer). With whole_window a request may take the rest of the window, so
+        a slow request is never sent a second time while it runs."""
+        deadline = self.clock() + window
+        delay = RETRY_FIRST_SECONDS if first_delay is None else first_delay
+        while True:
+            timeout = max(deadline - self.clock(), 0.1) if whole_window else REQUEST_SECONDS
+            status = await self._post(path, body, headers, timeout)
+            if 200 <= status < 300 or status in FINAL_STATUSES:
+                return status
+            if self.clock() + delay >= deadline:
+                return status
+            await asyncio.sleep(delay)
+            delay = min(delay * 2, ACK_BACKOFF_MAX_SECONDS)
+
+    async def _get(self, path, params=None):
+        """The JSON object of a GET answered 200 within REQUEST_SECONDS, else None."""
+        async def fetch():
+            async with self._http().get(self.base + path, params=params) as resp:
                 if resp.status != 200:
                     self.logger.bind(tag=TAG).warning(f"agent-service {path}: HTTP {resp.status}")
                     return None
                 body = await resp.json()
                 return body if isinstance(body, dict) else None
+
+        try:
+            return await asyncio.wait_for(fetch(), REQUEST_SECONDS)
         except Exception as e:
             self.logger.bind(tag=TAG).warning(f"agent-service {path}: {type(e).__name__}")
             return None
+
+    async def get_chats(self, device):
+        """The agent-service chat index of the device (GET /v1/chats), or None."""
+        return await self._get("/v1/chats", {"device_id": device})
+
+    async def get_snapshot(self, device):
+        """The agent-service device snapshot (GET /v1/devices/{id}/snapshot: cards and chats), or None."""
+        return await self._get(f"/v1/devices/{quote(device, safe='')}/snapshot")
 
     def _spawn(self, coro):
         try:
@@ -225,16 +302,54 @@ class ServiceSink(FixtureSink):
             coro.close()
             return None
 
+    def _changed(self):
+        if self.on_change is not None:
+            self.on_change()
+
     def ack(self, delivery_id, lease_id, outcome, device, **detail):
         super().ack(delivery_id, lease_id, outcome, device, **detail)
         if lease_id and delivery_id and not delivery_id.startswith("fx_"):
-            body = {"lease_id": lease_id, "outcome": outcome}
-            for key in ("proactive_id", "ttl_s", "retry_after_ms", "detail"):
-                if detail.get(key) is not None:
-                    body[key] = detail[key]
-            if detail.get("info"):
-                body["detail"] = json.dumps(detail["info"], separators=(",", ":"))[:200]
-            self._spawn(self._post(f"/v1/deliveries/{delivery_id}/ack", body))
+            self.pending_acks.setdefault(delivery_id, []).append(_ack_body(lease_id, outcome, detail))
+            self._changed()
+            self._drain(delivery_id)
+
+    def resume(self):
+        """Starts posting the acks kept from before a restart."""
+        for delivery_id in list(self.pending_acks):
+            self._drain(delivery_id)
+
+    def _drain(self, delivery_id):
+        worker = self._ack_workers.get(delivery_id)
+        if worker is None or worker.done():
+            task = self._spawn(self._post_acks(delivery_id))
+            if task is not None:
+                self._ack_workers[delivery_id] = task
+
+    async def _post_acks(self, delivery_id):
+        path = f"/v1/deliveries/{delivery_id}/ack"
+        queue = self.pending_acks.get(delivery_id) or []
+        while queue:
+            body = queue[0]
+            status = await self._post_until(path, body, None, ACK_RETRY_SECONDS, ACK_RETRY_FIRST_SECONDS)
+            if not (200 <= status < 300):
+                self.logger.bind(tag=TAG).warning(
+                    f"agent ack {body['outcome']} delivery={delivery_id} not recorded by agent-service (HTTP {status})")
+            queue.pop(0)
+            self._changed()
+        if self.pending_acks.get(delivery_id) is queue and not queue:
+            del self.pending_acks[delivery_id]
+            self._changed()
+        self._ack_workers.pop(delivery_id, None)
+
+    async def accept(self, delivery_id, lease_id, device, **detail):
+        """Posts a spoken item's `accepted` ack; "accepted" once the service recorded it, "stale"
+        when it refused the lease, "unreachable" without an answer within ACCEPT_WINDOW_SECONDS."""
+        status = await self._post_until(f"/v1/deliveries/{delivery_id}/ack",
+                                        _ack_body(lease_id, "accepted", detail), None, ACCEPT_WINDOW_SECONDS)
+        if 200 <= status < 300:
+            FixtureSink.ack(self, delivery_id, lease_id, "accepted", device, **detail)
+            return "accepted"
+        return "stale" if status in FINAL_STATUSES else "unreachable"
 
     def connection(self, device, kind, session_id=None):
         super().connection(device, kind, session_id)
@@ -243,9 +358,16 @@ class ServiceSink(FixtureSink):
             body["gateway_session_id"] = str(session_id)[:128]
         self._spawn(self._post(f"/v1/devices/{quote(device, safe='')}/connection", body))
 
+    async def _decide(self, path, body, headers):
+        status = await self._post_until(path, body, headers, DECISION_WINDOW_SECONDS, whole_window=True)
+        if 200 <= status < 300:
+            return "accepted"
+        return "rejected" if status in FINAL_STATUSES else "unconfirmed"
+
     def response(self, device, response):
-        """Posts the response's route. Returns the task of a switch_chat / new_chat post (its
-        result: the HTTP status, 0 without an answer), else None."""
+        """Posts the response's route. Returns the task of an approve / deny / answer post (its
+        result: accepted, rejected or unconfirmed) or of a switch_chat / new_chat post (its result:
+        the HTTP status, 0 without an answer), else None."""
         super().response(device, response)
         try:
             route = wire.response_route(device, response)
@@ -255,7 +377,9 @@ class ServiceSink(FixtureSink):
         if route is None:
             return None
         _method, path, body = route
-        headers = {"Idempotency-Key": wire.decision_id(device, response["boot"], response["seq"])}
+        headers = {"Idempotency-Key": body.get("decision_id") or wire.decision_id(device, response["boot"], response["seq"])}
+        if response["kind"] in wire.CARD_KINDS:
+            return self._spawn(self._decide(path, body, headers))
         post = self._post(path, body, headers)
         if response["kind"] not in wire.SWITCH_KINDS:
             self._spawn(post)
@@ -270,7 +394,9 @@ class ServiceSink(FixtureSink):
 
 
 class AgentGateway:
-    def __init__(self, proactive, clock=time.monotonic, wall=time.time, sink=None):
+    def __init__(self, proactive, clock=time.monotonic, wall=time.time, sink=None, state=None):
+        from weixue_proactive import StateFile
+
         self.proactive = proactive
         self.clock = clock
         self.wall = wall
@@ -280,15 +406,59 @@ class AgentGateway:
         self.speeches = OrderedDict()
         self.seen_events = OrderedDict()
         self.card_decisions = OrderedDict()
+        self.decisions_in_flight = {}
+        # delivery id → {"attempt", "state"} of its newest spoken attempt.
+        self.handoffs = OrderedDict()
+        # delivery id → wire seq of its item, so a restored card keeps the seq the device applied.
+        self.wire_seqs = OrderedDict()
         self._runner = None
         self._sources = {}
         self.service_url = ""
         self.service_token = ""
+        self.state = state or StateFile(None)
+        self._load()
+
+    # State file
+
+    def _load(self):
+        doc = self.state.load()
+        for card, first in doc.get("card_decisions") or []:
+            self.card_decisions[tuple(card)] = tuple(first)
+        for delivery_id, record in doc.get("handoffs") or []:
+            self.handoffs[delivery_id] = record
+        for delivery_id, seq in doc.get("wire_seqs") or []:
+            self.wire_seqs[delivery_id] = seq
+        acks = doc.get("acks") or []
+        if acks and hasattr(self.sink, "pending_acks"):
+            for delivery_id, bodies in acks:
+                self.sink.pending_acks[delivery_id] = list(bodies)
+        if hasattr(self.sink, "on_change"):
+            self.sink.on_change = self._save
+
+    def _save(self):
+        """Writes the state file; returns whether it is on disk."""
+        def tail(d, n=STATE_KEEP):
+            items = list(d.items())
+            return [[list(k) if isinstance(k, tuple) else k, list(v) if isinstance(v, tuple) else v]
+                    for k, v in items[-n:]]
+
+        for d in (self.handoffs, self.wire_seqs, self.card_decisions):
+            while len(d) > STATE_KEEP:
+                d.popitem(last=False)
+        return self.state.save({
+            "card_decisions": tail(self.card_decisions),
+            "handoffs": tail(self.handoffs),
+            "wire_seqs": tail(self.wire_seqs),
+            "acks": [[k, list(v)] for k, v in getattr(self.sink, "pending_acks", {}).items()],
+        })
 
     # Device state
 
     def device(self, device_id):
-        return self.devices.setdefault(device_id, Device())
+        dev = self.devices.get(device_id)
+        if dev is None:
+            dev = self.devices[device_id] = Device(restored=not (self.service_url and self.sink.live))
+        return dev
 
     def _next_seq(self, dev):
         dev.seq = max(dev.seq + 1, int(self.wall() * 1000))
@@ -303,8 +473,10 @@ class AgentGateway:
 
     # Sources
 
-    def submit(self, device_id, fields, *, seq=None, delivery_id=None, lease_id=None, speech=None, raw=False):
-        """Queues one item for the device (fixture fields or a mapped delivery). Returns its record."""
+    def submit(self, device_id, fields, *, seq=None, delivery_id=None, lease_id=None, speech=None, raw=False,
+               gseq=None, attempt=1):
+        """Queues one item for the device (fixture fields or a mapped delivery). Returns its record.
+        A delivery older (gseq) than the task's mirrored card is not sent; its speech still plays."""
         dev = self.device(device_id)
         delivery_id = delivery_id or f"fx_{uuid.uuid4().hex[:24]}"
         if raw:
@@ -318,9 +490,18 @@ class AgentGateway:
         else:
             dev.seq = max(dev.seq, seq)
         payload = wire.build_item(fields, seq, int(self.wall() * 1000))
-        entry = Entry(payload=payload, delivery_id=delivery_id, lease_id=lease_id)
+        entry = Entry(payload=payload, delivery_id=delivery_id, lease_id=lease_id, gseq=gseq)
         task = payload["task_id"]
         latest = dev.mirror.get(task)
+        if latest is not None and latest.gseq is not None and gseq is not None and gseq < latest.gseq:
+            self._log(f"agent delivery {delivery_id} gseq={gseq} older than the card of task={task} "
+                      f"(gseq={latest.gseq}): not sent")
+            record = {"delivery_id": delivery_id, "seq": seq, "task_id": task, "superseded": True}
+            if payload["speaks"] and speech:
+                record["speech_id"] = self._speak(device_id, entry, speech, attempt)
+            elif lease_id:
+                self.sink.ack(delivery_id, lease_id, "dropped", device_id, detail="older than the task's card")
+            return record
         if latest is None and len(dev.mirror) >= MIRROR_TASKS:
             old_task = _eviction_victim(dev.mirror)
             if old_task is None:
@@ -333,13 +514,16 @@ class AgentGateway:
         if latest is None or seq > latest.seq:
             dev.mirror[task] = entry
         dev.outgoing.append(entry)
+        if not delivery_id.startswith("fx_"):
+            self.wire_seqs[delivery_id] = seq
+            self._save()
         self._log(
             f"agent item queued device={device_id} chat={payload['chat_id']} task={task} state={payload['state']} "
             f"seq={seq} tier={payload['delivery']} speaks={payload['speaks']} delivery={delivery_id}"
         )
         record = {"delivery_id": delivery_id, "seq": seq, "task_id": task}
         if payload["speaks"] and speech:
-            record["speech_id"] = self._speak(device_id, entry, speech)
+            record["speech_id"] = self._speak(device_id, entry, speech, attempt)
         self._dispatch(device_id, dev, [entry])
         return record
 
@@ -365,8 +549,10 @@ class AgentGateway:
             return None
         try:
             fields, speech = wire.from_delivery(offer)
+            attempt = offer.get("attempt") if isinstance(offer.get("attempt"), int) else 1
+            gseq = offer.get("gseq") if isinstance(offer.get("gseq"), int) else None
             return self.submit(device_id, fields, delivery_id=offer["delivery_id"],
-                               lease_id=offer.get("lease_id"), speech=speech)
+                               lease_id=offer.get("lease_id"), speech=speech, gseq=gseq, attempt=max(1, attempt))
         except (wire.WireError, KeyError) as e:
             self.sink.ack(offer.get("delivery_id"), offer.get("lease_id"), "dropped", device_id, detail=str(e))
             return None
@@ -462,7 +648,7 @@ class AgentGateway:
     def _dispatch(self, device_id, dev, entries):
         sessions = self.live_sessions(dev)
         if sessions:
-            payloads = self._snapshot_payloads(dev) if dev.snapshot_due else None
+            payloads = self._snapshot_payloads(dev) if dev.snapshot_due and dev.restored else None
             if payloads is not None:
                 dev.snapshot_due = False
                 asyncio.get_running_loop().create_task(self._send(device_id, sessions[-1], payloads, "snapshot"))
@@ -524,11 +710,17 @@ class AgentGateway:
         if conn not in dev.sessions:
             dev.sessions.append(conn)
         self._set_level(device_id, dev, level, dispatch=False)
-        payloads = self._snapshot_payloads(dev)
-        dev.snapshot_due = False
+        if dev.restored:
+            payloads = self._snapshot_payloads(dev)
+            dev.snapshot_due = False
+            self._log(f"agent session device={device_id} session={getattr(conn, 'session_id', None)}: "
+                      f"snapshot of {len(dev.mirror)}")
+        else:
+            payloads = []
+            dev.snapshot_due = True
+            self._log(f"agent session device={device_id} session={getattr(conn, 'session_id', None)}: "
+                      f"snapshot once the agent-service snapshot is restored")
         dev.snapshot_from = 0
-        self._log(f"agent session device={device_id} session={getattr(conn, 'session_id', None)}: "
-                  f"snapshot of {len(dev.mirror)}")
         for e in [e for e in dev.outgoing if e.raw]:
             dev.outgoing.remove(e)
             payloads.append(e.payload)
@@ -587,7 +779,7 @@ class AgentGateway:
         dev = self.devices.get(device_id)
         if dev is None or not dev.polls_with_seq or self.live_sessions(dev):
             return False
-        return dev.snapshot_due or bool(self._poll_entries(dev))
+        return (dev.snapshot_due and dev.restored) or bool(self._poll_entries(dev))
 
     def poll_items(self, device_id, budget=wire.POLL_BODY_BYTES - POLL_BASE_BYTES):
         """The `agent` array of a poll body: at most POLL_BODY_ENTRIES entries within budget bytes
@@ -597,7 +789,7 @@ class AgentGateway:
         dev = self.devices.get(device_id)
         if dev is None or not dev.polls_with_seq:
             return []
-        snapshot = dev.snapshot_due
+        snapshot = dev.snapshot_due and dev.restored
         start = dev.snapshot_from
         if snapshot:
             candidates = self._snapshot_entries(dev, start)
@@ -699,19 +891,53 @@ class AgentGateway:
                     f"boot={first[1]} seq={first[2]}): dropped"
                 )
                 return receipt("duplicate", decided=first[0])
-            self.card_decisions[card] = (event["kind"], event["boot"], event["seq"])
-            while len(self.card_decisions) > DEDUP_KEEP:
-                self.card_decisions.popitem(last=False)
-            if latest is not None:
-                latest.replied = True
-        switch = self.sink.response(device_id, event)
+            if card in self.decisions_in_flight:
+                del self.seen_events[key]
+                self._log(f"agent response {event['kind']} device={device_id} card={event['card_id']} seq={event['seq']}: "
+                          f"a decision for the card is being forwarded; no receipt yet")
+                return None
+            if not self.sink.live:
+                self._record_decision(device_id, card, event)
+        forward = self.sink.response(device_id, event)
         if event["kind"] == "ack_seen" and latest is not None:
             latest.replied = True
             self.sink.ack(latest.delivery_id, latest.lease_id, "user_ack", device_id, seq=latest.seq)
-        if switch is not None:
-            asyncio.get_running_loop().create_task(self._finish_switch(conn, device_id, event, switch, receipt))
+        if forward is not None and event["kind"] in wire.CARD_KINDS:
+            self.decisions_in_flight[card] = (event["kind"], event["boot"], event["seq"])
+            asyncio.get_running_loop().create_task(self._finish_decision(conn, device_id, event, card, forward, receipt))
             return None
+        if forward is not None:
+            asyncio.get_running_loop().create_task(self._finish_switch(conn, device_id, event, forward, receipt))
+            return None
+        if event["kind"] in wire.CARD_KINDS and self.sink.live:
+            return receipt("stale")
         return receipt("accepted")
+
+    def _record_decision(self, device_id, card, event):
+        self.card_decisions[card] = (event["kind"], event["boot"], event["seq"])
+        while len(self.card_decisions) > DEDUP_KEEP:
+            self.card_decisions.popitem(last=False)
+        latest = self.device(device_id).mirror.get(event.get("task_id"))
+        if latest is not None and latest.payload.get("card_id") == event["card_id"]:
+            latest.replied = True
+        self._save()
+
+    async def _finish_decision(self, conn, device_id, event, card, forward, receipt):
+        """Receipt of an approve / deny / answer once agent-service answered: accepted when it
+        recorded the decision (the card's first decision from then on), else stale (the device
+        keeps the card open for another tap)."""
+        try:
+            result = await forward
+        except Exception:
+            result = "unconfirmed"
+        finally:
+            self.decisions_in_flight.pop(card, None)
+        if result == "accepted":
+            self._record_decision(device_id, card, event)
+        ack = receipt("accepted" if result == "accepted" else "stale")
+        self._log(f"agent {event['kind']} device={device_id} card={event['card_id']} seq={event['seq']} "
+                  f"service={result} result={ack['result']}")
+        await self.send_receipt(conn, ack)
 
     async def _finish_switch(self, conn, device_id, event, post, receipt):
         """Receipt of a switch_chat / new_chat once agent-service answered (accepted on 2xx, else
@@ -741,19 +967,65 @@ class AgentGateway:
 
     # Speech
 
-    def _speak(self, device_id, entry, text):
+    def _speak(self, device_id, entry, text, attempt=1):
+        """Hands a spoken item to the proactive queue. In live mode agent-service records the
+        hand-off (`accepted`) first; without that answer the attempt is not played. A delivery with an
+        attempt handed off before (handoffs, kept across restarts) is never spoken again, in any
+        attempt; an attempt that ended deferred or dropped before audio leaves no hand-off."""
         payload = entry.payload
         speech = Speech(
             id=uuid.uuid4().hex[:16], device=device_id, delivery_id=entry.delivery_id, lease_id=entry.lease_id,
             task_id=payload["task_id"], text=text, urgent=payload["delivery"] == "interrupt", ttl=SPEECH_TTL_SECONDS,
+            attempt=attempt,
         )
         self.speeches[speech.id] = speech
         while len(self.speeches) > ACK_VIEW:
             self.speeches.popitem(last=False)
-        self._submit_speech(speech)
+        prior = self.handoffs.get(speech.delivery_id)
+        if prior is not None and prior.get("state") in HANDED_OFF:
+            outcome = prior["state"] if prior["state"] in ("played", "cut_off") else "lost"
+            speech.state = outcome
+            self._log(f"agent speech {speech.id} delivery={speech.delivery_id} attempt={attempt} was handed off "
+                      f"before ({prior['state']}): not spoken again")
+            self.sink.ack(speech.delivery_id, speech.lease_id, outcome, device_id, detail="handed off before")
+            return speech.id
+        if self.sink.live and not speech.delivery_id.startswith("fx_"):
+            speech.state = "accepting"
+            speech.proactive_id = uuid.uuid4().hex
+            asyncio.get_running_loop().create_task(self._accept_then_queue(speech))
+        else:
+            self._queue_speech(speech)
         return speech.id
 
-    def _submit_speech(self, speech):
+    def _record_handoff(self, speech):
+        """Records the attempt's hand-off state; returns whether the state file holds it."""
+        if speech.delivery_id.startswith("fx_"):
+            return True
+        self.handoffs[speech.delivery_id] = {"attempt": speech.attempt, "state": speech.state}
+        self.handoffs.move_to_end(speech.delivery_id)
+        return self._save()
+
+    async def _accept_then_queue(self, speech):
+        result = await self.sink.accept(speech.delivery_id, speech.lease_id, speech.device,
+                                        proactive_id=speech.proactive_id, ttl_s=speech.ttl)
+        if speech.state != "accepting":
+            return
+        if result != "accepted":
+            speech.state = "stale" if result == "stale" else "unaccepted"
+            self._log(f"agent speech {speech.id} delivery={speech.delivery_id} not played: agent-service "
+                      f"{'refused the lease' if result == 'stale' else 'did not record the hand-off'}")
+            return
+        speech.state = "handed_off"
+        if not self._record_handoff(speech):
+            self.handoffs.pop(speech.delivery_id, None)
+            speech.state = "accepting"
+            self._log(f"agent speech {speech.id} delivery={speech.delivery_id} not played: hand-off not written "
+                      f"to the state file")
+            self._speech_final(speech, "deferred", retry_after_ms=DEFERRED_RETRY_MS, detail="hand-off not recorded")
+            return
+        self._queue_speech(speech)
+
+    def _queue_speech(self, speech):
         from weixue_proactive import RequestError
 
         fields = {
@@ -761,21 +1033,45 @@ class AgentGateway:
             "urgent": speech.urgent, "key": f"{speech.delivery_id}:{speech.attempt}", "ttl": speech.ttl,
             "agent": {"speech": speech.id},
         }
+        if speech.proactive_id:
+            fields["id"] = speech.proactive_id
+        accepted = speech.state == "handed_off"
         try:
             status, body = self.proactive.submit(fields, SPEECH_CLIENT)
         except RequestError as e:
-            speech.state = "deferred"
-            speech.retry_at = self.clock() + int(e.body.get("retry_after", 5))
-            self.sink.ack(speech.delivery_id, speech.lease_id, "deferred", speech.device,
-                          retry_after_ms=int(e.body.get("retry_after", 5)) * 1000, detail=e.body.get("error"))
+            retry_ms = int(e.body.get("retry_after", 5)) * 1000
+            self._speech_final(speech, "deferred", retry_after_ms=retry_ms, detail=e.body.get("error"))
+            return
+        if body.get("duplicate"):
+            self._speech_final(speech, "lost", detail="proactive key already used")
             return
         speech.proactive_id = body["id"]
         speech.state = "handed_off"
         speech.started = self.clock()
         self._log(f"agent speech {speech.id} handed off: delivery={speech.delivery_id} proactive={body['id']} "
                   f"urgent={speech.urgent} attempt={speech.attempt} reason={body.get('reason') or '-'}")
-        self.sink.ack(speech.delivery_id, speech.lease_id, "accepted", speech.device,
-                      proactive_id=body["id"], ttl_s=speech.ttl)
+        if not accepted:
+            self.sink.ack(speech.delivery_id, speech.lease_id, "accepted", speech.device,
+                          proactive_id=body["id"], ttl_s=speech.ttl)
+
+    def _speech_final(self, speech, outcome, **detail):
+        """The one terminal ack of a speech attempt: later playback evidence changes nothing.
+        deferred asks agent-service (the only retry owner) to offer the delivery again, up to
+        SPEECH_ATTEMPTS attempts."""
+        if speech.state in SPEECH_FINAL:
+            return False
+        if outcome == "deferred" and speech.attempt >= SPEECH_ATTEMPTS:
+            outcome = "dropped"
+            detail.pop("retry_after_ms", None)
+        handed = speech.state == "handed_off"
+        speech.state = outcome
+        if handed and outcome in HANDED_OFF:
+            self._record_handoff(speech)
+        elif handed:
+            self.handoffs.pop(speech.delivery_id, None)
+            self._save()
+        self.sink.ack(speech.delivery_id, speech.lease_id, outcome, speech.device, **detail)
+        return True
 
     def speech_for(self, item):
         tag = getattr(item, "agent", None)
@@ -807,19 +1103,31 @@ class AgentGateway:
         if speech is None:
             self._log(f"agent played for an unknown sentence {event['sentence_id']} device={device_id}")
             return
-        speech.played = event
         if speech.state in SPEECH_FINAL:
+            self._log(f"agent played for sentence {event['sentence_id']} after speech {speech.id} ended "
+                      f"({speech.state}): ignored")
             return
-        speech.state = "played" if event["complete"] else "cut_off"
-        self._log(f"agent speech {speech.id} {speech.state}: sentence={event['sentence_id']} "
+        speech.played = event
+        outcome = "played" if event["complete"] else "cut_off"
+        self._log(f"agent speech {speech.id} {outcome}: sentence={event['sentence_id']} "
                   f"cut_at_ms={event.get('cut_at_ms')} reason={event.get('reason')}")
         self._spoken(speech)
-        self.sink.ack(speech.delivery_id, speech.lease_id, speech.state, device_id, sentence_id=event["sentence_id"],
-                      boot=event["boot"], device_seq=event["seq"], cut_at_ms=event.get("cut_at_ms"),
-                      reason=event.get("reason"))
+        self._speech_final(speech, outcome, sentence_id=event["sentence_id"], boot=event["boot"],
+                           device_seq=event["seq"], cut_at_ms=event.get("cut_at_ms"), reason=event.get("reason"))
+
+    def on_interrupted(self, conn):
+        """An INTERRUPT item stops the session's playback: the agent sentence playing on it is cut
+        off (reason superseded) before the device hears the next one."""
+        sentence_id = getattr(conn, "_weixue_ack_sentence", None)
+        speech = self._by_sentence(sentence_id) if sentence_id else None
+        if speech is None or speech.state in SPEECH_FINAL:
+            return
+        speech.played = {"complete": False, "reason": "superseded", "sentence_id": sentence_id}
+        self._log(f"agent speech {speech.id} cut_off: sentence={sentence_id} interrupted by an INTERRUPT item")
+        self._speech_final(speech, "cut_off", sentence_id=sentence_id, reason="superseded")
 
     def _spoken(self, speech):
-        if not speech.spoken_acked:
+        if not speech.spoken_acked and speech.state not in SPEECH_FINAL:
             speech.spoken_acked = True
             self.sink.ack(speech.delivery_id, speech.lease_id, "spoken", speech.device, proactive_id=speech.proactive_id)
 
@@ -838,11 +1146,7 @@ class AgentGateway:
     def _track_speech(self):
         now = self.clock()
         for speech in list(self.speeches.values()):
-            if speech.state in SPEECH_FINAL:
-                continue
-            if speech.state == "deferred":
-                if now >= speech.retry_at:
-                    self._submit_speech(speech)
+            if speech.state != "handed_off":
                 continue
             msg = self.proactive.messages.get(speech.proactive_id)
             status = msg.status if msg is not None else None
@@ -852,24 +1156,18 @@ class AgentGateway:
                 self._spoken(speech)
             elif status in ("failed", "expired"):
                 # Both end before any audio was sent (proactive delivery rules).
-                if speech.attempt < SPEECH_ATTEMPTS and status == "failed":
-                    speech.attempt += 1
-                    speech.sentence_id = None
-                    self.sink.ack(speech.delivery_id, speech.lease_id, "deferred", speech.device, detail=msg.error or status)
-                    self._submit_speech(speech)
+                if status == "failed":
+                    self._speech_final(speech, "deferred", retry_after_ms=DEFERRED_RETRY_MS, detail=msg.error or status)
                 else:
-                    speech.state = "dropped"
-                    self.sink.ack(speech.delivery_id, speech.lease_id, "dropped", speech.device, detail=status)
+                    self._speech_final(speech, "dropped", detail=status)
                 continue
-            elif msg is None and speech.proactive_id is not None:
-                speech.state = "lost"
-                self.sink.ack(speech.delivery_id, speech.lease_id, "lost", speech.device, detail="proactive record gone")
+            elif msg is None:
+                self._speech_final(speech, "lost", detail="proactive record gone")
                 continue
             reference = speech.stop_at if speech.stop_at is not None else speech.ended_at
             if speech.played is None and reference is not None and now - reference >= LOST_SECONDS:
-                speech.state = "lost"
                 self._log(f"agent speech {speech.id} lost: no played ack {LOST_SECONDS}s after playback ended")
-                self.sink.ack(speech.delivery_id, speech.lease_id, "lost", speech.device, sentence_id=speech.sentence_id)
+                self._speech_final(speech, "lost", sentence_id=speech.sentence_id)
 
     # Resend
 
@@ -905,6 +1203,9 @@ class AgentGateway:
     def start(self):
         if self._runner is None or self._runner.done():
             self._runner = asyncio.get_running_loop().create_task(self.run())
+            resume = getattr(self.sink, "resume", None)
+            if resume is not None:
+                resume()
 
     # agent-service outbox stream
 
@@ -914,6 +1215,52 @@ class AgentGateway:
             return
         self._sources[device_id] = asyncio.get_running_loop().create_task(self._stream(device_id))
 
+    async def restore(self, device_id):
+        """Restores the device's mirror and chat list from the agent-service device snapshot
+        (cards only, never speech). Restored cards keep the wire seq the device applied when the
+        state file has it; a card the mirror holds in a newer version (gseq) stays. Pruning
+        snapshots wait for this. Returns whether the snapshot arrived."""
+        dev = self.device(device_id)
+        if dev.restored:
+            return True
+        snapshot = await self.sink.get_snapshot(device_id)
+        if snapshot is None:
+            return False
+        restored = 0
+        for card in sorted(snapshot.get("cards") or [], key=lambda c: c.get("gseq") or 0):
+            if card.get("kind") != "agent" or not card.get("delivery_id"):
+                continue
+            try:
+                fields, _speech = wire.from_delivery(dict(card, speak=None))
+                seq = self.wire_seqs.get(card["delivery_id"]) or self._next_seq(dev)
+                dev.seq = max(dev.seq, seq)
+                entry = Entry(payload=wire.build_item(fields, seq, int(self.wall() * 1000)),
+                              delivery_id=card["delivery_id"], gseq=card.get("gseq"))
+            except (wire.WireError, KeyError, TypeError) as e:
+                self._log(f"agent restore device={device_id} delivery={card.get('delivery_id')} skipped: {e}")
+                continue
+            task = entry.payload["task_id"]
+            latest = dev.mirror.get(task)
+            if latest is not None and (latest.gseq is None or (entry.gseq or 0) <= latest.gseq):
+                continue
+            if latest is None and len(dev.mirror) >= MIRROR_TASKS:
+                victim = _eviction_victim(dev.mirror)
+                if victim is None:
+                    continue
+                del dev.mirror[victim]
+            dev.mirror[task] = entry
+            dev.mirror.move_to_end(task)
+            restored += 1
+        dev.restored = True
+        self._log(f"agent restore device={device_id}: {restored} cards from the agent-service snapshot; "
+                  f"mirror {len(dev.mirror)}")
+        if isinstance(snapshot.get("chats"), dict):
+            self.set_chats(device_id, snapshot["chats"])
+        if dev.snapshot_due:
+            self._dispatch(device_id, dev, [])
+        self.proactive._notify()
+        return True
+
     async def _stream(self, device_id):
         import aiohttp
 
@@ -922,6 +1269,8 @@ class AgentGateway:
         backoff = 1
         while True:
             try:
+                if not await self.restore(device_id):
+                    raise RuntimeError("device snapshot unavailable")
                 async with aiohttp.ClientSession(headers=headers) as http:
                     async with http.get(url, params={"device_id": device_id}, timeout=None) as resp:
                         if resp.status != 200:
@@ -945,6 +1294,7 @@ class AgentGateway:
             devices[device_id] = {
                 "acked_upto": dev.acked_upto,
                 "snapshot_due": dev.snapshot_due,
+                "restored": dev.restored,
                 "agent_sessions": len(self.live_sessions(dev)),
                 "polls_with_seq": dev.polls_with_seq,
                 "level": dev.level,
@@ -956,11 +1306,13 @@ class AgentGateway:
             }
         speeches = [
             {"speech_id": s.id, "delivery_id": s.delivery_id, "task_id": s.task_id, "state": s.state,
+             "urgent": s.urgent,
              "proactive_id": s.proactive_id, "sentence_id": s.sentence_id, "attempt": s.attempt, "played": s.played}
             for s in self.speeches.values()
         ]
         return {"devices": devices, "speeches": speeches, "acks": list(self.sink.acks),
-                "responses": list(self.sink.responses)}
+                "responses": list(self.sink.responses),
+                "unsent_acks": sum(len(v) for v in getattr(self.sink, "pending_acks", {}).values())}
 
     def add_routes(self, app, guarded):
         from aiohttp import web
@@ -1135,7 +1487,8 @@ def instance(proactive=None):
         url = os.environ.get(SERVICE_URL_ENV, "")
         token = os.environ.get(SERVICE_TOKEN_ENV, "")
         sink = ServiceSink(logger, url, token) if url else None
-        INSTANCE = AgentGateway(proactive, sink=sink)
+        state = weixue_proactive.StateFile(weixue_proactive.state_path("agent.json"), logger)
+        INSTANCE = AgentGateway(proactive, sink=sink, state=state)
         INSTANCE.service_url = url
         INSTANCE.service_token = token
         proactive.agent = INSTANCE

@@ -569,6 +569,34 @@ inline PollStep NextPollStep(int status, bool body_ok, bool speak) {
     return status == 204 ? PollStep::kWait : PollStep::kBackoff;
 }
 
+constexpr const char* kInvokeMarker = "weixue:proactive";
+constexpr size_t kMaxBindingChars = 64;
+
+namespace detail {
+inline bool IsBindingPart(const cJSON* v) {
+    if (!cJSON_IsString(v) || v->valuestring == nullptr) return false;
+    size_t n = std::strlen(v->valuestring);
+    if (n == 0 || n > kMaxBindingChars) return false;
+    for (size_t i = 0; i < n; ++i) {
+        char c = v->valuestring[i];
+        bool ok = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '-' ||
+                  c == '_';
+        if (!ok) return false;
+    }
+    return true;
+}
+}  // namespace detail
+
+// The `listen detect` text that opens the session for a 200 poll body with `speak`:
+// kInvokeMarker + ":<id>:<lease>" with the body's message id and lease (1 to kMaxBindingChars
+// of [0-9A-Za-z_-] each), else kInvokeMarker alone.
+inline std::string InvokeText(const cJSON* body) {
+    const cJSON* id = cJSON_GetObjectItemCaseSensitive(body, "id");
+    const cJSON* lease = cJSON_GetObjectItemCaseSensitive(body, "lease");
+    if (!detail::IsBindingPart(id) || !detail::IsBindingPart(lease)) return kInvokeMarker;
+    return std::string(kInvokeMarker) + ":" + id->valuestring + ":" + lease->valuestring;
+}
+
 // The JSON-RPC notification for r, or "" when r is invalid or exceeds kMaxNotificationBytes
 // even with its text dropped.
 inline std::string BuildResponse(uint32_t boot, uint32_t seq, const Response& r) {

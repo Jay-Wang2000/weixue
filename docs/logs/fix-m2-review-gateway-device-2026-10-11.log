@@ -1,0 +1,154 @@
+# fix-m2-review-gateway on the board, 2026-10-11 (UTC)
+# board esp32-s3-touch-amoled-1.75c on /dev/cu.usbmodem2101; live server = main's image (not redeployed); device lock 02:47:01Z-02:55:58Z
+# builds from commit ef305e5 (provenance: uncommitted none): loopback (WEIXUE_AGENT_LOOPBACK=1) xiaozhi.bin 3,132,640 B, 222 s;
+#   release 3,131,680 B, 125 s; patches 05-36 apply. Release build left on the board.
+# serial lines filtered to agent/proactive/UI/session tags (no Wi-Fi lines); server lines: weixue_proactive,
+#   weixue_agent_delivery and listen detect (server clock Europe/Dublin = UTC+1), leases replaced by <lease>
+
+## 1. Loopback build (output volume 0): boot
+02:49:33 W (2168) FaceDisplay: agent ui: loopback build, bedside hint=day for this boot
+02:49:33 I (2428) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+02:49:33 I (2528) BoxAudioCodec: Duplex channels created
+02:49:34 I (2568) BoxAudioCodec: BoxAudioDevice initialized
+02:49:34 I (2568) AudioCodec: Audio codec started
+02:49:34 I (2578) AudioCodec: Set output volume to 0
+02:49:34 W (2588) WeixueAgent: agent: loopback build, answers debug_reply after 2 s; output volume 0 (stored 100 kept)
+02:49:34 I (2588) WeixueAgent: agent: protocol v1 level 2, boot 2859900419
+02:49:35 I (4098) StateMachine: State: starting -> activating
+02:49:35 I (4338) Application: Activation done
+02:49:35 I (4348) StateMachine: State: activating -> idle
+02:49:35 I (4358) Application: Proactive poller: http://192.168.8.220:8003/weixue/proactive/poll
+
+## 2. Loopback build: fixture 'spoken' (WHEN_IDLE then INTERRUPT speech) - lease-bound invocations
+02:50:09 I (38278) Application: Proactive message pending (urgent=0)
+02:50:09 I (38388) Application: Proactive session opened (lease-bound invocation)
+02:50:12 I (41338) WS: Websocket disconnected
+02:50:23 I (51678) Application: Proactive message pending (urgent=1)
+02:50:23 I (51768) Application: Proactive session opened (lease-bound invocation)
+02:50:26 I (55148) WS: Websocket disconnected
+
+## 3. Loopback build: fixture 'closing' (announcement + loopback approve) - receipt round-trip
+02:50:44 I (72668) Application: Proactive message pending (urgent=0)
+02:50:44 I (72668) StateMachine: State: idle -> connecting
+02:50:44 I (72748) WS: Session ID: dec59565-a642-488f-9aec-2cba58ad13aa
+02:50:44 I (72768) Application: Proactive session opened (lease-bound invocation)
+02:50:44 I (72768) StateMachine: State: connecting -> listening
+02:50:44 I (72818) WeixueAgent: agent: chats seq=1791683219080 current= n=0 result=duplicate via=push
+02:50:44 I (72818) WeixueAgent: agent: chat=c_035009 task=t_035009_sp1 state=unread seq=1791687009593 tier=when_idle speaks=1 result=duplicate via=push
+02:50:44 I (72828) WeixueAgent: agent: chat=c_035009 task=t_035009_sp2 state=failed seq=1791687009595 tier=interrupt speaks=1 result=duplicate via=push
+02:50:44 I (72828) FaceDisplay: agent ui: pose=full top=t_035009_sp2
+02:50:44 I (72948) WeixueAgent: agent: chat=c_035043 task=t_035043_cw state=needs_approval seq=1791687043356 tier=when_idle speaks=0 result=applied via=push
+02:50:44 I (72958) WeixueAgent: agent: sync seq=1791687044235 listed=3 dropped=0 tasks=3 via=push
+02:50:44 I (72958) FaceDisplay: agent ui: task=t_035043_cw state=needs_approval tier=when_idle flash=2 earcon=needs_you
+02:50:44 I (72988) StateMachine: State: listening -> speaking
+02:50:44 I (72998) FaceDisplay: earcon=needs_you skipped: device busy or muted
+02:50:44 I (73268) WeixueAgent: agent ack sent: shown upto 1791687044235 (attempt 1)
+02:50:46 I (74958) WeixueAgent: agent response: kind=approve chat=c_035043 task=t_035043_cw card=i_035043_cw option=approve via=loopback seq=11
+02:50:46 I (74978) WeixueAgent: agent ack sent: approve t_035043_cw seq 11 (attempt 1), awaiting receipt
+02:50:46 I (74988) WeixueAgent: agent ack received: approve t_035043_cw seq 11 (attempt 1)
+02:50:46 I (74998) WeixueAgent: agent receipt: approve seq=11 card=i_035043_cw result=accepted
+02:50:47 I (75718) StateMachine: State: speaking -> listening
+
+## 4. Server (main image) for 2 and 3
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_035009 task=t_035009_sp1 state=unread seq=1791687009593 tier=when_idle speaks=True delivery=fx_4cc8d81d9e3e4f48ad19d6de
+261011 03:50:09[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 0b17b993a2564419ad95742f59e5bd31 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech aaf1665dbda44b93 handed off: delivery=fx_4cc8d81d9e3e4f48ad19d6de proactive=0b17b993a2564419ad95742f59e5bd31 urgent=False attempt=1 reason=-
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=fx_4cc8d81d9e3e4f48ad19d6de device=7c:0c:5f:42:4b:fc proactive_id=0b17b993a2564419ad95742f59e5bd31 ttl_s=600
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_035009 task=t_035009_sp2 state=failed seq=1791687009595 tier=interrupt speaks=True delivery=fx_2acbe540861e4cbfa1381b1b
+261011 03:50:09[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 0a0927b893294740a5ec6044fab6dfbf queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=True ttl=600
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech b6067abae9eb4ba3 handed off: delivery=fx_2acbe540861e4cbfa1381b1b proactive=0a0927b893294740a5ec6044fab6dfbf urgent=True attempt=1 reason=-
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=fx_2acbe540861e4cbfa1381b1b device=7c:0c:5f:42:4b:fc proactive_id=0a0927b893294740a5ec6044fab6dfbf ttl_s=600
+261011 03:50:09[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 0b17b993a2564419ad95742f59e5bd31 reserved for 7c:0c:5f:42:4b:fc urgent=False
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=2 seqs=[1791687009593, 1791687009595] snapshot=False
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection open device=7c:0c:5f:42:4b:fc session=c6781d02-7344-49d0-8d30-096345957a22
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=7c:0c:5f:42:4b:fc session=c6781d02-7344-49d0-8d30-096345957a22: snapshot of 2
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791683219080
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_035009_sp1 state=unread seq=1791687009593
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_035009_sp2 state=failed seq=1791687009595
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791687009859
+261011 03:50:09[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"c6781d02-7344-49d0-8d30-096345957a22","type":"listen","state":"detect","text":"weixue:proactive:0b17b993a2564419ad95742f59e5bd31:<lease>"}
+261011 03:50:09[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 0b17b993a2564419ad95742f59e5bd31 delivering: attempt=1 session=c6781d02-7344-49d0-8d30-096345957a22 invoked=True urgent=False
+261011 03:50:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech aaf1665dbda44b93 tts start sentence=a6c6bc0103d64422aa26ecdaf0bd66ac device=7c:0c:5f:42:4b:fc
+261011 03:50:09[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"c6781d02-7344-49d0-8d30-096345957a22","type":"listen","state":"start","mode":"realtime"}
+261011 03:50:10[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_4cc8d81d9e3e4f48ad19d6de device=7c:0c:5f:42:4b:fc seq=1791687009593 via=shown
+261011 03:50:10[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_2acbe540861e4cbfa1381b1b device=7c:0c:5f:42:4b:fc seq=1791687009595 via=shown
+261011 03:50:12[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech aaf1665dbda44b93 tts stop sentence=a6c6bc0103d64422aa26ecdaf0bd66ac
+261011 03:50:12[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech aaf1665dbda44b93 played: sentence=a6c6bc0103d64422aa26ecdaf0bd66ac cut_at_ms=None reason=None
+261011 03:50:12[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack spoken delivery=fx_4cc8d81d9e3e4f48ad19d6de device=7c:0c:5f:42:4b:fc proactive_id=0b17b993a2564419ad95742f59e5bd31
+261011 03:50:12[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack played delivery=fx_4cc8d81d9e3e4f48ad19d6de device=7c:0c:5f:42:4b:fc sentence_id=a6c6bc0103d64422aa26ecdaf0bd66ac boot=2859900419 device_seq=4
+261011 03:50:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection close device=7c:0c:5f:42:4b:fc session=c6781d02-7344-49d0-8d30-096345957a22
+261011 03:50:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 0b17b993a2564419ad95742f59e5bd31 delivered
+261011 03:50:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session c6781d02-7344-49d0-8d30-096345957a22 of 7c:0c:5f:42:4b:fc did not answer a ping; closed
+261011 03:50:22[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 0a0927b893294740a5ec6044fab6dfbf reserved for 7c:0c:5f:42:4b:fc urgent=True
+261011 03:50:23[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection open device=7c:0c:5f:42:4b:fc session=c88888cd-18eb-405b-a382-d9e2969387ca
+261011 03:50:23[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=7c:0c:5f:42:4b:fc session=c88888cd-18eb-405b-a382-d9e2969387ca: snapshot of 2
+261011 03:50:23[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791683219080
+261011 03:50:23[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_035009_sp1 state=unread seq=1791687009593
+261011 03:50:23[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_035009_sp2 state=failed seq=1791687009595
+261011 03:50:23[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791687023250
+261011 03:50:23[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"c88888cd-18eb-405b-a382-d9e2969387ca","type":"listen","state":"detect","text":"weixue:proactive:0a0927b893294740a5ec6044fab6dfbf:<lease>"}
+261011 03:50:23[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 0a0927b893294740a5ec6044fab6dfbf delivering: attempt=1 session=c88888cd-18eb-405b-a382-d9e2969387ca invoked=True urgent=True
+261011 03:50:23[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech b6067abae9eb4ba3 tts start sentence=690b0a028ccd4da0a114a26bd24294c8 device=7c:0c:5f:42:4b:fc
+261011 03:50:23[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"c88888cd-18eb-405b-a382-d9e2969387ca","type":"listen","state":"start","mode":"realtime"}
+261011 03:50:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech b6067abae9eb4ba3 tts stop sentence=690b0a028ccd4da0a114a26bd24294c8
+261011 03:50:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech b6067abae9eb4ba3 played: sentence=690b0a028ccd4da0a114a26bd24294c8 cut_at_ms=None reason=None
+261011 03:50:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack spoken delivery=fx_2acbe540861e4cbfa1381b1b device=7c:0c:5f:42:4b:fc proactive_id=0a0927b893294740a5ec6044fab6dfbf
+261011 03:50:26[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack played delivery=fx_2acbe540861e4cbfa1381b1b device=7c:0c:5f:42:4b:fc sentence_id=690b0a028ccd4da0a114a26bd24294c8 boot=2859900419 device_seq=7
+261011 03:50:36[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection close device=7c:0c:5f:42:4b:fc session=c88888cd-18eb-405b-a382-d9e2969387ca
+261011 03:50:36[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 0a0927b893294740a5ec6044fab6dfbf delivered
+261011 03:50:36[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session c88888cd-18eb-405b-a382-d9e2969387ca of 7c:0c:5f:42:4b:fc did not answer a ping; closed
+261011 03:50:43[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 65c8cb94b28842a7bbd6018dcd363f6a queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+261011 03:50:43[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 65c8cb94b28842a7bbd6018dcd363f6a reserved for 7c:0c:5f:42:4b:fc urgent=False
+261011 03:50:43[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_035043 task=t_035043_cw state=needs_approval seq=1791687043356 tier=when_idle speaks=False delivery=fx_11cb3dabf58b4a4aa13088f9
+261011 03:50:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection open device=7c:0c:5f:42:4b:fc session=dec59565-a642-488f-9aec-2cba58ad13aa
+261011 03:50:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=7c:0c:5f:42:4b:fc session=dec59565-a642-488f-9aec-2cba58ad13aa: snapshot of 3
+261011 03:50:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791683219080
+261011 03:50:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_035009_sp1 state=unread seq=1791687009593
+261011 03:50:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_035009_sp2 state=failed seq=1791687009595
+261011 03:50:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=t_035043_cw state=needs_approval seq=1791687043356
+261011 03:50:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791687044235
+261011 03:50:44[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"dec59565-a642-488f-9aec-2cba58ad13aa","type":"listen","state":"detect","text":"weixue:proactive:65c8cb94b28842a7bbd6018dcd363f6a:<lease>"}
+261011 03:50:44[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 65c8cb94b28842a7bbd6018dcd363f6a delivering: attempt=1 session=dec59565-a642-488f-9aec-2cba58ad13aa invoked=True urgent=False
+261011 03:50:44[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"dec59565-a642-488f-9aec-2cba58ad13aa","type":"listen","state":"start","mode":"realtime"}
+261011 03:50:44[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_11cb3dabf58b4a4aa13088f9 device=7c:0c:5f:42:4b:fc seq=1791687043356 via=shown
+261011 03:50:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=7c:0c:5f:42:4b:fc chat=c_035043 task=t_035043_cw card=i_035043_cw option=approve via=loopback boot=2859900419 seq=11
+261011 03:50:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent receipt approve boot=2859900419 seq=11 card=i_035043_cw result=accepted
+261011 03:50:46[0.9.7_00000000000000][weixue_agent_delivery]-WARNING-agent-service /v1/chats/c_035043/approve: HTTP 404
+261011 03:50:47[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 65c8cb94b28842a7bbd6018dcd363f6a partial: session lost after audio started
+261011 03:50:57[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection close device=7c:0c:5f:42:4b:fc session=dec59565-a642-488f-9aec-2cba58ad13aa
+261011 03:50:57[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session dec59565-a642-488f-9aec-2cba58ad13aa of 7c:0c:5f:42:4b:fc did not answer a ping; closed
+
+## 5. Release build: boot, a silent working card, drops
+02:55:08 I (2568) WeixueAgent: agent: protocol v1 level 2, boot 699484309
+02:55:09 I (4068) StateMachine: State: starting -> activating
+02:55:10 I (4528) Application: Activation done
+02:55:10 I (4538) StateMachine: State: activating -> idle
+02:55:10 I (4548) Application: Proactive poller: http://192.168.8.220:8003/weixue/proactive/poll
+02:55:10 I (4788) AudioCodec: Set output enable to true
+02:55:10 I (4788) WeixueAgent: agent: chats seq=1791683219080 current= n=0 result=applied via=poll
+02:55:10 I (4788) WeixueAgent: agent: chat=c_035009 task=t_035009_sp1 state=unread seq=1791687009593 tier=when_idle speaks=1 result=applied via=poll
+02:55:10 I (4848) FaceDisplay: agent ui: chats=0 current=c_035009 header=c_035009
+02:55:10 I (4858) FaceDisplay: agent ui: task=t_035009_sp1 state=unread tier=when_idle flash=2 earcon=none
+02:55:10 I (4898) AudioCodec: Set input enable to true
+02:55:10 I (5038) WeixueAgent: agent: chat=c_035009 task=t_035009_sp2 state=failed seq=1791687009595 tier=interrupt speaks=1 result=applied via=poll
+02:55:10 I (5048) WeixueAgent: agent: chat=c_035043 task=t_035043_cw state=needs_approval seq=1791687043356 tier=when_idle speaks=0 result=applied via=poll
+02:55:10 I (5058) FaceDisplay: agent ui: task=t_035009_sp2 state=failed tier=interrupt flash=1 earcon=error
+02:55:10 I (5068) FaceDisplay: agent ui: task=t_035043_cw state=needs_approval tier=when_idle flash=2 earcon=needs_you
+02:55:10 I (5078) FaceDisplay: earcon=needs_you
+02:55:10 I (5288) WeixueAgent: agent: sync seq=1791687310861 listed=3 dropped=0 tasks=3 via=poll
+02:55:11 I (6198) FaceDisplay: agent ui: pose=attentive top=t_035043_cw
+02:55:12 I (6928) FaceDisplay: agent ui: card open task=t_035043_cw
+02:55:12 I (7188) FaceDisplay: agent ui: pose=full top=t_035043_cw
+02:55:37 I (32418) WeixueAgent: agent: chats seq=1791683219080 current= n=0 result=duplicate via=poll
+02:55:37 I (32418) WeixueAgent: agent: chat=c_fx_gw task=t_fx_gw_release state=working seq=1791687336126 tier=silent speaks=0 result=applied via=poll
+02:55:38 I (32498) FaceDisplay: agent ui: task=t_fx_gw_release state=working tier=silent flash=0 earcon=none
+02:55:38 I (32678) WeixueAgent: agent: sync seq=1791687338254 listed=1 dropped=3 tasks=1 via=poll
+02:55:39 I (33678) FaceDisplay: agent ui: card closed
+02:55:53 I (47628) WeixueAgent: agent: chats seq=1791683219080 current= n=0 result=duplicate via=poll
+02:55:53 I (47628) WeixueAgent: agent: sync seq=1791687352404 listed=0 dropped=1 tasks=0 via=poll
+
+## Findings
+- Lease-bound invocation: 3/3 sessions sent `weixue:proactive:<id>:<lease>` with the id of the poll answer; main's server delivered each (`delivering … invoked=True`), none hit `no current lease`.
+- Receipt round-trip: the loopback approve got `agent receipt: approve seq=11 … result=accepted` 20 ms after sending. On main's server that receipt preceded `agent-service /v1/chats/c_035043/approve: HTTP 404` (the fixture chat does not exist): the F04 defect. This branch receipts it `stale` (sim round F04, unit tests).
+- Release boot: the boot snapshot still held the fixture approval card and played the `needs_you` earcon once at the stored output volume (100); no speech played on the release build. The fixture tasks were then dropped; the board is left on the release build with an empty task store (`sync listed=0`).
+- Not shown on the board: the server-side binding requirement (needs this branch deployed; unit tests and sim device), and receipts after agent-service answered (sim round F04).
