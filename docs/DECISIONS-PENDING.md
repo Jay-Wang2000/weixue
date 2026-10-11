@@ -96,6 +96,8 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 53. **Loopback test build can answer cards from the server** — needs Jay (security of test tooling): `WEIXUE_AGENT_LOOPBACK=1` builds honour a server-scripted `debug_reply` that approves/answers a card automatically (compiled out of release; used by the fixture runs). Now that the diag USB console can tap cards, recommendation: remove `debug_reply` entirely and let the session script tap via `diag tap` so no build ever has a server→card-answer path. Alternative: keep it, loopback builds only.
 
+54. **Orchestrator rulings (our stack, FYI)**: creating or switching a chat closes another chat's open 20 s voice window (its question stays as a card); the agent service's per-turn iteration cap rises from 60 to 150 for long tasks while the token/cost guards stay. Implemented in the next small fix pass.
+
 ## Night run 2026-10-10 → 11 (Jay asleep)
 - Quiet mode: no `say`, device volume 0 for any test, no audible TTS; the full audio session runs after Jay wakes. Autonomous work continues through M2; anything user-facing in behaviour not already decided, external-service or security-related is parked here for the morning report.
 
