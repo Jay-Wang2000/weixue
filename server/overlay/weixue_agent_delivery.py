@@ -1,12 +1,13 @@
 """Agent delivery gateway (docs/agent-protocol.md): mirrors the latest `agent` item per task per
-device, pushes items to sessions that advertise `features.agent`, batches them into proactive
-poll bodies, sends snapshots, resends unacked items, speaks spoken items through the proactive
-queue, turns device responses and `played` acks into delivery acks, and answers each device
-response with an `agent_ack` receipt.
+device and the device's chat list, pushes items to sessions that advertise `features.agent`,
+batches them into proactive poll bodies, sends snapshots, resends unacked items, speaks spoken
+items through the proactive queue, turns device responses and `played` acks into delivery acks,
+and answers each device response with an `agent_ack` receipt.
 
-Sources: fixture injection at POST /weixue/agent/messages (always) and the agent-service outbox
-stream when AGENT_SERVICE_URL is set. Acks go to the sink: logged and kept for
-GET /weixue/agent/deliveries, and posted to agent-service in live mode."""
+Sources: fixture injection at POST /weixue/agent/messages (always), and in live mode
+(AGENT_SERVICE_URL set) the agent-service outbox stream and its chat index (GET /v1/chats). Acks
+go to the sink: logged and kept for GET /weixue/agent/deliveries, and posted to agent-service in
+live mode."""
 import asyncio
 import json
 import os
@@ -24,6 +25,7 @@ TAG = __name__
 SERVICE_URL_ENV = "AGENT_SERVICE_URL"
 SERVICE_TOKEN_ENV = "AGENT_SERVICE_TOKEN"
 SEQ_HEADER = "X-Weixue-Agent-Seq"
+FEATURE_HEADER = "X-Weixue-Agent-Feature"
 RESPONSE_METHOD = "notifications/weixue/agent_response"
 PLAYED_METHOD = "notifications/weixue/played"
 
@@ -43,6 +45,7 @@ TICK_SECONDS = 0.5
 POLL_BASE_BYTES = 96
 # Times a snapshot page the device did not apply is sent again before the snapshot moves on.
 PAGE_RETRIES = 3
+SWITCH_TIMEOUT_SECONDS = 3
 SPEECH_FINAL = ("played", "cut_off", "lost", "dropped")
 OPEN_CARD_STATES = ("needs_approval", "needs_input")
 
@@ -75,6 +78,13 @@ class Device:
     sessions: list = field(default_factory=list)
     page: Optional["Page"] = None
     page_retries: int = 0
+    # features.agent of the newest session or X-Weixue-Agent-Feature of the last poll; 0 = unknown.
+    level: int = 0
+    listing: Optional[dict] = None
+    listing_gen: int = 0
+    listing_delivery: tuple = (None, None)
+    chats: Optional[Entry] = None
+    chats_key: Optional[tuple] = None
 
 
 @dataclass
@@ -166,7 +176,10 @@ class ServiceSink(FixtureSink):
 
     async def _switch(self, device, done, post):
         try:
-            return await post
+            return await asyncio.wait_for(post, SWITCH_TIMEOUT_SECONDS)
+        except asyncio.TimeoutError:
+            self.logger.bind(tag=TAG).warning(f"agent-service chat switch: no answer within {SWITCH_TIMEOUT_SECONDS} s")
+            return 0
         finally:
             if not done.done():
                 done.set_result(None)
@@ -191,11 +204,26 @@ class ServiceSink(FixtureSink):
             self.logger.bind(tag=TAG).warning(f"agent-service {path}: {type(e).__name__}")
             return 0
 
+    async def get_chats(self, device):
+        """The agent-service chat index of the device (GET /v1/chats), or None."""
+        path = "/v1/chats"
+        try:
+            async with self._http().get(self.base + path, params={"device_id": device}) as resp:
+                if resp.status != 200:
+                    self.logger.bind(tag=TAG).warning(f"agent-service {path}: HTTP {resp.status}")
+                    return None
+                body = await resp.json()
+                return body if isinstance(body, dict) else None
+        except Exception as e:
+            self.logger.bind(tag=TAG).warning(f"agent-service {path}: {type(e).__name__}")
+            return None
+
     def _spawn(self, coro):
         try:
-            asyncio.get_running_loop().create_task(coro)
+            return asyncio.get_running_loop().create_task(coro)
         except RuntimeError:
             coro.close()
+            return None
 
     def ack(self, delivery_id, lease_id, outcome, device, **detail):
         super().ack(delivery_id, lease_id, outcome, device, **detail)
@@ -216,25 +244,29 @@ class ServiceSink(FixtureSink):
         self._spawn(self._post(f"/v1/devices/{quote(device, safe='')}/connection", body))
 
     def response(self, device, response):
+        """Posts the response's route. Returns the task of a switch_chat / new_chat post (its
+        result: the HTTP status, 0 without an answer), else None."""
         super().response(device, response)
         try:
             route = wire.response_route(device, response)
         except wire.WireError as e:
             self.logger.bind(tag=TAG).warning(f"agent response {response['kind']} device={device} dropped: {e}")
-            return
-        if route is not None:
-            _method, path, body = route
-            headers = {"Idempotency-Key": wire.decision_id(device, response["boot"], response["seq"])}
-            post = self._post(path, body, headers)
-            if response["kind"] in ("switch_chat", "new_chat"):
-                try:
-                    done = asyncio.get_running_loop().create_future()
-                except RuntimeError:
-                    done = None
-                if done is not None:
-                    self.switches[device] = done
-                    post = self._switch(device, done, post)
+            return None
+        if route is None:
+            return None
+        _method, path, body = route
+        headers = {"Idempotency-Key": wire.decision_id(device, response["boot"], response["seq"])}
+        post = self._post(path, body, headers)
+        if response["kind"] not in wire.SWITCH_KINDS:
             self._spawn(post)
+            return None
+        try:
+            done = asyncio.get_running_loop().create_future()
+        except RuntimeError:
+            post.close()
+            return None
+        self.switches[device] = done
+        return self._spawn(self._switch(device, done, post))
 
 
 class AgentGateway:
@@ -324,7 +356,9 @@ class AgentGateway:
         return dropped
 
     def offer(self, device_id, offer):
-        """One agent-service delivery offer (kind `agent`)."""
+        """One agent-service delivery offer (kind `agent` or `chats`)."""
+        if offer.get("kind") == "chats":
+            return self.set_chats(device_id, offer.get("payload") or {}, offer.get("delivery_id"), offer.get("lease_id"))
         if offer.get("kind") != "agent":
             self.sink.ack(offer.get("delivery_id"), offer.get("lease_id"), "dropped", device_id,
                           detail=f"kind {offer.get('kind')} not carried by protocol v1")
@@ -336,6 +370,92 @@ class AgentGateway:
         except (wire.WireError, KeyError) as e:
             self.sink.ack(offer.get("delivery_id"), offer.get("lease_id"), "dropped", device_id, detail=str(e))
             return None
+
+    # Chats
+
+    def set_chats(self, device_id, listing, delivery_id=None, lease_id=None):
+        """The device's chat index (an agent-service `GET /v1/chats` body): queued as `agent_chats`
+        for a device that applies it, unless it lists what the device was last sent."""
+        dev = self.device(device_id)
+        dev.listing = listing
+        dev.listing_gen += 1
+        dev.listing_delivery = (delivery_id, lease_id)
+        if 0 < dev.level < wire.FEATURE_CHATS:
+            if delivery_id:
+                self.sink.ack(delivery_id, lease_id, "dropped", device_id, detail="device without agent_chats (v1.1)")
+            return None
+        if dev.level == 0:
+            return None
+        return self._queue_chats(device_id, dev)
+
+    def _task_titles(self, dev):
+        """Chat id → title (else summary) of its newest mirrored task."""
+        titles = {}
+        for e in sorted(dev.mirror.values(), key=lambda e: e.seq):
+            p = e.payload
+            if p.get("title") or p.get("summary"):
+                titles[p.get("chat_id")] = p.get("title") or p.get("summary")
+        return titles
+
+    def _queue_chats(self, device_id, dev, dispatch=True):
+        delivery_id, lease_id = dev.listing_delivery
+        dev.listing_delivery = (None, None)
+        try:
+            current, chats = wire.chats_from_listing(dev.listing, self.wall(), self._task_titles(dev))
+            payload = wire.build_chats(self._next_seq(dev), int(self.wall() * 1000), current, chats)
+        except wire.WireError as e:
+            self.logger.bind(tag=TAG).warning(f"agent chats for {device_id} not sent: {e}")
+            if delivery_id:
+                self.sink.ack(delivery_id, lease_id, "dropped", device_id, detail=str(e))
+            return None
+        key = (payload.get("current"), tuple((c["id"], c.get("title"), c["state"]) for c in payload["chats"]))
+        if key == dev.chats_key:
+            if delivery_id:
+                self.sink.ack(delivery_id, lease_id, "shown", device_id, detail="chat list unchanged")
+            return None
+        dev.outgoing = [e for e in dev.outgoing if e is not dev.chats]
+        entry = Entry(payload=payload, delivery_id=delivery_id or f"gw_{uuid.uuid4().hex[:24]}", lease_id=lease_id)
+        dev.chats, dev.chats_key = entry, key
+        dev.outgoing.append(entry)
+        self._log(f"agent chats queued device={device_id} current={payload.get('current')} "
+                  f"chats={len(payload['chats'])}/{len(chats)} seq={payload['seq']} bytes={wire.size(payload)} "
+                  f"delivery={entry.delivery_id}")
+        if dispatch:
+            self._dispatch(device_id, dev, [entry])
+        return {"delivery_id": entry.delivery_id, "seq": payload["seq"], "chats": len(payload["chats"])}
+
+    def _set_level(self, device_id, dev, level, dispatch=True):
+        """Records the device's agent feature level; a device that newly applies agent_chats gets
+        the chat list."""
+        if level == dev.level:
+            return
+        dev.level = level
+        if level >= wire.FEATURE_CHATS:
+            if dev.listing is not None and dev.chats is None:
+                self._queue_chats(device_id, dev, dispatch)
+        else:
+            dev.outgoing = [e for e in dev.outgoing if e is not dev.chats]
+            dev.chats, dev.chats_key = None, None
+            delivery_id, lease_id = dev.listing_delivery
+            dev.listing_delivery = (None, None)
+            if delivery_id:
+                self.sink.ack(delivery_id, lease_id, "dropped", device_id, detail="device without agent_chats (v1.1)")
+
+    def refresh_chats(self, device_id):
+        """Fetches the device's chat index from agent-service (live mode) and queues it, unless a
+        newer index arrived while the request ran."""
+        fetch = getattr(self.sink, "get_chats", None)
+        if fetch is None:
+            return None
+        dev = self.device(device_id)
+        gen = dev.listing_gen
+
+        async def run():
+            listing = await fetch(device_id)
+            if listing is not None and dev.listing_gen == gen:
+                self.set_chats(device_id, listing)
+
+        return asyncio.get_running_loop().create_task(run())
 
     # Push
 
@@ -377,8 +497,16 @@ class AgentGateway:
             return {k: v for k, v in entry.payload.items() if k != "debug_reply"}
         return entry.payload
 
+    @staticmethod
+    def _snapshot_entries(dev, after=0):
+        """Mirrored tasks and the chat list above seq after, oldest first."""
+        entries = [e for e in dev.mirror.values() if e.seq > after]
+        if dev.chats is not None and dev.chats.seq > after:
+            entries.append(dev.chats)
+        return sorted(entries, key=lambda e: e.seq)
+
     def _snapshot_payloads(self, dev, after=0):
-        entries = sorted((e for e in dev.mirror.values() if e.seq > after), key=lambda e: e.seq)
+        entries = self._snapshot_entries(dev, after)
         for e in entries:
             self._mark_sent(e)
         return [self._replay(e) for e in entries] + [wire.build_sync(self._next_seq(dev), list(dev.mirror))]
@@ -389,12 +517,13 @@ class AgentGateway:
         if connection is not None:
             connection(device_id, kind, getattr(conn, "session_id", None))
 
-    def on_agent_session(self, device_id, conn):
-        """A verified session that advertised features.agent: it gets every mirrored item, then
-        agent_sync (the device may have rebooted since its last poll)."""
+    def on_agent_session(self, device_id, conn, level=wire.VERSION):
+        """A verified session that advertised features.agent (level): it gets every mirrored item
+        and the chat list, then agent_sync (the device may have rebooted since its last poll)."""
         dev = self.device(device_id)
         if conn not in dev.sessions:
             dev.sessions.append(conn)
+        self._set_level(device_id, dev, level, dispatch=False)
         payloads = self._snapshot_payloads(dev)
         dev.snapshot_due = False
         dev.snapshot_from = 0
@@ -407,9 +536,9 @@ class AgentGateway:
 
     # Poll
 
-    def on_poll(self, device_id, header):
-        """Records the poll's X-Weixue-Agent-Seq; a poll without it (firmware without the agent
-        feature) gets no agent items."""
+    def on_poll(self, device_id, header, feature=None):
+        """Records the poll's X-Weixue-Agent-Seq and X-Weixue-Agent-Feature (absent: level 1); a
+        poll without the seq (firmware without the agent feature) gets no agent items."""
         try:
             seq = int(header) if header is not None else -1
         except (TypeError, ValueError):
@@ -418,8 +547,14 @@ class AgentGateway:
             if device_id in self.devices:
                 self.devices[device_id].polls_with_seq = False
             return
+        try:
+            level = max(wire.VERSION, int(feature)) if feature is not None else wire.VERSION
+        except (TypeError, ValueError):
+            level = wire.VERSION
         dev = self.device(device_id)
         dev.polls_with_seq = True
+        self._set_level(device_id, dev, level)
+        self.watch_device(device_id)
         page, dev.page = dev.page, None
         if seq == 0:
             if not dev.snapshot_due or dev.snapshot_from:
@@ -465,7 +600,7 @@ class AgentGateway:
         snapshot = dev.snapshot_due
         start = dev.snapshot_from
         if snapshot:
-            candidates = sorted((e for e in dev.mirror.values() if e.seq > start), key=lambda e: e.seq)
+            candidates = self._snapshot_entries(dev, start)
         else:
             candidates = self._poll_entries(dev)
         out, used = [], 2
@@ -569,11 +704,29 @@ class AgentGateway:
                 self.card_decisions.popitem(last=False)
             if latest is not None:
                 latest.replied = True
-        self.sink.response(device_id, event)
+        switch = self.sink.response(device_id, event)
         if event["kind"] == "ack_seen" and latest is not None:
             latest.replied = True
             self.sink.ack(latest.delivery_id, latest.lease_id, "user_ack", device_id, seq=latest.seq)
+        if switch is not None:
+            asyncio.get_running_loop().create_task(self._finish_switch(conn, device_id, event, switch, receipt))
+            return None
         return receipt("accepted")
+
+    async def _finish_switch(self, conn, device_id, event, post, receipt):
+        """Receipt of a switch_chat / new_chat once agent-service answered (accepted on 2xx, else
+        stale), then the refreshed chat list."""
+        try:
+            status = await post
+        except Exception:
+            status = 0
+        result = "accepted" if 200 <= (status or 0) < 300 else "stale"
+        self._log(f"agent {event['kind']} device={device_id} chat={event.get('chat_id')} service={status} "
+                  f"result={result}")
+        await self.send_receipt(conn, receipt(result))
+        refresh = self.refresh_chats(device_id)
+        if refresh is not None:
+            await refresh
 
     async def send_receipt(self, conn, receipt):
         """Sends an `agent_ack` on the session the response arrived on."""
@@ -774,6 +927,7 @@ class AgentGateway:
                         if resp.status != 200:
                             raise RuntimeError(f"HTTP {resp.status}")
                         backoff = 1
+                        self.refresh_chats(device_id)
                         async for offer in parse_sse(resp.content):
                             self.offer(device_id, offer)
             except asyncio.CancelledError:
@@ -793,6 +947,8 @@ class AgentGateway:
                 "snapshot_due": dev.snapshot_due,
                 "agent_sessions": len(self.live_sessions(dev)),
                 "polls_with_seq": dev.polls_with_seq,
+                "level": dev.level,
+                "chats": dev.chats.payload if dev.chats is not None else None,
                 "mirror": [{"task_id": t, "seq": e.seq, "state": e.payload.get("state"), "delivery_id": e.delivery_id}
                            for t, e in dev.mirror.items()],
                 "unacked": [{"seq": e.seq, "task_id": e.payload.get("task_id"), "sends": e.sends, "raw": e.raw}
@@ -958,7 +1114,7 @@ def register_agent_sessions(handle, gateway):
         if isinstance(agent, int) and not isinstance(agent, bool) and agent >= wire.VERSION:
             device_id = gateway._verified(conn)
             if device_id is not None:
-                gateway.on_agent_session(device_id, conn)
+                gateway.on_agent_session(device_id, conn, agent)
                 gateway.watch_device(device_id)
         return result
 

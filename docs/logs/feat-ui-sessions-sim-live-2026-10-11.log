@@ -1,0 +1,558 @@
+# feat-ui-sessions acceptance against the deployed agent-service (sim-server on the live compose network, AGENT_SERVICE_URL=http://agent-service:8010), this branch's gateway overlay; 2026-10-11 UTC. agent_chats_e2e.py --chats 5 --switches 10
+PASS initial agent_chats list reaches the device
+PASS new_chat 1: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M7JQZ9D12J3XEJCN9D5VSN 206 ms
+PASS chat 1: first turn landed in it: turn chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN
+PASS new_chat 2: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M7KF4WF2ESFVRTZ921Z524 256 ms
+PASS chat 2: first turn landed in it: turn chat=cht_01M4M7KF4WF2ESFVRTZ921Z524
+PASS new_chat 3: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 52 ms
+PASS chat 3: first turn landed in it: turn chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44
+PASS new_chat 4: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M7MX0E4YJM3VZ43BX07XAY 50 ms
+PASS chat 4: first turn landed in it: turn chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY
+PASS new_chat 5: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M7NKMNXM8KR8NE38S7Z6RM 52 ms
+PASS chat 5: first turn landed in it: turn chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM
+PASS titles from the service's first-prompt title: {"9D5VSN": "Apples", "21Z524": "Bicycles", "KWEA44": "Castles", "X07XAY": "Dolphins", "S7Z6RM": "Engines"}
+PASS switch 1: receipt accepted, list current = target: target=cht_01M4M7KF4WF2ESFVRTZ921Z524 result=accepted 51 ms
+PASS switch 1: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 accepted in ['cht_01M4M7KF4WF2ESFVRTZ921Z524']
+PASS switch 2: receipt accepted, list current = target: target=cht_01M4M7MX0E4YJM3VZ43BX07XAY result=accepted 1048 ms
+PASS switch 2: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY accepted in ['cht_01M4M7MX0E4YJM3VZ43BX07XAY']
+PASS switch 3: receipt accepted, list current = target: target=cht_01M4M7JQZ9D12J3XEJCN9D5VSN result=accepted 52 ms
+PASS switch 3: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN accepted in ['cht_01M4M7JQZ9D12J3XEJCN9D5VSN']
+PASS switch 4: receipt accepted, list current = target: target=cht_01M4M7NKMNXM8KR8NE38S7Z6RM result=accepted 257 ms
+PASS switch 4: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM accepted in ['cht_01M4M7NKMNXM8KR8NE38S7Z6RM']
+PASS switch 5: receipt accepted, list current = target: target=cht_01M4M7M7RWF2YXFH4EJSKWEA44 result=accepted 52 ms
+PASS switch 5: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 accepted in ['cht_01M4M7M7RWF2YXFH4EJSKWEA44']
+PASS switch 6: receipt accepted, list current = target: target=cht_01M4M7KF4WF2ESFVRTZ921Z524 result=accepted 53 ms
+PASS switch 6: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 accepted in ['cht_01M4M7KF4WF2ESFVRTZ921Z524']
+PASS switch 7: receipt accepted, list current = target: target=cht_01M4M7NKMNXM8KR8NE38S7Z6RM result=accepted 52 ms
+PASS switch 7: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM accepted in ['cht_01M4M7NKMNXM8KR8NE38S7Z6RM']
+PASS switch 8: receipt accepted, list current = target: target=cht_01M4M7JQZ9D12J3XEJCN9D5VSN result=accepted 1045 ms
+PASS switch 8: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN accepted in ['cht_01M4M7JQZ9D12J3XEJCN9D5VSN']
+PASS switch 9: receipt accepted, list current = target: target=cht_01M4M7MX0E4YJM3VZ43BX07XAY result=accepted 52 ms
+PASS switch 9: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY accepted in ['cht_01M4M7MX0E4YJM3VZ43BX07XAY']
+PASS switch 10: receipt accepted, list current = target: target=cht_01M4M7M7RWF2YXFH4EJSKWEA44 result=accepted 1053 ms
+PASS switch 10: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 accepted in ['cht_01M4M7M7RWF2YXFH4EJSKWEA44']
+PASS 10 switches, every follow-up in the right chat: 10/10
+
+## transcript
+1791680404.061 poll 200 speak=False urgent=False items=1 bytes=337 header=0
+1791680404.062 agent: sync seq=1791680404118 listed=0 dropped=0 tasks=0 via=poll
+1791680404.273 poll 200 speak=False urgent=False items=2 bytes=979 header=1791680404118
+1791680404.273 agent: chat=cht_01M4M3R0AJDHF2X73KNNJP77M9 task=tsk_01M4M3R0AQ6B8RBFP6JNTPJTZ1 state=unread seq=1791680404123 tier=silent speaks=0 result=applied via=poll
+1791680404.273 agent: chat=cht_01M4M3R0AJDHF2X73KNNJP77M9 task=tsk_01M4M416VMMC0MJMYY3T4WST5V state=unread seq=1791680404124 tier=silent speaks=0 result=applied via=poll
+1791680404.478 poll 200 speak=False urgent=False items=2 bytes=913 header=1791680404124
+1791680404.478 agent: chat=cht_01M4M3R0AJDHF2X73KNNJP77M9 task=tsk_01M4M6E98C5PBBEPPZDKYJPMC1 state=unread seq=1791680404125 tier=silent speaks=0 result=applied via=poll
+1791680404.478 agent: chat=cht_01M4M6F0SN63GAY32Q1MW0HV8N task=tsk_01M4M6F4RAVYRE1FV4RZ8P8F6Z state=failed seq=1791680404126 tier=silent speaks=0 result=applied via=poll
+1791680404.690 poll 200 speak=False urgent=False items=2 bytes=933 header=1791680404126
+1791680404.690 agent: chat=cht_01M4M6X84D33J3D7509E5JKF7J task=tsk_01M4M6XC0T2RQV2AY3CV9D7F6X state=cancelled seq=1791680404127 tier=silent speaks=0 result=applied via=poll
+1791680404.690 agent: chat=cht_01M4M6YMX0EHVJXK89NKD8CYAF task=tsk_01M4M6YRRV982ZFJARDFF5YTG1 state=unread seq=1791680404128 tier=silent speaks=0 result=applied via=poll
+1791680404.901 poll 200 speak=False urgent=False items=2 bytes=933 header=1791680404128
+1791680404.901 agent: chat=cht_01M4M7EH6TTFHXQ1KZDP2X1S71 task=tsk_01M4M7EN0FTR821VM98SSCHEWG state=cancelled seq=1791680404129 tier=silent speaks=0 result=applied via=poll
+1791680404.901 agent: chat=cht_01M4M7FYE1ZBC10Y1G9V6KF3FD task=tsk_01M4M7G29J4PZ9YF5Z0KGMZWRW state=unread seq=1791680404130 tier=silent speaks=0 result=applied via=poll
+1791680405.107 poll 200 speak=False urgent=False items=1 bytes=631 header=1791680404130
+1791680405.107 agent: chat=cht_01M4M7FYE1ZBC10Y1G9V6KF3FD task=tsk_01M4M7G5VYJKN8KVSC02QZC1GK state=unread seq=1791680404131 tier=silent speaks=0 result=applied via=poll
+1791680405.322 poll 200 speak=False urgent=False items=1 bytes=1288 header=1791680404131
+1791680405.323 agent: chats seq=1791680404132 current=cht_01M4M7FYE1ZBC10Y1G9V6KF3FD n=8 bytes=944 result=applied via=poll
+PASS initial agent_chats list reaches the device
+1791680405.354 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 1, "kind": "new_chat", "via": "tap"}
+1791680405.427 agent receipt: new_chat seq=1 card=None result=accepted
+1791680405.429 device event sent (own session)
+1791680405.429 agent ack received: new_chat seq 1 (attempt 1)
+1791680405.528 poll 200 speak=False urgent=False items=1 bytes=1359 header=1791680404132
+1791680405.528 agent: chats seq=1791680405485 current=cht_01M4M7JQZ9D12J3XEJCN9D5VSN n=9 bytes=1009 result=applied via=poll
+PASS new_chat 1: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M7JQZ9D12J3XEJCN9D5VSN 206 ms
+1791680410.003 poll 200 speak=False urgent=False items=1 bytes=1294 header=1791680405485
+1791680410.003 agent: chats seq=1791680410057 current=cht_01M4M7JQZ9D12J3XEJCN9D5VSN n=8 bytes=950 result=applied via=poll
+1791680411.461 poll 200 speak=False urgent=False items=1 bytes=1276 header=1791680410057
+1791680411.461 agent: chats seq=1791680411517 current=cht_01M4M7JQZ9D12J3XEJCN9D5VSN n=8 bytes=932 result=applied via=poll
+1791680413.003 poll 200 speak=False urgent=False items=1 bytes=685 header=1791680411517
+1791680413.004 agent: chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN task=tsk_01M4M7JVY8Q528WJTR7RN5KQH5 state=needs_input seq=1791680413027 tier=silent speaks=0 result=applied via=poll
+1791680422.302 poll 200 speak=False urgent=False items=1 bytes=1350 header=1791680413027
+1791680422.302 agent: chats seq=1791680422351 current=cht_01M4M7K7YBN1YY8BFCBZT5TGB6 n=9 bytes=1000 result=applied via=poll
+1791680426.322 poll 200 speak=False urgent=False items=1 bytes=1347 header=1791680422351
+1791680426.322 agent: chats seq=1791680426376 current=cht_01M4M7K7YBN1YY8BFCBZT5TGB6 n=9 bytes=997 result=applied via=poll
+1791680428.648 poll 200 speak=False urgent=False items=1 bytes=631 header=1791680426376
+1791680428.648 agent: chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN task=tsk_01M4M7JVY8Q528WJTR7RN5KQH5 state=unread seq=1791680428703 tier=silent speaks=0 result=applied via=poll
+## round 1: Chat 1: let's talk about apples.
+02:00:05 hello 1b3d5935-c6aa-46db-810c-6e9df858b087
+02:00:06 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:00:06 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+02:00:07 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:00:07 sending reply clip 26 frames
+02:00:09 << {"type": "stt", "text": "Chat 1: let's talk about apples"} (audio frames so far 8)
+02:00:09 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:00:12 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+02:00:12 << {"type": "tts", "state": "sentence_start", "text": "Apples, lovely"} (audio frames so far 8)
+02:00:12 << {"type": "tts", "state": "sentence_start", "text": "Are you after varieties, recipes, or growing them?"} (audio frames so far 22)
+02:00:15 << {"type": "tts", "state": "sentence_start", "text": "Apples, lovely. Are you after varieties, recipes, or growing them?"} (audio frames so far 72)
+02:00:20 << {"type": "tts", "state": "stop"} (audio frames so far 138)
+02:00:28 session ended: server closed audio frames 138
+
+261011 01:00:20[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=7f5c8c7502404aaf97b6ca600c40d838 chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=2648 tts_first_audio_ms=16 total_ms=2677 answer_audio_ms=2677 reply_end_ms=3487
+PASS chat 1: first turn landed in it: turn chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN
+1791680429.114 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 2, "kind": "new_chat", "via": "tap"}
+1791680429.154 poll 200 speak=False urgent=False items=1 bytes=1275 header=1791680428703
+1791680429.154 agent: chats seq=1791680429210 current=cht_01M4M7K7YBN1YY8BFCBZT5TGB6 n=8 bytes=931 result=applied via=poll
+1791680429.157 agent receipt: new_chat seq=2 card=None result=accepted
+1791680429.158 device event sent (own session)
+1791680429.158 agent ack received: new_chat seq 2 (attempt 1)
+1791680429.364 poll 200 speak=False urgent=False items=1 bytes=1346 header=1791680429210
+1791680429.364 agent: chats seq=1791680429216 current=cht_01M4M7KF4WF2ESFVRTZ921Z524 n=9 bytes=996 result=applied via=poll
+PASS new_chat 2: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M7KF4WF2ESFVRTZ921Z524 256 ms
+1791680431.026 poll 200 speak=False urgent=False items=1 bytes=631 header=1791680429216
+1791680431.027 agent: chat=cht_01M4M7K7YBN1YY8BFCBZT5TGB6 task=tsk_01M4M7KEQREM7EC65PG5XY1HYC state=unread seq=1791680431082 tier=silent speaks=0 result=applied via=poll
+1791680431.518 poll 200 speak=False urgent=False items=1 bytes=1345 header=1791680431082
+1791680431.518 agent: chats seq=1791680431573 current=cht_01M4M7KF4WF2ESFVRTZ921Z524 n=9 bytes=995 result=applied via=poll
+1791680433.931 poll 200 speak=False urgent=False items=1 bytes=1273 header=1791680431573
+1791680433.931 agent: chats seq=1791680433987 current=cht_01M4M7KF4WF2ESFVRTZ921Z524 n=8 bytes=929 result=applied via=poll
+1791680435.189 poll 200 speak=False urgent=False items=1 bytes=1369 header=1791680433987
+1791680435.189 agent: chats seq=1791680435243 current=cht_01M4M7KF4WF2ESFVRTZ921Z524 n=9 bytes=1017 result=applied via=poll
+1791680437.382 poll 200 speak=False urgent=False items=1 bytes=685 header=1791680435243
+1791680437.382 agent: chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 task=tsk_01M4M7KKA2PYJ13NCEN829EW2B state=needs_input seq=1791680437422 tier=silent speaks=0 result=applied via=poll
+1791680453.451 poll 200 speak=False urgent=False items=1 bytes=1333 header=1791680437422
+1791680453.452 agent: chats seq=1791680453506 current=cht_01M4M7M6BT1VE1BBW5AKX3AST6 n=9 bytes=983 result=applied via=poll
+## round 2: Chat 2: let's talk about bicycles.
+02:00:29 hello 9bc1cc81-061b-4e5a-b8a7-237e220d6783
+02:00:30 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:00:30 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+02:00:31 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+02:00:31 sending reply clip 26 frames
+02:00:33 << {"type": "stt", "text": "Chat 2: let's talk about bicycles"} (audio frames so far 10)
+02:00:33 << {"type": "tts", "state": "start"} (audio frames so far 10)
+02:00:36 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+02:00:36 << {"type": "tts", "state": "sentence_start", "text": "Bicycles, great topic"} (audio frames so far 10)
+02:00:37 << {"type": "tts", "state": "sentence_start", "text": "Are you thinking about riding, buying one, or fixing one up?"} (audio frames so far 31)
+02:00:40 << {"type": "tts", "state": "sentence_start", "text": "Bicycles, great topic. Are you thinking about riding, buying one, or fixing one up?"} (audio frames so far 91)
+02:00:45 << {"type": "tts", "state": "stop"} (audio frames so far 158)
+02:00:53 session ended: server closed audio frames 158
+
+261011 01:00:45[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=1584508b8c99413b820c57f3cf01fc60 chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=2859 tts_first_audio_ms=3 total_ms=2884 answer_audio_ms=2884 reply_end_ms=3951
+PASS chat 2: first turn landed in it: turn chat=cht_01M4M7KF4WF2ESFVRTZ921Z524
+1791680454.337 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 3, "kind": "new_chat", "via": "tap"}
+1791680454.373 agent receipt: new_chat seq=3 card=None result=accepted
+1791680454.376 poll 200 speak=False urgent=False items=1 bytes=1292 header=1791680453506
+1791680454.376 agent: chats seq=1791680454433 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=944 result=applied via=poll
+1791680454.376 device event sent (own session)
+1791680454.376 agent ack received: new_chat seq 3 (attempt 1)
+PASS new_chat 3: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 52 ms
+1791680457.426 poll 200 speak=False urgent=False items=1 bytes=1289 header=1791680454433
+1791680457.427 agent: chats seq=1791680457482 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=941 result=applied via=poll
+1791680458.853 poll 200 speak=False urgent=False items=1 bytes=1329 header=1791680457482
+1791680458.853 agent: chats seq=1791680458909 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=979 result=applied via=poll
+1791680460.053 poll 200 speak=False urgent=False items=1 bytes=1312 header=1791680458909
+1791680460.053 agent: chats seq=1791680460109 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=962 result=applied via=poll
+1791680460.833 poll 200 speak=False urgent=False items=1 bytes=552 header=1791680460109
+1791680460.833 agent: chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 task=tsk_01M4M7MBM3SB1D52V5D8F3E7S0 state=working seq=1791680460889 tier=silent speaks=0 result=applied via=poll
+1791680461.476 poll 200 speak=False urgent=False items=1 bytes=687 header=1791680460889
+1791680461.476 agent: chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 task=tsk_01M4M7KKA2PYJ13NCEN829EW2B state=needs_input seq=1791680461528 tier=when_idle speaks=1 result=applied via=poll
+1791680462.150 poll 200 speak=False urgent=False items=1 bytes=631 header=1791680461528
+1791680462.150 agent: chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 task=tsk_01M4M7MBM3SB1D52V5D8F3E7S0 state=unread seq=1791680462206 tier=silent speaks=0 result=applied via=poll
+1791680462.657 poll 200 speak=False urgent=False items=1 bytes=1313 header=1791680462206
+1791680462.657 agent: chats seq=1791680462713 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=963 result=applied via=poll
+## round 3: Chat 3: let's talk about castles.
+02:00:54 hello 16daf942-78e0-4a8e-a856-37fd6cdc0eb6
+02:00:55 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:00:55 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+02:00:56 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:00:56 sending reply clip 26 frames
+02:00:58 << {"type": "stt", "text": "Chat 3: let's talk about castles"} (audio frames so far 8)
+02:00:58 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:01:00 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:01:02 << {"type": "tts", "state": "start", "sentence_id": "5d5cbcf0f3e94feab60af2a5215dd11a", "ack": true} (audio frames so far 8)
+02:01:02 << {"type": "tts", "state": "sentence_start", "text": "The Spire", "sentence_id": "5d5cbcf0f3e94feab60af2a5215dd11a", "ack": true} (audio frames so far 8)
+02:01:02 << {"type": "tts", "state": "sentence_start", "text": "also called the Monument of Light, stands on O'Connell Street where Nelson's Pillar once stood until an IRA bomb destroyed it in 1966. Ian Ritchie Architects won the design competition, and the 120-metre stainless steel needle went up in early 2003, after delays and cost overruns. Would you like more on the Pillar, or on the design?", "sentence_id": "5d5cbcf0f3e94feab60af2a5215dd11a", "ack": true} (audio frames so far 17)
+02:01:07 << {"type": "tts", "state": "stop", "sentence_id": "5d5cbcf0f3e94feab60af2a5215dd11a", "ack": true} (audio frames so far 84)
+02:01:15 session ended: server closed audio frames 84
+
+261011 01:01:00[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=a4f5e530793f4ee3bcd2a6b27577ef96 chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 routed=new_task reply_end=gateway_closed stt_final_latency_ms=- service_first_text_ms=- tts_first_audio_ms=- total_ms=- answer_audio_ms=- reply_end_ms=2054
+PASS chat 3: first turn landed in it: turn chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44
+1791680476.090 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 4, "kind": "new_chat", "via": "tap"}
+1791680476.120 agent receipt: new_chat seq=4 card=None result=accepted
+1791680476.123 device event sent (own session)
+1791680476.124 poll 200 speak=False urgent=False items=1 bytes=1275 header=1791680462713
+1791680476.124 agent: chats seq=1791680476179 current=cht_01M4M7MX0E4YJM3VZ43BX07XAY n=9 bytes=927 result=applied via=poll
+1791680476.124 agent ack received: new_chat seq 4 (attempt 1)
+PASS new_chat 4: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M7MX0E4YJM3VZ43BX07XAY 50 ms
+1791680480.687 poll 200 speak=False urgent=False items=1 bytes=1315 header=1791680476179
+1791680480.687 agent: chats seq=1791680480742 current=cht_01M4M7MX0E4YJM3VZ43BX07XAY n=9 bytes=965 result=applied via=poll
+1791680482.030 poll 200 speak=False urgent=False items=1 bytes=1299 header=1791680480742
+1791680482.030 agent: chats seq=1791680482086 current=cht_01M4M7MX0E4YJM3VZ43BX07XAY n=9 bytes=949 result=applied via=poll
+1791680484.480 poll 200 speak=False urgent=False items=1 bytes=1370 header=1791680482086
+1791680484.480 agent: chats seq=1791680484534 current=cht_01M4M7N4NN5MEM00ZBFCWHW2A5 n=10 bytes=1014 result=applied via=poll
+1791680484.984 poll 200 speak=False urgent=False items=1 bytes=685 header=1791680484534
+1791680484.984 agent: chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY task=tsk_01M4M7N0Z3XFNP4X5QFDXT9KEC state=needs_input seq=1791680485041 tier=silent speaks=0 result=applied via=poll
+1791680491.847 poll 200 speak=False urgent=False items=1 bytes=1298 header=1791680485041
+1791680491.847 agent: chats seq=1791680491895 current=cht_01M4M7N4NN5MEM00ZBFCWHW2A5 n=9 bytes=948 result=applied via=poll
+1791680492.750 poll 200 speak=False urgent=False items=1 bytes=631 header=1791680491895
+1791680492.750 agent: chat=cht_01M4M7N4NN5MEM00ZBFCWHW2A5 task=tsk_01M4M7NBV69PHC6NG5MKPGDKM1 state=unread seq=1791680492806 tier=silent speaks=0 result=applied via=poll
+1791680493.258 poll 200 speak=False urgent=False items=1 bytes=1297 header=1791680492806
+1791680493.258 agent: chats seq=1791680493313 current=cht_01M4M7N4NN5MEM00ZBFCWHW2A5 n=9 bytes=947 result=applied via=poll
+1791680497.084 poll 200 speak=False urgent=False items=1 bytes=685 header=1791680493313
+1791680497.084 agent: chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 task=tsk_01M4M7KKA2PYJ13NCEN829EW2B state=needs_input seq=1791680497138 tier=silent speaks=0 result=applied via=poll
+## round 4: Chat 4: let's talk about dolphins.
+02:01:16 hello 73ac437b-9062-4e67-a62b-891e4a4788cd
+02:01:17 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:01:17 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+02:01:17 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+02:01:18 sending reply clip 26 frames
+02:01:20 << {"type": "stt", "text": "Chat 4: let's talk about dolphins"} (audio frames so far 10)
+02:01:20 << {"type": "tts", "state": "start"} (audio frames so far 10)
+02:01:24 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+02:01:24 << {"type": "tts", "state": "sentence_start", "text": "Dolphins are great"} (audio frames so far 10)
+02:01:25 << {"type": "tts", "state": "sentence_start", "text": "They're smart, social, and they call each other with signature whistles, which work a bit like names. Is there something about them you'd like to dig into, like their intelligence, how they sleep, or how they talk?"} (audio frames so far 28)
+02:01:30 << {"type": "tts", "state": "stop"} (audio frames so far 95)
+02:01:38 session ended: server closed audio frames 95
+
+261011 01:01:30[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=825710e28d304acab3eb2541063393e3 chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=4807 tts_first_audio_ms=3 total_ms=4831 answer_audio_ms=4831 reply_end_ms=4818
+PASS chat 4: first turn landed in it: turn chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY
+1791680499.268 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 5, "kind": "new_chat", "via": "tap"}
+1791680499.293 agent receipt: new_chat seq=5 card=None result=accepted
+1791680499.294 device event sent (own session)
+1791680499.294 agent ack received: new_chat seq 5 (attempt 1)
+1791680499.296 poll 200 speak=False urgent=False items=1 bytes=1369 header=1791680497138
+1791680499.296 agent: chats seq=1791680499352 current=cht_01M4M7NKMNXM8KR8NE38S7Z6RM n=10 bytes=1013 result=applied via=poll
+PASS new_chat 5: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M7NKMNXM8KR8NE38S7Z6RM 52 ms
+1791680501.350 poll 200 speak=False urgent=False items=1 bytes=569 header=1791680499352
+1791680501.350 agent: chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY task=tsk_01M4M7N0Z3XFNP4X5QFDXT9KEC state=cancelled seq=1791680501395 tier=silent speaks=0 result=applied via=poll
+1791680501.844 poll 200 speak=False urgent=False items=1 bytes=1367 header=1791680501395
+1791680501.845 agent: chats seq=1791680501901 current=cht_01M4M7NKMNXM8KR8NE38S7Z6RM n=10 bytes=1011 result=applied via=poll
+1791680503.772 poll 200 speak=False urgent=False items=1 bytes=1296 header=1791680501901
+1791680503.772 agent: chats seq=1791680503826 current=cht_01M4M7NKMNXM8KR8NE38S7Z6RM n=9 bytes=946 result=applied via=poll
+1791680505.093 poll 200 speak=False urgent=False items=1 bytes=1279 header=1791680503826
+1791680505.093 agent: chats seq=1791680505149 current=cht_01M4M7NKMNXM8KR8NE38S7Z6RM n=9 bytes=929 result=applied via=poll
+1791680506.751 poll 200 speak=False urgent=False items=1 bytes=685 header=1791680505149
+1791680506.751 agent: chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM task=tsk_01M4M7NQG30X2MMED31701XQPF state=needs_input seq=1791680506801 tier=silent speaks=0 result=applied via=poll
+## round 5: Chat 5: let's talk about engines.
+02:01:39 hello d7cd17da-6e4a-4c78-ac92-a5d91c64884a
+02:01:40 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:01:40 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+02:01:40 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:01:41 sending reply clip 26 frames
+02:01:43 << {"type": "stt", "text": "Chat 5: let's talk about engines"} (audio frames so far 8)
+02:01:43 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:01:45 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+02:01:45 << {"type": "tts", "state": "sentence_start", "text": "Engines, great topic"} (audio frames so far 8)
+02:01:46 << {"type": "tts", "state": "sentence_start", "text": "Are we talking car engines, jets, steam, or electric motors?"} (audio frames so far 28)
+02:01:50 << {"type": "tts", "state": "sentence_start", "text": "Engines, great topic. Are we talking car engines, jets, steam, or electric motors?"} (audio frames so far 88)
+02:01:54 << {"type": "tts", "state": "stop"} (audio frames so far 155)
+02:02:02 session ended: server closed audio frames 155
+
+261011 01:01:54[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=7d2e4136bebe47d4b4247618f46f2298 chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=2634 tts_first_audio_ms=1 total_ms=2665 answer_audio_ms=2665 reply_end_ms=3507
+PASS chat 5: first turn landed in it: turn chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM
+PASS titles from the service's first-prompt title: {"9D5VSN": "Apples", "21Z524": "Bicycles", "KWEA44": "Castles", "X07XAY": "Dolphins", "S7Z6RM": "Engines"}
+1791680523.874 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 6, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M7KF4WF2ESFVRTZ921Z524"}
+1791680523.914 agent receipt: switch_chat seq=6 card=None result=accepted
+1791680523.916 device event sent (own session)
+1791680523.916 agent ack received: switch_chat seq 6 (attempt 1)
+1791680523.917 poll 200 speak=False urgent=False items=1 bytes=1283 header=1791680506801
+1791680523.917 agent: chats seq=1791680523973 current=cht_01M4M7KF4WF2ESFVRTZ921Z524 n=9 bytes=933 result=applied via=poll
+PASS switch 1: receipt accepted, list current = target: target=cht_01M4M7KF4WF2ESFVRTZ921Z524 result=accepted 51 ms
+1791680528.348 poll 200 speak=False urgent=False items=1 bytes=1280 header=1791680523973
+1791680528.348 agent: chats seq=1791680528404 current=cht_01M4M7KF4WF2ESFVRTZ921Z524 n=9 bytes=930 result=applied via=poll
+## round 6: Follow-up 1: what were we talking about?
+02:02:04 hello 5d36b5a5-49b3-4e46-abdf-001972af8630
+02:02:04 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:02:05 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+02:02:05 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:02:05 sending reply clip 26 frames
+02:02:07 << {"type": "stt", "text": "Follow-up 1: what were we talking about?"} (audio frames so far 8)
+02:02:07 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:02:08 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+02:02:09 << {"type": "tts", "state": "sentence_start", "text": "We started on bicycles"} (audio frames so far 8)
+02:02:10 << {"type": "tts", "state": "sentence_start", "text": "then you asked about the history of the Spire in Dublin. I'd just covered the Pillar and the design of the Spire"} (audio frames so far 30)
+02:02:14 << {"type": "tts", "state": "sentence_start", "text": "Want to carry on with that, or go back to bikes?"} (audio frames so far 97)
+02:02:16 << {"type": "tts", "state": "sentence_start", "text": "We started on bicycles, then you asked about the history of the Spire in Dublin. I'd just covered the Pillar and the design of the Spire. Want to carry on with that, or go back to bikes?"} (audio frames so far 145)
+02:02:21 << {"type": "tts", "state": "stop"} (audio frames so far 212)
+02:02:29 session ended: server closed audio frames 212
+
+261011 01:02:21[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=70c45bfa06204ebdbc40c7615154c616 chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=892 tts_first_audio_ms=5 total_ms=1277 answer_audio_ms=1277 reply_end_ms=2595
+PASS switch 1: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 accepted in ['cht_01M4M7KF4WF2ESFVRTZ921Z524']
+1791680558.734 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 7, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M7MX0E4YJM3VZ43BX07XAY"}
+1791680558.773 agent receipt: switch_chat seq=7 card=None result=accepted
+1791680558.775 device event sent (own session)
+1791680558.775 agent ack received: switch_chat seq 7 (attempt 1)
+1791680559.748 poll 200 speak=False urgent=False items=1 bytes=1284 header=1791680528404
+1791680559.749 agent: chats seq=1791680558829 current=cht_01M4M7MX0E4YJM3VZ43BX07XAY n=9 bytes=934 result=applied via=poll
+PASS switch 2: receipt accepted, list current = target: target=cht_01M4M7MX0E4YJM3VZ43BX07XAY result=accepted 1048 ms
+1791680564.285 poll 200 speak=False urgent=False items=1 bytes=1285 header=1791680558829
+1791680564.286 agent: chats seq=1791680564336 current=cht_01M4M7MX0E4YJM3VZ43BX07XAY n=9 bytes=935 result=applied via=poll
+1791680568.181 poll 200 speak=False urgent=False items=1 bytes=685 header=1791680564336
+1791680568.181 agent: chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY task=tsk_01M4M7QJK5QC3SPJX0QZSEHH4S state=needs_input seq=1791680568229 tier=silent speaks=0 result=applied via=poll
+1791680570.312 poll 200 speak=False urgent=False items=1 bytes=1358 header=1791680568229
+1791680570.312 agent: chats seq=1791680570367 current=cht_01M4M7QRFSSGVVV0PWE6XJJMMP n=10 bytes=1002 result=applied via=poll
+1791680574.403 poll 200 speak=False urgent=False items=1 bytes=1356 header=1791680570367
+1791680574.403 agent: chats seq=1791680574460 current=cht_01M4M7QRFSSGVVV0PWE6XJJMMP n=10 bytes=1000 result=applied via=poll
+1791680576.557 poll 200 speak=False urgent=False items=1 bytes=1284 header=1791680574460
+1791680576.558 agent: chats seq=1791680576609 current=cht_01M4M7QRFSSGVVV0PWE6XJJMMP n=9 bytes=934 result=applied via=poll
+1791680577.476 poll 200 speak=False urgent=False items=1 bytes=631 header=1791680576609
+1791680577.476 agent: chat=cht_01M4M7QRFSSGVVV0PWE6XJJMMP task=tsk_01M4M7QYJTQK8P1X877A7K2MNZ state=unread seq=1791680577533 tier=silent speaks=0 result=applied via=poll
+1791680577.993 poll 200 speak=False urgent=False items=1 bytes=1283 header=1791680577533
+1791680577.994 agent: chats seq=1791680578048 current=cht_01M4M7QRFSSGVVV0PWE6XJJMMP n=9 bytes=933 result=applied via=poll
+1791680578.209 poll 200 speak=False urgent=False items=1 bytes=654 header=1791680578048
+1791680578.210 agent: chat=cht_01M4M71F1R5GXWG34RXKHPJGMX task=tsk_01M4M71K0Q6A99QSSNJ641RH4R state=unread seq=1791680578049 tier=silent speaks=0 result=applied via=poll
+1791680586.067 poll 200 speak=False urgent=False items=1 bytes=569 header=1791680578049
+1791680586.068 agent: chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY task=tsk_01M4M7QJK5QC3SPJX0QZSEHH4S state=cancelled seq=1791680586122 tier=silent speaks=0 result=applied via=poll
+1791680586.574 poll 200 speak=False urgent=False items=1 bytes=1282 header=1791680586122
+1791680586.574 agent: chats seq=1791680586630 current=cht_01M4M7QRFSSGVVV0PWE6XJJMMP n=9 bytes=932 result=applied via=poll
+## round 7: Follow-up 2: what were we talking about?
+02:02:40 hello 54eb60bf-f9d3-40f9-8b4b-b450360c2cc2
+02:02:40 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:02:40 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+02:02:41 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:02:41 sending reply clip 26 frames
+02:02:43 << {"type": "stt", "text": "Follow-up 2: what were we talking about?"} (audio frames so far 8)
+02:02:43 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:02:44 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+02:02:45 << {"type": "tts", "state": "sentence_start", "text": "We started on dolphins"} (audio frames so far 8)
+02:02:46 << {"type": "tts", "state": "sentence_start", "text": "then you switched to the Spire in Dublin, which is where I'd got to"} (audio frames so far 30)
+02:02:50 << {"type": "tts", "state": "sentence_start", "text": "I'd covered Nelson's Pillar being blown up in 1966, the design competition won by Ian Ritchie, and the Spire going up in 2003"} (audio frames so far 97)
+02:02:54 << {"type": "tts", "state": "sentence_start", "text": "The rest is that it's officially called the Monument of Light"} (audio frames so far 164)
+02:02:57 << {"type": "tts", "state": "sentence_start", "text": "Dubliners nicknamed it the Stiletto in the Ghetto, among other things"} (audio frames so far 225)
+02:03:01 << {"type": "tts", "state": "sentence_start", "text": "It's very slim, tapering from about three metres wide at the base to just fifteen centimetres at the top, and the tip is lit at night. Want me to go back to dolphins, or keep going on the Spire?"} (audio frames so far 292)
+02:03:05 << {"type": "tts", "state": "sentence_start", "text": "Short version: we began with dolphins, then you asked about the Spire in Dublin"} (audio frames so far 359)
+02:03:09 << {"type": "tts", "state": "sentence_start", "text": "I'd covered Nelson's Pillar, the 1966 bombing and the 2003 build. Do you want more on the Spire, or back to dolphins?"} (audio frames so far 426)
+02:03:10 session ended: timeout audio frames 429
+
+261011 01:03:10[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=edfaa280e05e4e0691f963c92a3a3994 chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=878 tts_first_audio_ms=12 total_ms=1414 answer_audio_ms=1414 reply_end_ms=4419
+PASS switch 2: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY accepted in ['cht_01M4M7MX0E4YJM3VZ43BX07XAY']
+1791680599.172 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 8, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M7JQZ9D12J3XEJCN9D5VSN"}
+1791680599.205 agent receipt: switch_chat seq=8 card=None result=accepted
+1791680599.206 device event sent (own session)
+1791680599.207 agent ack received: switch_chat seq 8 (attempt 1)
+1791680599.212 poll 200 speak=False urgent=False items=1 bytes=1285 header=1791680586630
+1791680599.212 agent: chats seq=1791680599268 current=cht_01M4M7JQZ9D12J3XEJCN9D5VSN n=9 bytes=935 result=applied via=poll
+PASS switch 3: receipt accepted, list current = target: target=cht_01M4M7JQZ9D12J3XEJCN9D5VSN result=accepted 52 ms
+1791680603.732 poll 200 speak=False urgent=False items=1 bytes=1285 header=1791680599268
+1791680603.732 agent: chats seq=1791680603782 current=cht_01M4M7JQZ9D12J3XEJCN9D5VSN n=9 bytes=935 result=applied via=poll
+1791680605.712 poll 200 speak=False urgent=False items=1 bytes=685 header=1791680603782
+1791680605.712 agent: chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN task=tsk_01M4M7RS3J17FMZHNZKG5245Z5 state=needs_input seq=1791680605747 tier=silent speaks=0 result=applied via=poll
+1791680621.738 poll 200 speak=False urgent=False items=1 bytes=1359 header=1791680605747
+1791680621.739 agent: chats seq=1791680621793 current=cht_01M4M7SAPP2SEJP8BB8DSFHTT2 n=10 bytes=1003 result=applied via=poll
+## round 8: Follow-up 3: what were we talking about?
+02:03:19 hello e19aa6b2-ecd6-4bb1-ac13-6e2f30d85bdc
+02:03:20 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:03:20 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+02:03:20 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:03:21 sending reply clip 26 frames
+02:03:23 << {"type": "stt", "text": "Follow-up 3: what were we talking about?"} (audio frames so far 8)
+02:03:23 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:03:24 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+02:03:24 << {"type": "tts", "state": "sentence_start", "text": "We started on apples"} (audio frames so far 8)
+02:03:25 << {"type": "tts", "state": "sentence_start", "text": "but you then asked about the history of the Spire in Dublin, so that's where we are now. Want more detail on it?"} (audio frames so far 28)
+02:03:29 << {"type": "tts", "state": "sentence_start", "text": "We started on apples, but you then asked about the history of the Spire in Dublin, so that's where we are now. Want more detail on it?"} (audio frames so far 95)
+02:03:34 << {"type": "tts", "state": "stop"} (audio frames so far 162)
+02:03:42 session ended: server closed audio frames 162
+
+261011 01:03:34[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=47f74436740044ffa3f254c70eb3b410 chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=867 tts_first_audio_ms=9 total_ms=1315 answer_audio_ms=1315 reply_end_ms=2501
+PASS switch 3: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN accepted in ['cht_01M4M7JQZ9D12J3XEJCN9D5VSN']
+1791680631.161 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 9, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M7NKMNXM8KR8NE38S7Z6RM"}
+1791680631.162 poll 200 speak=False urgent=False items=1 bytes=1356 header=1791680621793
+1791680631.162 agent: chats seq=1791680625785 current=cht_01M4M7SAPP2SEJP8BB8DSFHTT2 n=10 bytes=1000 result=applied via=poll
+1791680631.193 agent receipt: switch_chat seq=9 card=None result=accepted
+1791680631.194 device event sent (own session)
+1791680631.194 agent ack received: switch_chat seq 9 (attempt 1)
+1791680631.368 poll 200 speak=True urgent=False items=2 bytes=1110 header=1791680625785
+1791680631.368 agent: chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN task=tsk_01M4M7RS3J17FMZHNZKG5245Z5 state=needs_input seq=1791680628758 tier=when_idle speaks=1 result=applied via=poll
+1791680631.368 agent: chat=cht_01M4M7SAPP2SEJP8BB8DSFHTT2 task=tsk_01M4M7SGRZPMCFTWS68YMRTV3D state=unread seq=1791680628805 tier=silent speaks=0 result=applied via=poll
+1791680631.378 session opened (proactive) id=f709ec23-5968-4608-917f-2e62bef2bd1c
+1791680631.391 agent: chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 task=tsk_01M4M7MBM3SB1D52V5D8F3E7S0 state=unread seq=1791680462206 tier=silent speaks=0 result=duplicate via=push
+1791680631.391 agent: chat=cht_01M4M7N4NN5MEM00ZBFCWHW2A5 task=tsk_01M4M7NBV69PHC6NG5MKPGDKM1 state=unread seq=1791680492806 tier=silent speaks=0 result=duplicate via=push
+1791680631.391 agent: chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 task=tsk_01M4M7KKA2PYJ13NCEN829EW2B state=needs_input seq=1791680497138 tier=silent speaks=0 result=duplicate via=push
+1791680631.392 agent: chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM task=tsk_01M4M7NQG30X2MMED31701XQPF state=needs_input seq=1791680506801 tier=silent speaks=0 result=duplicate via=push
+1791680631.392 agent: chat=cht_01M4M7QRFSSGVVV0PWE6XJJMMP task=tsk_01M4M7QYJTQK8P1X877A7K2MNZ state=unread seq=1791680577533 tier=silent speaks=0 result=duplicate via=push
+1791680631.392 agent: chat=cht_01M4M71F1R5GXWG34RXKHPJGMX task=tsk_01M4M71K0Q6A99QSSNJ641RH4R state=unread seq=1791680578049 tier=silent speaks=0 result=duplicate via=push
+1791680631.393 agent: chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN task=tsk_01M4M7RS3J17FMZHNZKG5245Z5 state=needs_input seq=1791680628758 tier=when_idle speaks=1 result=duplicate via=push
+1791680631.393 agent: chat=cht_01M4M7SAPP2SEJP8BB8DSFHTT2 task=tsk_01M4M7SGRZPMCFTWS68YMRTV3D state=unread seq=1791680628805 tier=silent speaks=0 result=duplicate via=push
+1791680631.393 agent: chats seq=1791680631251 current=cht_01M4M7NKMNXM8KR8NE38S7Z6RM n=9 bytes=936 result=applied via=push
+1791680631.394 agent: sync seq=1791680631436 listed=8 dropped=13 tasks=8 via=push
+1791680631.396 << {"type": "tts", "state": "start", "sentence_id": "76f054e591de464394d60b341961fce0", "ack": true}
+1791680631.396 agent: tracking playback of sentence 76f054e591de464394d60b341961fce0
+1791680631.406 << {"type": "tts", "state": "sentence_start", "text": "Here's more detail", "sentence_id": "76f054e591de464394d60b341961fce0", "ack": true}
+PASS switch 4: receipt accepted, list current = target: target=cht_01M4M7NKMNXM8KR8NE38S7Z6RM result=accepted 257 ms
+1791680631.593 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 10, "kind": "shown", "ack_upto": 1791680631436, "via": "tap"}
+1791680632.135 << {"type": "tts", "state": "sentence_start", "text": "Nelson's Pillar went up in 1809 and was a Dublin landmark until the 1966 bombing, and the stump was later demolished by the army. The site stayed empty for decades, then the city ran an international competition in 1998 and 1999. Ian Ritchie's design won, and building began in 2002. The top is lit at night, and the spire is a popular meeting spot. Would you like to hear about the controversy around it?", "sentence_id": "76f054e591de464394d60b341961fce0", "ack": true}
+1791680635.873 agent: chats seq=1791680635930 current=cht_01M4M7NKMNXM8KR8NE38S7Z6RM n=9 bytes=933 result=applied via=push
+1791680636.074 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 11, "kind": "shown", "ack_upto": 1791680635930, "via": "tap"}
+1791680636.576 << {"type": "tts", "state": "stop", "sentence_id": "76f054e591de464394d60b341961fce0", "ack": true}
+1791680636.588 agent played: sentence=76f054e591de464394d60b341961fce0 complete=1 played_ms=5100
+1791680636.588 agent played: {"v": 1, "boot": 3093821896, "seq": 12, "sentence_id": "76f054e591de464394d60b341961fce0", "complete": true}
+1791680636.680 state: idle (session closed)
+## round 9: Follow-up 4: what were we talking about?
+02:03:51 hello 284f07a8-737e-4f54-87d2-0134103119f5
+02:03:52 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:03:52 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+02:03:53 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:03:53 sending reply clip 26 frames
+02:03:55 << {"type": "stt", "text": "Follow-up 4: what were we talking about?"} (audio frames so far 8)
+02:03:55 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:03:56 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+02:03:56 << {"type": "tts", "state": "sentence_start", "text": "We've only just started"} (audio frames so far 8)
+02:03:57 << {"type": "tts", "state": "sentence_start", "text": "you wanted to talk about engines, and I asked which kind, like car, jet, steam or electric. Which one shall we dive into?We've only just started: you wanted to talk about engines, and I asked which kind, like car, jet, steam or electric. Which one shall we dive into?"} (audio frames so far 31)
+02:04:02 << {"type": "tts", "state": "stop"} (audio frames so far 98)
+02:04:10 session ended: server closed audio frames 98
+
+261011 01:04:02[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=222a144fe189472b930fdb50b6147db0 chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=735 tts_first_audio_ms=8 total_ms=1145 answer_audio_ms=1145 reply_end_ms=2287
+PASS switch 4: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM accepted in ['cht_01M4M7NKMNXM8KR8NE38S7Z6RM']
+1791680659.240 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 13, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M7M7RWF2YXFH4EJSKWEA44"}
+1791680659.271 agent receipt: switch_chat seq=13 card=None result=accepted
+1791680659.272 device event sent (own session)
+1791680659.272 agent ack received: switch_chat seq 13 (attempt 1)
+1791680659.277 poll 200 speak=False urgent=False items=1 bytes=1285 header=1791680635930
+1791680659.277 agent: chats seq=1791680659332 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=935 result=applied via=poll
+PASS switch 5: receipt accepted, list current = target: target=cht_01M4M7M7RWF2YXFH4EJSKWEA44 result=accepted 52 ms
+1791680663.761 poll 200 speak=False urgent=False items=1 bytes=1284 header=1791680659332
+1791680663.761 agent: chats seq=1791680663814 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=934 result=applied via=poll
+1791680664.573 poll 200 speak=False urgent=False items=1 bytes=631 header=1791680663814
+1791680664.573 agent: chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 task=tsk_01M4M7TKQPHJVHAFJZMH1ESDMF state=unread seq=1791680664627 tier=silent speaks=0 result=applied via=poll
+1791680665.071 poll 200 speak=False urgent=False items=1 bytes=1283 header=1791680664627
+1791680665.071 agent: chats seq=1791680665128 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=933 result=applied via=poll
+## round 10: Follow-up 5: what were we talking about?
+02:04:19 hello 00d930c6-e017-448e-86a8-2390b48378ab
+02:04:20 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:04:20 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+02:04:20 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:04:21 sending reply clip 26 frames
+02:04:23 << {"type": "stt", "text": "Follow-up 5: what were we talking about?"} (audio frames so far 8)
+02:04:23 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:04:24 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+02:04:24 << {"type": "tts", "state": "sentence_start", "text": "We started on castles"} (audio frames so far 8)
+02:04:25 << {"type": "tts", "state": "sentence_start", "text": "but you switched to the Ha'penny Bridge in Dublin, the old cast-iron footbridge over the Liffey"} (audio frames so far 29)
+02:04:29 << {"type": "tts", "state": "stop"} (audio frames so far 96)
+02:04:37 session ended: server closed audio frames 96
+
+261011 01:04:30[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=e35772a3c00f4e5ea66fd1f31b0aef6e chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 routed=new_task reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=1031 tts_first_audio_ms=8 total_ms=1356 answer_audio_ms=1356 reply_end_ms=1344
+PASS switch 5: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 accepted in ['cht_01M4M7M7RWF2YXFH4EJSKWEA44']
+1791680687.128 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 14, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M7KF4WF2ESFVRTZ921Z524"}
+1791680687.165 agent receipt: switch_chat seq=14 card=None result=accepted
+1791680687.166 device event sent (own session)
+1791680687.166 agent ack received: switch_chat seq 14 (attempt 1)
+1791680687.171 poll 200 speak=False urgent=False items=1 bytes=1286 header=1791680665128
+1791680687.171 agent: chats seq=1791680687228 current=cht_01M4M7KF4WF2ESFVRTZ921Z524 n=9 bytes=936 result=applied via=poll
+PASS switch 6: receipt accepted, list current = target: target=cht_01M4M7KF4WF2ESFVRTZ921Z524 result=accepted 53 ms
+## round 11: Follow-up 6: what were we talking about?
+02:04:47 hello 3fbc2422-902f-4966-8b79-740d18f752f9
+02:04:48 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:04:48 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+02:04:48 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+02:04:49 sending reply clip 26 frames
+02:04:51 << {"type": "stt", "text": "Follow-up 6: what were we talking about?"} (audio frames so far 10)
+02:04:51 << {"type": "tts", "state": "start"} (audio frames so far 10)
+02:04:52 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+02:04:52 << {"type": "tts", "state": "sentence_start", "text": "Same as before"} (audio frames so far 10)
+02:04:53 << {"type": "tts", "state": "sentence_start", "text": "you opened with bicycles, then asked about the Spire in Dublin, and I covered Nelson's Pillar and the Spire's design"} (audio frames so far 24)
+02:04:57 << {"type": "tts", "state": "sentence_start", "text": "Shall we go deeper on the Spire or get back to bikes?"} (audio frames so far 91)
+02:05:00 << {"type": "tts", "state": "sentence_start", "text": "Same as before: you opened with bicycles, then asked about the Spire in Dublin, and I covered Nelson's Pillar and the Spire's design. Shall we go deeper on the Spire or get back to bikes?"} (audio frames so far 144)
+02:05:04 << {"type": "tts", "state": "stop"} (audio frames so far 211)
+02:05:12 session ended: server closed audio frames 211
+
+261011 01:05:04[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=24333215bbf5442991aff1a44a7ba30c chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=948 tts_first_audio_ms=12 total_ms=1343 answer_audio_ms=1343 reply_end_ms=2773
+PASS switch 6: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7KF4WF2ESFVRTZ921Z524 accepted in ['cht_01M4M7KF4WF2ESFVRTZ921Z524']
+1791680721.845 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 15, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M7NKMNXM8KR8NE38S7Z6RM"}
+1791680721.883 agent receipt: switch_chat seq=15 card=None result=accepted
+1791680721.886 poll 200 speak=False urgent=False items=1 bytes=1285 header=1791680687228
+1791680721.886 agent: chats seq=1791680721942 current=cht_01M4M7NKMNXM8KR8NE38S7Z6RM n=9 bytes=935 result=applied via=poll
+1791680721.886 device event sent (own session)
+1791680721.887 agent ack received: switch_chat seq 15 (attempt 1)
+PASS switch 7: receipt accepted, list current = target: target=cht_01M4M7NKMNXM8KR8NE38S7Z6RM result=accepted 52 ms
+## round 12: Follow-up 7: what were we talking about?
+02:05:22 hello 54e2d127-047d-41f1-b0e2-da7c953d5704
+02:05:22 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:05:23 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+02:05:23 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:05:23 sending reply clip 26 frames
+02:05:25 << {"type": "stt", "text": "Follow-up 7: what were we talking about?"} (audio frames so far 8)
+02:05:25 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:05:26 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+02:05:26 << {"type": "tts", "state": "sentence_start", "text": "Still engines"} (audio frames so far 8)
+02:05:27 << {"type": "tts", "state": "sentence_start", "text": "You haven't picked a type yet, so I'm waiting on car, jet, steam or electric. Which one sounds fun?"} (audio frames so far 21)
+02:05:31 << {"type": "tts", "state": "sentence_start", "text": "Still engines. You haven't picked a type yet, so I'm waiting on car, jet, steam or electric. Which one sounds fun?"} (audio frames so far 88)
+02:05:35 << {"type": "tts", "state": "stop"} (audio frames so far 155)
+02:05:43 session ended: server closed audio frames 155
+
+261011 01:05:35[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=88d625547c65418dbb858ed440e4120f chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=773 tts_first_audio_ms=5 total_ms=1105 answer_audio_ms=1105 reply_end_ms=2368
+PASS switch 7: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7NKMNXM8KR8NE38S7Z6RM accepted in ['cht_01M4M7NKMNXM8KR8NE38S7Z6RM']
+1791680753.093 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 16, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M7JQZ9D12J3XEJCN9D5VSN"}
+1791680753.134 agent receipt: switch_chat seq=16 card=None result=accepted
+1791680753.135 device event sent (own session)
+1791680753.135 agent ack received: switch_chat seq 16 (attempt 1)
+1791680754.102 poll 200 speak=False urgent=False items=1 bytes=1287 header=1791680721942
+1791680754.102 agent: chats seq=1791680753194 current=cht_01M4M7JQZ9D12J3XEJCN9D5VSN n=9 bytes=937 result=applied via=poll
+PASS switch 8: receipt accepted, list current = target: target=cht_01M4M7JQZ9D12J3XEJCN9D5VSN result=accepted 1045 ms
+1791680758.606 poll 200 speak=False urgent=False items=1 bytes=1283 header=1791680753194
+1791680758.606 agent: chats seq=1791680758662 current=cht_01M4M7JQZ9D12J3XEJCN9D5VSN n=9 bytes=933 result=applied via=poll
+## round 13: Follow-up 8: what were we talking about?
+02:05:54 hello 2dcd4aaf-7c6d-476b-adc6-fd4cc2465bd9
+02:05:55 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:05:55 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+02:05:55 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:05:56 sending reply clip 26 frames
+02:05:58 << {"type": "stt", "text": "Follow-up 8: what were we talking about?"} (audio frames so far 8)
+02:05:58 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:05:58 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+02:05:59 << {"type": "tts", "state": "sentence_start", "text": "We're on the Spire in Dublin"} (audio frames so far 8)
+02:06:00 << {"type": "tts", "state": "sentence_start", "text": "its history from Nelson's Pillar to the 2003 monument. We began with apples before that"} (audio frames so far 36)
+02:06:05 << {"type": "tts", "state": "stop"} (audio frames so far 103)
+02:06:13 session ended: server closed audio frames 103
+
+261011 01:06:05[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=a76c11a6dfb348d2af8bccb14aef9869 chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=778 tts_first_audio_ms=9 total_ms=1377 answer_audio_ms=1377 reply_end_ms=1370
+PASS switch 8: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7JQZ9D12J3XEJCN9D5VSN accepted in ['cht_01M4M7JQZ9D12J3XEJCN9D5VSN']
+1791680782.368 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 17, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M7MX0E4YJM3VZ43BX07XAY"}
+1791680782.399 agent receipt: switch_chat seq=17 card=None result=accepted
+1791680782.400 device event sent (own session)
+1791680782.400 agent ack received: switch_chat seq 17 (attempt 1)
+1791680782.405 poll 200 speak=False urgent=False items=1 bytes=1285 header=1791680758662
+1791680782.405 agent: chats seq=1791680782460 current=cht_01M4M7MX0E4YJM3VZ43BX07XAY n=9 bytes=935 result=applied via=poll
+PASS switch 9: receipt accepted, list current = target: target=cht_01M4M7MX0E4YJM3VZ43BX07XAY result=accepted 52 ms
+1791680787.033 poll 200 speak=False urgent=False items=1 bytes=1284 header=1791680782460
+1791680787.033 agent: chats seq=1791680787089 current=cht_01M4M7MX0E4YJM3VZ43BX07XAY n=9 bytes=934 result=applied via=poll
+1791680789.428 poll 200 speak=False urgent=False items=1 bytes=685 header=1791680787089
+1791680789.428 agent: chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY task=tsk_01M4M7YC4HJ6C16JZA4R3A1YTK state=needs_input seq=1791680789485 tier=silent speaks=0 result=applied via=poll
+## round 14: Follow-up 9: what were we talking about?
+02:06:22 hello b59fe068-641b-4032-9b4b-9057624b10fc
+02:06:23 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:06:23 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+02:06:24 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+02:06:24 sending reply clip 26 frames
+02:06:26 << {"type": "stt", "text": "Follow-up 9: what were we talking about?"} (audio frames so far 10)
+02:06:26 << {"type": "tts", "state": "start"} (audio frames so far 10)
+02:06:27 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+02:06:27 << {"type": "tts", "state": "sentence_start", "text": "We've been on the Spire"} (audio frames so far 10)
+02:06:28 << {"type": "tts", "state": "sentence_start", "text": "Nelson's Pillar went up in 1809 and was blown up in March 1966. The remaining stump was cleared soon after"} (audio frames so far 33)
+02:06:32 << {"type": "tts", "state": "sentence_start", "text": "After that, the site sat empty for decades"} (audio frames so far 100)
+02:06:35 << {"type": "tts", "state": "sentence_start", "text": "A competition in the late nineties was won by Ian Ritchie, and the Spire, a stainless steel needle one hundred and twenty metres tall, was finished in 2003"} (audio frames so far 142)
+02:06:39 << {"type": "tts", "state": "sentence_start", "text": "Want more on how it was built, or shall we go back to dolphins?"} (audio frames so far 209)
+02:06:42 << {"type": "tts", "state": "sentence_start", "text": "I've just walked through the Spire's history, from Nelson's Pillar in 1809 to the Spire in 2003. Do you want more on how it was built, or shall we go back to dolphins?"} (audio frames so far 272)
+02:06:47 << {"type": "tts", "state": "stop"} (audio frames so far 339)
+02:06:52 session ended: timeout audio frames 339
+
+261011 01:06:47[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=39da4b16adbd4b50ad0af22edc80dd8e chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=676 tts_first_audio_ms=11 total_ms=985 answer_audio_ms=985 reply_end_ms=2910
+PASS switch 9: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7MX0E4YJM3VZ43BX07XAY accepted in ['cht_01M4M7MX0E4YJM3VZ43BX07XAY']
+1791680821.870 agent agent_response: {"v": 1, "boot": 3093821896, "seq": 18, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M7M7RWF2YXFH4EJSKWEA44"}
+1791680821.910 agent receipt: switch_chat seq=18 card=None result=accepted
+1791680821.913 device event sent (own session)
+1791680821.913 agent ack received: switch_chat seq 18 (attempt 1)
+1791680822.887 poll 200 speak=False urgent=False items=1 bytes=1288 header=1791680789485
+1791680822.888 agent: chats seq=1791680821971 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=938 result=applied via=poll
+PASS switch 10: receipt accepted, list current = target: target=cht_01M4M7M7RWF2YXFH4EJSKWEA44 result=accepted 1053 ms
+1791680827.411 poll 200 speak=False urgent=False items=1 bytes=1288 header=1791680821971
+1791680827.411 agent: chats seq=1791680827466 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=938 result=applied via=poll
+1791680828.071 poll 200 speak=False urgent=False items=1 bytes=631 header=1791680827466
+1791680828.071 agent: chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 task=tsk_01M4M7ZKGVWP8TN5N065KRX15P state=unread seq=1791680828112 tier=silent speaks=0 result=applied via=poll
+1791680828.566 poll 200 speak=False urgent=False items=1 bytes=1287 header=1791680828112
+1791680828.567 agent: chats seq=1791680828621 current=cht_01M4M7M7RWF2YXFH4EJSKWEA44 n=9 bytes=937 result=applied via=poll
+## round 15: Follow-up 10: what were we talking about?
+02:07:03 hello 91fb34b4-6fe4-4247-8fa1-f8152291981b
+02:07:03 << {"type": "tts", "state": "start"} (audio frames so far 0)
+02:07:04 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+02:07:04 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+02:07:04 sending reply clip 26 frames
+02:07:06 << {"type": "stt", "text": "Follow-up 10: what were we talking about?"} (audio frames so far 8)
+02:07:06 << {"type": "tts", "state": "start"} (audio frames so far 8)
+02:07:07 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+02:07:08 << {"type": "tts", "state": "sentence_start", "text": "We've been on the Ha'penny Bridge in Dublin"} (audio frames so far 8)
+02:07:10 << {"type": "tts", "state": "sentence_start", "text": "after a brief false start with castles"} (audio frames so far 51)
+02:07:12 << {"type": "tts", "state": "stop"} (audio frames so far 89)
+02:07:20 session ended: server closed audio frames 89
+
+261011 01:07:13[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=704739d6cbb148fea9120bcab52f3c7b chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 routed=new_task reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=944 tts_first_audio_ms=24 total_ms=1202 answer_audio_ms=1202 reply_end_ms=1208
+PASS switch 10: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M7M7RWF2YXFH4EJSKWEA44 accepted in ['cht_01M4M7M7RWF2YXFH4EJSKWEA44']
+PASS 10 switches, every follow-up in the right chat: 10/10

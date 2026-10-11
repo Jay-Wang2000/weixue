@@ -234,6 +234,41 @@ void TestPollStep() {
     Check(!PollBodyComplete(2519, 1260) && !PollBodyComplete(2519, 0), "short body (1260 of 2519 bytes)");
 }
 
+// agent_chats (v1.2), as the gateway builds it.
+void TestChats() {
+    auto r = ParseText(
+        R"({"kind":"agent_chats","v":1,"seq":1746,"ts":1791380000123,"current":"cht_b","chats":[)"
+        R"({"id":"cht_b","title":"Living room lights tonight","state":"needs_you","age_s":120},)"
+        R"({"id":"cht_a","state":"sleeping","age_s":86400,"future":1},{"id":"cht_c","title":"客厅","state":"unread"}]})");
+    Check(r.message.has_value() && r.message->kind == Message::Kind::kChats, "agent_chats parses");
+    if (!r.message) return;
+    const Chats& c = r.message->chats;
+    Check(c.seq == 1746 && c.current == "cht_b" && c.chats.size() == 3, "seq, current, entries");
+    Check(c.chats[0].title == "Living room lights tonig" && c.chats[0].state == ChatState::kNeedsYou &&
+              c.chats[0].age_s == 120,
+          "first entry: title cut to 24 chars, needs_you, age");
+    Check(c.chats[1].title.empty() && c.chats[1].state == ChatState::kIdle && c.chats[1].age_s == 86400,
+          "untitled entry, unknown state reads idle");
+    Check(c.chats[2].title == "客厅" && c.chats[2].state == ChatState::kUnread && c.chats[2].age_s == 0, "CJK title");
+    auto none = ParseText(R"({"kind":"agent_chats","v":1,"seq":2,"chats":[]})");
+    Check(none.message && none.message->chats.current.empty() && none.message->chats.chats.empty(),
+          "no current, no chats");
+    Check(!ParseText(R"({"kind":"agent_chats","v":1,"seq":3,"chats":[{"id":"bad id"}]})").message,
+          "a bad chat id drops the list");
+    Check(!ParseText(R"({"kind":"agent_chats","v":1,"seq":3,"current":"a/b","chats":[]})").message,
+          "a bad current drops the list");
+    Check(!ParseText(R"({"kind":"agent_chats","v":1,"seq":3})").message, "chats is required");
+    std::string many = R"({"kind":"agent_chats","v":1,"seq":4,"chats":[)";
+    for (int i = 0; i < 15; i++) many += std::string(i ? "," : "") + R"({"id":"c)" + std::to_string(i) + R"("})";
+    many += "]}";
+    auto capped = ParseText(many);
+    Check(capped.message && capped.message->chats.chats.size() == kMaxChatEntries, "at most 12 entries");
+    cJSON* root = cJSON_Parse(R"({"kind":"agent_chats","v":1,"seq":1,"chats":[]})");
+    Check(IsAgentPayload(root), "agent_chats is an agent payload");
+    cJSON_Delete(root);
+    Check(kFeatureLevel == 2, "feature level 2");
+}
+
 }  // namespace
 
 int main() {
@@ -245,6 +280,7 @@ int main() {
     TestBuilders();
     TestReceipt();
     TestPollStep();
+    TestChats();
     std::printf("%s: %d failure(s)\n", failures ? "FAILED" : "OK", failures);
     return failures ? 1 : 0;
 }

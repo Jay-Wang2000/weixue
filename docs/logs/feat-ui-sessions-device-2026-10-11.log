@@ -1,0 +1,110 @@
+# feat-ui-sessions on the 1.75C: release build (WEIXUE_FACE_DIAG=0, WEIXUE_AGENT_LOOPBACK=0, patches 05-35) flashed 2026-10-11 ~01:13 UTC under the device lock; live gateway (main) fixture: ui tour (prefix uis1), then raw agent_chats (fixture 'chats', 5 chats, current home), then a raw list with current kids, then drop of the tour's tasks; board reset into a clean release boot at the end and left on. I (ms) is uptime. Wi-Fi driver lines removed, SSID redacted. No diag/FACEDUMP lines (release build).
+## run 1 (from reset after flash)
+I (98) app_init: Application information:
+I (1877) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+I (2007) MCP: Add tool: self.system.reconfigure_wifi [operator-only]
+I (2007) MCP: Add tool: self.screen.set_bedside
+I (2007) MCP: Add tool: self.imu.get_state
+I (2007) Application: Clock: stored TZ IST-1GMT0,M10.5.0,M3.5.0/1
+I (2417) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+I (2567) Application: After board/audio init
+I (2567) WeixueAgent: agent: protocol v1 level 2, boot 2420821967
+I (2577) MCP: Add tool: self.get_device_status
+I (2577) MCP: Add tool: self.audio_speaker.set_volume
+I (2587) MCP: Add tool: self.screen.set_brightness
+I (2587) MCP: Add tool: self.screen.set_theme
+I (2597) MCP: Add tool: self.get_system_info [user] [operator-only]
+I (2597) MCP: Add tool: self.reboot [user] [operator-only]
+I (2607) MCP: Add tool: self.upgrade_firmware [user] [operator-only]
+I (2607) MCP: Add tool: self.screen.get_info [user] [operator-only]
+I (2617) MCP: Add tool: self.screen.snapshot [user] [operator-only]
+I (2617) MCP: Add tool: self.screen.preview_image [user] [operator-only]
+I (2627) MCP: Add tool: self.assets.set_download_url [user] [operator-only]
+I (2727) WifiBoard: Starting WiFi connection attempt
+I (2787) WifiBoard: WiFi scanning
+I (2907) WifiBoard: WiFi connecting to <ssid>
+I (4087) WifiBoard: Connected to WiFi: <ssid>
+I (4087) Application: Network connected
+I (4147) Ota: Current version: 2.5.1
+I (4377) Ota: No mqtt section found !
+I (4387) Ota: Clock: TZ IST-1GMT0,M10.5.0,M3.5.0/1, UTC offset +60 min (January +0, July +60)
+I (4387) Ota: Current is the latest version
+I (4387) Ota: Running partition: ota_0
+I (4397) Application: Activation done
+I (4407) Application: Proactive poller: http://192.168.8.220:8003/weixue/proactive/poll
+I (4637) WeixueAgent: agent: sync seq=1791681247398 listed=0 dropped=0 tasks=0 via=poll
+I (19387) FaceDisplay: bedside=on reason=night local=02:14 hint=0
+I (58827) WeixueAgent: agent: chat=c_uis1_home task=t_uis1_sun state=working seq=1791681301565 tier=silent speaks=0 result=applied via=poll
+I (58847) FaceDisplay: agent ui: task=t_uis1_sun state=working tier=silent flash=0 earcon=none
+I (59077) WeixueAgent: agent: chat=c_uis1_home task=t_uis1_sun state=working seq=1791681301890 tier=silent speaks=0 result=applied via=poll
+I (59327) WeixueAgent: agent: chat=c_uis1_kids task=t_uis1_hw state=working seq=1791681302225 tier=silent speaks=0 result=applied via=poll
+I (59387) FaceDisplay: agent ui: task=t_uis1_hw state=working tier=silent flash=0 earcon=none
+I (59857) WeixueAgent: agent: chat=c_uis1_home task=t_uis1_lr state=needs_approval seq=1791681302544 tier=when_idle speaks=0 result=applied via=poll
+I (59927) FaceDisplay: agent ui: task=t_uis1_lr state=needs_approval tier=when_idle flash=2 earcon=needs_you
+I (59927) FaceDisplay: earcon=needs_you skipped: bedside
+I (60877) WeixueAgent: agent: chat=c_uis1_home task=t_uis1_tidy state=needs_input seq=1791681302858 tier=when_idle speaks=0 result=applied via=poll
+I (60907) FaceDisplay: agent ui: task=t_uis1_tidy state=needs_input tier=when_idle flash=2 earcon=needs_you
+I (60907) FaceDisplay: earcon=needs_you skipped: bedside
+I (61297) WeixueAgent: agent: chat=c_uis1_home task=t_uis1_door state=needs_approval seq=1791681303166 tier=silent speaks=0 result=applied via=poll
+I (61297) WeixueAgent: agent: chat=c_uis1_kids task=t_uis1_hw state=unread seq=1791681303478 tier=when_idle speaks=0 result=applied via=poll
+I (61337) FaceDisplay: agent ui: task=t_uis1_hw state=unread tier=when_idle flash=2 earcon=done
+I (61337) FaceDisplay: agent ui: task=t_uis1_door state=needs_approval tier=silent flash=0 earcon=none
+I (61347) FaceDisplay: earcon=done skipped: bedside
+I (61537) WeixueAgent: agent: chat=c_uis1_report task=t_uis1_wr state=unread seq=1791681303797 tier=silent speaks=0 result=applied via=poll
+I (61537) WeixueAgent: agent: chat=c_uis1_report task=t_uis1_meter state=failed seq=1791681304113 tier=when_idle speaks=0 result=applied via=poll
+I (61547) FaceDisplay: agent ui: task=t_uis1_wr state=unread tier=silent flash=0 earcon=none
+I (61647) FaceDisplay: agent ui: task=t_uis1_meter state=failed tier=when_idle flash=1 earcon=none
+I (61817) WeixueAgent: agent: chat=c_uis1_home task=t_uis1_fan state=stopped seq=1791681304426 tier=silent speaks=0 result=applied via=poll
+I (61857) FaceDisplay: agent ui: task=t_uis1_fan state=stopped tier=silent flash=0 earcon=none
+I (63947) WeixueAgent: agent: chats seq=1791681305808 current=c_uis1_home n=5 result=applied via=poll
+I (63957) FaceDisplay: agent ui: chats=5 current=c_uis1_home header=Home lights
+I (65437) FaceDisplay: mode=idle mood=sleepy
+I (81557) WeixueAgent: agent: chats seq=1791681323455 current=c_uis1_kids n=3 result=applied via=poll
+I (81607) FaceDisplay: agent ui: chats=3 current=c_uis1_kids header=Kids homework
+I (93647) WeixueAgent: agent: sync seq=1791681336323 listed=0 dropped=8 tasks=0 via=poll
+## run 2 (clean boot, left on)
+I (98) app_init: Application information:
+I (1877) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+I (2007) Application: Clock: stored TZ IST-1GMT0,M10.5.0,M3.5.0/1
+I (2417) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+I (2567) Application: After board/audio init
+I (2567) WeixueAgent: agent: protocol v1 level 2, boot 939630357
+I (2727) WifiBoard: Starting WiFi connection attempt
+I (2787) WifiBoard: WiFi scanning
+I (2907) WifiBoard: WiFi connecting to <ssid>
+I (4097) WifiBoard: Connected to WiFi: <ssid>
+I (4107) Application: Network connected
+I (4567) Application: Activation done
+I (4577) Application: Proactive poller: http://192.168.8.220:8003/weixue/proactive/poll
+I (4817) WeixueAgent: agent: sync seq=1791681494206 listed=0 dropped=0 tasks=0 via=poll
+I (19647) FaceDisplay: bedside=on reason=night local=02:18 hint=0
+## fixture (JSON lines)
+{"t": 1791681301.507, "event": "scenario", "name": "ui", "prefix": "uis1", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791681301.518, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_86561c1701774fba9825c9fa", "seq": 1791681301565, "task_id": "t_uis1_sun"}], "dropped": []}}
+{"t": 1791681301.85, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_6208930d3ebb4689ace4004c", "seq": 1791681301890, "task_id": "t_uis1_sun"}], "dropped": []}}
+{"t": 1791681302.18, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_f21d07c996214a6281fdaa93", "seq": 1791681302225, "task_id": "t_uis1_hw"}], "dropped": []}}
+{"t": 1791681302.497, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_63937f39413448a6af320d15", "seq": 1791681302544, "task_id": "t_uis1_lr"}], "dropped": []}}
+{"t": 1791681302.81, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_212791d3a62e4deb8bfb2f35", "seq": 1791681302858, "task_id": "t_uis1_tidy"}], "dropped": []}}
+{"t": 1791681303.12, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_64c41de3bdac4bf285690fc8", "seq": 1791681303166, "task_id": "t_uis1_door"}], "dropped": []}}
+{"t": 1791681303.431, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_3b7efc9394b349b7a324e6da", "seq": 1791681303478, "task_id": "t_uis1_hw"}], "dropped": []}}
+{"t": 1791681303.752, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_ca311f8d05b44821876bb7cb", "seq": 1791681303797, "task_id": "t_uis1_wr"}], "dropped": []}}
+{"t": 1791681304.067, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_686ea3e6243f41b0803434a7", "seq": 1791681304113, "task_id": "t_uis1_meter"}], "dropped": []}}
+{"t": 1791681304.379, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_9ff88e7e7d694aeab2849fe1", "seq": 1791681304426, "task_id": "t_uis1_fan"}], "dropped": []}}
+{"t": 1791681305.709, "event": "item", "seq": 1791681301565, "task_id": "t_uis1_sun", "delivery_id": "fx_86561c1701774fba9825c9fa", "acks": [{"outcome": "shown", "received_at": 1791681301.994, "seq": 1791681301565, "via": "poll"}]}
+{"t": 1791681305.709, "event": "item", "seq": 1791681301890, "task_id": "t_uis1_sun", "delivery_id": "fx_6208930d3ebb4689ace4004c", "acks": [{"outcome": "shown", "received_at": 1791681302.246, "seq": 1791681301890, "via": "poll"}]}
+{"t": 1791681305.71, "event": "item", "seq": 1791681302225, "task_id": "t_uis1_hw", "delivery_id": "fx_f21d07c996214a6281fdaa93", "acks": [{"outcome": "shown", "received_at": 1791681302.583, "seq": 1791681302225, "via": "poll"}]}
+{"t": 1791681305.71, "event": "item", "seq": 1791681302544, "task_id": "t_uis1_lr", "delivery_id": "fx_63937f39413448a6af320d15", "acks": [{"outcome": "shown", "received_at": 1791681303.071, "seq": 1791681302544, "via": "poll"}]}
+{"t": 1791681305.71, "event": "item", "seq": 1791681302858, "task_id": "t_uis1_tidy", "delivery_id": "fx_212791d3a62e4deb8bfb2f35", "acks": [{"outcome": "shown", "received_at": 1791681304.211, "seq": 1791681302858, "via": "poll"}]}
+{"t": 1791681305.71, "event": "item", "seq": 1791681303166, "task_id": "t_uis1_door", "delivery_id": "fx_64c41de3bdac4bf285690fc8", "acks": [{"outcome": "shown", "received_at": 1791681304.454, "seq": 1791681303166, "via": "poll"}]}
+{"t": 1791681305.71, "event": "item", "seq": 1791681303478, "task_id": "t_uis1_hw", "delivery_id": "fx_3b7efc9394b349b7a324e6da", "acks": [{"outcome": "shown", "received_at": 1791681304.455, "seq": 1791681303478, "via": "poll"}]}
+{"t": 1791681305.71, "event": "item", "seq": 1791681303797, "task_id": "t_uis1_wr", "delivery_id": "fx_ca311f8d05b44821876bb7cb", "acks": [{"outcome": "shown", "received_at": 1791681304.735, "seq": 1791681303797, "via": "poll"}]}
+{"t": 1791681305.71, "event": "item", "seq": 1791681304113, "task_id": "t_uis1_meter", "delivery_id": "fx_686ea3e6243f41b0803434a7", "acks": [{"outcome": "shown", "received_at": 1791681304.736, "seq": 1791681304113, "via": "poll"}]}
+{"t": 1791681305.71, "event": "item", "seq": 1791681304426, "task_id": "t_uis1_fan", "delivery_id": "fx_9ff88e7e7d694aeab2849fe1", "acks": [{"outcome": "shown", "received_at": 1791681304.968, "seq": 1791681304426, "via": "poll"}]}
+{"t": 1791681305.71, "event": "responses", "responses": []}
+{"t": 1791681305.71, "event": "device", "acked_upto": 1791681304426, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_uis1_sun", "seq": 1791681301890, "state": "working", "delivery_id": "fx_6208930d3ebb4689ace4004c"}, {"task_id": "t_uis1_hw", "seq": 1791681303478, "state": "unread", "delivery_id": "fx_3b7efc9394b349b7a324e6da"}, {"task_id": "t_uis1_lr", "seq": 1791681302544, "
+{"t": 1791681305.808, "event": "scenario", "name": "chats", "prefix": "uis1", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791681305.808, "event": "expect", "seq": 1791681305808, "current": "c_uis1_home", "chats": 5, "bytes": 457}
+{"t": 1791681305.821, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_5066b4a9e8044e3e894666ba", "raw": true, "bytes": 457}], "dropped": []}}
+{"t": 1791681323.471, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_4bd3105c27e1470e98478016", "raw": true, "bytes": 292}], "dropped": []}}
+{"t": 1791681336.261, "event": "scenario", "name": "drop", "prefix": "uis1", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791681336.274, "event": "dropped", "status": 202, "result": {"items": [], "dropped": ["t_uis1_sun", "t_uis1_hw", "t_uis1_lr", "t_uis1_tidy", "t_uis1_door", "t_uis1_wr", "t_uis1_meter", "t_uis1_fan"]}}

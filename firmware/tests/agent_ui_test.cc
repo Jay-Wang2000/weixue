@@ -694,6 +694,63 @@ void TestWirePath() {
     Check(chats.size() == 2 && chats[0].current && chats[0].chip == "Waiting for you", "chats from the store");
 }
 
+// Server chat list (agent_chats): titles, chips, ages and the current chat come from it.
+void TestServerChats() {
+    Rig r;
+    Item a = MakeItem("a", State::kNeedsInput, Tier::kSilent, "cht_b");
+    a.title = "Which lamp";
+    a.card_id = "q_a";
+    r.Apply(a, 0);
+    Item n = MakeItem("n", State::kWorking, Tier::kSilent, "cht_new");
+    n.title = "Untitled chat task";
+    r.Apply(n, 0);
+    Check(!r.model.server_chats() && r.model.Chats(1000).size() == 2, "task-derived chats before a list");
+    weixue_agent::Chats list;
+    list.seq = 500;
+    list.current = "cht_a";
+    list.chats = {{"cht_a", "Garden", ChatState::kWorking, 30},
+                  {"cht_b", "Lamps", ChatState::kNeedsYou, 120},
+                  {"cht_c", "Weather", ChatState::kUnread, 7200},
+                  {"cht_d", "", ChatState::kIdle, 86400 * 2},
+                  {"cht_new", "", ChatState::kFailed, 86400 * 3}};
+    r.model.SetServerChats(list, 100000);
+    auto chats = r.model.Chats(100000);
+    Check(r.model.server_chats() && chats.size() == 5, "the list replaces the task-derived chats");
+    Check(chats[0].chat_id == "cht_a" && chats[0].current && r.model.current_chat() == "cht_a" &&
+              r.model.CurrentTitle() == "Garden",
+          "the server's current chat is current and first");
+    Check(chats[0].chip == "Working" && chats[0].age == "now", "server chip when the chat has no task here");
+    Check(chats[1].chat_id == "cht_b" && chats[1].chip == "Question" && chats[1].title == "Lamps" &&
+              chats[1].age == "2 min",
+          "a chat with a task keeps the task chip, the server title");
+    Check(chats[2].chip == "Unread" && chats[2].chip_color == color::kDone && chats[2].age == "2 h", "unread");
+    Check(chats[3].title == "New chat" && chats[3].chip.empty() && chats[3].age == "2 d", "untitled idle chat");
+    Check(chats[4].title == "Untitled chat task" && chats[4].chip == "Working", "untitled chat: newest task's title");
+    Item b = MakeItem("b", State::kWorking, Tier::kSilent, "cht_zz");
+    r.Apply(b, 100500);
+    Check(r.model.Chats(100500).size() == 5, "a task of an unlisted chat adds no row");
+    r.model.SetCurrentChat("cht_c");
+    Check(r.model.CurrentTitle() == "Weather", "a local switch sets current");
+    weixue_agent::Chats stale = list;
+    stale.seq = 400;
+    stale.current = "cht_d";
+    r.model.SetServerChats(stale, 100600);
+    Check(r.model.current_chat() == "cht_c", "an older list is ignored");
+    weixue_agent::Chats created = list;
+    created.seq = 600;
+    created.current = "cht_e";
+    created.chats.insert(created.chats.begin(), {"cht_e", "", ChatState::kIdle, 0});
+    r.model.StartNewChat();
+    r.model.SetServerChats(created, 101000);
+    Check(r.model.current_chat() == "cht_e" && !r.model.new_chat_pending() && r.model.CurrentTitle() == "New chat",
+          "new chat: the list's current is the created chat");
+    std::vector<std::string> out = {"a", "n", "b"};
+    r.store.Sync({}, ++g_seq);
+    r.model.SetTasks(r.store.tasks(), 102000, "", out);
+    Check(r.model.Chats(102000).size() == 6 && r.model.current_chat() == "cht_e",
+          "a task snapshot does not forget listed chats");
+}
+
 void TestRingArcs() {
     RingState s;
     s.style = RingState::Style::kArcs;
@@ -739,6 +796,7 @@ int main() {
     TestCardLeadWithoutTitle();
     TestChatPillAfterSync();
     TestWirePath();
+    TestServerChats();
     std::printf("agent_ui_test: %d failure(s)\n", failures);
     return failures == 0 ? 0 : 1;
 }

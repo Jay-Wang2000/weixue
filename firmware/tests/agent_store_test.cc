@@ -153,6 +153,35 @@ void TestOpenCardsAreNeverEvicted() {
           "the first non-card task is evicted, not a card");
 }
 
+void TestChatList() {
+    Store store;
+    Check(!store.has_chats(), "no chat list before one arrives");
+    Chats list;
+    list.seq = 50;
+    list.current = "cht_a";
+    list.chats = {{"cht_a", "Lights", ChatState::kWorking, 5}, {"cht_b", "", ChatState::kIdle, 60}};
+    Check(store.ApplyChats(list, 1000) == ApplyResult::kApplied && store.has_chats() &&
+              store.chats().current == "cht_a" && store.chats_ms() == 1000,
+          "a chat list applies");
+    Check(store.max_seq() == 50, "the chat list counts for the poll header");
+    Check(store.ApplyChats(list, 2000) == ApplyResult::kDuplicate && store.chats_ms() == 1000, "same seq: duplicate");
+    Chats older = list;
+    older.seq = 40;
+    older.current = "cht_b";
+    Check(store.ApplyChats(older, 3000) == ApplyResult::kStale && store.chats().current == "cht_a", "older: stale");
+    Chats newer = list;
+    newer.seq = 60;
+    newer.current = "cht_b";
+    newer.chats.pop_back();
+    Check(store.ApplyChats(newer, 4000) == ApplyResult::kApplied && store.chats().current == "cht_b" &&
+              store.chats().chats.size() == 1,
+          "a newer list replaces it");
+    store.Sync({}, 70);
+    Check(store.has_chats() && store.chats().seq == 60, "a task snapshot keeps the chat list");
+    Chats bad;
+    Check(store.ApplyChats(bad, 0) == ApplyResult::kInvalid, "seq 0 is invalid");
+}
+
 }  // namespace
 
 int main() {
@@ -163,6 +192,7 @@ int main() {
     TestEviction();
     TestMaxSeqCountsOnlyAcceptedItems();
     TestOpenCardsAreNeverEvicted();
+    TestChatList();
     std::printf("%s: %d failure(s)\n", failures ? "FAILED" : "OK", failures);
     return failures ? 1 : 0;
 }

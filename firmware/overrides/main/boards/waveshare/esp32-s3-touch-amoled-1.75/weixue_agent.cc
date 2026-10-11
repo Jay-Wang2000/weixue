@@ -85,7 +85,8 @@ void WeixueAgent::Start() {
     ESP_LOGW(TAG, "agent: loopback build, answers debug_reply after 2 s; output volume 0 (stored %d kept)",
              stored);
 #endif
-    ESP_LOGI(TAG, "agent: protocol v%d, boot %lu", kVersion, static_cast<unsigned long>(boot_));
+    ESP_LOGI(TAG, "agent: protocol v%d level %d, boot %lu", kVersion, kFeatureLevel,
+             static_cast<unsigned long>(boot_));
 }
 
 void WeixueAgent::OnFrame(const cJSON* payload, size_t frame_bytes) {
@@ -147,7 +148,15 @@ void WeixueAgent::Apply(const Message& message, const char* via) {
         OnReceipt(message.receipt);
         return;
     }
-    if (message.kind == Message::Kind::kSync) {
+    if (message.kind == Message::Kind::kChats) {
+        ApplyResult result = store_.ApplyChats(message.chats, now_ms);
+        ESP_LOGI(TAG, "agent: chats seq=%lld current=%s n=%u result=%s via=%s",
+                 static_cast<long long>(message.chats.seq), message.chats.current.c_str(),
+                 static_cast<unsigned>(message.chats.chats.size()), ApplyResultName(result), via);
+        if (result != ApplyResult::kApplied && result != ApplyResult::kDuplicate) {
+            return;
+        }
+    } else if (message.kind == Message::Kind::kSync) {
         size_t dropped = store_.Sync(message.sync.task_ids, message.sync.seq);
         ESP_LOGI(TAG, "agent: sync seq=%lld listed=%u dropped=%u tasks=%u via=%s",
                  static_cast<long long>(message.sync.seq),

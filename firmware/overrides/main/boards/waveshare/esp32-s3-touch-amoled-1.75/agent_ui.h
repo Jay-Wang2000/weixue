@@ -14,6 +14,7 @@
 // what to show for the task store, free of LVGL and ESP-IDF types. Times are device ms.
 namespace agent_ui {
 
+using weixue_agent::ChatState;
 using weixue_agent::Option;
 using weixue_agent::Risk;
 using weixue_agent::State;
@@ -768,16 +769,45 @@ public:
         std::string title;
         int64_t last_ms = 0;
         int64_t title_seq = 0;
+        ChatState state = ChatState::kIdle;
+        bool titled = false;  // the server list gave the title
     };
 
     const std::string& current_chat() const { return current_chat_; }
     bool new_chat_pending() const { return new_chat_pending_; }
+    // An `agent_chats` list arrived: the chats and the current chat come from the server.
+    bool server_chats() const { return server_chats_; }
 
     std::string ChatTitle(const std::string& chat_id) const {
         for (const auto& c : chats_) {
-            if (c.chat_id == chat_id) return c.title;
+            if (c.chat_id == chat_id) return c.title.empty() ? "New chat" : c.title;
         }
         return chat_id;
+    }
+
+    // The server's chat list (applied_ms: device time it was applied) replaces the chat cache; a
+    // chat without a title takes its newest task's; its current chat becomes current. An older
+    // list is ignored.
+    void SetServerChats(const weixue_agent::Chats& list, int64_t applied_ms) {
+        if (server_chats_ && list.seq <= server_seq_) return;
+        server_chats_ = true;
+        server_seq_ = list.seq;
+        chats_.clear();
+        for (const auto& e : list.chats) {
+            if (chats_.size() >= kMaxChats) break;
+            ChatInfo c;
+            c.chat_id = e.chat_id;
+            c.title = Plain(e.title);
+            c.titled = !c.title.empty();
+            c.last_ms = applied_ms - e.age_s * 1000;
+            c.state = e.state;
+            chats_.push_back(std::move(c));
+        }
+        RememberChats();
+        if (!list.current.empty()) {
+            current_chat_ = list.current;
+            new_chat_pending_ = false;
+        }
     }
 
     // Header text of the current chat.
@@ -854,7 +884,29 @@ public:
                     case State::kDone:
                         break;
                 }
+            } else {
+                switch (c.state) {
+                    case ChatState::kNeedsYou:
+                        r.chip = "Waiting for you";
+                        r.chip_color = color::kAttentionText;
+                        break;
+                    case ChatState::kUnread:
+                        r.chip = "Unread";
+                        r.chip_color = color::kDone;
+                        break;
+                    case ChatState::kFailed:
+                        r.chip = "Failed";
+                        r.chip_color = color::kFail;
+                        break;
+                    case ChatState::kWorking:
+                        r.chip = "Working";
+                        r.chip_color = color::kValue;
+                        break;
+                    case ChatState::kIdle:
+                        break;
+                }
             }
+            if (r.title.empty()) r.title = "New chat";
             out.push_back(std::move(r));
         }
         return out;
@@ -1196,6 +1248,8 @@ private:
     uint32_t next_token_ = 1;
     std::string current_chat_;
     bool new_chat_pending_ = false;
+    bool server_chats_ = false;
+    int64_t server_seq_ = 0;
     Flash flash_;
     CardState card_;
 
@@ -1310,6 +1364,7 @@ private:
     // Chats a snapshot left without tasks: removed; the current one hands over to the chat of the
     // newest task (SetTasks).
     void ForgetChats(const std::vector<std::string>& chat_ids) {
+        if (server_chats_) return;
         for (const auto& id : chat_ids) {
             bool has_task = std::any_of(tasks_.begin(), tasks_.end(),
                                         [&](const Task& t) { return t.item.chat_id == id; });
@@ -1321,7 +1376,8 @@ private:
         }
     }
 
-    // Chat cache (at most kMaxChats): title of the chat's newest task, last update time.
+    // Chat cache (at most kMaxChats): title of the chat's newest task, last update time. With a
+    // server list only its untitled chats take task titles.
     void RememberChats() {
         for (const auto& t : tasks_) {
             const Info* info = FindInfo(t.item.task_id);
@@ -1329,6 +1385,13 @@ private:
             ChatInfo* c = nullptr;
             for (auto& existing : chats_) {
                 if (existing.chat_id == t.item.chat_id) c = &existing;
+            }
+            if (server_chats_) {
+                if (c != nullptr && !c->titled && t.item.seq >= c->title_seq) {
+                    c->title = TitleOf(t);
+                    c->title_seq = t.item.seq;
+                }
+                continue;
             }
             if (c == nullptr) {
                 if (chats_.size() >= kMaxChats) {

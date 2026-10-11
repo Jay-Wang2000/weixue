@@ -1,0 +1,41 @@
+diff --git a/main/application.cc b/main/application.cc
+index aa0f265..001e26c 100644
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -30,6 +30,7 @@
+ static constexpr const char* kProactivePollPath = "/weixue/proactive/poll";
+ static constexpr const char* kProactiveWakeText = "weixue:proactive";
+ static constexpr const char* kAgentSeqHeader = "X-Weixue-Agent-Seq";
++static constexpr const char* kAgentFeatureHeader = "X-Weixue-Agent-Feature";
+ static constexpr int kProactivePollTimeoutMs = 40000;  // exceeds the server's hold time
+ static constexpr int kProactiveRetryMinMs = 5000;
+ static constexpr int kProactiveRetryMaxMs = 60000;
+@@ -1335,6 +1336,7 @@ void Application::ProactivePollTask() {
+         http->SetTimeout(kProactivePollTimeoutMs);
+         http->SetHeader("Device-Id", SystemInfo::GetMacAddress());
+         http->SetHeader(kAgentSeqHeader, std::to_string(WeixueAgent::GetInstance().AppliedSeq()));
++        http->SetHeader(kAgentFeatureHeader, std::to_string(weixue_agent::kFeatureLevel));
+         bool speak = true;
+         bool body_ok = false;
+         if (http->Open("GET", proactive_poll_url_)) {
+diff --git a/main/protocols/websocket_protocol.cc b/main/protocols/websocket_protocol.cc
+index 883afff..1cd9881 100644
+--- a/main/protocols/websocket_protocol.cc
++++ b/main/protocols/websocket_protocol.cc
+@@ -9,6 +9,7 @@
+ #include <cJSON.h>
+ #include <cstring>
+ #include "assets/lang_config.h"
++#include "boards/waveshare/esp32-s3-touch-amoled-1.75/weixue_agent_msg.h"
+ 
+ #define TAG "WS"
+ 
+@@ -206,7 +207,7 @@ std::string WebsocketProtocol::GetHelloMessage() {
+     cJSON_AddBoolToObject(features, "aec", true);
+ #endif
+     cJSON_AddBoolToObject(features, "mcp", true);
+-    cJSON_AddNumberToObject(features, "agent", 1);
++    cJSON_AddNumberToObject(features, "agent", weixue_agent::kFeatureLevel);
+     cJSON_AddItemToObject(root, "features", features);
+     AddTextFontCapabilities(root);
+     cJSON_AddStringToObject(root, "transport", "websocket");
