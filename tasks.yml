@@ -380,7 +380,7 @@ tasks:
     description: |
       Approval gate 2026-10-11 13:14 (docs/logs/approval-gate-2026-10-11.md, -BC/-D logs; finding 66): rounds B/C/D never reached a tap because round A's task was left in needs_input (the agent asked a follow-up after the HA error) and its card re-opened at boot; the gateway tiered the next approval cards `silent` (C, D) or `when_idle` (B) and the device never opened them behind the open card, so all three expired untouched (expiry itself correct: 0 replays). Fix: (1) gateway tiering — a needs_approval card is never `silent` because another card is open; it queues as when_idle (or the interrupt tier per ADR-9 if due); (2) device — while a card is open, a newly arrived needs_approval card is shown next: preempt an open needs_input card (decision 66 = A, Jay 2026-10-11: the question card returns after the approval is decided or expires); between cards of the same kind keep order and auto-advance 20 s after the last touch; at boot open the newest approval card first; (3) gate driver (docs/logs/approval-gate-2026-10-11-driver.py -> scripts/approval_gate.py): before each round close every open card task of the probe chats (cancel via the agent-service API) and after each round settle its task; it also must not report a round as run when the card never opened. Tests: gateway tiering, device unit tests (firmware/tests), driver tests; board run of rounds B (deny), C (duplicate taps) and a second A on the diag build, then release build restored.
     depends_on: [fix-hamcp-client-timeout]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: fix-question-card-discipline
@@ -408,6 +408,15 @@ tasks:
       Decision 69. Deep research: how ChatGPT voice mode (and comparable assistants) handle end-of-speech detection, pauses mid-sentence, interruption during playback, merging a continued sentence, and carrying the interrupted answer into the next turn; open-source implementations (LiveKit agents turn detector, Pipecat, Vocode, OpenAI Realtime semantic VAD, Deepgram/AssemblyAI endpointing, xiaozhi community forks); latency numbers; what maps onto our stack (ESP32 AFE/VAD, Google STT streaming, agent service, Google TTS). Output: report under ~/Projects/research/reports/, published as an Artifact, with a recommended turn-taking state machine for weixue.
     depends_on: []
     status: in_progress
+    retries: 0
+    model: opus
+  - id: fix-input-window-routing
+    name: "Answer window must not capture unrelated or API messages; silent question cards"
+    branch: fix/input-window-routing
+    description: |
+      Finding 70 (approval-card-queue board run 16:02): after the agent asks a question, for 20 s the service treats ANY message to the device as the answer — an API probe landed in a household chat as the "answer" and the early driver cancelled that chat's task. Fix: the answer window applies only to messages from the same origin/session (voice follow-up on the device, or an explicit answer API with the interaction id); API messages with a chat_id never join another chat; also an ask_user card from an API-originated message is tiered silent and after the window a working item replaces it while the task stays needs_input — a question card is never silent and the working item must not hide an open question. Tests + sim; no device change expected.
+    depends_on: [fix-question-card-discipline]
+    status: pending
     retries: 0
     model: opus
   - id: feat-agent-service
