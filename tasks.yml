@@ -401,6 +401,15 @@ tasks:
     status: in_progress
     retries: 0
     model: opus
+  - id: research-turn-taking
+    name: "Research: ChatGPT-voice-style turn-taking (endpointing, barge-in, utterance merge, context carry-over)"
+    branch: research/turn-taking
+    description: |
+      Decision 69. Deep research: how ChatGPT voice mode (and comparable assistants) handle end-of-speech detection, pauses mid-sentence, interruption during playback, merging a continued sentence, and carrying the interrupted answer into the next turn; open-source implementations (LiveKit agents turn detector, Pipecat, Vocode, OpenAI Realtime semantic VAD, Deepgram/AssemblyAI endpointing, xiaozhi community forks); latency numbers; what maps onto our stack (ESP32 AFE/VAD, Google STT streaming, agent service, Google TTS). Output: report under ~/Projects/research/reports/, published as an Artifact, with a recommended turn-taking state machine for weixue.
+    depends_on: []
+    status: in_progress
+    retries: 0
+    model: opus
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
