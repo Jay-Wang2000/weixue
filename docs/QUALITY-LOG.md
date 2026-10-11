@@ -57,3 +57,4 @@ Rule: if Codex P1 findings per task rise above the baseline for two consecutive 
 - 2026-10-11 fix-max-iterations merged (PR #17): MAX_ITERATIONS 60 -> 150 (ruling 54); no gate (one constant).
 - 2026-10-11 main after PRs #15-#17: server suite 1001 passed / 12 skipped (fresh py3.10 venv, mocked).
 - 2026-10-11 fix-session-tts merged (PR #18): Google TTS Chirp 3 HD clips (Fenrir) via afplay; one_breath 10/10 dev + 10/10 reviewer on the board; wake_cue/long_reply/barge_in still fail pending STT dropouts + driver judging.
+- 2026-10-11 08:57 main redeployed (PRs #14-#18): ready lines OK; mounts back on weixue/server/data; home snapshot 15 entities; ASR GoogleSTT; VOICE_BARGE_IN default 0; merged worktrees removed.
