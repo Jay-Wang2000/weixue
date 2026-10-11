@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
 # Device session driver: under the device lock, builds and flashes the diag build, runs
-# scripts/audio_session.py (say-driven voice items plus injected gestures and touches, results in
-# docs/logs/session-<date>.md), then builds and flashes the release build back.
+# scripts/audio_session.py (Google TTS clips played with afplay for the voice items, plus injected
+# gestures and touches, results in docs/logs/session-<date>.md), then builds and flashes the release
+# build back.
 #
-#   scripts/audio_session.sh [--no-audio] [--no-flash] [--port <port>] [-- <audio_session.py options>]
+#   scripts/audio_session.sh [--no-audio] [--no-flash] [--synth-only] [--port <port>] [-- <audio_session.py options>]
 #
-# --no-audio: gesture and touch items only; `say` and the Mac volume are not touched.
+# --no-audio: gesture and touch items only; no clips are synthesised or played and the Mac volume is not touched.
 # --no-flash: runs against the firmware already on the board and leaves it there.
+# --synth-only: synthesises and caches every clip (scripts/session_tts.py), then exits; no board, lock or volume change.
 # Audio mode needs home mode (this Mac's en0 address equals LAN_IP in the live server/.env) and
-# sets the Mac output volume to 55 for the run, restoring volume and mute state on exit.
+# sets the Mac output volume to 55 for the run, restoring volume and mute state on exit. Clips are
+# synthesised with the service account at GOOGLE_SA_FILE in the live server/.env (exported as
+# GOOGLE_APPLICATION_CREDENTIALS) before the board is touched.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 live_env="${WEIXUE_LIVE_ENV:-$HOME/Projects/weixue/server/.env}"
 volume=55
 no_audio=0
+synth_only=0
 flash=1
 port_arg=""
 py_args=()
@@ -21,15 +26,37 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --no-audio) no_audio=1 ;;
     --no-flash) flash=0 ;;
+    --synth-only) synth_only=1 ;;
     --port) port_arg="$2"; shift ;;
     --) shift; py_args=("$@"); break ;;
-    *) echo "usage: $0 [--no-audio] [--no-flash] [--port <port>] [-- <audio_session.py options>]" >&2; exit 2 ;;
+    *) echo "usage: $0 [--no-audio] [--no-flash] [--synth-only] [--port <port>] [-- <audio_session.py options>]" >&2; exit 2 ;;
   esac
   shift
 done
 
 # shellcheck source=scripts/device.sh
 . "$root/scripts/device.sh"
+
+# Exports GOOGLE_APPLICATION_CREDENTIALS from the live .env and warms the clip cache.
+synth_clips() {
+  local sa
+  sa="$(sed -n 's/^GOOGLE_SA_FILE=//p' "$live_env" 2>/dev/null | tail -1)"
+  [ -n "$sa" ] && [ -f "$sa" ] || die "GOOGLE_SA_FILE in $live_env is unset or not a file"
+  export GOOGLE_APPLICATION_CREDENTIALS="$sa"
+  "$root/.venv/bin/python" -c 'import google.cloud.texttospeech' 2>/dev/null || {
+    local pin
+    pin="$(grep '^google-cloud-texttospeech==' "$root/server/requirements-overlay.txt")"
+    [ -n "$pin" ] || die "no google-cloud-texttospeech pin in server/requirements-overlay.txt"
+    "$root/.venv/bin/pip" install -q "$pin"
+  }
+  "$root/.venv/bin/python" "$root/scripts/audio_session.py" --synth-only ${py_args[@]+"${py_args[@]}"}
+}
+
+if [ "$synth_only" = 1 ]; then
+  synth_clips
+  exit
+fi
+
 device_select_port "$port_arg"
 
 if [ "$no_audio" = 0 ]; then
@@ -37,7 +64,8 @@ if [ "$no_audio" = 0 ]; then
   here="$(ipconfig getifaddr en0 2>/dev/null || true)"
   [ -n "$lan_ip" ] && [ "$here" = "$lan_ip" ] \
     || die "not in home mode (en0 ${here:-none}, LAN_IP ${lan_ip:-unset}); audio is off in office mode, use --no-audio"
-  command -v say >/dev/null || die "macOS say not found"
+  command -v afplay >/dev/null || die "afplay not found"
+  synth_clips
 fi
 
 stamp="$(date -u +%Y-%m-%d-%H%M)"

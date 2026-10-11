@@ -3,9 +3,10 @@
 a pass/fail table (docs/logs/session-<date>.md) with the redacted serial and server logs.
 
 Called by scripts/audio_session.sh, which holds the device lock, flashes the diag build before
-and the release build after, and sets the Mac output volume. Speech is macOS `say`; gestures and
-touches go through the diag console (firmware/tools/diag_inject.py). --no-audio runs only the
-items that need no speech.
+and the release build after, and sets the Mac output volume. Speech is Google Cloud TTS (Chirp 3 HD)
+clips cached under ~/Projects/weixue-vendor/session-clips and played with afplay (scripts/session_tts.py);
+gestures and touches go through the diag console (firmware/tools/diag_inject.py). --no-audio runs only
+the items that need no speech; --synth-only synthesises every clip and exits (no board, no playback).
 """
 import argparse
 import datetime
@@ -18,6 +19,9 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "firmware", "tools"))
 from diag_inject import DiagSerial, redact  # noqa: E402
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import session_tts  # noqa: E402
 
 SERVER_CONTAINER = "xiaozhi-esp32-server"
 CUES = ("Hmm?", "Mm-hm?", "Yes?")
@@ -35,6 +39,31 @@ AUDIO_ITEMS = ("boot", "one_breath", "wake_cue", "long_reply", "barge_in", "doub
 SILENT_ITEMS = ("boot", "face_down", "double_tap", "press_boot", "panel", "card_tap", "pick_up_dim")
 NEEDS_AUDIO = {"one_breath", "wake_cue", "long_reply", "barge_in", "bedside_voice"}
 
+WAKE = "Jarvis"
+QUESTION = "what time is it?"
+ASKS = {
+    "double_tap": "tell me a long story about a lighthouse keeper.",
+    "long_reply": "tell me a story about a lighthouse keeper that takes about one minute to tell.",
+    "barge_in": "tell me a long story about a dragon.",
+    "bedside_night": "switch the screen to bedside mode.",
+    "bedside_auto": "set the bedside screen back to automatic.",
+}
+PLAIN = {
+    "wake": WAKE,
+    "wake_question": f"{WAKE}, {QUESTION}",
+    "yes": "Yes.",
+    "question": QUESTION.capitalize(),
+    "barge": "Stop. What is two plus two?",
+}
+
+
+def all_utterances():
+    """Every text the session can speak, with and without the wake word prefix."""
+    texts = list(PLAIN.values())
+    for text in ASKS.values():
+        texts += [text, f"{WAKE}, {text}"]
+    return list(dict.fromkeys(texts))
+
 
 class Session:
     def __init__(self, args, diag):
@@ -47,7 +76,8 @@ class Session:
 
     def say(self, text):
         self.diag.note(f"say: {text}")
-        subprocess.run(["say", "-v", self.args.voice, text], check=True)
+        path, _ = session_tts.ensure_clip(self.args.voice, text)
+        subprocess.run(session_tts.afplay_command(path), check=True)
 
     def inject(self, line):
         ok, result, n = self.diag.send(line)
@@ -71,7 +101,7 @@ class Session:
         """Says text, with the wake word first when the device is idle; returns the line index
         before the speech."""
         since = self.diag.mark()
-        self.say(("Jarvis, " + text) if self.state() == "idle" else text)
+        self.say(f"{WAKE}, {text}" if self.state() == "idle" else text)
         return since
 
     def wait_reply(self, since, stt_timeout=15, reply_timeout=40):
@@ -122,7 +152,7 @@ class Session:
             m = self.wait(r"Application: Microphone muted$", 3, since)
             quiet = True
             if self.audio and i == 0:
-                self.say("Jarvis, what time is it?")
+                self.say(PLAIN["wake_question"])
                 quiet = self.wait(r"Wake word detected|idle -> connecting", 6, since) is None
             ok_dump, dump, _ = self.inject("diag dump")
             muted = ok_dump and '"mic_muted":true' in dump
@@ -149,7 +179,7 @@ class Session:
                 ev += [g[0]] if g else []
                 time.sleep(1)
                 continue
-            since = self.ask("tell me a long story about a lighthouse keeper.")
+            since = self.ask(ASKS["double_tap"])
             stt, reply = self.wait_reply(since)
             if reply is None:
                 continue
@@ -194,7 +224,7 @@ class Session:
         c = self.wait(r"State: idle -> connecting", 3, since)
         lst = self.wait(r"State: connecting -> listening", 8, since)
         if lst:
-            self.say("What time is it?")
+            self.say(PLAIN["question"])
         stt, reply = self.wait_reply(since)
         good = ok and all((c, lst, stt, reply))
         self.record("press_boot", int(good), 1, 1, "BOOT click from idle opens a conversation that answers",
@@ -267,7 +297,7 @@ class Session:
             self.wait_idle()
             time.sleep(2)
             since = self.diag.mark()
-            self.say("Jarvis, what time is it?")
+            self.say(PLAIN["wake_question"])
             stt, reply = self.wait_reply(since)
             good = bool(stt and re.search(r"what time is it", stt[1], re.I) and reply)
             n_ok += good
@@ -282,13 +312,13 @@ class Session:
             self.wait_idle()
             time.sleep(2)
             since = self.diag.mark()
-            self.say("Jarvis")
+            self.say(PLAIN["wake"])
             cue = self.wait(CUE_RE, 8, since)
             if cue is None:
                 continue
             self.wait(r"State: speaking -> listening", 5, cue[4])
             since = self.diag.mark()
-            self.say("Yes.")
+            self.say(PLAIN["yes"])
             stt, reply = self.wait_reply(since)
             good = bool(stt and re.search(r"\byes\b", stt[1], re.I) and reply)
             name = cue[2].group(1)
@@ -301,7 +331,7 @@ class Session:
     def item_long_reply(self):
         self.wait_idle()
         t0 = time.time()
-        since = self.ask("tell me a story about a lighthouse keeper that takes about one minute to tell.")
+        since = self.ask(ASKS["long_reply"])
         stt, first = self.wait_reply(since)
         end = self.wait(r"State: speaking -> (listening|idle)", 180, first[4]) if first else None
         t1 = time.time()
@@ -318,7 +348,7 @@ class Session:
 
     def item_barge_in(self):
         self.wait_idle()
-        since = self.ask("tell me a long story about a dragon.")
+        since = self.ask(ASKS["barge_in"])
         stt, first = self.wait_reply(since)
         if first is None:
             self.record("barge_in", 0, 1, 1, "no reply to interrupt", [h[0] for h in (stt,) if h])
@@ -326,7 +356,7 @@ class Session:
         time.sleep(5)
         t0 = time.time()
         since = self.diag.mark()
-        self.say("Stop. What is two plus two?")
+        self.say(PLAIN["barge"])
         stt2, reply = self.wait_reply(since, reply_timeout=30)
         t1 = time.time()
         server = self.server_lines(t0 - 1, t1)
@@ -341,7 +371,7 @@ class Session:
 
     def item_bedside_voice(self):
         self.wait_idle()
-        since = self.ask("switch the screen to bedside mode.")
+        since = self.ask(ASKS["bedside_night"])
         hint = self.wait(r"FaceDisplay: bedside hint=night", 30, since)
         self.wait_idle()
         on = self.wait(r"FaceDisplay: bedside=on", 25, since)
@@ -351,7 +381,7 @@ class Session:
             self.inject("diag tap 233 60")
             off = self.wait(r"FaceDisplay: bedside=off reason=touch", 3, s2)
         self.wait_idle()
-        s3 = self.ask("set the bedside screen back to automatic.")
+        s3 = self.ask(ASKS["bedside_auto"])
         auto = self.wait(r"FaceDisplay: bedside hint=auto", 30, s3)
         good = all((hint, on, off, auto))
         self.record("bedside_voice", int(good), 1, 1,
@@ -394,7 +424,7 @@ def write_report(path, args, session, started, serial_log, server_log):
     rel = lambda p: os.path.relpath(p, os.path.dirname(path))  # noqa: E731
     with open(path, "w", encoding="utf-8") as f:
         f.write(f"# Device session, {started:%Y-%m-%d %H:%M} UTC\n\n")
-        f.write(f"Mode: {'no audio (gestures and touches only)' if args.no_audio else 'audio, say -v ' + args.voice}. "
+        f.write(f"Mode: {'no audio (gestures and touches only)' if args.no_audio else 'audio, Google TTS voice ' + args.voice}. "
                 f"Build: {args.build_info or 'diag'}. Serial log: `{rel(serial_log)}`"
                 f"{', server log: `' + rel(server_log) + '`' if server_log else ''}. "
                 f"Evidence numbers are serial log lines. Injections use the diag console "
@@ -406,11 +436,25 @@ def write_report(path, args, session, started, serial_log, server_log):
     return passed == len(counted)
 
 
+def synth_only(voice):
+    texts = all_utterances()
+    made = 0
+    for text in texts:
+        path, new = session_tts.ensure_clip(voice, text)
+        made += new
+        print(f"{'synthesised' if new else 'cached'} {os.path.basename(path)}: {text}")
+    print(f"{len(texts)} clips, {made} synthesised, in {session_tts.CACHE_DIR}")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--port", required=True)
+    ap.add_argument("--port", help="serial port (required unless --synth-only)")
     ap.add_argument("--no-audio", action="store_true")
-    ap.add_argument("--voice", default="Samantha")
+    ap.add_argument("--voice", default=session_tts.DEFAULT_VOICE,
+                    help="Chirp 3 HD speaker (en-US and cmn-CN voices share it) or a full voice name")
+    ap.add_argument("--synth-only", action="store_true",
+                    help="synthesise and cache every clip, then exit (no board, no playback)")
     ap.add_argument("--count", type=int, default=10, help="repetitions of the repeated items")
     ap.add_argument("--items", help="comma-separated subset, in order")
     ap.add_argument("--out", help="results table (default docs/logs/session-<date>.md)")
@@ -419,6 +463,10 @@ def main():
     ap.add_argument("--fixture-base", help="gateway base URL for the approval card (agent_msg_fixture.py)")
     ap.add_argument("--fixture-device", help="device MAC as on allowed_devices")
     args = ap.parse_args()
+    if args.synth_only:
+        return synth_only(args.voice)
+    if not args.port:
+        ap.error("--port is required unless --synth-only")
 
     started = datetime.datetime.now(datetime.timezone.utc)
     stamp = started.strftime("%Y-%m-%d-%H%M")
