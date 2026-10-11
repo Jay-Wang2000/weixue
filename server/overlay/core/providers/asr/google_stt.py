@@ -213,6 +213,12 @@ class ASRProvider(ASRProviderBase):
 
     @staticmethod
     async def _speak(conn, text: str):
+        """A reply to the utterance; none for an utterance weixue_patches.drops_utterance."""
+        import weixue_patches
+
+        if weixue_patches.drops_utterance(conn):
+            logger.bind(tag=TAG).info(f"barge-in disabled: no reply to an utterance during playback: {text!r}")
+            return
         conn.client_abort = False
         sentence_id = conn.sentence_id = uuid.uuid4().hex
         await send_tts_message(conn, "start")

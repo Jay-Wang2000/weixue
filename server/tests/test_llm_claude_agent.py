@@ -593,7 +593,7 @@ def test_device_action_whitelist_matches_the_service():
 
 
 def test_latency_line_fields():
-    m = ca.TurnMetrics("sid", "a" * 32, speech_end=10.0, stt_ms=250)
+    m = ca.TurnMetrics("sid", "a" * 32, speech_end=10.0, stt_ms=250, barge_in=False)
     m.chat, m.routed, m.reply_end = CHAT, "new_task", "turn_done"
     m.post_at = 10.3
     m.clock = lambda: 10.9
@@ -605,7 +605,8 @@ def test_latency_line_fields():
                   {"text": "The light is on", "handed_at": 12.0, "first": 12.3}]
     assert m.line() == (
         f"turn_latency trace={'a' * 32} chat={CHAT} routed=new_task reply_end=turn_done stt_final_latency_ms=250 "
-        "service_first_text_ms=600 tts_first_audio_ms=250 total_ms=1200 answer_audio_ms=2300 reply_end_ms=1700"
+        "service_first_text_ms=600 tts_first_audio_ms=250 total_ms=1200 answer_audio_ms=2300 reply_end_ms=1700 "
+        "barge_in=0"
     )
 
 

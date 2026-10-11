@@ -1,0 +1,104 @@
+ Network weixue-barge-sim_default Creating 
+ Network weixue-barge-sim_default Created 
+ Container weixue-barge-sim-server Creating 
+ Container weixue-barge-sim-server Created 
+ Container weixue-barge-sim-server Starting 
+ Container weixue-barge-sim-server Started 
+-- VOICE_BARGE_IN=0
+## during: Tell me something long.
+Stop, I have another question.
+What time is it?
+-- sim device
+09:05:19 hello ea5358f3-78f0-4ad2-a9e7-6ac549298218
+09:05:20 << {"type": "tts", "state": "start"} (audio frames so far 0)
+09:05:20 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+09:05:20 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+09:05:21 sending reply clip 26 frames
+09:05:23 << {"type": "stt", "text": "Tell me something long"} (audio frames so far 8)
+09:05:23 << {"type": "tts", "state": "start"} (audio frames so far 8)
+09:05:23 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+09:05:23 << {"type": "tts", "state": "sentence_start", "text": "Here is a longer answer"} (audio frames so far 8)
+09:05:23 barge-in in 1.0 s
+09:05:24 << {"type": "tts", "state": "sentence_start", "text": "so that the playback lasts a while. It has a second sentence. And a third sentence keeps the speaker busy a little longer"} (audio frames so far 31)
+09:05:24 sending reply clip 26 frames
+09:05:28 << {"type": "tts", "state": "stop"} (audio frames so far 98)
+09:05:28 sending reply clip 26 frames
+09:05:30 << {"type": "stt", "text": "What time is it?"} (audio frames so far 98)
+09:05:30 << {"type": "tts", "state": "start"} (audio frames so far 98)
+09:05:30 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 98)
+09:05:30 << {"type": "tts", "state": "sentence_start", "text": "Here is a longer answer"} (audio frames so far 98)
+09:05:31 << {"type": "tts", "state": "sentence_start", "text": "so that the playback lasts a while. It has a second sentence. And a third sentence keeps the speaker busy a little longer"} (audio frames so far 121)
+09:05:36 << {"type": "tts", "state": "stop"} (audio frames so far 188)
+09:05:44 session ended: server closed audio frames 188
+-- server log
+261011 08:05:20[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Hmm?
+261011 08:05:23[0.9.7_SiSiSiGononoCh][core.connection]-INFO-大模型收到用户消息: Tell me something long.
+261011 08:05:26[0.9.7_00000000000000][weixue_patches]-INFO-barge-in disabled: dropped utterance during playback: 'Stop, I have another question.'
+261011 08:05:30[0.9.7_SiSiSiGononoCh][core.connection]-INFO-大模型收到用户消息: What time is it?
+## cue: What time is it?
+-- sim device
+09:05:45 hello 9a77d855-8eff-4971-976c-c95315a6f40f
+09:05:46 << {"type": "tts", "state": "start"} (audio frames so far 0)
+09:05:46 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+09:05:46 sending reply clip 26 frames
+09:05:47 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+09:05:48 << {"type": "stt", "text": "What time is it?"} (audio frames so far 8)
+09:05:48 << {"type": "tts", "state": "start"} (audio frames so far 8)
+09:05:48 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+09:05:48 << {"type": "tts", "state": "sentence_start", "text": "Here is a longer answer"} (audio frames so far 8)
+09:05:49 << {"type": "tts", "state": "sentence_start", "text": "so that the playback lasts a while. It has a second sentence. And a third sentence keeps the speaker busy a little longer"} (audio frames so far 31)
+09:05:54 << {"type": "tts", "state": "stop"} (audio frames so far 98)
+09:06:02 session ended: server closed audio frames 98
+-- server log
+261011 08:05:46[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Hmm?
+261011 08:05:48[0.9.7_SiSiSiGononoCh][core.connection]-INFO-大模型收到用户消息: What time is it?
+ Container weixue-barge-sim-server Recreate 
+ Container weixue-barge-sim-server Recreated 
+ Container weixue-barge-sim-server Starting 
+ Container weixue-barge-sim-server Started 
+-- VOICE_BARGE_IN=1
+## during: Tell me something long.
+Stop, I have another question.
+-- sim device
+09:06:07 hello 1578b414-493c-4018-bdfe-1a049aa09b81
+09:06:07 << {"type": "tts", "state": "start"} (audio frames so far 0)
+09:06:08 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+09:06:08 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+09:06:08 sending reply clip 26 frames
+09:06:10 << {"type": "stt", "text": "Tell me something long"} (audio frames so far 8)
+09:06:10 << {"type": "tts", "state": "start"} (audio frames so far 8)
+09:06:10 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+09:06:10 << {"type": "tts", "state": "sentence_start", "text": "Here is a longer answer"} (audio frames so far 8)
+09:06:10 barge-in in 1.0 s
+09:06:11 sending reply clip 26 frames
+09:06:11 << {"type": "tts", "state": "sentence_start", "text": "so that the playback lasts a while. It has a second sentence. And a third sentence keeps the speaker busy a little longer"} (audio frames so far 31)
+09:06:13 << {"type": "tts", "state": "stop"} (audio frames so far 62)
+09:06:13 << {"type": "stt", "text": "Stop, I have another question"} (audio frames so far 62)
+09:06:13 << {"type": "tts", "state": "start"} (audio frames so far 62)
+09:06:13 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 62)
+09:06:14 << {"type": "tts", "state": "sentence_start", "text": "Here is a longer answer"} (audio frames so far 62)
+09:06:15 << {"type": "tts", "state": "sentence_start", "text": "so that the playback lasts a while. It has a second sentence. And a third sentence keeps the speaker busy a little longer"} (audio frames so far 85)
+09:06:19 << {"type": "tts", "state": "stop"} (audio frames so far 152)
+09:06:27 session ended: server closed audio frames 152
+-- server log
+261011 08:06:08[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Hmm?
+261011 08:06:10[0.9.7_SiSiSiGononoCh][core.connection]-INFO-大模型收到用户消息: Tell me something long.
+261011 08:06:13[0.9.7_SiSiSiGononoCh][core.handle.abortHandle]-INFO-Abort message received
+261011 08:06:13[0.9.7_SiSiSiGononoCh][core.connection]-INFO-大模型收到用户消息: Stop, I have another question.
+## cue: What time is it?
+-- sim device
+09:06:29 hello d3735fdf-533e-4449-8580-e45da41a4e44
+09:06:29 << {"type": "tts", "state": "start"} (audio frames so far 0)
+09:06:30 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+09:06:30 sending reply clip 26 frames
+09:06:30 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+09:06:32 << {"type": "stt", "text": "What time is it?"} (audio frames so far 8)
+09:06:32 << {"type": "tts", "state": "start"} (audio frames so far 8)
+09:06:32 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+09:06:32 << {"type": "tts", "state": "sentence_start", "text": "Here is a longer answer"} (audio frames so far 8)
+09:06:33 << {"type": "tts", "state": "sentence_start", "text": "so that the playback lasts a while. It has a second sentence. And a third sentence keeps the speaker busy a little longer"} (audio frames so far 31)
+09:06:37 << {"type": "tts", "state": "stop"} (audio frames so far 98)
+09:06:45 session ended: server closed audio frames 98
+-- server log
+261011 08:06:30[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Hmm?
+261011 08:06:32[0.9.7_SiSiSiGononoCh][core.connection]-INFO-大模型收到用户消息: What time is it?

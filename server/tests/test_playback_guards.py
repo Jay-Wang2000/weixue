@@ -395,6 +395,7 @@ async def test_guard_drops_echo_before_barge_in_and_passes_speech():
 
     guard = weixue_patches.guard_playback_echo(start_to_chat, LOGGER)
     conn, _ = await _played(["The kitchen light is now off."])
+    conn.config["barge_in"] = True
     conn.weixue_wake_cue = asyncio.create_task(asyncio.sleep(10))
     _onset(conn)
     assert await guard(conn, "the kitchen light is now off") is None

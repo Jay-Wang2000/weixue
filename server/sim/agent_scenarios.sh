@@ -13,7 +13,7 @@
 #                                             (device_action -> the sim device's MCP tools/call), then the
 #                                             service stopped (fallback line)
 # The sim server's config is agent.config.yaml rendered by scripts/render_config.py (VOICE_LLM, default
-# claude_agent). Keys come from ENV_FILE (default: the live server/.env) and are never printed. Prints one
+# claude_agent; VOICE_BARGE_IN, default 1 here for the barge round). Keys come from ENV_FILE (default: the live server/.env) and are never printed. Prints one
 # PASS/FAIL line per check; the transcript (sim device output and server log) goes to TRANSCRIPT. Needs the
 # repo's .venv. Nothing outside the weixue-agent-sim compose project is started, stopped or recreated.
 cd "$(dirname "$0")"
@@ -82,7 +82,7 @@ export SIM_AGENT_TOKEN
 [ -n "$SIM_AGENT_TOKEN" ] || { echo "FAIL no agent-service token"; exit 1; }
 
 render() {  # render VOICE_LLM: the sim server's config
-  VOICE_LLM=$1 python3 "$ROOT/server/scripts/render_config.py" agent.config.yaml > data/agent.rendered.yaml
+  VOICE_LLM=$1 VOICE_BARGE_IN=${VOICE_BARGE_IN:-1} python3 "$ROOT/server/scripts/render_config.py" agent.config.yaml > data/agent.rendered.yaml
 }
 wait_server() {
   for _ in $(seq 1 60); do

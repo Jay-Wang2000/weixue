@@ -314,6 +314,18 @@ async def test_voice_stop_over_limit_speaks_too_long_reply(tmp_path, monkeypatch
     assert any(level == "warning" and "59s" in msg for level, msg in log_records)
 
 
+async def test_no_too_long_reply_to_an_utterance_dropped_during_playback(tmp_path, monkeypatch, log_records):
+    provider, client = make_provider(tmp_path, monkeypatch, responses=[])
+    conn = make_conn()
+    conn.weixue_onset_playback = 0
+    await provider.handle_voice_stop(conn, [OVERLONG_PCM])
+    assert conn.websocket.sent == [] and conn.sentence_id == "previous" and conn.tts.tts_text_queue.empty()
+    assert any("barge-in disabled: no reply to an utterance during playback" in msg for _, msg in log_records)
+    conn.config["barge_in"] = True
+    await provider.handle_voice_stop(conn, [OVERLONG_PCM])
+    assert conn.websocket.sent == [{"type": "tts", "state": "start", "session_id": "sid"}]
+
+
 def test_default_too_long_reply_is_bilingual():
     english, chinese = google_stt.DEFAULT_TOO_LONG_REPLY.split("\n")
     assert english.isascii() and "too long" in english
