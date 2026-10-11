@@ -592,6 +592,39 @@ void TestTiers() {
     Check(EarconFor(qa[0]) == Earcon::kNeedsYou, "unspoken question chimes");
 }
 
+// A SILENT open card raised to WHEN_IDLE/INTERRUPT (same task, state and card) opens by itself,
+// with no second earcon or flash.
+void TestTierUpgrade() {
+    Rig r;
+    auto first = r.Apply(Question("q", 2, Tier::kSilent), 0);
+    Check(first.size() == 1 && EarconFor(first[0]) == Earcon::kNone && FlashFor(first[0], 0).count == 0,
+          "silent question: arrival without sound or flash");
+    Check(r.model.WantAutoOpen(IdleCtx(-10000), 10000).empty(), "silent question does not open");
+    Item up = Question("q", 2, Tier::kWhenIdle);
+    up.speaks = true;
+    auto second = r.Apply(up, 20000);
+    Check(second.empty(), "tier upgrade: no arrival, so no second earcon or flash");
+    Check(r.model.HasPendingOpen() && r.model.WantAutoOpen(IdleCtx(-10000), 30000) == "q",
+          "tier upgrade: the question card opens when idle");
+    r.model.OpenCard("q", 30000);
+    r.model.Later();
+    Item again = Question("q", 2, Tier::kWhenIdle);
+    Check(r.Apply(again, 40000).empty() && r.model.WantAutoOpen(IdleCtx(-10000), 50000).empty(),
+          "same tier again: Later is kept");
+
+    Rig open;
+    open.Apply(Question("o", 2, Tier::kSilent), 0);
+    open.model.OpenCard("o", 100);
+    open.Apply(Question("o", 2, Tier::kWhenIdle), 200);
+    Check(!open.model.HasPendingOpen(), "upgrade of the card already open queues nothing");
+
+    Rig a;
+    a.Apply(Approval("a", Tier::kSilent), 0);
+    Check(a.Apply(Approval("a", Tier::kInterrupt), 100).empty() && a.model.HasInterruptPending(100) &&
+              a.model.WantAutoOpen(IdleCtx(-10000), 1000) == "a",
+          "approval raised to INTERRUPT opens at once");
+}
+
 void TestQuestion() {
     Rig r;
     Item q = Question("q", 3);
@@ -1061,6 +1094,7 @@ int main() {
     TestBootOrder();
     TestExternalAndExpiry();
     TestTiers();
+    TestTierUpgrade();
     TestQuestion();
     TestDiagCard();
     TestResults();

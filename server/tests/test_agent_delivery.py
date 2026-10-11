@@ -654,6 +654,23 @@ async def test_offer_maps_agent_deliveries_and_drops_other_kinds():
     assert gw.sink.acks[-1]["outcome"] == "dropped"
 
 
+async def test_offered_open_cards_are_never_silent_and_working_items_stay_silent():
+    _, gw = make()
+    interaction = {"interaction_id": "int_q", "expires_at": "2026-10-07T12:30:00Z",
+                   "question": {"text": "Which room?", "options": [{"id": "opt1", "label": "Living room"},
+                                                                  {"id": "opt2", "label": "Bedroom"}]}}
+    for tier, speak in (("SILENT", None), ("WHEN_IDLE", "Which room?")):
+        gw.offer(DEVICE, {"delivery_id": f"dlv_{tier}", "lease_id": "l1", "kind": "agent", "tier": tier,
+                          "speak": speak, "chat_id": "cht_1", "task_id": "tsk_q",
+                          "payload": {"state": "needs_input", "summary": "Which room?", "interaction": interaction}})
+        item = gw.devices[DEVICE].mirror["tsk_q"].payload
+        assert item["state"] == "needs_input" and item["delivery"] == "when_idle"
+        assert item["speaks"] is (speak is not None) and item["card_id"] == "int_q"
+    gw.offer(DEVICE, {"delivery_id": "dlv_w", "lease_id": "l2", "kind": "agent", "tier": "SILENT",
+                      "chat_id": "cht_1", "task_id": "tsk_w", "payload": {"state": "progress", "summary": "Working"}})
+    assert gw.devices[DEVICE].mirror["tsk_w"].payload["delivery"] == "silent"
+
+
 async def test_parse_sse():
     async def lines():
         for line in (b": hb\n", b"\n", b"id: 1\n", b"event: delivery\n", b'data: {"delivery_id": "dlv_1"}\n', b"\n",

@@ -117,11 +117,13 @@ class Interactions:
             return panel_cue(lang, routing.describe_for_speech(action.get("text") or "do that"))
         return routing.approval_cue(lang, routing.describe_for_speech(action.get("text") or "do that"))
 
-    def announce(self, row: Dict[str, Any], run: Optional["TurnRun"], speak: Optional[str] = None) -> None:
-        """Task state, event, inline cue (reply open) or WHEN_IDLE cue plus card."""
+    def announce(self, row: Dict[str, Any], run: Optional["TurnRun"], speak: Optional[str] = None) -> bool:
+        """Task state, event, inline cue (reply open) and the card. The card carries the cue WHEN_IDLE unless
+        it was spoken inline: a question only when that reply is the device's voice turn, an approval in any
+        reply. Returns whether the device's voice reply spoke it."""
         task = self.store.task(row["task_id"])
         if task is None or task["state"] in TERMINAL_STATES:
-            return
+            return False
         state = "needs_input" if row["kind"] == "input" else "needs_approval"
         self.engine.set_task_state(task["task_id"], state, f"interaction {row['interaction_id']}",
                                    turn_id=row["turn_id"])
@@ -130,12 +132,16 @@ class Interactions:
                          task_id=task["task_id"], turn_id=row["turn_id"])
         jsonlog.log("interaction open", task_id=task["task_id"], chat_id=task["chat_id"], event=state,
                     detail=row["interaction_id"], outcome=row["source"])
+        on_device = run is not None and run.reply is not None and run.reply.voice
         inline = run is not None and self.engine.speak_inline(run, speak, "question")
-        if inline:
+        on_device = on_device and inline
+        if on_device:
             self.store.update("interactions", "interaction_id", row["interaction_id"], {"spoken_at": timeutil.iso()})
             self.open_voice_window(task["device_id"], row["interaction_id"])
-        self.card(row, speak=None if inline else speak,
+        spoken = on_device if row["kind"] == "input" else inline
+        self.card(row, speak=None if spoken else speak,
                   note=UNCORRELATED_TEXT[task["lang"]] if row["state"] == "uncorrelated" else None)
+        return on_device
 
     def card(self, row: Dict[str, Any], speak: Optional[str] = None, note: Optional[str] = None) -> None:
         row = self.store.interaction(row["interaction_id"])
@@ -189,7 +195,7 @@ class Interactions:
             return NOT_ASKED.format(why=why)
         row = self._new(run, "input", "sdk", INPUT_TTL_S, question=question, turn_id=run.turn_id)
         reply_open = self.engine.reply_open(run) and run.stop_reason is None
-        self.announce(row, run if reply_open else None, question["text"])
+        on_device = self.announce(row, run if reply_open else None, question["text"])
         if not reply_open:
             return LATE_ANSWER
         future = asyncio.get_running_loop().create_future()
@@ -197,7 +203,8 @@ class Interactions:
         try:
             kind, value = await asyncio.wait_for(future, timeout=VOICE_WINDOW_S)
         except asyncio.TimeoutError:
-            self.card(row, speak=question["text"])
+            if on_device:
+                self.card(row, speak=question["text"])
             return LATE_ANSWER
         finally:
             run.futures.pop(row["interaction_id"], None)
@@ -237,6 +244,10 @@ class Interactions:
             return None
         if row["kind"] == "input":
             self.store.update("devices", "device_id", device_id, {"voice_window_until": None})
+            if not routing.answers_question(text, self._labels(row)):
+                jsonlog.log("not an answer", task_id=task["task_id"], chat_id=task["chat_id"], event="interaction",
+                            outcome="new_turn", detail=row["interaction_id"])
+                return None
             return await self._voice_answer(row, task, text, lang, trace, reply_id)
         decision = routing.voice_decision(text)
         if decision is None:
@@ -271,13 +282,30 @@ class Interactions:
 
     async def answer_by_message(self, task: Dict[str, Any], text: str, lang: str, trace: str,
                                 reply_id: str) -> Optional[Dict[str, Any]]:
-        """A message to a task waiting on its question, outside the voice window: the answer in the user's
-        own words."""
+        """A voice message to a task waiting on its question, outside the voice window: the answer in the
+        user's own words when `routing.answers_question` takes it as one, else None."""
         rows = [r for r in self.open_for_task(task["task_id"]) if r["kind"] == "input"]
-        if not rows:
+        if not rows or not routing.answers_question(text, self._labels(rows[-1])):
             return None
         self.store.update("devices", "device_id", task["device_id"], {"voice_window_until": None})
         return await self._voice_answer(rows[-1], task, text, lang, trace, reply_id)
+
+    def drop_questions(self, task: Dict[str, Any]) -> None:
+        """A message that is not the answer: the task's open questions are withdrawn and the next turn says so."""
+        for row in self.open_for_task(task["task_id"]):
+            if row["kind"] != "input":
+                continue
+            self.store.update("interactions", "interaction_id", row["interaction_id"],
+                              {"state": "cancelled", "decided_at": timeutil.iso()})
+            self.resolved(row, "cancelled", None)
+            question = (loads(row["question_json"], {}) or {}).get("text", "")
+            self.chats.add_note(task["chat_id"], "note", f'[note: the user did not answer your question "{question}"; '
+                                                         "their message is a new request and the question card is "
+                                                         "withdrawn]")
+
+    @staticmethod
+    def _labels(row: Dict[str, Any]) -> List[str]:
+        return [o["label"] for o in (loads(row["question_json"], {}) or {}).get("options") or []]
 
     async def _voice_answer(self, row: Dict[str, Any], task: Dict[str, Any], text: str, lang: str, trace: str,
                             reply_id: str) -> Dict[str, Any]:
@@ -288,7 +316,7 @@ class Interactions:
             accepted = self.engine.emit(task["chat_id"], "accepted", {"routed": "answer", "task_state": task["state"],
                                                                       "reply_id": reply_id},
                                         trace, task_id=task["task_id"], turn_id=run.turn_id)
-            self.engine.attach_reply(run, Reply(reply_id=reply_id, opened_at=time.monotonic(), steer=True))
+            self.engine.attach_reply(run, Reply(reply_id=reply_id, opened_at=time.monotonic(), steer=True, voice=True))
             self._mark_answered(row, text, "voice", None)
             future.set_result(("answer", text))
             return {"chat_id": task["chat_id"], "task_id": task["task_id"], "turn_id": run.turn_id, "routed": "answer",
@@ -297,7 +325,7 @@ class Interactions:
         self._mark_answered(row, text, "voice", None)
         question = (loads(row["question_json"], {}) or {}).get("text", "")
         return await self.engine.answer_turn(task, f'[answer to your earlier question "{question}"]: {text}', lang,
-                                             trace, reply_id)
+                                             trace, reply_id, voice=True)
 
     def _mark_answered(self, row: Dict[str, Any], value: Any, via: str, decision_id: Optional[str]) -> None:
         self.store.update("interactions", "interaction_id", row["interaction_id"], {

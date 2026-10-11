@@ -22,7 +22,7 @@ from .config import (
     ACK_AFTER_S, ACTIVITY_MIN_INTERVAL_S, ACTOR_IDLE_S, BARGE_IN_RESUME_S, CANCEL_MAX_S, DEVICE_ACTION_WAIT_S,
     DEVICE_RESULT_MAX, DONE_SPEECH_TTL_S, IDEMPOTENCY_TTL_S,
     MAX_OPEN_TASKS_PER_DEVICE, NOTIFY_TTL_S, PROGRESS_MIN_INTERVAL_S, QUEUE_WAIT_MS, REPLY_HOLD_S, STEER_WAIT_S,
-    STREAMS_MAX, SUMMARY_MAX, TEXT_COALESCE_MS, TITLE_MAX, TURN_MAX_S, Settings,
+    STREAMS_MAX, SUMMARY_MAX, TEXT_COALESCE_MS, TITLE_MAX, TURN_MAX_S, VOICE_ORIGINS, Settings,
 )
 from .deliveries import Outbox, agent_payload
 from .ha_adapter import BLOCKED_TEXT, GUARD_TEXT, UNKNOWN_TEXT, UNREACHABLE_TEXT, HaGateway, describe_call
@@ -73,6 +73,8 @@ class Reply:
     reply_id: str
     opened_at: float
     steer: bool = False
+    # The stream is the device's voice turn: its speech is heard on the device.
+    voice: bool = False
     open: bool = True
     spoken_any: bool = False
     hold_started: bool = False
@@ -259,10 +261,12 @@ class Engine:
         lang = routing.detect_lang(text, body.get("lang", "auto"))
         trace = trace or new_trace_id()
         reply_id = new_id("rpl")
+        voice = (body.get("origin") or {}).get("kind") in VOICE_ORIGINS
 
-        spoken = await self.interactions.route_spoken(device_id, chat, text, lang, trace, reply_id)
-        if spoken is not None:
-            return self._remember(key, digest, spoken)
+        if voice:
+            spoken = await self.interactions.route_spoken(device_id, chat, text, lang, trace, reply_id)
+            if spoken is not None:
+                return self._remember(key, digest, spoken)
 
         actor = self.rt(chat["chat_id"])
         open_task = self.open_task(chat["chat_id"])
@@ -271,9 +275,11 @@ class Engine:
             return self._remember(key, digest, response)
 
         if open_task is not None and actor.current is None and not body.get("retry_of"):
-            answered = await self.interactions.answer_by_message(open_task, text, lang, trace, reply_id)
-            if answered is not None:
-                return self._remember(key, digest, answered)
+            if voice:
+                answered = await self.interactions.answer_by_message(open_task, text, lang, trace, reply_id)
+                if answered is not None:
+                    return self._remember(key, digest, answered)
+            self.interactions.drop_questions(open_task)
 
         if body.get("retry_of"):
             original = self.store.task(body["retry_of"])
@@ -298,12 +304,13 @@ class Engine:
             await self._reserve_stream(lang)
 
         response = self._enqueue(chat, open_task, routed, text, lang, trace, key, reply_id,
-                                 retry_of=body.get("retry_of"))
+                                 retry_of=body.get("retry_of"), voice=voice)
         return self._remember(key, digest, response)
 
     def _enqueue(self, chat: Dict[str, Any], open_task: Optional[Dict[str, Any]], routed: str, text: str, lang: str,
                  trace: str, key: Optional[str], reply_id: Optional[str], retry_of: Optional[str] = None,
-                 accepted_routed: Optional[str] = None, kind: Optional[str] = None) -> Dict[str, Any]:
+                 accepted_routed: Optional[str] = None, kind: Optional[str] = None,
+                 voice: bool = False) -> Dict[str, Any]:
         """Persist the turn of a message (a second steer joins the unsent one), emit `accepted`, dispatch."""
         actor = self.rt(chat["chat_id"])
         device_id = chat["device_id"]
@@ -347,7 +354,7 @@ class Engine:
                                                            "reply_id": reply_id},
                              trace, task_id=task_id, turn_id=turn_id)
         if reply_id is not None:
-            reply = Reply(reply_id=reply_id, opened_at=time.monotonic(), steer=routed != "new_task")
+            reply = Reply(reply_id=reply_id, opened_at=time.monotonic(), steer=routed != "new_task", voice=voice)
             actor.replies[turn_id] = reply
             self._arm_ack(chat["chat_id"], turn_id, reply, lang, trace, task_id)
         self.chats.touch(chat["chat_id"], first_text=text)
@@ -363,12 +370,13 @@ class Engine:
                 "trace_id": trace, "task_state": task["state"]}
 
     async def answer_turn(self, task: Dict[str, Any], text: str, lang: str, trace: str,
-                          reply_id: Optional[str]) -> Dict[str, Any]:
+                          reply_id: Optional[str], voice: bool = False) -> Dict[str, Any]:
         """A late answer to a question: a turn of the waiting task in the same conversation."""
         chat = self.store.chat(task["chat_id"])
         actor = self.rt(chat["chat_id"])
         routed = "steer" if actor.current is not None else "continue"
-        return self._enqueue(chat, task, routed, text, lang, trace, None, reply_id, accepted_routed="answer")
+        return self._enqueue(chat, task, routed, text, lang, trace, None, reply_id, accepted_routed="answer",
+                             voice=voice)
 
     def _remember(self, key: str, digest: str, response: Dict[str, Any]) -> Dict[str, Any]:
         self.store.insert("idempotency", {"key": key, "scope": "message", "request_hash": digest,

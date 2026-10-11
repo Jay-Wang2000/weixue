@@ -351,8 +351,9 @@ def _timeout_s(expires_at, now):
 
 
 def from_delivery(offer, now=None):
-    """(wire fields, speech text or None) of an agent-service delivery offer of kind `agent`. A
-    needs_approval card is never silent (the device opens only interrupt and when_idle cards)."""
+    """(wire fields, speech text or None) of an agent-service delivery offer of kind `agent`. An
+    open card (needs_approval, needs_input) is never silent: the device opens only interrupt and
+    when_idle cards."""
     now = datetime.now(timezone.utc).timestamp() if now is None else now
     payload = offer.get("payload") or {}
     state = _TASK_STATE.get(payload.get("state"), payload.get("state"))
@@ -368,7 +369,7 @@ def from_delivery(offer, now=None):
         "delivery": _TIER.get(offer.get("tier"), "silent"),
         "speaks": bool(offer.get("speak")) and offer.get("tier") != "SILENT",
     }
-    if state == "needs_approval" and fields["delivery"] == "silent":
+    if state in ("needs_approval", "needs_input") and fields["delivery"] == "silent":
         fields["delivery"] = "when_idle"
     if lang:
         fields["lang"] = lang

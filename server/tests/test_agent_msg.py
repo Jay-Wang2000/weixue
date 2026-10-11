@@ -179,7 +179,7 @@ def test_from_delivery_maps_states_tiers_and_cards():
     assert fields["state"] == "unread" and fields["playback"] == "uncertain" and fields["seen"] is False
 
 
-def test_from_delivery_never_leaves_an_approval_card_silent():
+def test_from_delivery_never_leaves_an_open_card_silent():
     def offer(state, tier, speak=None):
         interaction = {"interaction_id": "int_1", "expires_at": "2026-10-07T12:05:00Z",
                        "action": {"text": "x", "reversible": True}, "question": {"text": "Which?", "options": []}}
@@ -192,7 +192,11 @@ def test_from_delivery_never_leaves_an_approval_card_silent():
         "an approval spoken inline arrives silent; its card still opens when idle"
     assert wire.from_delivery(offer("needs_approval", "INTERRUPT", "OK?"), now=now)[0]["delivery"] == "interrupt"
     assert wire.from_delivery(offer("needs_approval", "WHEN_IDLE", "OK?"), now=now)[0]["delivery"] == "when_idle"
-    assert wire.from_delivery(offer("needs_input", "SILENT"), now=now)[0]["delivery"] == "silent"
+    fields, speech = wire.from_delivery(offer("needs_input", "SILENT"), now=now)
+    assert fields["delivery"] == "when_idle" and fields["speaks"] is False and speech is None, \
+        "a question spoken inline arrives silent; its card still opens when idle"
+    fields, speech = wire.from_delivery(offer("needs_input", "WHEN_IDLE", "Which?"), now=now)
+    assert fields["delivery"] == "when_idle" and fields["speaks"] is True and speech == "Which?"
     assert wire.from_delivery(offer("progress", "SILENT"), now=now)[0]["delivery"] == "silent"
 def test_from_delivery_question_card_keeps_the_question_and_its_options():
     options = [{"id": "opt1", "label": "Living room"}, {"id": "opt2", "label": "Bedroom"}, {"id": "opt3", "label": "客厅灯"}]
