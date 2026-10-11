@@ -27,7 +27,7 @@ PLAYBACK = ("played", "cut_off", "uncertain")
 LANGS = ("en", "zh")
 RESPONSE_KINDS = ("approve", "deny", "answer", "cancel", "ack_seen", "switch_chat", "new_chat", "shown")
 CARD_KINDS = ("approve", "deny", "answer")
-VIA = ("tap", "loopback")
+VIA = ("tap",)
 RECEIPT_RESULTS = ("accepted", "duplicate", "stale")
 CUT_REASONS = ("wake", "tap", "imu", "mute", "closed", "superseded")
 CHAT_STATES = ("idle", "working", "needs_you", "unread", "failed")
@@ -115,7 +115,7 @@ def build_item(fields, seq, ts):
         raise WireError("item must be an object")
     allowed = {
         "chat_id", "task_id", "state", "title", "summary", "lang", "progress", "card_id", "options",
-        "risk", "timeout_s", "delivery", "speaks", "playback", "seen", "debug_reply",
+        "risk", "timeout_s", "delivery", "speaks", "playback", "seen",
     }
     unknown = set(fields) - allowed
     if unknown:
@@ -189,11 +189,6 @@ def build_item(fields, seq, ts):
         raise WireError("seen must be a boolean")
     if state in TERMINAL or state == "unread":
         out["seen"] = seen
-    debug = fields.get("debug_reply")
-    if debug is not None:
-        if not isinstance(debug, dict) or debug.get("kind") not in RESPONSE_KINDS:
-            raise WireError("debug_reply.kind must be a response kind")
-        out["debug_reply"] = {k: debug[k] for k in ("kind", "option_id", "text") if isinstance(debug.get(k), str)}
     if size(out) > MAX_ITEM_BYTES:
         raise WireError(f"item exceeds {MAX_ITEM_BYTES} bytes")
     return out

@@ -29,8 +29,7 @@ const char* kApproval =
     R"("state":"needs_approval","title":"Living room","summary":"Turn on living room lights",)"
     R"("lang":"en","card_id":"i_44c0","options":[{"id":"approve","label":"Approve"},)"
     R"({"id":"deny","label":"Deny"}],"risk":"reversible","timeout_s":300,"delivery":"when_idle",)"
-    R"("speaks":true,"seen":false,"future_field":{"x":1},)"
-    R"("debug_reply":{"kind":"approve","option_id":"approve"}})";
+    R"("speaks":true,"seen":false,"future_field":{"x":1}})";
 
 void TestApproval() {
     auto r = ParseText(kApproval);
@@ -46,9 +45,12 @@ void TestApproval() {
     Check(it.card_id == "i_44c0" && it.risk == Risk::kReversible && it.timeout_s == 300,
           "card_id, risk, timeout_s");
     Check(it.tier == Tier::kWhenIdle && it.speaks && !it.seen, "delivery, speaks, seen");
-    Check(it.debug_reply && it.debug_reply->kind == "approve" &&
-              it.debug_reply->option_id == "approve",
-          "debug_reply");
+
+    std::string scripted = kApproval;
+    scripted.insert(scripted.size() - 1, R"(,"debug_reply":{"kind":"approve","option_id":"approve"})");
+    auto s = ParseText(scripted);
+    Check(s.message && s.message->item.card_id == "i_44c0" && s.message->item.options.size() == 2,
+          "a debug_reply field is an ignored unknown field");
 }
 
 void TestStatesAndTiers() {
@@ -74,8 +76,8 @@ void TestStatesAndTiers() {
     Check(ok == 3, "all three delivery tiers parse");
     auto d = ParseText(R"({"kind":"agent","v":1,"seq":5,"chat_id":"c","task_id":"t","state":"working","summary":"x"})");
     Check(d.message && d.message->item.tier == Tier::kWhenIdle && !d.message->item.speaks &&
-              d.message->item.timeout_s == -1 && !d.message->item.debug_reply,
-          "defaults: when_idle, silent speech, no timeout, no debug_reply");
+              d.message->item.timeout_s == -1,
+          "defaults: when_idle, silent speech, no timeout");
 }
 
 void TestDrops() {
@@ -151,7 +153,6 @@ void TestBuilders() {
     resp.task_id = "t_91b2";
     resp.card_id = "i_44c0";
     resp.option_id = "approve";
-    resp.via = "loopback";
     std::string json = BuildResponse(2918841203u, 12, resp);
     cJSON* root = cJSON_Parse(json.c_str());
     cJSON* params = cJSON_GetObjectItem(root, "params");
@@ -160,7 +161,7 @@ void TestBuilders() {
           "agent_response method");
     Check(params && cJSON_GetObjectItem(params, "boot")->valuedouble == 2918841203.0 &&
               cJSON_GetObjectItem(params, "seq")->valueint == 12 &&
-              std::string(cJSON_GetObjectItem(params, "via")->valuestring) == "loopback" &&
+              std::string(cJSON_GetObjectItem(params, "via")->valuestring) == "tap" &&
               std::string(cJSON_GetObjectItem(params, "card_id")->valuestring) == "i_44c0",
           "agent_response params");
     Check(cJSON_GetObjectItem(params, "text") == nullptr && cJSON_GetObjectItem(params, "ack_upto") == nullptr,

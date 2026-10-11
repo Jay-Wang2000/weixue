@@ -1,5 +1,5 @@
 diff --git a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
-index 6916f35..7965665 100644
+index 6916f35..04bc1c0 100644
 --- a/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
 +++ b/main/boards/waveshare/esp32-s3-touch-amoled-1.75/esp32-s3-touch-amoled-1.75.cc
 @@ -13,6 +13,12 @@
@@ -41,7 +41,7 @@ index 6916f35..7965665 100644
  
  #if CONFIG_USE_DEVICE_AEC
          boot_button_.OnDoubleClick([this]() {
-@@ -689,16 +697,132 @@ private:
+@@ -689,16 +697,188 @@ private:
              .handle = tp,
          };
          lv_indev_t* indev = lvgl_port_add_touch(&touch_cfg);
@@ -60,8 +60,8 @@ index 6916f35..7965665 100644
 +            lvgl_port_unlock();
 +        }
 +#endif
-+    }
-+
+     }
+ 
 +    static void TouchPressedCb(lv_event_t* e) {
 +        auto* board = static_cast<WaveshareEsp32s3TouchAMOLED1inch75*>(lv_event_get_user_data(e));
 +        if (!board->panel_off_) {
@@ -126,8 +126,8 @@ index 6916f35..7965665 100644
 +        }
 +        *result = "touch needs tap <x> <y>, swipe <dir>, tour or press_boot";
 +        return false;
-     }
- 
++    }
++
 +    std::string DiagStateJson() {
 +        auto& app = Application::GetInstance();
 +        std::string imu = imu_ != nullptr ? GetImuStateJson() : "null";
@@ -138,9 +138,49 @@ index 6916f35..7965665 100644
 +               display_->DiagStateJson() + ",\"imu\":" + imu + "}";
 +    }
 +
++    // A tap at the centre of the open card's control, through the pointer like a finger.
++    bool DiagCard(const std::vector<std::string>& args, std::string* result) {
++        int32_t x = 0;
++        int32_t y = 0;
++        if (!display_->DiagCardPoint(args, &x, &y, result)) {
++            return false;
++        }
++        if (!diag_pointer_.Tap(x, y)) {
++            *result = "queue is full";
++            return false;
++        }
++        std::string what;
++        for (const auto& a : args) {
++            what += a + " ";
++        }
++        *result = what + "tap " + std::to_string(x) + " " + std::to_string(y);
++        return true;
++    }
++
++    // Output volume for this boot; the stored volume is kept for the next.
++    bool DiagVolume(const std::string& arg, std::string* result) {
++        char* end = nullptr;
++        long v = strtol(arg.c_str(), &end, 10);
++        if (arg.empty() || *end != '\0' || v < 0 || v > 100) {
++            *result = "volume needs 0-100";
++            return false;
++        }
++        int volume = static_cast<int>(v);
++        Application::GetInstance().Schedule([this, volume]() {
++            auto* codec = GetAudioCodec();
++            int stored = codec->output_volume();
++            codec->SetOutputVolume(volume);
++            Settings("audio", true).SetInt("output_volume", stored);
++            ESP_LOGI(TAG, "Volume diag: output volume %d this boot (stored %d kept)", volume, stored);
++        });
++        *result = "volume " + arg;
++        return true;
++    }
++
 +    // One line: `diag gesture <name>`, `diag touch tap <x> <y>` (or `diag tap <x> <y>`),
 +    // `diag touch swipe <dir>` (or `diag swipe <dir>`), `diag touch press_boot` (or
-+    // `diag press_boot`), `diag touch tour`, `diag dump`, `diag help`.
++    // `diag press_boot`), `diag touch tour`, `diag card approve|deny|later|option <n>`,
++    // `diag volume <0-100>`, `diag bedside night|day|auto`, `diag dump`, `diag help`.
 +    bool DiagCommand(const std::string& line, std::string* result) {
 +        std::vector<std::string> args;
 +        std::istringstream in(line);
@@ -163,6 +203,20 @@ index 6916f35..7965665 100644
 +            rest.insert(rest.begin(), cmd);
 +            return DiagTouch(rest, result);
 +        }
++        if (cmd == "card") {
++            return DiagCard(rest, result);
++        }
++        if (cmd == "volume" && rest.size() == 1) {
++            return DiagVolume(rest[0], result);
++        }
++        if (cmd == "bedside" && rest.size() == 1) {
++            if (!display_->SetBedsideHint(rest[0].c_str())) {
++                *result = "bedside needs night, day or auto";
++                return false;
++            }
++            *result = "bedside " + rest[0];
++            return true;
++        }
 +        if (cmd == "dump" && rest.empty()) {
 +            *result = DiagStateJson();
 +            display_->DiagRequestDump();
@@ -170,7 +224,9 @@ index 6916f35..7965665 100644
 +        }
 +        if (cmd == "help") {
 +            *result = "diag gesture pick_up|face_down|face_up|double_tap; diag tap <x> <y>; "
-+                      "diag swipe left|right|up|down; diag press_boot; diag touch tour; diag dump";
++                      "diag swipe left|right|up|down; diag press_boot; diag touch tour; "
++                      "diag card approve|deny|later|option <n>; diag volume <0-100>; "
++                      "diag bedside night|day|auto; diag dump";
 +            return true;
 +        }
 +        *result = "unknown command; try diag help";
@@ -181,7 +237,7 @@ index 6916f35..7965665 100644
      // 初始化工具
      void InitializeTools() {
          auto &mcp_server = McpServer::GetInstance();
-@@ -758,6 +882,11 @@ public:
+@@ -758,6 +938,11 @@ public:
          InitializeImu();
          InitializeButtons();
          InitializeTools();

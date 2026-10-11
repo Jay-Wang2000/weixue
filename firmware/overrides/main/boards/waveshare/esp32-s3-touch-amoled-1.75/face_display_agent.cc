@@ -3,7 +3,6 @@
 #include "face_display.h"
 
 #include "agent_earcons.h"
-#include "agent_loopback.h"
 #include "agent_view.h"
 #include "application.h"
 #include "assets.h"
@@ -17,6 +16,10 @@
 #include <algorithm>
 #include <cstring>
 #include <ctime>
+
+#if WEIXUE_FACE_DIAG
+#include "diag_card.h"
+#endif
 
 #define TAG "FaceDisplay"
 
@@ -67,12 +70,6 @@ void FaceDisplay::SetupAgent(lv_obj_t* screen) {
     // z-order: face, chrome, card, ring, management view.
     lv_obj_move_to_index(agent_view_->card_root(), lv_obj_get_index(ring_obj_));
 
-#if WEIXUE_AGENT_LOOPBACK
-    // Loopback test build: no bedside page this boot (RAM hint), so fixture runs do not depend
-    // on the hour.
-    bedside_schedule_.SetHint(BedsideSchedule::Hint::kDay, -1, 0);
-    ESP_LOGW(TAG, "agent ui: loopback build, bedside hint=day for this boot");
-#endif
     auto& agent = WeixueAgent::GetInstance();
     agent.SetRenderAck(true);
     agent.Subscribe([this](const weixue_agent::Store& store) { OnAgentStore(store); });
@@ -285,6 +282,27 @@ void FaceDisplay::AgentCardTap(int index) {
         }
     });
 }
+
+#if WEIXUE_FACE_DIAG
+bool FaceDisplay::DiagCardPoint(const std::vector<std::string>& args, int32_t* x, int32_t* y,
+                                std::string* error) {
+    DisplayLockGuard lock(this);
+    if (agent_view_ == nullptr) {
+        *error = "no agent view";
+        return false;
+    }
+    diag_card::Target t = diag_card::Resolve(args, agent_.Card(NowMs()));
+    if (!t.ok) {
+        *error = t.error;
+        return false;
+    }
+    if (!agent_view_->CardControlCenter(t.control, x, y)) {
+        *error = "the card control is not on screen";
+        return false;
+    }
+    return true;
+}
+#endif
 
 void FaceDisplay::AgentTapTask(const std::string& task_id) {
     const auto* t = agent_.Find(task_id);

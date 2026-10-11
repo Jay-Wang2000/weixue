@@ -70,11 +70,6 @@ public:
 private:
     WeixueAgent() = default;
 
-    struct LoopbackReply {
-        int64_t due_us;
-        weixue_agent::Response response;
-    };
-
     weixue_agent::Store store_;
     std::vector<Listener> listeners_;
     std::atomic<int64_t> applied_seq_{0};
@@ -83,7 +78,6 @@ private:
     bool render_ack_ = false;
 
     weixue_agent::Outbox outbox_;
-    std::vector<LoopbackReply> loopback_;
 
     std::string sentence_;
     bool sentence_stop_ = false;

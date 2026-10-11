@@ -10,10 +10,12 @@ busy (WHEN_IDLE speech queued while a session is open), spoken (INTERRUPT and WH
 view (the gateway's deliveries view), ui (the device UI tour: three chats with titles, progress,
 a countdown approval, a 3-option question, an irreversible approval, unread, failed and stopped
 results, --gap seconds apart; card-only), eight (8 full-size tasks at once, for the paged poll
-and the snapshot after a board reset), closing (an announcement and an approval with a loopback
-approve, so the approve meets the session the server closes after the announcement), chats (a raw
+and the snapshot after a board reset), closing (an announcement and an approval, answered on the
+device while the server closes the session after the announcement), chats (a raw
 v1.2 `agent_chats` list of five chats of the ui tour's prefix, current `home`; a v1.1 device drops
-it). Output is JSON lines; --log appends them to a file."""
+it). The device answers cards only by a tap (on a diag build `diag card approve|deny|option <n>`);
+approval, clarify, unread and closing wait --wait seconds for that response. Output is JSON lines;
+--log appends them to a file."""
 import argparse
 import json
 import os
@@ -144,21 +146,18 @@ def states(fx, args):
 def approval(fx, args):
     records = fx.send([item(fx, "ap", "needs_approval", "when_idle", "Turn on the hall light", card_id=f"i_{fx.prefix}_ap",
                             risk="reversible", timeout_s=300,
-                            options=[{"id": "approve", "label": "Approve"}, {"id": "deny", "label": "Deny"}],
-                            debug_reply={"kind": "approve", "option_id": "approve"})])["items"]
+                            options=[{"id": "approve", "label": "Approve"}, {"id": "deny", "label": "Deny"}])])["items"]
     fx.report(records, args.wait, responses=1)
 
 
 def clarify(fx, args):
     records = fx.send([item(fx, "cl", "needs_input", "when_idle", "Which room?", card_id=f"i_{fx.prefix}_cl",
-                            options=[{"id": "kitchen", "label": "Kitchen"}, {"id": "hall", "label": "Hall"}],
-                            debug_reply={"kind": "answer", "option_id": "hall"})])["items"]
+                            options=[{"id": "kitchen", "label": "Kitchen"}, {"id": "hall", "label": "Hall"}])])["items"]
     fx.report(records, args.wait, responses=1)
 
 
 def unread(fx, args):
-    records = fx.send([item(fx, "ur", "unread", "silent", "The washer finished", seen=False,
-                            debug_reply={"kind": "ack_seen"})])["items"]
+    records = fx.send([item(fx, "ur", "unread", "silent", "The washer finished", seen=False)])["items"]
     fx.report(records, args.wait, responses=1)
 
 
@@ -260,8 +259,7 @@ def closing(fx, args):
     fx.announce("Checking the closing window of this session.")
     records = fx.send([item(fx, "cw", "needs_approval", "when_idle", "Turn on the porch light", card_id=f"i_{fx.prefix}_cw",
                             risk="reversible", timeout_s=300,
-                            options=[{"id": "approve", "label": "Approve"}, {"id": "deny", "label": "Deny"}],
-                            debug_reply={"kind": "approve", "option_id": "approve"})])["items"]
+                            options=[{"id": "approve", "label": "Approve"}, {"id": "deny", "label": "Deny"}])])["items"]
     fx.report(records, args.wait, responses=1)
 
 

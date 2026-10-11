@@ -1,0 +1,81 @@
+# fix-remove-debug-reply on the board, 2026-10-11 (UTC; server clock Europe/Dublin = UTC+1)
+# board esp32-s3-touch-amoled-1.75c on /dev/cu.usbmodem2101; device lock 07:40:10Z-07:43:27Z; live server = main's deployed image (this branch's server changes not deployed)
+# builds from this branch (patches 05-36 apply): diag (WEIXUE_FACE_DIAG=1) xiaozhi.bin 3,141,680 B, 128 s; release 3,130,480 B, 66 s
+# strings: debug_reply 0 in both; diag 0 in release; the one 'loopback' string in both is ESP-IDF's TLS skip_common_name warning
+# the fixture task t_084145_ap was dropped from the gateway afterwards (agent_msg_fixture.py drop)
+
+## 1. Diag build: volume 0, bedside day, diag card refusals, fixture approval answered by 'diag card approve' (serial)
+[    0.11 07:41:31Z] ### reset; waiting for the diag console
+[    2.18 07:41:33Z] I (2008) DiagConsole: listening on USB Serial/JTAG
+[    2.18 07:41:33Z] ### send diag volume 0
+[    2.39 07:41:33Z] I (2188) DiagConsole: ok diag volume 0: volume 0
+[    2.39 07:41:33Z] ### diag volume 0: ok volume 0
+[    2.39 07:41:33Z] ### send diag bedside day
+[    2.59 07:41:33Z] I (2478) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+[    2.59 07:41:33Z] I (2478) FaceDisplay: bedside hint=day local=--:--
+[    2.59 07:41:33Z] I (2478) DiagConsole: ok diag bedside day: bedside day
+[    2.59 07:41:33Z] I (2548) WeixueAgent: agent: protocol v1 level 2, boot 703529818
+[    2.59 07:41:33Z] ### diag bedside day: ok bedside day
+[    2.59 07:41:33Z] ### send diag card approve
+[    2.79 07:41:33Z] W (2608) DiagConsole: error diag card approve: no card open
+[    2.79 07:41:33Z] ### diag card approve: error no card open
+[    3.00 07:41:33Z] I (2798) WaveshareEsp32s3TouchAMOLED1inch75: Volume diag: output volume 0 this boot (stored 100 kept)
+[    5.26 07:41:36Z] I (5088) Application: Proactive poller: http://<IP>:8003/weixue/proactive/poll
+[    5.46 07:41:36Z] I (5318) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=applied via=poll
+[    5.46 07:41:36Z] I (5318) WeixueAgent: agent: sync seq=1791704496074 listed=0 dropped=0 tasks=0 via=poll
+[    5.46 07:41:36Z] I (5368) FaceDisplay: agent ui: chats=2 current=cht_01M4MW1X6BH94BTK44DREH1MN1 header=New chat
+[   14.81 07:41:45Z] ### fixture approval
+[   15.63 07:41:46Z] I (15488) WeixueAgent: agent: chat=c_084145 task=t_084145_ap state=needs_approval seq=1791704505859 tier=when_idle speaks=0 result=applied via=poll
+[   15.63 07:41:46Z] I (15518) FaceDisplay: agent ui: task=t_084145_ap state=needs_approval tier=when_idle flash=2 earcon=needs_you
+[   15.63 07:41:46Z] I (15518) FaceDisplay: earcon=needs_you
+[   15.63 07:41:46Z] I (15518) FaceDisplay: agent ui: card open task=t_084145_ap
+[   15.63 07:41:46Z] ### card open: True
+[   16.63 07:41:47Z] ### send diag card option 1
+[   16.88 07:41:47Z] W (16688) DiagConsole: error diag card option 1: option needs a question card
+[   16.88 07:41:47Z] ### diag card option 1: error option needs a question card
+[   16.88 07:41:47Z] ### send diag card approve
+[   17.09 07:41:48Z] I (16898) DiagConsole: ok diag card approve: approve tap 151 302
+[   17.09 07:41:48Z] I (16898) DiagInput: pointer (151,302)->(151,302) 120 ms
+[   17.09 07:41:48Z] I (17028) WeixueAgent: agent response: kind=approve chat=c_084145 task=t_084145_ap card=i_084145_ap option=approve via=tap seq=1
+[   17.09 07:41:48Z] ### diag card approve: ok approve tap 151 302
+[   17.69 07:41:48Z] I (17528) WeixueAgent: agent receipt: approve seq=1 card=i_084145_ap result=stale
+[   17.69 07:41:48Z] W (17548) WeixueAgent: agent ack refused by the server: approve t_084145_ap seq 1
+[   17.69 07:41:48Z] ### receipt: I (17528) WeixueAgent: agent receipt: approve seq=1 card=i_084145_ap result=stale
+[   20.70 07:41:51Z] ### send diag dump
+[   20.93 07:41:51Z] I (20708) DiagConsole: ok diag dump: {"device_state":"idle","panel_off":false,"brightness":75,"display":{"mode":"idle","mood":"neutral","ring":"ears","bedside":false,"panel":false,"page":1,"card":true,"chats":false},"imu":{"face_down":false,"mic_muted":false,"last_gesture":"","last_gesture_age_ms":-1,"counts":{"pick_up":0,"face_down":0,"face_up":0,"double_tap":0},"accel_g":[0.21,-0.56,0.81],"sampling":{"overruns":9,"resyncs":3,"skipped":6,"read_errors":0,"torn_timestamps":1}}}
+[   20.93 07:41:51Z] ### dump ok=True
+
+## 2. Server (weixue_agent_delivery) for the same run
+261011 08:41:36[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=7c:0c:5f:42:4b:fc seq=0: snapshot due
+261011 08:41:36[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=2 seqs=[1791701873873, 1791704496074] snapshot=True
+261011 08:41:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=7c:0c:5f:42:4b:fc chat=c_084145 task=t_084145_ap state=needs_approval seq=1791704505859 tier=when_idle speaks=False delivery=fx_4b38c8a6fd034d31974562d7
+261011 08:41:45[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=7c:0c:5f:42:4b:fc items=1 seqs=[1791704505859] snapshot=False
+261011 08:41:46[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=fx_4b38c8a6fd034d31974562d7 device=7c:0c:5f:42:4b:fc seq=1791704505859 via=poll
+261011 08:41:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection open device=7c:0c:5f:42:4b:fc session=<uuid>
+261011 08:41:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent response approve device=7c:0c:5f:42:4b:fc chat=c_084145 task=t_084145_ap card=i_084145_ap option=approve via=tap boot=703529818 seq=1
+261011 08:41:48[0.9.7_00000000000000][weixue_agent_delivery]-WARNING-agent-service /v1/chats/c_084145/approve: HTTP 404
+261011 08:41:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent approve device=7c:0c:5f:42:4b:fc card=i_084145_ap seq=1 service=rejected result=stale
+261011 08:41:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent receipt approve boot=703529818 seq=1 card=i_084145_ap result=stale
+261011 08:41:48[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection close device=7c:0c:5f:42:4b:fc session=<uuid>
+
+## 3. Fixture output (agent_msg_fixture.py approval)
+{"t": 1791704505.832, "event": "scenario", "name": "approval", "prefix": "084145", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791704505.868, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_4b38c8a6fd034d31974562d7", "seq": 1791704505859, "task_id": "t_084145_ap"}], "dropped": []}}
+{"t": 1791704508.985, "event": "item", "seq": 1791704505859, "task_id": "t_084145_ap", "delivery_id": "fx_4b38c8a6fd034d31974562d7", "acks": [{"outcome": "shown", "received_at": 1791704506.741, "seq": 1791704505859, "via": "poll"}]}
+{"t": 1791704508.985, "event": "responses", "responses": [{"device": "7c:0c:5f:42:4b:fc", "received_at": 1791704508.126, "boot": 703529818, "seq": 1, "kind": "approve", "chat_id": "c_084145", "task_id": "t_084145_ap", "card_id": "i_084145_ap", "option_id": "approve", "via": "tap"}]}
+{"t": 1791704508.985, "event": "device", "acked_upto": 1791704505859, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_084145_ap", "seq": 1791704505859, "state": "needs_approval", "delivery_id": "fx_4b38c8a6fd034d31974562d7"}], "unacked": []}
+
+## 4. Release build flashed back: boot, no diag console
+[    2.56 07:43:16Z] I (2417) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+[    2.76 07:43:16Z] I (2567) WeixueAgent: agent: protocol v1 level 2, boot 1868435401
+[    2.77 07:43:16Z] ### release boot: I (2567) WeixueAgent: agent: protocol v1 level 2, boot 1868435401
+[    2.77 07:43:16Z] ### send diag help
+[    4.81 07:43:18Z] I (4687) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=applied via=poll
+[    4.81 07:43:18Z] I (4687) WeixueAgent: agent: chat=c_084145 task=t_084145_ap state=needs_approval seq=1791704505859 tier=when_idle speaks=0 result=applied via=poll
+[    4.81 07:43:18Z] I (4787) FaceDisplay: agent ui: chats=2 current=cht_01M4MW1X6BH94BTK44DREH1MN1 header=New chat
+[    4.81 07:43:18Z] I (4797) FaceDisplay: agent ui: task=t_084145_ap state=needs_approval tier=when_idle flash=2 earcon=needs_you
+[    5.02 07:43:18Z] I (4947) WeixueAgent: agent: sync seq=1791704598805 listed=1 dropped=0 tasks=1 via=poll
+[    5.78 07:43:19Z] ### diag help on release: no answer no answer (not a diag build, or the console is not running)
+[    6.45 07:43:20Z] I (6267) FaceDisplay: agent ui: pose=attentive top=t_084145_ap
+[    7.09 07:43:20Z] I (6957) FaceDisplay: agent ui: card open task=t_084145_ap
+[    7.30 07:43:21Z] I (7097) FaceDisplay: agent ui: pose=full top=t_084145_ap

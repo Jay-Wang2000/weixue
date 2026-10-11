@@ -740,6 +740,26 @@ void AgentView::SetCard(const CardView& v) {
     }
 }
 
+bool AgentView::CardControlCenter(int control, int32_t* x, int32_t* y) {
+    lv_obj_t* obj = nullptr;
+    if (control == -1) {
+        obj = card_later_;
+    } else if (card_kind_ == CardKind::kApproval && control >= 0 && control < 2) {
+        obj = card_buttons_[control];
+    } else if (card_kind_ == CardKind::kQuestion && control >= 0 && control < 4) {
+        obj = card_options_[control];
+    }
+    if (obj == nullptr || !CardCovering() || lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN)) {
+        return false;
+    }
+    lv_obj_update_layout(card_root_);
+    lv_area_t a;
+    lv_obj_get_coords(obj, &a);
+    *x = (a.x1 + a.x2 + 1) / 2;
+    *y = (a.y1 + a.y2 + 1) / 2;
+    return true;
+}
+
 void AgentView::SetBlink(float blink) {
     blink_ = blink;
     for (int i = 0; i < 2; i++) {

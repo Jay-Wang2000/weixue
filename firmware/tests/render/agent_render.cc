@@ -188,11 +188,32 @@ void Clock(lv_obj_t* face) {
     lv_obj_set_pos(l, 196, 3);
 }
 
-void Finish(Scene& s, const std::string& out, const char* name) {
+int g_failures = 0;
+
+struct Center {
+    const char* what;
+    int control;
+    int32_t x, y;
+};
+
+// Tap points of the card controls (`diag card`), x < 0 = not on screen; a mismatch fails the run.
+void ExpectCenters(AgentView* v, const char* name, std::initializer_list<Center> want) {
+    for (const Center& c : want) {
+        int32_t x = -1, y = -1;
+        bool got = v->CardControlCenter(c.control, &x, &y);
+        bool ok = c.x < 0 ? !got : got && x == c.x && y == c.y;
+        printf("%-22s %s at (%d,%d)%s\n", name, c.what, static_cast<int>(x), static_cast<int>(y),
+               ok ? "" : " UNEXPECTED");
+        g_failures += !ok;
+    }
+}
+
+void Finish(Scene& s, const std::string& out, const char* name, std::initializer_list<Center> centers = {}) {
     for (int i = 0; i < 60; i++) {
         g_tick += 20;
         lv_timer_handler();
     }
+    ExpectCenters(s.view, name, centers);
     lv_obj_invalidate(s.screen);
     lv_refr_now(nullptr);
     double lit = WritePng(out + "/" + name + ".png");
@@ -317,7 +338,7 @@ int main(int argc, char** argv) {
         s.view->SetCard(r.model.Card(4000));
         s.view->ShowCard(true);
         g_ring = r.model.Ring(2500, 0);
-        Finish(s, out, "agent-approval-card");
+        Finish(s, out, "agent-approval-card", {{"approve", 0, 151, 302}, {"deny", 1, 315, 302}, {"later", -1, -1, -1}});
     }
     {  // approval card, sending
         Rig r;
@@ -373,7 +394,14 @@ int main(int argc, char** argv) {
         s.view->ShowCard(true);
         g_ring = r.model.Ring(2000, 0);
         std::string name = "agent-clarification-" + std::to_string(n);
-        Finish(s, out, name.c_str());
+        if (n == 2) {
+            Finish(s, out, name.c_str(), {{"option 1", 0, 151, 317}, {"option 2", 1, 315, 317}, {"option 3", 2, -1, -1}});
+        } else if (n == 3) {
+            Finish(s, out, name.c_str(), {{"option 1", 0, 151, 282}, {"option 2", 1, 315, 282}, {"option 3", 2, 233, 358}});
+        } else {
+            Finish(s, out, name.c_str(), {{"option 1", 0, 151, 282}, {"option 2", 1, 315, 282}, {"option 3", 2, 151, 358},
+                                          {"option 4", 3, 315, 358}});
+        }
     }
     {  // management page 1
         Rig r;
@@ -441,5 +469,5 @@ int main(int argc, char** argv) {
         s.view->SetTransient("Kids' homework", "Last: Kids' homework", color::kValue);
         Finish(s, out, "agent-chat-switched");
     }
-    return 0;
+    return g_failures == 0 ? 0 : 1;
 }
