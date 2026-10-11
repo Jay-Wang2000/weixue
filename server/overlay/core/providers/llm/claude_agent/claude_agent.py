@@ -261,6 +261,8 @@ class AgentTurn:
         self.spoken = False
         self.last_seq = 0
         self.actions = set()
+        # action_ids of this turn's device_action events already started (a resume may replay one).
+        self.action_ids = set()
 
     # Any thread
 
@@ -471,6 +473,15 @@ class AgentTurn:
         elif kind == "progress" and mine and data.get("phase") == "tool":
             self.metrics.tool()
         elif kind == "device_action" and self.accepted and mine:
+            action_id = data.get("action_id")
+            if not isinstance(action_id, str) or not _ACTION_ID.match(action_id):
+                return False
+            if action_id in self.action_ids:
+                logger.bind(tag=TAG).info(
+                    f"device_action {action_id} replayed: not run again trace={self.metrics.trace}"
+                )
+                return False
+            self.action_ids.add(action_id)
             task = asyncio.get_running_loop().create_task(self._device_action(data))
             self.actions.add(task)
             task.add_done_callback(self.actions.discard)
@@ -481,9 +492,7 @@ class AgentTurn:
         return False
 
     async def _device_action(self, data):
-        action_id, tool = data.get("action_id"), data.get("tool")
-        if not isinstance(action_id, str) or not _ACTION_ID.match(action_id):
-            return
+        action_id, tool = data["action_id"], data.get("tool")
         result = await run_device_tool(self.conn, tool, data.get("args", {}))
         logger.bind(tag=TAG).info(
             f"device_action {tool} ok={result['ok']} action={action_id} trace={self.metrics.trace}"

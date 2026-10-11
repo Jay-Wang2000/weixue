@@ -7,7 +7,10 @@ firmware sends it, or with --bind `weixue:proactive:<id>:<lease>` from the poll 
 --invoke-delay waits before opening the session. --abort-after S sends `abort` S seconds after the
 detect. Requests carry Device-Id and Client-Id, plus Authorization when --token is given.
 --mcp-tools answers the server's device MCP (initialize, tools/list with SIM_TOOLS, tools/call, each
-call logged as `mcp call <name> <args>`)."""
+call logged as `mcp call <name> <args>`). --replies N sends the reply WAV after each of the first N
+`tts stop`s; --barge-in S sends it once more (its first --barge-frames frames) S seconds after the first
+audio frame that follows the first reply (while the answer plays); --agent adds `features.agent` to the hello and answers a `tts stop` that
+carries `ack` with a complete `notifications/weixue/played` (logged as `played <sentence_id>`)."""
 import argparse
 import asyncio
 import json
@@ -81,6 +84,11 @@ async def main():
     ap.add_argument("--invoke-delay", type=float, default=0, help="seconds between the poll's 200 and the session")
     ap.add_argument("--abort-after", type=float, default=None, help="send abort this many seconds after the detect")
     ap.add_argument("--mcp-tools", action="store_true", help="answer device MCP requests with SIM_TOOLS")
+    ap.add_argument("--replies", type=int, default=1, help="send the reply after each of the first N tts stops")
+    ap.add_argument("--barge-in", type=float, default=None,
+                    help="send the reply again this many seconds into the answer to the first reply")
+    ap.add_argument("--barge-frames", type=int, default=None, help="with --barge-in, send only this many frames")
+    ap.add_argument("--agent", action="store_true", help="advertise features.agent in the hello")
     a = ap.parse_args()
     ident = {"Device-Id": a.device, "Client-Id": a.client_id}
     if a.token:
@@ -110,7 +118,8 @@ async def main():
     reply = [enc.encode(f, FRAME) for f in frames_from_wav(a.reply)] if a.reply else []
     headers = {**ident, "Protocol-Version": "1"}
     async with websockets.connect(a.ws, additional_headers=headers) as ws:
-        await ws.send(json.dumps({"type": "hello", "version": 1, "features": {"mcp": True}, "transport": "websocket",
+        features = {"mcp": True, **({"agent": 1} if a.agent else {})}
+        await ws.send(json.dumps({"type": "hello", "version": 1, "features": features, "transport": "websocket",
                                   "audio_params": {"format": "opus", "sample_rate": 16000, "channels": 1, "frame_duration": 60}}))
         first = await ws.recv()
         try:
@@ -132,12 +141,14 @@ async def main():
             await asyncio.sleep(a.abort_after)
             log("sending abort")
             await ws.send(json.dumps({"session_id": sid, "type": "abort"}))
-        state = {"stops": 0, "reply_at": None, "audio": 0}
+        state = {"stops": 0, "reply_at": None, "audio": 0, "clips": 0, "barge": a.barge_in is not None, "events": 0}
+        boot = int(time.time()) % 2 ** 32
         async def sender():
             queue = []
             while not ws.close_code:
                 if state["reply_at"] and time.time() >= state["reply_at"] and reply:
-                    queue, state["reply_at"] = list(reply), None
+                    queue, state["reply_at"] = list(reply[:state.pop("frames", None)]), None
+                    state["clips"] += 1
                     log("sending reply clip", len(queue), "frames")
                 try:
                     await ws.send(queue.pop(0) if queue else silence)
@@ -150,6 +161,11 @@ async def main():
                     state["audio"] += 1
                     if state["audio"] == 1 and reply and a.reply_during_playback:
                         state["reply_at"] = time.time() + a.reply_delay
+                    if state["barge"] and state["clips"] == 1 and not state["reply_at"]:
+                        state["barge"] = False
+                        state["reply_at"] = time.time() + a.barge_in
+                        state["frames"] = a.barge_frames
+                        log("barge-in in", a.barge_in, "s")
                     continue
                 m = json.loads(msg)
                 if m.get("type") == "mcp":
@@ -162,7 +178,14 @@ async def main():
                 log("<<", json.dumps({k: v for k, v in m.items() if k != "session_id"}, ensure_ascii=False), f"(audio frames so far {state['audio']})")
                 if m.get("type") == "tts" and m.get("state") == "stop":
                     state["stops"] += 1
-                    if state["stops"] == 1 and reply:
+                    if a.agent and m.get("ack") and m.get("sentence_id"):
+                        state["events"] += 1
+                        params = {"v": 1, "boot": boot, "seq": state["events"], "sentence_id": m["sentence_id"],
+                                  "complete": True}
+                        await ws.send(json.dumps({"session_id": sid, "type": "mcp", "payload": {
+                            "jsonrpc": "2.0", "method": "notifications/weixue/played", "params": params}}))
+                        log("played", m["sentence_id"])
+                    if state["stops"] <= a.replies and reply:
                         state["reply_at"] = time.time() + a.reply_delay
         tasks = [asyncio.create_task(sender()), asyncio.create_task(receiver())]
         done, pending = await asyncio.wait(tasks, timeout=a.max_seconds, return_when=asyncio.FIRST_COMPLETED)

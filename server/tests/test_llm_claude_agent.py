@@ -35,6 +35,7 @@ class FakeService:
         self.posts = []
         self.gets = []
         self.results = {}
+        self.result_posts = []
         self.closed_at = []
         self.seq = 0
         self.post_script = None
@@ -70,6 +71,7 @@ class FakeService:
 
     async def _device_action(self, request):
         self.results[request.match_info["action"]] = await request.json()
+        self.result_posts.append(request.match_info["action"])
         return web.json_response({"action_id": request.match_info["action"], "accepted": True})
 
     # Script helpers
@@ -527,6 +529,33 @@ def test_device_action_runs_on_the_device_and_acks_the_result(svc, conn, device_
     assert spoken(chat(conn, "Set bedside mode")) == "Okay. Done."
     assert device_calls == [("self_screen_set_bedside", {"mode": "night"}, ca.DEVICE_CALL_TIMEOUT_S)]
     assert svc.results[ACTION] == {"ok": True, "result": '{"night":true}'}
+
+
+def test_a_replayed_device_action_runs_once(svc, conn, device_calls, monkeypatch):
+    monkeypatch.setattr(ca, "STALL_S", 0.4)
+    action = {"action_id": ACTION, "tool": "self.screen.set_bedside", "args": {"mode": "night"}}
+
+    async def post(svc, request):
+        resp = await svc.open(request)
+        await svc.accepted(resp)
+        await svc.send(resp, "text", {"delta": "Okay. "})
+        await svc.send(resp, "device_action", action)
+        await svc.send(resp, "device_action", action)
+        await svc.hold(request, 3)
+        return resp
+
+    async def resume(svc, request):
+        resp = await svc.open(request)
+        await svc.send(resp, "device_action", action)
+        await svc.send(resp, "text", {"delta": "Done."})
+        await svc.reply_end(resp)
+        return resp
+    svc.post_script = post
+    svc.resume_script = resume
+    assert spoken(chat(conn, "Set bedside mode")) == "Okay. Done."
+    assert len(svc.gets) == 1
+    assert device_calls == [("self_screen_set_bedside", {"mode": "night"}, ca.DEVICE_CALL_TIMEOUT_S)]
+    assert svc.result_posts == [ACTION]
 
 
 @pytest.mark.parametrize("tool", ["self.diag.gesture", "self.system.reconfigure_wifi", "self.camera.take_photo"])

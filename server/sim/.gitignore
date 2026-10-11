@@ -1,3 +1,4 @@
 data/sim_transcripts.txt
 *.out
 data/agent-service/
+data/agent.rendered.yaml

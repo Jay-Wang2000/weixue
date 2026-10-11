@@ -4,6 +4,7 @@ import json
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Set
 
 from . import timeutil
+from .clause import first_clause_cut
 from .store import Store
 
 TERMINAL_EVENTS = frozenset({"done", "failed", "cancelled"})
@@ -76,20 +77,24 @@ class EventHub:
 
 
 class TextCoalescer:
-    """Buffers streamed text deltas into one `emit(text)` per interval or sentence end; the first delta goes
-    out at once."""
+    """Buffers streamed text deltas into one `emit(text)` per interval or sentence end; every delta up to the end
+    of the first clause (clause.first_clause_cut) goes out at once."""
 
     def __init__(self, emit: Callable[[str], Any], interval_s: float):
         self._emit = emit
         self._interval = interval_s
         self._buffer: List[str] = []
         self._timer: Optional[asyncio.TimerHandle] = None
-        self._first = True
+        self._head: Optional[str] = ""
 
     def add(self, delta: str) -> None:
         self._buffer.append(delta)
-        if self._first or delta.rstrip().endswith(SENTENCE_ENDS):
-            self._first = False
+        if self._head is not None:
+            self._head += delta
+            if first_clause_cut(self._head):
+                self._head = None
+            self.flush()
+        elif delta.rstrip().endswith(SENTENCE_ENDS):
             self.flush()
         elif self._timer is None:
             self._timer = asyncio.get_running_loop().call_later(self._interval, self.flush)

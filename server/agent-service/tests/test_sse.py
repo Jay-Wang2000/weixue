@@ -1,4 +1,6 @@
-"""SSE framing and replay."""
+"""SSE framing, replay and text coalescing."""
+import asyncio
+
 from weixue_agent.sse import sse_frame
 
 
@@ -22,13 +24,37 @@ async def test_message_stream_resumes_after_last_event_id(make):
     assert resp.headers["x-trace-id"]
 
 
-async def test_coalescer_sends_the_first_delta_at_once_then_buffers():
+async def test_coalescer_sends_every_delta_of_the_first_clause_at_once_then_buffers():
     from weixue_agent.sse import TextCoalescer
     out = []
     c = TextCoalescer(out.append, 0.05)
-    c.add("The")
-    c.add(" living")
-    c.add(" room")
-    assert out == ["The"]
-    c.add(" light is off.")
-    assert out == ["The", " living room light is off."]
+    for delta in ("The", " living", " room", " light is off", ", and", " the", " heating"):
+        c.add(delta)
+    assert out == ["The", " living", " room", " light is off", ", and"]
+    c.add(" is on.")
+    assert out[-1] == " the heating is on."
+    c.add(" Anything")
+    c.add(" else")
+    assert out[-1] == " the heating is on."
+    await asyncio.sleep(0.1)
+    assert out[-1] == " Anything else"
+
+
+async def test_coalescer_first_clause_follows_the_tts_rule():
+    from weixue_agent.sse import TextCoalescer
+    zh, words, short = [], [], []
+    c = TextCoalescer(zh.append, 3)
+    for delta in ("好的，", "我来看", "看。", "然后", "告诉你"):
+        c.add(delta)
+    assert zh == ["好的，", "我来看", "看。"]
+    c.discard()
+    c = TextCoalescer(words.append, 3)
+    for word in "one two three four five six seven eight nine ten".split():
+        c.add(word + " ")
+    assert words == [w + " " for w in "one two three four five six seven eight".split()]
+    c.discard()
+    c = TextCoalescer(short.append, 3)
+    for delta in ("Dr. ", "Lee ", "at ", "3.", "5", " pm", ", then", " more"):
+        c.add(delta)
+    assert short == ["Dr. ", "Lee ", "at ", "3.", "5", " pm", ", then"]
+    c.discard()
