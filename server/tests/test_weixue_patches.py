@@ -158,6 +158,11 @@ def test_apply_patches_each_hook_once(monkeypatch):
 
     ConnectionHandler.handle_connection = handle_connection
 
+    async def route_message(self, message):
+        return None
+
+    ConnectionHandler._route_message = route_message
+
     class ListenTextMessageHandler:
         pass
 
@@ -186,7 +191,11 @@ def test_apply_patches_each_hook_once(monkeypatch):
     assert ConnectionHandler()._clean_response_garbage("two is ") == "two is "
     assert ConnectionHandler()._extract_direct_answer_response('{"response": "a\\"b') == 'a"b'
     assert ConnectionHandler.handle_connection.weixue_wrapped is handle_connection
-    assert ListenTextMessageHandler.handle.weixue_wrapped.weixue_wrapped is handle
+    assert ConnectionHandler._route_message.weixue_wrapped is route_message
+    assert ListenTextMessageHandler.handle.weixue_wrapped.weixue_wrapped.weixue_wrapped is handle
+    asr_base = sys.modules["core.providers.asr.base"].ASRProviderBase
+    for name in ("handle_voice_stop", "speech_to_text_wrapper", "receive_audio"):
+        assert getattr(asr_base, name).weixue_wrapped.__name__ == name
     assert isinstance(http_server.web, weixue_patches.WebWithRoutes)
     assert http_server.web._web is web
     ota = sys.modules["core.api.ota_handler"].OTAHandler

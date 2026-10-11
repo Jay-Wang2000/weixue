@@ -1,0 +1,51 @@
+# fix-stt-stream-dropouts diag build 2893be0 on the board, 2026-10-11 09:10-09:15 UTC (diag_inject follow, redacted). BOOT via diag press_boot; wakes: Google TTS Fenrir 'Jarvis, what time is it?' via afplay at volume 55. Live server: main, VOICE_ASR=GoogleSTT.
+[    2.06 09:10:54Z] I (2037) StateMachine: State: starting -> wifi_configuring
+[    2.06 09:10:54Z] I (2037) DiagConsole: ok diag press_boot: press_boot
+[    4.33 09:10:56Z] I (4227) StateMachine: State: wifi_configuring -> activating
+[    4.53 09:10:57Z] I (4507) StateMachine: State: activating -> idle
+[   64.97 09:11:57Z] I (64917) Application: Session start: toggle
+[   64.97 09:11:57Z] I (64917) StateMachine: State: idle -> connecting
+[   64.97 09:11:57Z] I (64917) DiagConsole: ok diag press_boot: press_boot
+[   65.19 09:11:57Z] I (65027) StateMachine: State: connecting -> listening
+[   73.12 09:12:05Z] I (73097) Application: Audio channel closed: 132 packets sent, 0 dropped, oldest sent 0 ms after encoding
+[   73.32 09:12:05Z] I (73127) StateMachine: State: listening -> idle
+[    4.91 09:13:36Z] I (4787) StateMachine: State: activating -> idle
+[   18.55 09:13:50Z] I (18537) Application: Wake word detected: Jarvis (state: 3)
+[   18.55 09:13:50Z] I (18537) Application: Session start: wake_word
+[   18.55 09:13:50Z] I (18537) StateMachine: State: idle -> connecting
+[   18.97 09:13:50Z] I (18887) Application: Wake word detected: Jarvis
+[   18.97 09:13:50Z] I (18897) AfeAudioEngine: Encoded wake word into 33 packets in 362 ms
+[   18.97 09:13:50Z] I (18907) Application: Sent 5 packets captured after the wake word
+[   18.97 09:13:50Z] I (18907) StateMachine: State: connecting -> listening
+[   21.84 09:13:53Z] I (21657) Application: >> Jervis, what time is it?
+[   21.84 09:13:53Z] I (21667) StateMachine: State: listening -> speaking
+[   23.25 09:13:55Z] I (23067) Application: << It's ten thirteen in the morning
+[   25.91 09:13:57Z] I (25867) StateMachine: State: speaking -> listening
+[   34.05 09:14:05Z] I (33897) Application: Audio channel closed: 283 packets sent, 0 dropped, oldest sent 313 ms after encoding
+[   34.05 09:14:05Z] I (33927) StateMachine: State: listening -> idle
+[   38.51 09:14:10Z] I (38457) Application: Wake word detected: Jarvis (state: 3)
+[   38.51 09:14:10Z] I (38457) Application: Session start: wake_word
+[   38.51 09:14:10Z] I (38467) StateMachine: State: idle -> connecting
+[   38.72 09:14:10Z] I (38647) Application: Wake word detected: Jarvis
+[   38.92 09:14:10Z] I (38847) AfeAudioEngine: Encoded wake word into 33 packets in 390 ms
+[   38.92 09:14:10Z] I (38857) Application: Sent 5 packets captured after the wake word
+[   38.92 09:14:10Z] I (38857) StateMachine: State: connecting -> listening
+[   41.75 09:14:13Z] I (41687) Application: >> Jarvis, what time is it?
+[   41.75 09:14:13Z] I (41717) StateMachine: State: listening -> speaking
+[   42.98 09:14:14Z] I (42897) Application: << It's fourteen minutes past ten in the morning
+[   45.67 09:14:17Z] I (45477) StateMachine: State: speaking -> listening
+[   53.51 09:14:25Z] I (53477) Application: Audio channel closed: 283 packets sent, 0 dropped, oldest sent 287 ms after encoding
+[   53.72 09:14:25Z] I (53567) StateMachine: State: listening -> idle
+[   58.88 09:14:30Z] I (58707) Application: Wake word detected: Jarvis (state: 3)
+[   58.88 09:14:30Z] I (58707) Application: Session start: wake_word
+[   58.88 09:14:30Z] I (58707) StateMachine: State: idle -> connecting
+[   59.09 09:14:31Z] I (58917) Application: Wake word detected: Jarvis
+[   59.30 09:14:31Z] I (59137) AfeAudioEngine: Encoded wake word into 33 packets in 430 ms
+[   59.30 09:14:31Z] I (59147) Application: Sent 6 packets captured after the wake word
+[   59.30 09:14:31Z] I (59147) StateMachine: State: connecting -> listening
+[   62.20 09:14:34Z] I (62037) Application: >> Jarvis, what time is it?
+[   62.20 09:14:34Z] I (62057) StateMachine: State: listening -> speaking
+[   63.45 09:14:35Z] I (63347) Application: << It's fourteen minutes past ten in the morning
+[   66.75 09:14:38Z] I (66727) StateMachine: State: speaking -> listening
+[   74.62 09:14:46Z] I (74607) Application: Audio channel closed: 297 packets sent, 0 dropped, oldest sent 350 ms after encoding
+[   74.62 09:14:46Z] I (74617) StateMachine: State: listening -> idle

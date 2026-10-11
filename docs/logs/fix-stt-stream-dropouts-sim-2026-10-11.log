@@ -1,0 +1,274 @@
+261011 08:25:39[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:25:39[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=14 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T082539.785Z-0001
+261011 08:25:39[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=9 interims=12 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1170 half_close_ms=977 end_ms=1174 service_end=0 cancelled=0
+261011 08:25:39[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=198 model=latest_short language=en-US confidence=0.990 fallback=- streams=1 interims=12
+261011 08:25:39[core.providers.asr.base]-INFO-识别文本: Jarvis. What time is it?
+261011 08:25:44[weixue_patches]-INFO-audio session end frames=136 bytes=261120 segments=1 detects=1 listen_starts=1
+261011 08:25:45[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:25:46[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=12 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T082546.097Z-0002
+261011 08:25:46[core.providers.asr.google_stt_stream]-ERROR-Google STT stream failed: Cancelled: 499 The operation was cancelled.
+261011 08:25:47[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1230 first_interim_ms=1020 half_close_ms=968 end_ms=1020 service_end=0 cancelled=0 error=Cancelled
+261011 08:25:47[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1412 model=chirp_3 language=en-US confidence=0.910 fallback=stream_error streams=1 interims=1
+261011 08:25:47[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:25:51[weixue_patches]-INFO-audio session end frames=137 bytes=263040 segments=1 detects=1 listen_starts=1
+261011 08:25:52[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:25:52[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=13 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T082552.424Z-0003
+261011 08:25:52[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=9 interims=12 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1096 half_close_ms=967 end_ms=1129 service_end=0 cancelled=0
+261011 08:25:52[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=162 model=latest_short language=en-US confidence=0.990 fallback=- streams=1 interims=12
+261011 08:25:52[core.providers.asr.base]-INFO-识别文本: Jarvis. What time is it?
+261011 08:25:57[weixue_patches]-INFO-audio session end frames=137 bytes=263040 segments=1 detects=1 listen_starts=1
+261011 08:26:14[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:26:14[weixue_patches]-INFO-stt_segment kind=wake frames=25 seconds=1.5 burst=11 peak_dbfs=-6.9 rms_dbfs=-27.1 capture=20261011T082614.565Z-0004
+261011 08:26:14[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=25 bytes=48000 sent=25 responses=3 interims=2 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1028 half_close_ms=822 end_ms=1033 service_end=0 cancelled=0
+261011 08:26:14[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=211 model=latest_short language=en-US confidence=0.854 fallback=- streams=1 interims=2
+261011 08:26:14[core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:26:20[weixue_patches]-INFO-audio session end frames=153 bytes=293760 segments=1 detects=1 listen_starts=1
+261011 08:26:21[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:26:21[weixue_patches]-INFO-stt_segment kind=wake frames=25 seconds=1.5 burst=11 peak_dbfs=-6.9 rms_dbfs=-27.1 capture=20261011T082621.947Z-0005
+261011 08:26:22[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=25 bytes=48000 sent=25 responses=3 interims=2 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=963 half_close_ms=846 end_ms=1001 service_end=0 cancelled=0
+261011 08:26:22[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=155 model=latest_short language=en-US confidence=0.854 fallback=- streams=1 interims=2
+261011 08:26:22[core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:26:28[weixue_patches]-INFO-audio session end frames=153 bytes=293760 segments=1 detects=1 listen_starts=1
+261011 08:26:29[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:26:29[weixue_patches]-INFO-stt_segment kind=wake frames=25 seconds=1.5 burst=12 peak_dbfs=-29.6 rms_dbfs=-51.7 capture=20261011T082629.270Z-0006
+261011 08:26:29[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=25 bytes=48000 sent=25 responses=3 interims=2 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=914 half_close_ms=788 end_ms=937 service_end=0 cancelled=0
+261011 08:26:29[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=150 model=latest_short language=en-US confidence=0.851 fallback=- streams=1 interims=2
+261011 08:26:29[core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:26:35[weixue_patches]-INFO-audio session end frames=152 bytes=291840 segments=1 detects=1 listen_starts=1
+261011 08:26:36[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:26:36[weixue_patches]-INFO-stt_segment kind=wake frames=26 seconds=1.56 burst=12 peak_dbfs=-29.6 rms_dbfs=-51.9 capture=20261011T082636.708Z-0007
+261011 08:26:36[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=26 bytes=49920 sent=26 responses=3 interims=2 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1082 half_close_ms=837 end_ms=1085 service_end=0 cancelled=0
+261011 08:26:36[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=248 model=latest_short language=en-US confidence=0.851 fallback=- streams=1 interims=2
+261011 08:26:36[core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:26:42[weixue_patches]-INFO-audio session end frames=153 bytes=293760 segments=1 detects=1 listen_starts=1
+261011 08:28:24[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:28:24[weixue_patches]-INFO-stt_segment kind=wake frames=25 seconds=1.5 burst=11 peak_dbfs=-6.9 rms_dbfs=-27.1 capture=20261011T082824.892Z-0001
+261011 08:28:25[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=25 bytes=48000 sent=25 responses=3 interims=2 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1072 half_close_ms=842 end_ms=1073 service_end=0 cancelled=0
+261011 08:28:25[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=231 model=latest_short language=en-US confidence=0.854 fallback=- streams=1 interims=2
+261011 08:28:25[core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:28:31[weixue_patches]-INFO-audio session end frames=152 bytes=291840 segments=1 detects=1 listen_starts=1
+261011 08:28:31[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:28:32[weixue_patches]-INFO-stt_segment kind=wake frames=25 seconds=1.5 burst=11 peak_dbfs=-6.9 rms_dbfs=-27.1 capture=20261011T082832.247Z-0002
+261011 08:28:32[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=25 bytes=48000 sent=25 responses=3 interims=2 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1074 half_close_ms=853 end_ms=1074 service_end=0 cancelled=0
+261011 08:28:32[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=221 model=latest_short language=en-US confidence=0.854 fallback=- streams=1 interims=2
+261011 08:28:32[core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:28:38[weixue_patches]-INFO-audio session end frames=153 bytes=293760 segments=1 detects=1 listen_starts=1
+261011 08:28:39[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:28:39[weixue_patches]-INFO-stt_segment kind=wake frames=26 seconds=1.56 burst=12 peak_dbfs=-29.6 rms_dbfs=-51.9 capture=20261011T082839.595Z-0003
+261011 08:28:39[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=26 bytes=49920 sent=26 responses=3 interims=2 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1062 half_close_ms=859 end_ms=1066 service_end=0 cancelled=0
+261011 08:28:39[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=209 model=latest_short language=en-US confidence=0.851 fallback=- streams=1 interims=2
+261011 08:28:39[core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:28:45[weixue_patches]-INFO-audio session end frames=152 bytes=291840 segments=1 detects=1 listen_starts=1
+261011 08:28:46[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:28:46[weixue_patches]-INFO-stt_segment kind=wake frames=25 seconds=1.5 burst=12 peak_dbfs=-29.6 rms_dbfs=-51.7 capture=20261011T082846.849Z-0004
+261011 08:28:47[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=25 bytes=48000 sent=25 responses=3 interims=2 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1075 half_close_ms=788 end_ms=1075 service_end=0 cancelled=0
+261011 08:28:47[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=288 model=latest_short language=en-US confidence=0.851 fallback=- streams=1 interims=2
+261011 08:28:47[core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:28:53[weixue_patches]-INFO-audio session end frames=153 bytes=293760 segments=1 detects=1 listen_starts=1
+261011 08:29:36[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:29:36[weixue_patches]-INFO-stt_segment kind=wake frames=25 seconds=1.5 burst=11 peak_dbfs=-6.9 rms_dbfs=-27.1 capture=20261011T082936.949Z-0001
+261011 08:29:37[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=25 bytes=48000 sent=25 responses=3 interims=2 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1050 half_close_ms=859 end_ms=1057 service_end=0 cancelled=0
+261011 08:29:37[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=199 model=latest_short language=en-US confidence=0.854 fallback=- streams=1 interims=2
+261011 08:29:37[core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:29:43[weixue_patches]-INFO-audio session end frames=152 bytes=291840 segments=1 detects=1 listen_starts=1
+261011 08:30:00[weixue_patches]-INFO-wake cue: Hmm?
+261011 08:30:00[weixue_patches]-INFO-stt_segment kind=wake_only frames=32 seconds=1.92 burst=14 peak_dbfs=-6.7 rms_dbfs=-28.0 capture=20261011T083000.443Z-0002
+261011 08:30:00[weixue_patches]-INFO-wake-only segment dropped before STT
+261011 08:30:02[weixue_patches]-INFO-stt_segment kind=follow frames=22 seconds=1.32 burst=1 peak_dbfs=-6.0 rms_dbfs=-26.4 capture=20261011T083002.932Z-0003
+261011 08:30:03[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=22 bytes=42240 sent=22 responses=2 interims=1 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=919 half_close_ms=689 end_ms=920 service_end=0 cancelled=0
+261011 08:30:03[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=232 model=latest_short language=en-US confidence=0.704 fallback=- streams=1 interims=1
+261011 08:30:03[core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:30:06[weixue_patches]-INFO-audio session end frames=151 bytes=289920 segments=2 detects=1 listen_starts=1
+261011 08:30:07[weixue_patches]-INFO-stt_segment kind=wake_only frames=32 seconds=1.92 burst=13 peak_dbfs=-6.7 rms_dbfs=-28.0 capture=20261011T083007.733Z-0004
+261011 08:30:07[weixue_patches]-INFO-wake-only segment dropped before STT
+261011 08:30:07[weixue_patches]-INFO-wake cue: Hmm?
+261011 08:30:10[weixue_patches]-INFO-stt_segment kind=follow frames=22 seconds=1.32 burst=1 peak_dbfs=-6.0 rms_dbfs=-26.4 capture=20261011T083010.209Z-0005
+261011 08:30:10[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=22 bytes=42240 sent=22 responses=2 interims=1 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=843 half_close_ms=685 end_ms=847 service_end=0 cancelled=0
+261011 08:30:10[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=162 model=latest_short language=en-US confidence=0.704 fallback=- streams=1 interims=1
+261011 08:30:10[core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:30:13[weixue_patches]-INFO-audio session end frames=153 bytes=293760 segments=2 detects=1 listen_starts=1
+261011 08:30:15[weixue_patches]-INFO-stt_segment kind=wake_only frames=33 seconds=1.98 burst=13 peak_dbfs=-29.9 rms_dbfs=-52.7 capture=20261011T083015.066Z-0006
+261011 08:30:15[weixue_patches]-INFO-wake-only segment dropped before STT
+261011 08:30:15[weixue_patches]-INFO-wake cue: Yes?
+261011 08:30:17[weixue_patches]-INFO-stt_segment kind=follow frames=21 seconds=1.26 burst=1 peak_dbfs=-30.9 rms_dbfs=-52.4 capture=20261011T083017.600Z-0007
+261011 08:30:17[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=21 bytes=40320 sent=21 responses=2 interims=1 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=936 half_close_ms=612 end_ms=941 service_end=0 cancelled=0
+261011 08:30:17[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=330 model=latest_short language=en-US confidence=0.581 fallback=- streams=1 interims=1
+261011 08:30:17[core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:30:21[weixue_patches]-INFO-audio session end frames=153 bytes=293760 segments=2 detects=1 listen_starts=1
+261011 08:30:22[weixue_patches]-INFO-wake cue: Hmm?
+261011 08:30:22[weixue_patches]-INFO-stt_segment kind=wake_only frames=34 seconds=2.04 burst=11 peak_dbfs=-29.9 rms_dbfs=-52.8 capture=20261011T083022.468Z-0008
+261011 08:30:22[weixue_patches]-INFO-wake-only segment dropped before STT
+261011 08:30:24[weixue_patches]-INFO-stt_segment kind=follow frames=21 seconds=1.26 burst=1 peak_dbfs=-30.9 rms_dbfs=-52.4 capture=20261011T083024.885Z-0009
+261011 08:30:25[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=21 bytes=40320 sent=21 responses=2 interims=1 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=930 half_close_ms=617 end_ms=937 service_end=0 cancelled=0
+261011 08:30:25[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=322 model=latest_short language=en-US confidence=0.581 fallback=- streams=1 interims=1
+261011 08:30:25[core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:30:28[weixue_patches]-INFO-audio session end frames=153 bytes=293760 segments=2 detects=1 listen_starts=1
+261011 08:31:10[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:31:11[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=14 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T083111.342Z-0001
+261011 08:31:11[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=9 interims=12 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1135 half_close_ms=970 end_ms=1145 service_end=0 cancelled=0
+261011 08:31:11[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=176 model=latest_short language=en-US confidence=0.990 fallback=- streams=1 interims=12
+261011 08:31:11[core.providers.asr.base]-INFO-识别文本: Jarvis. What time is it?
+261011 08:31:15[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:31:16[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:31:16[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=14 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T083116.858Z-0002
+261011 08:31:17[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=9 interims=12 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1101 half_close_ms=973 end_ms=1201 service_end=0 cancelled=0
+261011 08:31:17[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=228 model=latest_short language=en-US confidence=0.990 fallback=- streams=1 interims=12
+261011 08:31:17[core.providers.asr.base]-INFO-识别文本: Jarvis. What time is it?
+261011 08:31:20[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:31:21[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:31:22[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=11 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T083122.243Z-0003
+261011 08:31:22[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=30 bytes=57600 sent=30 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1230 first_interim_ms=539 half_close_ms=983 end_ms=546 service_end=1 cancelled=0
+261011 08:31:22[core.providers.asr.google_stt_stream]-INFO-stt_stream 1 burst=13 frames=20 bytes=38400 sent=20 responses=7 interims=8 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1042 half_close_ms=435 end_ms=1050 service_end=0 cancelled=0
+261011 08:31:22[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=615 model=latest_short language=en-US confidence=0.910 fallback=- streams=2 interims=9
+261011 08:31:22[core.providers.asr.base]-INFO-识别文本: Jarvis。 What time is it?
+261011 08:31:26[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:31:27[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:31:27[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=11 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T083127.596Z-0004
+261011 08:31:27[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=9 interims=12 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1073 half_close_ms=972 end_ms=1134 service_end=0 cancelled=0
+261011 08:31:27[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=168 model=latest_short language=en-US confidence=0.990 fallback=- streams=1 interims=12
+261011 08:31:27[core.providers.asr.base]-INFO-识别文本: Jarvis. What time is it?
+261011 08:31:31[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:31:32[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:31:33[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=15 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T083133.082Z-0005
+261011 08:31:34[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1230 first_interim_ms=1050 half_close_ms=976 end_ms=1073 service_end=0 cancelled=0
+261011 08:31:34[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1500 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=1
+261011 08:31:34[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:31:37[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:31:38[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:31:38[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=13 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T083138.441Z-0006
+261011 08:31:39[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1230 first_interim_ms=973 half_close_ms=975 end_ms=999 service_end=0 cancelled=0
+261011 08:31:39[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1400 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=1
+261011 08:31:39[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:31:42[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:31:43[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:31:43[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=11 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T083143.759Z-0007
+261011 08:31:45[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1230 first_interim_ms=1129 half_close_ms=974 end_ms=1160 service_end=0 cancelled=0
+261011 08:31:45[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1447 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=1
+261011 08:31:45[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:31:47[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:31:48[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:31:49[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=15 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T083149.115Z-0008
+261011 08:31:49[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=9 interims=12 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1165 half_close_ms=998 end_ms=1207 service_end=0 cancelled=0
+261011 08:31:49[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=209 model=latest_short language=en-US confidence=0.990 fallback=- streams=1 interims=12
+261011 08:31:49[core.providers.asr.base]-INFO-识别文本: Jarvis. What time is it?
+261011 08:31:53[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:31:54[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:31:54[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=11 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T083154.425Z-0009
+261011 08:31:56[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=7 interims=4 finals=2 empty_finals=0 utterance_end_ms=1230 first_interim_ms=988 half_close_ms=974 end_ms=1232 service_end=0 cancelled=0
+261011 08:31:56[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1661 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=4
+261011 08:31:56[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:31:58[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:31:59[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:31:59[weixue_patches]-INFO-stt_segment kind=wake frames=38 seconds=2.28 burst=11 peak_dbfs=-6.4 rms_dbfs=-23.8 capture=20261011T083159.752Z-0010
+261011 08:31:59[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=38 bytes=72960 sent=38 responses=9 interims=12 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=942 half_close_ms=969 end_ms=1142 service_end=0 cancelled=0
+261011 08:31:59[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=173 model=latest_short language=en-US confidence=0.990 fallback=- streams=1 interims=12
+261011 08:31:59[core.providers.asr.base]-INFO-识别文本: Jarvis. What time is it?
+261011 08:32:03[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:32:04[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:32:05[weixue_patches]-INFO-stt_segment kind=wake frames=39 seconds=2.34 burst=14 peak_dbfs=-30.7 rms_dbfs=-48.2 capture=20261011T083205.149Z-0011
+261011 08:32:06[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=39 bytes=74880 sent=39 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1180 first_interim_ms=1240 half_close_ms=1043 end_ms=1267 service_end=0 cancelled=0
+261011 08:32:06[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1541 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=1
+261011 08:32:06[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:32:09[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:32:10[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:32:10[weixue_patches]-INFO-stt_segment kind=wake frames=39 seconds=2.34 burst=14 peak_dbfs=-30.7 rms_dbfs=-48.2 capture=20261011T083210.460Z-0012
+261011 08:32:11[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=39 bytes=74880 sent=39 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1180 first_interim_ms=1130 half_close_ms=1034 end_ms=1131 service_end=0 cancelled=0
+261011 08:32:11[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1404 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=1
+261011 08:32:11[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:32:14[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:32:15[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:32:15[weixue_patches]-INFO-stt_segment kind=wake frames=39 seconds=2.34 burst=14 peak_dbfs=-30.7 rms_dbfs=-48.2 capture=20261011T083215.849Z-0013
+261011 08:32:17[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=39 bytes=74880 sent=39 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1180 first_interim_ms=1079 half_close_ms=1038 end_ms=1112 service_end=0 cancelled=0
+261011 08:32:17[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1540 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=1
+261011 08:32:17[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:32:19[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:32:20[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:32:21[weixue_patches]-INFO-stt_segment kind=wake frames=39 seconds=2.34 burst=12 peak_dbfs=-30.7 rms_dbfs=-48.2 capture=20261011T083221.188Z-0014
+261011 08:32:21[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=39 bytes=74880 sent=39 responses=9 interims=10 finals=1 empty_finals=0 utterance_end_ms=2190 first_interim_ms=1085 half_close_ms=1048 end_ms=1248 service_end=0 cancelled=0
+261011 08:32:21[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=201 model=latest_short language=en-US confidence=0.993 fallback=- streams=1 interims=10
+261011 08:32:21[core.providers.asr.base]-INFO-识别文本: Jarvis. What time is it?
+261011 08:32:25[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:32:26[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:32:26[weixue_patches]-INFO-stt_segment kind=wake frames=39 seconds=2.34 burst=12 peak_dbfs=-30.7 rms_dbfs=-48.2 capture=20261011T083226.558Z-0015
+261011 08:32:28[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=39 bytes=74880 sent=39 responses=7 interims=4 finals=2 empty_finals=0 utterance_end_ms=1180 first_interim_ms=1046 half_close_ms=1029 end_ms=1280 service_end=0 cancelled=0
+261011 08:32:28[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1604 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=4
+261011 08:32:28[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:32:30[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:32:31[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:32:32[weixue_patches]-INFO-stt_segment kind=wake frames=39 seconds=2.34 burst=12 peak_dbfs=-30.7 rms_dbfs=-48.2 capture=20261011T083232.092Z-0016
+261011 08:32:35[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=39 bytes=74880 sent=39 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1180 first_interim_ms=1069 half_close_ms=1030 end_ms=2562 service_end=0 cancelled=0
+261011 08:32:35[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=2923 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=1
+261011 08:32:35[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:32:36[weixue_patches]-INFO-audio session end frames=119 bytes=228480 segments=1 detects=1 listen_starts=1
+261011 08:32:37[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:32:37[weixue_patches]-INFO-stt_segment kind=wake frames=39 seconds=2.34 burst=13 peak_dbfs=-30.7 rms_dbfs=-48.2 capture=20261011T083237.573Z-0017
+261011 08:32:38[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=37 bytes=71040 sent=37 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1180 first_interim_ms=929 half_close_ms=1046 end_ms=952 service_end=1 cancelled=0
+261011 08:32:38[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1410 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=1
+261011 08:32:38[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:32:41[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:32:42[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:32:43[weixue_patches]-INFO-stt_segment kind=wake frames=39 seconds=2.34 burst=14 peak_dbfs=-30.7 rms_dbfs=-48.2 capture=20261011T083243.015Z-0018
+261011 08:32:44[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=39 bytes=74880 sent=39 responses=7 interims=4 finals=2 empty_finals=0 utterance_end_ms=1180 first_interim_ms=1072 half_close_ms=1030 end_ms=1301 service_end=0 cancelled=0
+261011 08:32:44[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1626 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=4
+261011 08:32:44[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:32:46[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:32:47[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:32:48[weixue_patches]-INFO-stt_segment kind=wake frames=39 seconds=2.34 burst=13 peak_dbfs=-30.7 rms_dbfs=-48.2 capture=20261011T083248.397Z-0019
+261011 08:32:50[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=39 bytes=74880 sent=39 responses=9 interims=5 finals=2 empty_finals=0 utterance_end_ms=1020 first_interim_ms=1116 half_close_ms=1030 end_ms=1351 service_end=0 cancelled=0
+261011 08:32:50[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1833 model=chirp_3 language=en-US confidence=0.910 fallback=truncated streams=1 interims=5
+261011 08:32:50[core.providers.asr.base]-INFO-识别文本: Jarvis, what time is it?
+261011 08:32:52[weixue_patches]-INFO-audio session end frames=120 bytes=230400 segments=1 detects=1 listen_starts=1
+261011 08:32:53[weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:32:54[weixue_patches]-INFO-stt_segment kind=wake frames=39 seconds=2.34 burst=14 peak_dbfs=-30.7 rms_dbfs=-48.2 capture=20261011T083254.154Z-0020
+261011 08:32:54[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=39 bytes=74880 sent=39 responses=9 interims=10 finals=1 empty_finals=0 utterance_end_ms=2190 first_interim_ms=1213 half_close_ms=1119 end_ms=1325 service_end=0 cancelled=0
+261011 08:32:54[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=208 model=latest_short language=en-US confidence=0.993 fallback=- streams=1 interims=10
+261011 08:32:54[core.providers.asr.base]-INFO-识别文本: Jarvis. What time is it?
+261011 08:32:58[weixue_patches]-INFO-audio session end frames=118 bytes=226560 segments=1 detects=1 listen_starts=1
+261011 08:51:40[weixue_patches]-INFO-wake cue: Hmm?
+261011 08:51:40[weixue_patches]-INFO-stt_segment kind=wake_only frames=33 seconds=1.98 burst=13 peak_dbfs=-6.7 rms_dbfs=-28.2 capture=20261011T085140.679Z-0001
+261011 08:51:40[weixue_patches]-INFO-wake-only segment dropped before STT
+261011 08:51:43[weixue_patches]-INFO-stt_segment kind=follow frames=22 seconds=1.32 burst=1 peak_dbfs=-6.0 rms_dbfs=-26.4 capture=20261011T085143.162Z-0002
+261011 08:51:43[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=22 bytes=42240 sent=22 responses=2 interims=1 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=846 half_close_ms=684 end_ms=856 service_end=0 cancelled=0
+261011 08:51:43[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=172 model=latest_short language=en-US confidence=0.704 fallback=- streams=1 interims=1
+261011 08:51:43[core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:51:46[weixue_patches]-INFO-audio session end packets=152 frames=152 bytes=291840 segments=2 detects=1 listen_starts=1
+261011 08:51:48[weixue_patches]-INFO-wake cue: Hmm?
+261011 08:51:48[weixue_patches]-INFO-stt_segment kind=wake_only frames=33 seconds=1.98 burst=14 peak_dbfs=-6.7 rms_dbfs=-28.2 capture=20261011T085148.049Z-0003
+261011 08:51:48[weixue_patches]-INFO-wake-only segment dropped before STT
+261011 08:51:50[weixue_patches]-INFO-stt_segment kind=follow frames=22 seconds=1.32 burst=1 peak_dbfs=-6.0 rms_dbfs=-26.4 capture=20261011T085150.537Z-0004
+261011 08:51:50[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=22 bytes=42240 sent=22 responses=3 interims=1 finals=1 empty_finals=0 utterance_end_ms=1200 first_interim_ms=814 half_close_ms=682 end_ms=830 service_end=0 cancelled=0
+261011 08:51:50[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=150 model=latest_short language=cmn-hans-cn confidence=0.910 fallback=- streams=1 interims=1
+261011 08:51:50[core.providers.asr.base]-INFO-识别文本: Yes。
+261011 08:51:54[weixue_patches]-INFO-audio session end packets=152 frames=152 bytes=291840 segments=2 detects=1 listen_starts=1
+261011 08:51:55[weixue_patches]-INFO-stt_segment kind=wake_only frames=32 seconds=1.92 burst=12 peak_dbfs=-6.7 rms_dbfs=-28.0 capture=20261011T085155.371Z-0005
+261011 08:51:55[weixue_patches]-INFO-wake-only segment dropped before STT
+261011 08:51:55[weixue_patches]-INFO-wake cue: Mm-hm?
+261011 08:51:57[weixue_patches]-INFO-stt_segment kind=follow frames=22 seconds=1.32 burst=1 peak_dbfs=-6.0 rms_dbfs=-26.4 capture=20261011T085157.849Z-0006
+261011 08:51:58[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=22 bytes=42240 sent=22 responses=2 interims=1 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=858 half_close_ms=676 end_ms=865 service_end=0 cancelled=0
+261011 08:51:58[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=190 model=latest_short language=en-US confidence=0.704 fallback=- streams=1 interims=1
+261011 08:51:58[core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:52:01[weixue_patches]-INFO-audio session end packets=153 frames=153 bytes=293760 segments=2 detects=1 listen_starts=1
+261011 08:52:02[weixue_patches]-INFO-wake cue: Yes?
+261011 08:52:02[weixue_patches]-INFO-stt_segment kind=wake_only frames=33 seconds=1.98 burst=14 peak_dbfs=-29.9 rms_dbfs=-52.7 capture=20261011T085202.714Z-0007
+261011 08:52:02[weixue_patches]-INFO-wake-only segment dropped before STT
+261011 08:52:05[weixue_patches]-INFO-stt_segment kind=follow frames=21 seconds=1.26 burst=1 peak_dbfs=-30.9 rms_dbfs=-52.4 capture=20261011T085205.250Z-0008
+261011 08:52:05[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=21 bytes=40320 sent=21 responses=2 interims=1 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=854 half_close_ms=619 end_ms=856 service_end=0 cancelled=0
+261011 08:52:05[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=238 model=latest_short language=en-US confidence=0.581 fallback=- streams=1 interims=1
+261011 08:52:05[core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:52:08[weixue_patches]-INFO-audio session end packets=152 frames=152 bytes=291840 segments=2 detects=1 listen_starts=1
+261011 08:52:10[weixue_patches]-INFO-wake cue: Hmm?
+261011 08:52:10[weixue_patches]-INFO-stt_segment kind=wake_only frames=34 seconds=2.04 burst=14 peak_dbfs=-29.9 rms_dbfs=-52.8 capture=20261011T085210.095Z-0009
+261011 08:52:10[weixue_patches]-INFO-wake-only segment dropped before STT
+261011 08:52:12[weixue_patches]-INFO-stt_segment kind=follow frames=21 seconds=1.26 burst=1 peak_dbfs=-30.9 rms_dbfs=-52.4 capture=20261011T085212.512Z-0010
+261011 08:52:12[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=21 bytes=40320 sent=21 responses=2 interims=1 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=930 half_close_ms=620 end_ms=930 service_end=0 cancelled=0
+261011 08:52:12[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=310 model=latest_short language=en-US confidence=0.581 fallback=- streams=1 interims=1
+261011 08:52:12[core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:52:16[weixue_patches]-INFO-audio session end packets=153 frames=153 bytes=293760 segments=2 detects=1 listen_starts=1
+261011 08:52:17[weixue_patches]-INFO-wake cue: Mm-hm?
+261011 08:52:17[weixue_patches]-INFO-stt_segment kind=wake_only frames=33 seconds=1.98 burst=12 peak_dbfs=-29.9 rms_dbfs=-52.7 capture=20261011T085217.376Z-0011
+261011 08:52:17[weixue_patches]-INFO-wake-only segment dropped before STT
+261011 08:52:19[weixue_patches]-INFO-stt_segment kind=follow frames=21 seconds=1.26 burst=1 peak_dbfs=-30.9 rms_dbfs=-52.4 capture=20261011T085219.782Z-0012
+261011 08:52:20[core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=21 bytes=40320 sent=21 responses=2 interims=1 finals=1 empty_finals=0 utterance_end_ms=- first_interim_ms=1001 half_close_ms=620 end_ms=1002 service_end=0 cancelled=0
+261011 08:52:20[core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=382 model=latest_short language=en-US confidence=0.581 fallback=- streams=1 interims=1
+261011 08:52:20[core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:52:23[weixue_patches]-INFO-audio session end packets=153 frames=153 bytes=293760 segments=2 detects=1 listen_starts=1

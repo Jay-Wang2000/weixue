@@ -113,6 +113,34 @@ def test_vad_hold_after_a_wake(elapsed, voice, stop, live_voice):
     assert conn.weixue_live_voice is live_voice
 
 
+@pytest.mark.parametrize("index, live_voice", [(5, False), (6, True)])
+def test_live_voice_starts_after_the_frames_sent_before_the_listen_start(index, live_voice):
+    is_vad = weixue_patches.hold_wake_utterance(FakeVad.is_vad)
+    conn = Conn()
+    conn.weixue_live_voice = False
+    conn.weixue_live_since = time.time() - 5
+    conn.weixue_live_from = 6
+    conn.weixue_vad_frames = index
+    is_vad(FakeVad(True), conn, b"")
+    assert conn.weixue_live_voice is live_voice and conn.weixue_vad_frames == index + 1
+
+
+async def test_listen_start_counts_the_frames_still_queued():
+    import queue
+
+    played = []
+    upstream, wrapper = _wrapped(played)
+    conn = Conn()
+    conn.asr_audio_queue = queue.Queue()
+    for _ in range(30):
+        conn.asr_audio_queue.put(b"")
+    conn.weixue_vad_frames = 9
+    await wrapper(upstream, conn, {"state": "detect", "text": "Jarvis"})
+    await wrapper(upstream, conn, {"state": "start", "mode": "realtime"})
+    assert conn.weixue_live_from == 9 + 30 + weixue_patches.VAD_FLUSH_FRAMES
+    assert conn.weixue_wake_segment is True
+
+
 def test_vad_without_a_wake_is_untouched():
     is_vad = weixue_patches.hold_wake_utterance(FakeVad.is_vad)
     conn = Conn()

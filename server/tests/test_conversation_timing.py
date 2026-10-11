@@ -229,6 +229,12 @@ def stub_playback_modules(monkeypatch, http_server):
         async def handle_voice_stop(self, conn, asr_audio_task):
             return None
 
+        async def speech_to_text_wrapper(self, pcm_data, session_id):
+            return "", None
+
+        async def receive_audio(self, conn, pcm_frame, audio_have_voice):
+            return None
+
     asr_base.startToChat = start_to_chat
     asr_base.ASRProviderBase = ASRProviderBase
     for module in (tts_base, asr_base):
@@ -267,5 +273,5 @@ async def test_apply_patches_handlers_once(monkeypatch):
     handler.just_woken_up = True
     assert handler.just_woken_up is False
     assert vad.is_vad.weixue_wrapped.__qualname__ == "stub_handler_modules.<locals>.VADProvider.is_vad"
-    wake_wrapper = listen_handler.handle.weixue_wrapped
+    wake_wrapper = listen_handler.handle.weixue_wrapped.weixue_wrapped
     assert wake_wrapper.weixue_wrapped.__qualname__ == "stub_listen_and_http.<locals>.ListenTextMessageHandler.handle"
