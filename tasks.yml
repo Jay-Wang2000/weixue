@@ -351,7 +351,7 @@ tasks:
     description: |
       DESIGN.md M2 feat-llm-claude-agent：小智 LLM provider `claude_agent` 把每轮转发到 agent 服务；短问直答流式回传，长任务建 task 后立即应答并发 LAST；文本流 + 侧信道事件；长任务不依赖连接保活（5 min 无语音任务在设备断连后仍完成，结果经 WHEN_IDLE 到达）；接管后语音路径的 HA 调用改走 agent 服务，mcp-bridge 旧语音路径行为退役；继承自 fix-turn-isolation 的要求：ADR-11 90 s 墙钟截止并在固件 120 s 前发提示/终态（到期后是否继续调度动作按 brief Q2 的决定）、语音边界 sentence_id 过期守卫、APITimeoutError/APIConnectionError 等异常优雅处理（保留 SDK 重试，重试可见）、迟到回复不入历史。端到端：实机一轮短问 + 一轮长任务（办公室模式可用模拟设备）。 决定 37（延迟红线）：全链路流式——STT 改为 StreamingRecognize（interim + endpointing，VAD 结束即定稿）、LLM 首 token 流式、TTS 逐句流式；短问语音结束→首个可听音频 ≤ 1.5 s；插话：立即停播 → interrupt() 进行中轮 → 回退到上一会话状态（被截断回复只作 interrupted 上下文），新话语在同一 session 继续；按 latency spike 结论选 SDK 直通或混合路径。 延迟 spike 结论（docs/logs/latency-spike-2026-10-07.md）：STT 改流式接口（provider 类型 STREAM，边说边传，VAD 结束即定稿），模型按决定 42；TTS 从首个子句开始合成而非整句末；系统提示要求首句短；工具调用期间先说一句简短确认；短问路径直连 Sonnet（决定 39/40）。目标：短问语音结束→首音频中位 ≤ 1.5 s，带一次 HA 读 ≤ 2.5 s。 brief：docs/briefs/feat-llm-claude-agent.md（2026-10-10）。编排器裁定：插话不调用 /interrupt（那是取消任务），而是立即关闭 SSE 流 → 服务按 gateway_closed 丢弃半截回复、记下已听到的部分并在 10 s 后续跑任务；nointent 下设备工具不可达，服务新增 `device_action` 工具并以 SSE 事件下发、由本 provider 在设备 MCP 上执行（“set bedside mode”等语音设备操作继续可用）——服务侧部分作为 feat-agent-service 合并后的小后续。
     depends_on: [feat-agent-service, fix-wave3-server]
-    status: review
+    status: done
     retries: 0
     model: opus
   - id: feat-protocol-agent-msg
