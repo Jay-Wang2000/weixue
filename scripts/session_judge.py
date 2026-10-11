@@ -1,8 +1,9 @@
 """Judging rules of the device session driver (scripts/audio_session.py).
 
-Each rule reads the device console lines of one trial, the clips the Mac played and the server log
-lines, and returns a Verdict built only from device and server events: state changes, wake, cue,
-transcript (`>>`), sentence (`<<`), abort, gesture, backlight and bedside lines. No I/O.
+Each rule reads the device console lines of one trial, the clips the Mac played, the server log
+lines and, for earcons, the driver's agent-service evidence, and returns a Verdict built only from
+device and server events: state changes, wake, cue, transcript (`>>`), sentence (`<<`), abort,
+gesture, backlight, bedside, card, receipt and earcon lines. No I/O.
 """
 import re
 from collections import namedtuple
@@ -31,6 +32,10 @@ SERVER_CUE_SKIP_RE = re.compile(r"wake cue (?:skipped|dropped after loading): (.
 SERVER_ABORT_RE = re.compile(r"Abort message received(?!-end)|收到abort")
 SERVER_DROP_RE = re.compile(r"barge-in disabled: dropped utterance during playback: (.+)$")
 YES_RE = re.compile(r"\byes\b", re.I)
+EARCON_RE = re.compile(r"FaceDisplay: earcon=(\w+)(.*)$")
+RECEIPT_RE = re.compile(r"WeixueAgent: agent receipt: approve seq=\d+ card=\S+ result=(\w+)")
+APPROVED_RE = re.compile(r"FaceDisplay: earcon=approved$")
+REPLAYED = ("ok", "error")  # tool call status once the approved call ran (error: Home Assistant refused it)
 
 PREROLL_S = 2.0  # a non-"yes" transcript up to this long after the "Yes." clip starts belongs to the wake segment
 VIBRATION_S = 1.0  # an unprompted pick_up up to this long after a playback start is speaker vibration
@@ -50,6 +55,10 @@ def first(lines, rx, after=None):
     """First line matching rx with a log line number above `after` (a Line, Play or None)."""
     floor = -1 if after is None else after.n
     return next((l for l in lines if l.n > floor and rx.search(l.text)), None)
+
+
+def card_open_re(task_id):
+    return re.compile(rf"agent ui: card open task={re.escape(task_id)}$")
 
 
 def heard(line):
@@ -92,6 +101,13 @@ def _no_turn(lines, stt, reply, request_re, tail):
 
 def _mismatch(stt, request_re):
     return "" if request_re.search(stt.text) else " (not the request)"
+
+
+def not_idle(state, line_n, waited_s):
+    """The device was not idle within the wait before a wake clip; the clip was not played."""
+    since = f" since L{line_n}" if line_n else ""
+    return Verdict(False, "not_idle", f"device {state}{since}, not idle after {waited_s:.0f} s; wake clip not played",
+                   [line_n] if line_n else [])
 
 
 def cue_name(lines, server):
@@ -365,6 +381,52 @@ def judge_bedside(lines, plays, night_text, auto_text, night_re, auto_re):
                 cls = "no_touch_exit"
         parts.append(part)
     return Verdict(cls is None, cls or "pass", "; ".join(parts), evidence)
+
+
+def judge_earcons(lines, run):
+    """A held Home Assistant call made through the agent service and approved by a tap on the device
+    card. run: the driver's agent-service evidence (task_id, error, actionable, taps, decision,
+    status). Pass on `earcon=needs_you`, the task's card open, the device receipt of the approve
+    `result=accepted`, `earcon=approved` after it, and the service's approve decision with the
+    replayed call's status in REPLAYED."""
+    task = run.get("task_id")
+    if task is None:
+        return Verdict(False, "agent_error", run.get("error") or "no task", [])
+    head = f"task {task}"
+    if not run.get("actionable"):
+        return Verdict(False, "no_hold", f"{head}: {run.get('error') or 'no approvable hold'}", [])
+    earcons = [(l, EARCON_RE.search(l.text)) for l in lines if EARCON_RE.search(l.text)]
+    needs = next((l for l, m in earcons if m.group(1) == "needs_you" and not m.group(2)), None)
+    needs_skipped = next((l for l, m in earcons if m.group(1) == "needs_you" and m.group(2)), None)
+    card = first(lines, card_open_re(task))
+    receipts = [(l, RECEIPT_RE.search(l.text).group(1)) for l in lines if RECEIPT_RE.search(l.text)]
+    accepted = next((l for l, r in receipts if r == "accepted"), None)
+    approved = first(lines, APPROVED_RE, accepted) if accepted else None
+    decision, status = run.get("decision"), run.get("status")
+    parts = [
+        f"earcon=needs_you L{needs.n}" if needs else
+        (f"needs_you{EARCON_RE.search(needs_skipped.text).group(2)} L{needs_skipped.n}" if needs_skipped
+         else "no needs_you"),
+        f"card open L{card.n}" if card else "no card open",
+        f"{run.get('taps', 0)} tap(s)",
+        f"receipt accepted L{accepted.n}" if accepted else
+        ("receipts " + ", ".join(f"{r} L{l.n}" for l, r in receipts) if receipts else "no receipt"),
+        f"earcon=approved L{approved.n}" if approved else "no approved",
+        f"service: decision {decision or 'none'}, {run.get('tool', 'call')} {status or 'not run'}",
+    ]
+    reason = f"{head}: " + ", ".join(parts)
+    evidence = ev(needs or needs_skipped, card, accepted or (receipts[0][0] if receipts else None), approved)
+    if card is None:
+        return Verdict(False, "no_card", reason, evidence)
+    if accepted is None:
+        return Verdict(False, "not_accepted", reason, evidence)
+    if needs is None:
+        return Verdict(False, "no_needs_you", reason, evidence)
+    if approved is None:
+        return Verdict(False, "no_approved", reason, evidence)
+    if decision != "approve" or status not in REPLAYED:
+        return Verdict(False, "not_replayed", reason, evidence)
+    return Verdict(True, "pass", reason, evidence)
 
 
 def parse_serial_log(text):

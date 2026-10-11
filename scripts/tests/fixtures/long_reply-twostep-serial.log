@@ -1,0 +1,24 @@
+[    0.00 10:00:00Z] I (300000) StateMachine: State: listening -> idle
+[    2.00 10:00:02Z] I (302000) FaceDisplay: diag gaze=0,0 mode=idle
+[    2.00 10:00:02Z] ### say: Jarvis
+[    3.90 10:00:03Z] I (303900) Application: Wake word detected: Jarvis (state: 3)
+[    4.00 10:00:04Z] I (304000) StateMachine: State: idle -> connecting
+[    4.40 10:00:04Z] I (304400) StateMachine: State: connecting -> listening
+[    4.90 10:00:04Z] I (304900) StateMachine: State: listening -> speaking
+[    4.90 10:00:04Z] I (304900) Application: << Hmm?
+[    5.60 10:00:05Z] I (305600) StateMachine: State: speaking -> listening
+[    5.70 10:00:05Z] ### say: tell me a story about a lighthouse keeper that takes about one minute to tell.
+[   11.80 10:00:11Z] I (311800) Application: >> Tell me a story about a lighthouse keeper that takes about 1 minute to tell.
+[   11.90 10:00:11Z] I (311900) StateMachine: State: listening -> speaking
+[   13.40 10:00:13Z] I (313400) Application: << Old Tomas kept the light on Gull Rock for forty years.
+[   19.40 10:00:19Z] I (319400) Application: << Sentence 1.
+[   25.40 10:00:25Z] I (325400) Application: << Sentence 2.
+[   31.40 10:00:31Z] I (331400) Application: << Sentence 3.
+[   37.40 10:00:37Z] I (337400) Application: << Sentence 4.
+[   43.40 10:00:43Z] I (343400) Application: << Sentence 5.
+[   49.40 10:00:49Z] I (349400) Application: << Sentence 6.
+[   55.40 10:00:55Z] I (355400) Application: << Sentence 7.
+[   61.40 10:01:01Z] I (361400) Application: << Sentence 8.
+[   67.40 10:01:07Z] I (367400) Application: << Sentence 9.
+[   70.20 10:01:10Z] I (370200) StateMachine: State: speaking -> listening
+[   78.20 10:01:18Z] I (378200) StateMachine: State: listening -> idle

@@ -4,6 +4,7 @@ unittest). Fixtures under fixtures/ are excerpts of recorded session logs (docs/
 server clock UTC+1). Driver tests replay a serial fixture through Session with afplay, docker logs
 and the clock mocked."""
 import datetime
+import json
 import re
 import subprocess
 import sys
@@ -291,13 +292,21 @@ class BedsideTest(unittest.TestCase):
         self.assertIn("tap off", v.reason)
 
 
+def same_note(recorded, text):
+    """A driver note matches the recorded one with or without the wake word before the request."""
+    def bare(note):
+        return note.replace("say: Jarvis, ", "say: ", 1)
+    return recorded == text or bare(recorded) == bare(text)
+
+
 class Replay:
     """A recorded serial fixture played back to Session: a clip or diag send moves the cursor to the
     recorded note of the same text; a wait returns the next matching line within its timeout and
-    never runs past the recorded driver's next action; sleep advances the clock."""
+    never runs past the recorded driver's next action; sleep advances the clock. `written` keeps
+    every note the driver wrote."""
 
     def __init__(self, name):
-        self.lines, self.notes = [], []
+        self.lines, self.notes, self.written = [], [], []
         self.base = None
         for n, raw in enumerate((FIX / f"{name}-serial.log").read_text(encoding="utf-8").splitlines(), 1):
             m = SERIAL_RE.match(raw)
@@ -327,9 +336,10 @@ class Replay:
         return self.cursor
 
     def note(self, text):
+        self.written.append(text)
         for k in range(self.next_note, len(self.notes)):
             idx, t, n, body = self.notes[k]
-            if body == text:
+            if same_note(body, text):
                 self.next_note = k + 1
                 self.cursor, self.now = max(self.cursor, idx), max(self.now, t)
                 return n
@@ -368,30 +378,46 @@ class Replay:
         return list(self.lines[since:self.cursor if until is None else until])
 
 
+def replay_item(name, item, barge_in=0, count=10, idle_wait=True, agent=None, **extra):
+    """Runs one Session item against Replay(name) with afplay, docker logs and the clock mocked;
+    returns (session, replay, [(command, replay clock at the call)]). agent replaces the
+    agent-service client and sees the replay clock."""
+    replay = Replay(name)
+    path = FIX / f"{name}-server.log"
+    server = [(server_time(s), s) for s in (path.read_text(encoding="utf-8").splitlines() if path.exists() else [])]
+    calls = []
+
+    def run(cmd, **kw):
+        calls.append((cmd, replay.now))
+        if cmd[0] == "docker":
+            since, until = float(cmd[cmd.index("--since") + 1]), float(cmd[cmd.index("--until") + 1])
+            out = "\n".join(s for t, s in server if since <= t <= until)
+            return subprocess.CompletedProcess(cmd, 0, out, "")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    clock = SimpleNamespace(sleep=replay.sleep, monotonic=lambda: replay.now,
+                            time=lambda: replay.base + replay.now)
+    ns = SimpleNamespace(voice="Fenrir", no_audio=False, count=count, barge_in=barge_in, **extra)
+    session = audio_session.Session(ns, replay)
+    if agent is not None:
+        agent.replay = replay
+        session.agent = agent
+    if not idle_wait:
+        session.wait_ready = lambda *a, **k: None
+    with mock.patch.object(audio_session, "time", clock), \
+            mock.patch.object(audio_session.subprocess, "run", run), \
+            mock.patch.object(audio_session.session_tts, "ensure_clip", lambda v, t: ("/c/x.wav", False)):
+        getattr(session, f"item_{item}")()
+    return session, replay, calls
+
+
 @unittest.skipIf(audio_session is None, "pyserial missing")
 class DriverReplayTest(unittest.TestCase):
-    def run_item(self, name, item, barge_in=0, count=10):
-        replay = Replay(name)
-        server = [(server_time(s), s) for s in load(name)[3]]
-        calls = []
-
-        def run(cmd, **kw):
-            calls.append(cmd)
-            if cmd[0] == "docker":
-                since, until = float(cmd[cmd.index("--since") + 1]), float(cmd[cmd.index("--until") + 1])
-                out = "\n".join(s for t, s in server if since <= t <= until)
-                return subprocess.CompletedProcess(cmd, 0, out, "")
-            return subprocess.CompletedProcess(cmd, 0, "", "")
-
-        clock = SimpleNamespace(sleep=replay.sleep, monotonic=lambda: replay.now,
-                                time=lambda: replay.base + replay.now)
-        ns = SimpleNamespace(voice="Fenrir", no_audio=False, count=count, barge_in=barge_in)
-        session = audio_session.Session(ns, replay)
-        with mock.patch.object(audio_session, "time", clock), \
-                mock.patch.object(audio_session.subprocess, "run", run), \
-                mock.patch.object(audio_session.session_tts, "ensure_clip", lambda v, t: ("/c/x.wav", False)):
-            getattr(session, f"item_{item}")()
-        self.assertEqual(any(c[0] == "afplay" for c in calls), item != "pick_up")
+    def run_item(self, name, item, barge_in=0, count=10, idle_wait=True, **extra):
+        """The item's table row; idle_wait=False replays a log recorded before the driver waited for
+        idle (requests said into the open listening window)."""
+        session, _, calls = replay_item(name, item, barge_in=barge_in, count=count, idle_wait=idle_wait, **extra)
+        self.assertEqual(any(cmd[0] == "afplay" for cmd, _ in calls), item != "pick_up")
         return session.rows[-1]
 
     def test_wake_cue_0748(self):
@@ -410,17 +436,20 @@ class DriverReplayTest(unittest.TestCase):
         self.assertNotIn("cue_missing", reason)
 
     def test_double_tap_0655(self):
-        _, count, verdict, _, reason, _ = self.run_item("double_tap-0655", "double_tap")
+        _, count, verdict, _, reason, _ = self.run_item("double_tap-0655", "double_tap", idle_wait=False)
         self.assertEqual((count, verdict), ("3/10", "FAIL"))
         self.assertRegex(reason, r"^(pass|no_transcript) \d+, (pass|no_transcript) \d+; t1 ")
         self.assertIn("no_transcript 7", reason)
         self.assertEqual(reason.count("tap not sent"), 7)
 
-    def test_long_reply_0655(self):
-        _, count, verdict, result, reason, _ = self.run_item("long_reply-0655", "long_reply")
-        self.assertEqual((count, verdict), ("0/1", "FAIL"))
-        self.assertRegex(reason, r"^no_transcript: wake L\d+, no transcript$")
-        self.assertNotIn("0 s", reason)
+    def test_long_reply_wake_then_request(self):
+        session, replay, calls = replay_item("long_reply-twostep", "long_reply")
+        _, count, verdict, _, reason, _ = session.rows[-1]
+        said = [w[len("say: "):] for w in replay.written if w.startswith("say: ")]
+        self.assertEqual(said, ["Jarvis", audio_session.ASKS["long_reply"]])
+        self.assertEqual((count, verdict), ("1/1", "pass"), reason)
+        self.assertRegex(reason, r"^pass: heard 'Tell me a story about a lighthouse keeper that t...' L\d+; "
+                         r"TTS start L\d+ -> stop L\d+ \(listening\) 58 s; device aborts 0, server aborts 0$")
 
     def test_barge_in_0748(self):
         _, _, verdict, result, reason, _ = self.run_item("barge_in-0748", "barge_in")
@@ -440,7 +469,7 @@ class DriverReplayTest(unittest.TestCase):
                          r"server dropped \"I don't know.\", '100'$")
 
     def test_double_tap_0917(self):
-        _, count, verdict, _, reason, _ = self.run_item("double_tap-0917", "double_tap", count=3)
+        _, count, verdict, _, reason, _ = self.run_item("double_tap-0917", "double_tap", count=3, idle_wait=False)
         self.assertEqual((count, verdict), ("2/3", "FAIL"))
         self.assertIn("t1 no_transcript: no `Wake word detected`, no transcript; tap not sent", reason)
 
@@ -463,6 +492,176 @@ class DriverReplayTest(unittest.TestCase):
         self.assertIn("| 1 | x | 1/1 | pass | r \\| s | t1 pass: a \\| b | 1, 2 |", text)
         self.assertIn("VOICE_BARGE_IN=0", text)
 
+@unittest.skipIf(audio_session is None, "pyserial missing")
+class IdleWaitTest(unittest.TestCase):
+    """Wake clips start only on an idle device, SETTLE_S after its last state change (fixtures
+    idle_wait-*: synthetic serial logs)."""
+
+    def clips(self, calls):
+        return [t for cmd, t in calls if cmd[0] == "afplay"]
+
+    def idle_line(self, replay, after=0.0):
+        return next(t for t, _, text in replay.lines if t >= after and audio_session.IDLE_RE.search(text))
+
+    def test_idle_reached_then_settle(self):
+        session, replay, calls = replay_item("idle_wait-reached", "one_breath", count=1)
+        idle = self.idle_line(replay)
+        self.assertEqual(len(self.clips(calls)), 1)
+        self.assertGreaterEqual(self.clips(calls)[0], idle + audio_session.SETTLE_S)
+        self.assertTrue(any(w.startswith("idle wait: idle L") for w in replay.written), replay.written)
+        self.assertEqual(session.rows[-1][1:3], ("1/1", "pass"))
+
+    def test_settle_restarts_when_the_device_leaves_idle(self):
+        session, replay, calls = replay_item("idle_wait-settle", "one_breath", count=1)
+        second_idle = self.idle_line(replay, after=6.0)
+        self.assertEqual(len(self.clips(calls)), 1)
+        self.assertGreaterEqual(self.clips(calls)[0], second_idle + audio_session.SETTLE_S)
+        self.assertEqual(session.rows[-1][2], "pass")
+
+    def test_settle_restarts_on_pose_change_and_screen_snapshot(self):
+        session, replay, calls = replay_item("idle_wait-pose", "one_breath", count=1)
+        snapshot = next(t for t, _, text in replay.lines if "diag lit=" in text)
+        self.assertGreaterEqual(self.clips(calls)[0], snapshot + audio_session.SETTLE_S)
+        self.assertEqual(session.rows[-1][2], "pass")
+
+    def test_timeout_counts_per_state(self):
+        session, replay, calls = replay_item("idle_wait-long", "one_breath", count=1)
+        self.assertGreaterEqual(self.clips(calls)[0], 45.0 + audio_session.SETTLE_S)
+        self.assertEqual(session.rows[-1][2], "pass")
+
+    def test_timeout_records_not_idle_without_a_clip(self):
+        session, replay, calls = replay_item("idle_wait-timeout", "long_reply")
+        item, count, verdict, _, reason, _ = session.rows[-1]
+        self.assertEqual((item, count, verdict), ("long_reply", "0/1", "FAIL"))
+        self.assertRegex(reason, r"^not_idle: device listening since L2, not idle after 30 s; wake clip not played$")
+        self.assertEqual(self.clips(calls), [])
+        self.assertIn("idle wait: not idle after 30 s (state listening)", replay.written)
+
+    def test_every_voice_item_waits(self):
+        for item in ("one_breath", "wake_cue", "long_reply", "barge_in", "bedside_voice", "double_tap"):
+            session, _, calls = replay_item("idle_wait-timeout", item, count=1)
+            self.assertEqual(self.clips(calls), [], item)
+            self.assertIn("not_idle", session.rows[-1][4], item)
+
+    def test_unknown_state_uses_the_dump(self):
+        session, replay, calls = replay_item("idle_wait-dump", "one_breath", count=1)
+        dump = next(t for t, _, text in replay.lines if "ok diag dump" in text)
+        self.assertGreaterEqual(self.clips(calls)[0], dump + audio_session.SETTLE_S)
+        self.assertEqual(session.rows[-1][2], "pass")
+
+
+class FakeAgent:
+    """agent-service API for the earcons item: the hold becomes approvable at replay time `ready`
+    (the task already reports done after 20 s, its hold still open); the trace reports the approved
+    call with `status`. done_at: the hold is gone at that time, its call ended unknown."""
+
+    TASK, CHAT = "tsk_01M4TESTTASK0000000000000", "cht_01M4TESTCHAT0000000000000"
+
+    def __init__(self, ready=32.0, status="ok", decision="approve", done_at=None):
+        self.ready, self.status, self.decision, self.done_at = ready, status, decision, done_at
+        self.replay = None
+        self.requests = []
+
+    def request(self, method, path, body=None, idempotent=False):
+        self.requests.append((method, path, body, idempotent))
+        if (method, path) == ("POST", "/v1/chats"):
+            return 201, {"chat_id": self.CHAT, "duplicate": False}
+        if (method, path) == ("POST", f"/v1/chats/{self.CHAT}/messages"):
+            return 201, {"chat_id": self.CHAT, "task_id": self.TASK, "routed": "new_task"}
+        if path == f"/v1/tasks/{self.TASK}":
+            if self.done_at is not None and self.replay.now >= self.done_at:
+                return 200, {"task_id": self.TASK, "state": "done", "pending": []}
+            state = "pending" if self.replay.now >= self.ready else "uncorrelated"
+            return 200, {"task_id": self.TASK, "state": "done" if self.replay.now > 20 else "needs_approval",
+                         "pending": [{"kind": "approval", "state": state, "interaction_id": "int_x"}]}
+        if path == f"/v1/tasks/{self.TASK}/trace" and self.done_at is not None:
+            return 200, {"tool_calls": [{"kind": "ha", "tool": "ha_call_service", "status": "unknown",
+                                         "approval_decision": None, "result_summary": "result unknown (ReadTimeout)"}]}
+        if path == f"/v1/tasks/{self.TASK}/trace":
+            return 200, {"tool_calls": [{"kind": "ha", "tool": "ha_call_service", "status": self.status,
+                                         "approval_decision": self.decision}]}
+        return 404, None
+
+
+@unittest.skipIf(audio_session is None, "pyserial missing")
+class EarconsTest(unittest.TestCase):
+    def test_skipped_without_claude_agent(self):
+        agent = FakeAgent()
+        session, _, calls = replay_item("earcons-accepted", "earcons", agent=agent, voice_llm="anthropic",
+                                        fixture_device="aa:bb:cc:dd:ee:ff")
+        item, count, verdict, result, reason, _ = session.rows[-1]
+        self.assertEqual((item, count, verdict), ("earcons", "-", "skipped"))
+        self.assertEqual(reason, "skipped: needs VOICE_LLM=claude_agent (server/.env: anthropic)")
+        self.assertEqual(agent.requests, [])
+        self.assertEqual(calls, [])
+
+    def test_real_hold_approved_by_tap(self):
+        agent = FakeAgent()
+        session, replay, _ = replay_item("earcons-accepted", "earcons", agent=agent, voice_llm="claude_agent",
+                                         fixture_device="AA:BB:CC:DD:EE:FF")
+        item, count, verdict, _, reason, _ = session.rows[-1]
+        self.assertEqual((item, count, verdict), ("earcons", "1/1", "pass"), reason)
+        self.assertRegex(reason, r"^pass: task tsk_\w+: earcon=needs_you L\d+, card open L\d+, 2 tap\(s\), "
+                         r"receipt accepted L\d+, earcon=approved L\d+, service: decision approve, ha_call_service ok$")
+        create, message = agent.requests[0], agent.requests[1]
+        self.assertEqual(create, ("POST", "/v1/chats", {"device_id": "aa:bb:cc:dd:ee:ff", "switch": False}, True))
+        self.assertEqual(message[2]["text"], audio_session.HELD_ASK)
+        self.assertIn("input_boolean.weixue_session_probe", message[2]["text"])
+        self.assertEqual(sum(w == "send diag card approve" for w in replay.written), 2)
+
+    def test_stale_receipts_fail_not_accepted(self):
+        agent = FakeAgent()
+        session, replay, _ = replay_item("earcons-stale", "earcons", agent=agent, voice_llm="claude_agent",
+                                         fixture_device="aa:bb:cc:dd:ee:ff")
+        _, count, verdict, _, reason, _ = session.rows[-1]
+        self.assertEqual((count, verdict), ("0/1", "FAIL"))
+        self.assertIn("not_accepted: ", reason)
+        self.assertIn("receipts stale L", reason)
+        self.assertEqual(sum(w == "send diag card approve" for w in replay.written), audio_session.APPROVE_TAPS)
+
+    def test_no_approvable_hold(self):
+        agent = FakeAgent(ready=float("inf"))
+        session, _, _ = replay_item("earcons-accepted", "earcons", agent=agent, voice_llm="claude_agent",
+                                    fixture_device="aa:bb:cc:dd:ee:ff")
+        self.assertRegex(session.rows[-1][4], r"^no_hold: task tsk_\w+: no approvable hold within 90 s "
+                         r"\(hold uncorrelated\); ha_call_service ok: ")
+
+    def test_hold_lost_before_it_became_approvable(self):
+        agent = FakeAgent(ready=float("inf"), done_at=16.0)
+        session, _, _ = replay_item("earcons-accepted", "earcons", agent=agent, voice_llm="claude_agent",
+                                    fixture_device="aa:bb:cc:dd:ee:ff")
+        self.assertEqual(session.rows[-1][4], f"no_hold: task {FakeAgent.TASK}: task done without an approvable hold "
+                         "(hold uncorrelated); ha_call_service unknown: result unknown (ReadTimeout)")
+
+    def test_judge_needs_a_replayed_call(self):
+        lines, _ = j.parse_serial_log((FIX / "earcons-accepted-serial.log").read_text())
+        run = {"task_id": FakeAgent.TASK, "actionable": True, "taps": 2, "decision": "approve", "status": "pending",
+               "tool": "ha_call_service"}
+        self.assertEqual(j.judge_earcons(lines, run).cls, "not_replayed")
+        self.assertEqual(j.judge_earcons(lines, dict(run, status="error")).cls, "pass")
+        self.assertEqual(j.judge_earcons(lines, {"task_id": None, "error": "chat create answered 0"}).cls, "agent_error")
+
+
+class AgentClientTest(unittest.TestCase):
+    @unittest.skipIf(audio_session is None, "pyserial missing")
+    def test_request_runs_inside_the_container(self):
+        seen = {}
+
+        def run(cmd, input=None, **kw):
+            seen.update(cmd=cmd, input=json.loads(input))
+            return subprocess.CompletedProcess(cmd, 0, 'warning\n{"status": 201, "body": {"chat_id": "c"}}\n', "")
+
+        with mock.patch.object(audio_session.subprocess, "run", run):
+            status, body = audio_session.AgentClient().request("POST", "/v1/chats", {"device_id": "d"}, idempotent=True)
+        self.assertEqual((status, body), (201, {"chat_id": "c"}))
+        self.assertEqual(seen["cmd"][:6], ["docker", "exec", "-i", "agent-service", "python", "-c"])
+        self.assertEqual(seen["input"]["path"], "/v1/chats")
+        self.assertRegex(seen["input"]["headers"]["Idempotency-Key"], r"^[0-9a-f-]{36}$")
+        self.assertNotIn("AGENT_SERVICE_TOKEN=", " ".join(seen["cmd"]))
+        failed = lambda cmd, **kw: subprocess.CompletedProcess(cmd, 1, "", "No such container")  # noqa: E731
+        with mock.patch.object(audio_session.subprocess, "run", failed):
+            self.assertEqual(audio_session.AgentClient().request("GET", "/v1/tasks/t"), (0, None))
+
 
 class ShellEnvTest(unittest.TestCase):
     def test_reads_token_fixture_and_flag_from_env_without_printing(self):
@@ -472,7 +671,8 @@ class ShellEnvTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             env_file = Path(d) / ".env"
             env_file.write_text("LAN_IP=10.9.9.9\nWEIXUE_PROACTIVE_TOKEN=\"tok-secret-123\"\nBIND_IP=0.0.0.0\n"
-                                "ALLOWED_DEVICES=aa:bb:cc:dd:ee:ff,11:22:33:44:55:66\nVOICE_BARGE_IN=1\n")
+                                "ALLOWED_DEVICES=aa:bb:cc:dd:ee:ff,11:22:33:44:55:66\nVOICE_BARGE_IN=1\n"
+                                "VOICE_LLM=claude_agent\n")
             stub = Path(d) / "probe.sh"
             src = (root / "scripts" / "audio_session.sh").read_text()
             body = src[src.index("mode_args=()"):src.index("set +e")]
@@ -485,7 +685,7 @@ class ShellEnvTest(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stderr)
         self.assertEqual(out.stdout.splitlines(), ["--no-audio", "--fixture-base", "http://127.0.0.1:8003",
                                                     "--fixture-device", "aa:bb:cc:dd:ee:ff", "--barge-in", "1",
-                                                    "token-exported"])
+                                                    "--voice-llm", "claude_agent", "token-exported"])
 
 
 if __name__ == "__main__":
