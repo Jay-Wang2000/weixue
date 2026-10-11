@@ -110,7 +110,7 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 - 49 monitor ha-mcp probe cadence: confirm the implemented 10 s ping.
 - 51 narration during the 6 s reply hold: keep (A) or end after the acknowledgment (B, recommended).
 - 53 remove `debug_reply` from every build and use USB diag taps only (recommended; makes ADR-13 unconditional).
-- 55 (Codex Q1) ha-mcp ownership: keep uncorrelated held calls read-only on the device until our own request returns its token (recommended), or pursue an invocation-id integration with ha-mcp.
+- 55 (Codex Q1) ha-mcp ownership — IMPLEMENTED the strict rule (fix-m2-review-service): a held call is ours only once our own request returns its token. Because ha-mcp issues no request id, that token arrives only after `wait_seconds` (180 s live), so for the first 3 minutes the device card is READ-ONLY ("approve it in the Home Assistant panel") and voice cannot approve; after that the card gets Approve/Deny. This is a user-facing change from the design (approve on the device within seconds). Options: A = accept (approve in the HA panel for quick things; device/voice after 3 min); B = ask the ha-mcp maintainers for an invocation id / early token (external project); C = a shorter effective wait via our own layer is NOT available without changing ha-mcp wait_seconds (your rule). Recommendation: A now, B as a feature request.
 - 56 (Codex Q3) voice chat-switch commands ("switch to X", "new chat"): keep in M2 or defer to M3 (recommended: defer; tap switching exists).
 - 57 (Codex Q6) which reversible held HA action closes the real approval gate (needs a held tool in your policy; the light is free) and the audio window.
 
