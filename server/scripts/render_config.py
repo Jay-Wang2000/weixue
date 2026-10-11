@@ -16,6 +16,10 @@ VOICE_LLM = {"claude_agent": ("ClaudeAgentLLM", "nointent"), "anthropic": ("Anth
 
 template = open(sys.argv[1], encoding="utf-8").read()
 voice = os.environ.get("VOICE_LLM", "").strip() or "anthropic"
+asr = os.environ.get("VOICE_ASR", "").strip() or "GoogleSTT"
+if asr not in ("GoogleSTT", "GoogleSTTStream"):
+    sys.exit(f"VOICE_ASR must be GoogleSTT or GoogleSTTStream, got {asr!r}")
+os.environ["VOICE_ASR"] = asr
 if voice not in VOICE_LLM:
     sys.exit(f"render_config: VOICE_LLM must be one of {', '.join(VOICE_LLM)}")
 DERIVED = dict(zip(("VOICE_LLM_MODULE", "VOICE_INTENT"), VOICE_LLM[voice]))

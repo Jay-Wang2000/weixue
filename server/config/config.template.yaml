@@ -35,7 +35,7 @@ wakeup_words:
 
 selected_module:
   VAD: SileroVAD
-  ASR: GoogleSTTStream
+  ASR: @@VOICE_ASR@@
   LLM: @@VOICE_LLM_MODULE@@
   TTS: GoogleTTS
   Intent: @@VOICE_INTENT@@
