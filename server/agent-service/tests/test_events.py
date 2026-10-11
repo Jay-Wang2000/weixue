@@ -7,6 +7,11 @@ from fake_hamcp import FakeHaMcp
 PLUG = {"domain": "switch", "service": "turn_on", "entity_id": "switch.working_desk_plug"}
 
 
+async def owned(h, row):
+    h.fake_ha.elapse_wait()
+    await h.wait_for(lambda: h.store.interaction(row["interaction_id"])["state"] == "pending", what="owned")
+
+
 async def test_event_line_starts_an_event_turn_when_idle(make):
     prompts = []
 
@@ -21,8 +26,8 @@ async def test_event_line_starts_an_event_turn_when_idle(make):
     _, first = await h.send("plug on")
     task_id = first[0]["task_id"]
     await h.wait_task(task_id, "needs_approval")
-    await h.poll()
     row = h.store.one("SELECT * FROM interactions WHERE task_id = ?", (task_id,))
+    await owned(h, row)
     await h.http.post(f"/v1/chats/{first[0]['chat_id']}/approve",
                       json={"interaction_id": row["interaction_id"], "decision_id": str(uuid.uuid4()), "via": "panel"})
     task = await h.wait_task(task_id, "done")
@@ -52,8 +57,8 @@ async def test_event_line_waits_for_the_running_turn(make):
     _, first = await h.send("plug on")
     chat_id = first[0]["chat_id"]
     await h.wait_task(first[0]["task_id"], "needs_approval")
-    await h.poll()
     row = h.store.one("SELECT * FROM interactions WHERE task_id = ?", (first[0]["task_id"],))
+    await owned(h, row)
     _, cont = await h.send("and do the other thing")
     assert cont[0]["data"]["routed"] == "continue"
     await h.http.post(f"/v1/chats/{chat_id}/approve",

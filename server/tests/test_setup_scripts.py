@@ -295,6 +295,9 @@ elif args[:2] == ["compose", "up"]:
         state.setdefault("recreated", []).append(args[args.index("--force-recreate") + 1:])
         state["recreates"] = n = state.get("recreates", 0) + 1
         state.setdefault("up_env", []).append([os.environ.get("BIND_IP"), os.environ.get("COMPOSE_PROFILES")])
+        db = "data/agent-service/db/agent.db"
+        if n == 1 and os.environ.get("FAKE_MIGRATE") and os.path.exists(db):
+            open(db, "w").write("migrated by the new image")
         if ("up" in fails and n == 1) or ("rollback-up" in fails and n == 2):
             code = 1
         else:
@@ -811,3 +814,34 @@ def test_agent_db_moves_into_db_only_with_the_service_stopped(setup_tree):
     assert "inspect -f {{.State.Running}} agent-service" in log[stop + 1]
     result, state = run()
     assert result.returncode == 0 and "stop agent-service" not in state["log"][len(log):]
+
+
+def test_agent_db_is_backed_up_before_the_new_image_and_restored_on_rollback(setup_tree):
+    server, run = setup_tree
+    data = server / "data" / "agent-service"
+    (data / "db").mkdir(parents=True)
+    for name in ("agent.db", "agent.db-wal"):
+        (data / "db" / name).write_text(f"v1 {name}")
+    result, state = run(FAKE_FAIL="agent-running")
+    assert result.returncode == 1 and "not backed up and nothing was published" in result.stdout
+    assert not state.get("recreated") and (data / "db" / "agent.db").read_text() == "v1 agent.db"
+    assert (server / "data" / ".config.yaml").read_text() == OLD_CONFIG
+    result, state = run(FAKE_MIGRATE="1")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert sorted(p.name for p in (data / "db-rollback").iterdir()) == ["agent.db", "agent.db-wal"]
+    assert (data / "db-rollback" / "agent.db").read_text() == "v1 agent.db"
+    log = state["log"]
+    stop = log.index("stop agent-service agent-monitor")
+    assert stop < next(i for i, l in enumerate(log) if "--force-recreate" in l)
+    assert (data / "db" / "agent.db").read_text() == "migrated by the new image"
+    (data / "db" / "agent.db").write_text("v1 agent.db")
+    result, state = run(FAKE_FAIL="exec-agent-service", ATTEMPT="new", FAKE_MIGRATE="1")
+    assert result.returncode == 1 and "rolling back" in result.stdout
+    assert "agent-service database restored from before this run" in result.stdout
+    assert (data / "db" / "agent.db").read_text() == "v1 agent.db"
+    assert (data / "db" / "agent.db-wal").read_text() == "v1 agent.db-wal"
+    assert (data / "db-failed" / "agent.db").read_text() == "migrated by the new image"
+    rerun = state["log"][len(log):]
+    restore = max(i for i, l in enumerate(rerun) if l == "stop agent-service agent-monitor")
+    assert restore > next(i for i, l in enumerate(rerun) if "--force-recreate" in l)
+    assert state["recreated"][-1] == ["mcp-bridge", "agent-service", "agent-monitor", "xiaozhi-esp32-server"]

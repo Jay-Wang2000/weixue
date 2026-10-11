@@ -6,7 +6,7 @@ import uuid
 import pytest
 
 from fake_hamcp import FakeHaMcp
-from weixue_agent import ha_adapter, interactions
+from weixue_agent import ha_adapter
 
 LIGHT = {"domain": "light", "service": "turn_on", "entity_id": "light.living_room_ceiling_lights"}
 
@@ -86,7 +86,6 @@ async def test_interrupt_route_is_idempotent_by_decision_id(make):
 
 
 async def test_uncorrelated_hold_is_never_reported_cancelled(make, monkeypatch):
-    monkeypatch.setattr(interactions, "HA_PENDING_POLL_S", 0.05)
 
     async def script(turn):
         await turn.text("Turning on the plug.")

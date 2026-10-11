@@ -227,6 +227,7 @@ rollback() {
     set -a; . ./.env; set +a
     echo "server/.env restored from the last successful run; the attempted one is server/.env.failed"
   fi
+  restore_agent_db
   local services=($endpoint mcp-bridge)
   if [ -n "$AGENT_PREVIOUS" ]; then
     services+=(agent-service)
@@ -279,6 +280,37 @@ if [ -f "$AGENT_DATA/agent.db" ] && [ ! -e "$AGENT_DATA/db/agent.db" ]; then
     if [ -e "$AGENT_DATA/$file" ]; then mv "$AGENT_DATA/$file" "$AGENT_DATA/db/$file"; fi
   done
   echo "agent-service database moved to server/$AGENT_DATA/db/"
+fi
+
+# agent-service's database as it was before this run, copied with the service and the monitor stopped (a newer
+# image migrates it in place); rollback() puts it back and keeps the attempted one in db-failed/.
+backup_agent_db() {
+  local file
+  rm -rf "$AGENT_DATA/db-rollback"
+  [ -f "$AGENT_DATA/db/agent.db" ] || return 0
+  docker stop agent-service agent-monitor >/dev/null 2>&1 || true
+  [ "$(docker inspect -f '{{.State.Running}}' agent-service 2>/dev/null || echo false)" = false ] || return 1
+  mkdir -p "$AGENT_DATA/db-rollback"
+  for file in agent.db agent.db-wal agent.db-shm; do
+    if [ -e "$AGENT_DATA/db/$file" ]; then cp -p "$AGENT_DATA/db/$file" "$AGENT_DATA/db-rollback/$file"; fi
+  done
+}
+restore_agent_db() {
+  local file
+  [ -f "$AGENT_DATA/db-rollback/agent.db" ] || return 0
+  docker stop agent-service agent-monitor >/dev/null 2>&1 || true
+  rm -rf "$AGENT_DATA/db-failed"
+  mkdir -p "$AGENT_DATA/db-failed"
+  for file in agent.db agent.db-wal agent.db-shm; do
+    if [ -e "$AGENT_DATA/db/$file" ]; then mv "$AGENT_DATA/db/$file" "$AGENT_DATA/db-failed/$file"; fi
+    if [ -e "$AGENT_DATA/db-rollback/$file" ]; then cp -p "$AGENT_DATA/db-rollback/$file" "$AGENT_DATA/db/$file"; fi
+  done
+  echo "agent-service database restored from before this run; the attempted one is server/$AGENT_DATA/db-failed/"
+}
+if ! backup_agent_db; then
+  restore_images
+  echo "agent-service is still running; its database was not backed up and nothing was published"
+  exit 1
 fi
 
 ENDPOINT_FILE=$(mktemp "$ENDPOINT_URL.XXXXXX")

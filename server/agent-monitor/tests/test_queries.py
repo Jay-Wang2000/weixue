@@ -1,4 +1,5 @@
 """Queries and aggregations over the fixture database; the column allowlist."""
+import json
 import re
 from datetime import timedelta
 from pathlib import Path
@@ -135,7 +136,7 @@ def test_errors_newest_first_and_scrubbed(db):
     rows = queries.errors(db)
     assert [r["code"] for r in rows] == ["timeout", "overloaded"]
     assert "private_abc" not in rows[0]["message"] and "token=xyz" not in rows[0]["message"]
-    assert "[url]" in rows[0]["message"]
+    assert "[redacted]" in rows[0]["message"]
     assert queries.error_count(db, fx.ts(fx.NOW - timedelta(hours=24))) == 1
 
 
@@ -157,3 +158,19 @@ def test_queries_module_selects_only_allowlisted_columns():
     assert not words & set(FORBIDDEN_COLUMNS), words & set(FORBIDDEN_COLUMNS)
     for table in FORBIDDEN_TABLES:
         assert not re.search(rf"\b(FROM|JOIN)\s+{table}\b", source)
+
+
+def test_text_fields_are_scrubbed_even_when_the_row_holds_a_secret(db_path, db):
+    import sqlite3
+    secret = "sk-proj-" + "a" * 32
+    raw = sqlite3.connect(str(db_path))
+    task_id = raw.execute("SELECT task_id FROM tasks ORDER BY created_at LIMIT 1").fetchone()[0]
+    raw.execute("UPDATE tasks SET title = ?, summary = ? WHERE task_id = ?",
+                (f"key {secret}", "AIza" + "B" * 35, task_id))
+    raw.execute("UPDATE turns SET text = ?, final_text = ? WHERE task_id = ?",
+                (f"my key is {secret}", "Bearer abc.def.ghi", task_id))
+    raw.execute("UPDATE chats SET title = ?", (f"chat {secret}",))
+    raw.commit()
+    raw.close()
+    blob = json.dumps([queries.task_detail(db, task_id), queries.chats(db), queries.timeline(db)])
+    assert secret not in blob and "AIza" + "B" * 35 not in blob and "abc.def.ghi" not in blob

@@ -25,7 +25,7 @@ from .config import (
     STREAMS_MAX, SUMMARY_MAX, TEXT_COALESCE_MS, TITLE_MAX, TURN_MAX_S, Settings,
 )
 from .deliveries import Outbox, agent_payload
-from .ha_adapter import HaGateway, describe_call
+from .ha_adapter import BLOCKED_TEXT, GUARD_TEXT, UNKNOWN_TEXT, UNREACHABLE_TEXT, HaGateway, describe_call
 from .memory import memory_index
 from .ids import new_id, trace_id as new_trace_id
 from .sse import EventHub, TextCoalescer
@@ -46,6 +46,10 @@ FAIL_SPEAK = {
     "busy": {"en": routing.BUSY["en"], "zh": routing.BUSY["zh"]},
     "default": {"en": "Sorry, something went wrong with that.", "zh": "抱歉，出了点问题。"},
 }
+NOTICE_TITLE = {"en": "Notice", "zh": "通知"}
+DISPOSITION_STATUS = {"executed": "ok", "failed": "error", "not_sent": "not_run", "blocked": "not_run",
+                      "denied": "denied", "expired": "expired", "pending": "pending", "unknown": "unknown"}
+EFFECT_STATUS = {"ok": "confirmed", "error": "failed", "denied": "not_run", "expired": "not_run", "not_run": "not_run"}
 WHY = {"service_restart": "the service restarted", "cancelled": "the user stopped this task",
        "steered": "the turn was interrupted", "barge_in": "the turn was interrupted", "timeout": "the turn timed out"}
 STARTED_TEXT = ("Task started. Continue the work now; your final reply is delivered to the user when you finish. "
@@ -240,7 +244,7 @@ class Engine:
             chat = self.store.chat(chat_ref)
             if chat is None or chat["device_id"] != device_id:
                 raise ApiError(404, "not_found", "chat not found for this device")
-        text = body["text"]
+        text = jsonlog.redact_text(body["text"])
         lang = routing.detect_lang(text, body.get("lang", "auto"))
         trace = trace or new_trace_id()
         reply_id = new_id("rpl")
@@ -613,8 +617,9 @@ class Engine:
         row = self.store.one("SELECT * FROM tool_calls WHERE tool_use_id = ?", (use.get("id"),))
         turn = self.store.turn(row["turn_id"]) if row else None
         why = WHY.get((turn or {}).get("terminal_reason") or "", "the turn ended")
-        held = bool(row and row["kind"] == "ha" and not row["read_only"] and (
-            row["approval_id"] or row["status"] in ("running", "pending", "unknown")))
+        held = bool(row and not row["read_only"] and (
+            (row["kind"] == "ha" and (row["approval_id"] or row["status"] in ("running", "pending", "unknown")))
+            or (row["kind"] == "device" and row["status"] in ("dispatched", "unknown"))))
         if held:
             text = f"result unknown: {why}; do not repeat it"
             status = "unknown"
@@ -624,7 +629,7 @@ class Engine:
         else:
             text = f"not run: {why}"
             status = "not_run"
-        if row and row["status"] in ("running",):
+        if row and row["status"] in ("running", "dispatched"):
             self.store.update("tool_calls", "tool_use_id", row["tool_use_id"], {"status": status, "ended_at": timeutil.iso()})
         return {"type": "tool_result", "tool_use_id": use["id"], "content": text, "is_error": status != "ok"}
 
@@ -732,6 +737,14 @@ class Engine:
         blocks.append({"type": "text", "text": "[continue]"})
         transcript.append([{"role": "user", "content": blocks}], run.turn_id)
         self.log("continue after limit", run, event="continue", detail=stop)
+
+    def settled(self, run: TurnRun, message: Any) -> None:
+        """A settling response's own client tool uses never run."""
+        ids = [b.id for b in message.content if b.type == "tool_use"]
+        for tool_use_id in ids:
+            self.store.update("tool_calls", "tool_use_id", tool_use_id, {"status": "not_run", "ended_at": timeutil.iso()})
+        self.log("server tool settled", run, event="settle", outcome=message.stop_reason,
+                 detail=f"client_uses={len(ids)}")
 
     def on_compaction(self, chat_id: str, run: TurnRun) -> None:
         epoch = self.store.chat(chat_id)["epoch"]
@@ -847,6 +860,8 @@ class Engine:
     # ------------------------------------------------------------------ tool calls of a turn
 
     def _tool_kind(self, name: str) -> str:
+        if name == "device_action":
+            return "device"
         if name in app_tools.NAMES:
             return "app"
         if name == "memory":
@@ -857,44 +872,75 @@ class Engine:
         chat = self.store.chat(run.chat_id)
         results = {getattr(b, "tool_use_id", None): b for b in message.content
                    if str(getattr(b, "type", "")).endswith("_tool_result")}
+        for tool_use_id, result in results.items():
+            row = self.store.one("SELECT status FROM tool_calls WHERE tool_use_id = ?", (tool_use_id,))
+            if row and row["status"] == "pending":
+                self.store.update("tool_calls", "tool_use_id", tool_use_id, {
+                    "status": self._server_status(result), "ended_at": timeutil.iso()})
         for block in message.content:
             if block.type not in ("tool_use", "server_tool_use"):
                 continue
             server = block.type == "server_tool_use"
             kind = "server" if server else self._tool_kind(block.name)
             args = dict(block.input or {}) if isinstance(block.input, dict) else {}
-            read_only = kind != "ha" or self.ha.is_read_only(block.name)
-            target = describe_call(block.name, args)[1] if kind == "ha" else None
+            if kind == "ha":
+                read_only = self.ha.is_read_only(block.name)
+                target = describe_call(block.name, args)[1]
+            elif kind == "device":
+                read_only = str(args.get("tool")) not in app_tools.DEVICE_SETTERS
+                target = jsonlog.truncate(str(args.get("tool") or ""), 128)
+            else:
+                read_only, target = True, None
             status = "running"
             if server:
                 result = results.get(block.id)
-                content = getattr(result, "content", None)
-                status = "error" if result is None or getattr(content, "type", "").endswith("error") else "ok"
+                status = "pending" if result is None and message.stop_reason in ("tool_use", "pause_turn") else \
+                    self._server_status(result)
             self.store.insert("tool_calls", {
                 "tool_use_id": block.id, "task_id": run.task_id, "chat_id": run.chat_id, "turn_id": run.turn_id,
                 "epoch": chat["epoch"], "kind": kind, "tool": block.name,
-                "args_summary": dumps(jsonlog.redact_args(args)), "target": target, "read_only": int(read_only),
+                "args_summary": jsonlog.redact_args(args), "target": target, "read_only": int(read_only),
                 "status": status, "started_at": timeutil.iso(),
-                "ended_at": timeutil.iso() if server else None}, or_ignore=True)
+                "ended_at": timeutil.iso() if server and status != "pending" else None}, or_ignore=True)
             self.log("tool call", run, tool=block.name, event="tool_use", outcome=kind,
                      detail=jsonlog.truncate(dumps(jsonlog.redact_args(args)), 200))
 
+    @staticmethod
+    def _server_status(result: Any) -> str:
+        content = getattr(result, "content", None)
+        return "error" if result is None or str(getattr(content, "type", "")).endswith("error") else "ok"
+
     def record_tool_results(self, run: TurnRun, response: Optional[Dict[str, Any]]) -> None:
+        """Each client tool's status; an HA call's is the adapter's disposition for its tool use."""
         for block in (response or {}).get("content") or []:
             if block.get("type") != "tool_result":
                 continue
+            disposition = self.ha.take_disposition(block["tool_use_id"])
             row = self.store.one("SELECT * FROM tool_calls WHERE tool_use_id = ?", (block["tool_use_id"],))
             if row is None or row["status"] != "running":
                 continue
             content = block.get("content")
             text = content if isinstance(content, str) else "\n".join(
                 c.get("text", "") for c in content or [] if isinstance(c, dict))
-            status = "pending" if text.startswith("PENDING_APPROVAL") else "error" if block.get("is_error") else "ok"
+            values: Dict[str, Any] = {}
+            if row["kind"] == "ha" and disposition is not None:
+                approval_id, kind = disposition
+                status = DISPOSITION_STATUS.get(kind, "unknown")
+                if approval_id and kind != "blocked":
+                    values["approval_id"] = approval_id
+            elif row["kind"] == "ha":
+                status = ("pending" if text.startswith("PENDING_APPROVAL") else
+                          "unknown" if text in (UNKNOWN_TEXT, BLOCKED_TEXT) else
+                          "not_run" if text in (UNREACHABLE_TEXT, GUARD_TEXT) else
+                          "error" if block.get("is_error") else "ok")
+            else:
+                status = "error" if block.get("is_error") else "ok"
             started = timeutil.parse(row["started_at"])
-            self.store.update("tool_calls", "tool_use_id", block["tool_use_id"], {
-                "status": status, "result_summary": jsonlog.truncate(jsonlog.redact_text(text or ""), 200),
-                "ended_at": None if status == "pending" else timeutil.iso(),
-                "duration_ms": None if status == "pending" else int((timeutil.now() - started).total_seconds() * 1000)})
+            values.update(status=status, result_summary=jsonlog.truncate(jsonlog.redact_text(text or ""), 200),
+                          ended_at=None if status == "pending" else timeutil.iso(),
+                          duration_ms=None if status == "pending" else
+                          int((timeutil.now() - started).total_seconds() * 1000))
+            self.store.update("tool_calls", "tool_use_id", block["tool_use_id"], values)
             self.log("tool result", run, tool=row["tool"], event="tool_result", outcome=status)
 
     def progress(self, run: TurnRun, phase: str, tool: Optional[str] = None, label: Optional[str] = None) -> None:
@@ -907,7 +953,7 @@ class Engine:
         progress: Dict[str, Any] = {"phase": phase, "step": run.step or None, "tool": tool}
         if label:
             progress["label"] = jsonlog.truncate(label, 40)
-        self.store.update("tasks", "task_id", run.task_id, {"progress_json": dumps(progress)})
+        self.store.update("tasks", "task_id", run.task_id, {"progress_json": progress})
         self.emit(run.chat_id, "progress", progress, run.trace_id, task_id=run.task_id, turn_id=run.turn_id)
         if not self.reply_open(run):
             task = self.store.task(run.task_id)
@@ -942,7 +988,7 @@ class Engine:
                 self.chats.set_title(chat_id, str(args["title"]))
             return "Title set."
         if name == "device_action":
-            return await self._device_action(run, args)
+            return await self._device_action(run, args, actor.take_use(name, args))
         if name == "awaiting_answer":
             if run is not None:
                 run.awaiting_answer = True
@@ -953,34 +999,54 @@ class Engine:
                 self.store.update("tasks", "task_id", run.task_id, {"result_tier": tier})
             return f"Result tier set to {tier}."
         if name == "notify_user":
-            text = jsonlog.truncate(str(args.get("text") or ""), 300)
-            if not text:
-                return "Nothing to say."
-            chat = self.store.chat(chat_id)
-            urgent = bool(args.get("urgent"))
-            lang = run.lang if run else "en"
-            self.outbox.enqueue(chat["device_id"], "notify", "INTERRUPT" if urgent else "WHEN_IDLE",
-                                f"notify:{new_id('dlv')}", {"chat_id": chat_id, "text": text},
-                                task_id=run.task_id if run else None, chat_id=chat_id,
-                                turn_id=run.turn_id if run else None, speak=text, lang=lang, ttl_s=NOTIFY_TTL_S)
-            return "Queued for the device."
+            return self._notify(run, chat_id, args)
         return "Unknown tool."
 
-    async def _device_action(self, run: Optional[TurnRun], args: Dict[str, Any]) -> str:
+    def _notify(self, run: Optional[TurnRun], chat_id: str, args: Dict[str, Any]) -> str:
+        """A notice: an unread `agent` card of its own (`ntf_…`), spoken at its tier (protocol: Notices)."""
+        text = jsonlog.truncate(jsonlog.redact_text(str(args.get("text") or "")), 300)
+        if not text:
+            return "Nothing to say."
+        chat = self.store.chat(chat_id)
+        urgent = bool(args.get("urgent"))
+        lang = run.lang if run else "en"
+        notice_id = new_id("ntf")
+        payload = {"task_id": notice_id, "chat_id": chat_id, "state": "unread", "title": NOTICE_TITLE[lang],
+                   "summary": jsonlog.truncate(text, SUMMARY_MAX), "lang": lang, "notice": True,
+                   "origin_task_id": run.task_id if run else None}
+        self.outbox.enqueue(chat["device_id"], "agent", "INTERRUPT" if urgent else "WHEN_IDLE",
+                            f"notify:{notice_id}", payload, task_id=notice_id, chat_id=chat_id,
+                            turn_id=run.turn_id if run else None, speak=text, lang=lang, ttl_s=NOTIFY_TTL_S)
+        if urgent:
+            return "Queued: the device speaks it now, interrupting what it is doing, and shows it as a card."
+        return "Queued: the device speaks it when it is idle and shows it as a card."
+
+    def _mark_device_call(self, tool_use_id: Optional[str], values: Dict[str, Any]) -> None:
+        if tool_use_id:
+            self.store.update("tool_calls", "tool_use_id", tool_use_id, values)
+
+    async def _device_action(self, run: Optional[TurnRun], args: Dict[str, Any],
+                             tool_use_id: Optional[str] = None) -> str:
         """A device tool call: a `device_action` event on the turn's open reply stream; the gateway runs it on the
-        device and posts the result (device_action_result)."""
+        device and posts the result (device_action_result). Dispatch and disposition are persisted on the
+        tool_calls row; the action id is derived from the tool use, so a repeat of the same use keeps it."""
         tool = str(args.get("tool") or "")
         params = args.get("args") or {}
+        refused = None
         if tool not in app_tools.DEVICE_TOOLS:
-            return "Unknown device tool. Available: " + ", ".join(app_tools.DEVICE_TOOLS) + "."
-        if not isinstance(params, dict):
-            return "args must be an object."
-        if run is None or not self.reply_open(run):
-            return ("The device is not in a conversation right now, so device actions cannot run. "
-                    "Tell the user to ask again while talking to you.")
-        action_id = new_id("dac")
+            refused = "Unknown device tool. Available: " + ", ".join(app_tools.DEVICE_TOOLS) + "."
+        elif not isinstance(params, dict):
+            refused = "args must be an object."
+        elif run is None or not self.reply_open(run):
+            refused = ("The device is not in a conversation right now, so device actions cannot run. "
+                       "Tell the user to ask again while talking to you.")
+        if refused is not None:
+            self._mark_device_call(tool_use_id, {"status": "not_run", "ended_at": timeutil.iso()})
+            return refused
+        action_id = ("dac_" + hashlib.sha256(tool_use_id.encode()).hexdigest()[:26]) if tool_use_id else new_id("dac")
         future = asyncio.get_running_loop().create_future()
         self.device_actions[action_id] = (future, run.chat_id)
+        self._mark_device_call(tool_use_id, {"status": "dispatched", "dispatch_id": action_id})
         self.emit(run.chat_id, "device_action", {"action_id": action_id, "tool": tool, "args": params},
                   run.trace_id, task_id=run.task_id, turn_id=run.turn_id)
         self.log("device action", run, tool=tool, event="device_action", detail=action_id)
@@ -989,14 +1055,18 @@ class Engine:
         except asyncio.TimeoutError:
             self.log("device action timeout", run, level="warning", tool=tool, event="device_action",
                      outcome="timeout", detail=action_id)
+            self._mark_device_call(tool_use_id, {"status": "unknown", "ended_at": timeutil.iso(),
+                                                 "result_summary": "no answer from the device"})
             return "The device did not answer in time; the outcome is unknown. Do not repeat it."
         finally:
             self.device_actions.pop(action_id, None)
         self.log("device action result", run, tool=tool, event="device_action",
                  outcome="ok" if result["ok"] else "error", detail=action_id)
-        if result["ok"]:
-            return "Device result: " + (result.get("result") or "done")
-        return "The device reported an error: " + (result.get("error") or "unknown error")
+        text = ("Device result: " + (result.get("result") or "done")) if result["ok"] else \
+            ("The device reported an error: " + (result.get("error") or "unknown error"))
+        self._mark_device_call(tool_use_id, {"status": "ok" if result["ok"] else "error", "ended_at": timeutil.iso(),
+                                             "result_summary": jsonlog.truncate(text, 200)})
+        return jsonlog.redact_text(text)
 
     def device_action_result(self, chat_id: str, action_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
         entry = self.device_actions.get(action_id)
@@ -1151,23 +1221,20 @@ class Engine:
     # ------------------------------------------------------------------ end of a turn
 
     def _unknown_effects(self, run: TurnRun) -> List[Dict[str, Any]]:
-        """Non-read-only HA tool uses of this turn without a result: their outcome is unknown."""
-        rows = self.store.all("SELECT * FROM tool_calls WHERE turn_id = ? AND status = 'running'", (run.turn_id,))
-        unknown = []
-        for row in rows:
-            if row["kind"] == "ha" and not row["read_only"]:
-                unknown.append({"tool": row["tool"], "target": row["target"], "status": "unknown"})
-        return unknown
+        """Side-effect tool uses of this turn that were sent without a result: their outcome is unknown."""
+        rows = self.store.all("SELECT * FROM tool_calls WHERE turn_id = ? AND read_only = 0 AND "
+                              "((kind = 'ha' AND status = 'running') OR (kind = 'device' AND status = 'dispatched'))",
+                              (run.turn_id,))
+        return [{"tool": row["tool"], "target": row["target"], "status": "unknown"} for row in rows]
 
     def side_effects(self, task_id: str) -> Tuple[List[Dict[str, Any]], Optional[str]]:
-        """Side effects of a task's non-read-only HA calls, and an outcome hint (denied/expired)."""
+        """Side effects of a task's non-read-only HA and device calls, and an outcome hint (denied/expired)."""
         effects = []
         raw = []
-        for row in self.store.all("SELECT * FROM tool_calls WHERE task_id = ? AND read_only = 0 AND kind = 'ha' "
-                                  "ORDER BY started_at", (task_id,)):
+        for row in self.store.all("SELECT * FROM tool_calls WHERE task_id = ? AND read_only = 0 AND kind IN "
+                                  "('ha', 'device') ORDER BY started_at", (task_id,)):
             raw.append(row["status"])
-            status = {"ok": "confirmed", "error": "failed", "denied": "not_run", "expired": "not_run",
-                      "not_run": "not_run"}.get(row["status"], "unknown")
+            status = EFFECT_STATUS.get(row["status"], "unknown")
             effects.append({"tool": row["tool"], "target": row["target"], "status": status})
         hint = None
         if raw and "ok" not in raw and all(s in ("denied", "expired", "error", "not_run") for s in raw):
@@ -1182,6 +1249,8 @@ class Engine:
         if hint:
             return hint
         if state == "done":
+            if effects and statuses == {"not_run"}:
+                return "none"
             return "partial" if "failed" in statuses and "confirmed" in statuses else "ok"
         if "confirmed" in statuses:
             return "partial"
@@ -1271,7 +1340,7 @@ class Engine:
         retry_allowed = not any(e["status"] == "unknown" for e in effects)
         now = timeutil.iso()
         self.set_task_state(task_id, state, reason or state, turn_id=turn_id, outcome=result_outcome,
-                            error_json=dumps(error) if error else None, side_effects_json=dumps(effects),
+                            error_json=error or None, side_effects_json=effects,
                             summary=summary, finished_at=now, retry_allowed=int(retry_allowed))
         chat = self.store.chat(task["chat_id"])
         if chat and chat["open_task_id"] == task_id:

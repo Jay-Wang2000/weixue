@@ -15,7 +15,6 @@ AUTOMATION = {"config": {"alias": "Restart", "actions": [{"action": "homeassista
 @pytest.fixture(autouse=True)
 def window(monkeypatch):
     monkeypatch.setattr(interactions, "VOICE_WINDOW_S", 5.0)
-    monkeypatch.setattr(interactions, "HA_PENDING_POLL_S", 0.05)
 
 
 def holding(args, tool="ha_call_service"):
@@ -38,23 +37,45 @@ async def test_lexicon_normalisation():
     assert routing.detect_lang("开灯") == "zh" and routing.detect_lang("hi") == "en"
 
 
+def spoken(events):
+    return "".join(e["data"]["delta"] for e in events if e["type"] == "text")
+
+
+async def own_and_play(h, row):
+    """The original request returns the token; the re-announced card is played, which opens the voice window."""
+    h.fake_ha.elapse_wait()
+    await h.wait_for(lambda: h.store.interaction(row["interaction_id"])["state"] == "pending", what="owned")
+    delivery = [d for d in h.deliveries(slot=f"int:{row['interaction_id']}") if d["speak"]][-1]
+    offer = h.service.outbox.offer(delivery)
+    for outcome in ("accepted", "played"):
+        resp = await h.http.post(f"/v1/deliveries/{delivery['delivery_id']}/ack",
+                                 json={"lease_id": offer["lease_id"], "outcome": outcome})
+        assert resp.status_code == 200, resp.text
+    return delivery
+
+
 async def test_explicit_phrase_approves_a_reversible_card_in_the_window(make):
     h = await make(holding(PLUG), fake_ha=FakeHaMcp(wait_seconds=30))
     _, first = await h.send("turn on the desk plug")
     assert first[-1]["data"]["reason"] == "question"
-    assert "I need your OK on the panel to turn on switch.working_desk_plug." in \
-        "".join(e["data"]["delta"] for e in first if e["type"] == "text")
+    assert "To turn on switch.working_desk_plug, approve it in the Home Assistant panel." in spoken(first)
     task_id = first[0]["task_id"]
     await h.wait_task(task_id, "needs_approval")
-    await h.poll()
+    _, early = await h.send("approve")
+    assert early[0]["data"]["routed"] == "approval" and h.fake_ha.decisions == []
+    assert spoken(early) == interactions.PANEL_CUE["en"]
+    row = h.store.one("SELECT * FROM interactions WHERE task_id = ?", (task_id,))
+    delivery = await own_and_play(h, row)
+    assert "I need your OK on the panel to turn on switch.working_desk_plug." == delivery["speak"]
     _, yes = await h.send("yes")
     assert yes[0]["data"]["routed"] == "approval"
-    assert "Say approve to turn on switch.working_desk_plug" in "".join(e["data"]["delta"] for e in yes if e["type"] == "text")
+    assert "Say approve to turn on switch.working_desk_plug" in spoken(yes)
     assert h.fake_ha.decisions == []
     _, ok = await h.send("approve")
     assert ok[0]["data"]["routed"] == "approval"
     assert h.fake_ha.decisions and h.fake_ha.decisions[0]["decision"] == "approved"
     await h.wait_task(task_id, "done")
+    assert len(h.fake_ha.executed) == 1
 
 
 async def test_irreversible_actions_are_tap_only_but_voice_can_deny(make):
@@ -62,8 +83,9 @@ async def test_irreversible_actions_are_tap_only_but_voice_can_deny(make):
     _, first = await h.send("make a restart automation")
     task_id = first[0]["task_id"]
     await h.wait_task(task_id, "needs_approval")
-    await h.poll()
     row = h.store.one("SELECT * FROM interactions WHERE task_id = ?", (task_id,))
+    await own_and_play(h, row)
+    row = h.store.interaction(row["interaction_id"])
     assert row["voice_can_approve"] == 0
     _, approve = await h.send("approve")
     assert approve[0]["data"]["routed"] == "approval" and h.fake_ha.decisions == []

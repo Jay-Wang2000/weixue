@@ -3,7 +3,7 @@ import asyncio
 import json
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Set
 
-from . import timeutil
+from . import jsonlog, timeutil
 from .clause import first_clause_cut
 from .store import Store
 
@@ -32,6 +32,7 @@ class EventHub:
     def append(self, chat_id: str, type_: str, data: Dict[str, Any], trace_id: str, task_id: Optional[str] = None,
                turn_id: Optional[str] = None) -> Dict[str, Any]:
         ts = timeutil.iso()
+        data = jsonlog.scrub(data)
         seq = self.store.append_event(chat_id, type_, data, ts, task_id, turn_id, trace_id)
         event = {"v": 1, "seq": seq, "chat_id": chat_id, "task_id": task_id, "turn_id": turn_id,
                  "trace_id": trace_id, "ts": ts, "type": type_, "data": data}

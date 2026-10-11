@@ -1,8 +1,12 @@
 """device_action app tool: SSE event on the reply stream, result route, whitelist, closed reply, timeout;
 the sentence before a tool call reaches the stream first; the reply's first clause is not coalesced."""
 import asyncio
+import hashlib
+import json
 import time
+import uuid
 
+from fake_api import last_user
 from weixue_agent import turns
 
 
@@ -161,3 +165,76 @@ async def test_deltas_up_to_the_first_clause_are_not_coalesced(make, monkeypatch
     assert head_at < seen["later"]
     assert [e["data"]["delta"] for e in events if e["type"] == "text"] == [
         "Okay ", "let ", "me ", "set ", "that", "up. ", "And the rest"]
+
+
+async def test_cancelled_device_setter_after_dispatch_is_unknown_not_not_run(make):
+    """F06: a dispatched setter is a side effect; cancel before its result is repaired as unknown."""
+    async def script(turn):
+        if turn.user_text == "and now?":
+            await turn.text("It may have changed.")
+            return
+        await turn.text("Turning the volume down.")
+        await turn.tool("device_action", {"tool": "self.audio_speaker.set_volume", "args": {"volume": 10}})
+        await turn.text("Done.")
+    h = await make(script)
+    send = asyncio.create_task(h.send("Volume ten"))
+    event = await _next_action(h)
+    chat_id = event["chat_id"]
+    row = h.store.one("SELECT * FROM tool_calls WHERE kind = 'device'")
+    assert row["status"] == "dispatched" and row["read_only"] == 0 and row["dispatch_id"] == event["data"]["action_id"]
+    assert row["target"] == "self.audio_speaker.set_volume"
+    resp = await h.http.post(f"/v1/chats/{chat_id}/interrupt", json={"decision_id": str(uuid.uuid4()), "reason": "panel"})
+    assert resp.status_code == 200
+    await send
+    task = h.store.task(event["task_id"])
+    assert task["outcome"] == "unknown" and task["retry_allowed"] == 0
+    assert json.loads(task["side_effects_json"]) == [
+        {"tool": "device_action", "target": "self.audio_speaker.set_volume", "status": "unknown"}]
+    await h.send("and now?")
+    repaired = [b for b in last_user(h.api.requests[-1])["content"] if b.get("type") == "tool_result"]
+    assert repaired and repaired[0]["content"].startswith("result unknown")
+
+
+async def test_device_reads_are_not_side_effects_and_refusals_are_not_run(make):
+    async def script(turn):
+        await turn.tool("device_action", {"tool": "self.get_device_status", "args": {}})
+        await turn.text("Fine.")
+    h = await make(script)
+    send = asyncio.create_task(h.send("status"))
+    event = await _next_action(h)
+    await _post_result(h, event["chat_id"], event["data"]["action_id"], {"ok": True, "result": "{}"})
+    _, events = await send
+    task = await h.wait_task(events[0]["task_id"], "done")
+    assert json.loads(task["side_effects_json"]) == [] and task["outcome"] == "ok"
+    row = h.store.one("SELECT * FROM tool_calls WHERE kind = 'device'")
+    assert row["read_only"] == 1 and row["status"] == "ok"
+
+
+async def test_device_action_id_is_derived_from_its_tool_use(make):
+    async def script(turn):
+        await turn.tool("device_action", {"tool": "self.screen.set_theme", "args": {"theme": "dark"}})
+        await turn.text("Done.")
+    h = await make(script)
+    send = asyncio.create_task(h.send("dark"))
+    event = await _next_action(h)
+    row = h.store.one("SELECT * FROM tool_calls WHERE kind = 'device'")
+    expected = "dac_" + hashlib.sha256(row["tool_use_id"].encode()).hexdigest()[:26]
+    assert event["data"]["action_id"] == expected
+    await _post_result(h, event["chat_id"], expected, {"ok": True})
+    await send
+    assert h.store.one("SELECT status FROM tool_calls WHERE kind = 'device'")["status"] == "ok"
+
+
+async def test_restart_while_a_setter_is_dispatched_marks_it_unknown(make):
+    async def script(turn):
+        await turn.tool("device_action", {"tool": "self.screen.set_brightness", "args": {"brightness": 5}})
+        await turn.text("Done.")
+    h = await make(script)
+    send = asyncio.create_task(h.send("dim"))
+    event = await _next_action(h)
+    await h.restart()
+    send.cancel()
+    row = h.store.one("SELECT * FROM tool_calls WHERE kind = 'device'")
+    assert row["status"] == "unknown"
+    task = h.store.task(event["task_id"])
+    assert task["outcome"] == "unknown" and task["retry_allowed"] == 0

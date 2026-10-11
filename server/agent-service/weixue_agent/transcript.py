@@ -28,11 +28,21 @@ def echo_form(content: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return kept
 
 
-def without_unpaired_server_tools(content: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """A finished (not paused) assistant message without server tool uses whose result it does not carry: the API
-    rejects such a block once the next user message holds text."""
+SERVER_USES = ("server_tool_use", "mcp_tool_use")
+
+
+def unpaired_server_uses(content: List[Dict[str, Any]]) -> List[str]:
+    """Ids of server tool uses whose result block the message does not carry: the API runs them at the start of
+    the next request, which may then hold only the client tool results."""
     paired = {b.get("tool_use_id") for b in content if str(b.get("type", "")).endswith("_tool_result")}
-    return [b for b in content if b.get("type") != "server_tool_use" or b.get("id") in paired]
+    return [b.get("id") for b in content if b.get("type") in SERVER_USES and b.get("id") not in paired]
+
+
+def without_unpaired_server_tools(content: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """A message that ended its turn (neither paused nor waiting for client tools) without server tool uses whose
+    result it does not carry: the API rejects such a block once the next user message holds text."""
+    unpaired = set(unpaired_server_uses(content))
+    return [b for b in content if b.get("type") not in SERVER_USES or b.get("id") not in unpaired]
 
 
 def user_blocks(message: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -99,6 +109,19 @@ class Transcript:
             self.store.update("chats", "chat_id", self.chat_id, {"epoch": epoch})
             self.append([compaction_message], turn_id, state="committed", model=model, request_id=request_id)
         return epoch
+
+    def pending_server_turn(self) -> Optional[Dict[str, Any]]:
+        """The last assistant message when it still has a server tool use without a result (with the model that
+        sent it and the messages after it), else None."""
+        rows = self.rows()
+        for i in range(len(rows) - 1, -1, -1):
+            if rows[i]["role"] == "assistant":
+                message = loads(rows[i]["content_json"])
+                if not unpaired_server_uses(message.get("content") or []):
+                    return None
+                return {"message": message, "model": rows[i]["model"],
+                        "after": [loads(r["content_json"]) for r in rows[i + 1:]]}
+        return None
 
     def open_tool_uses(self) -> List[Dict[str, Any]]:
         """tool_use blocks of the epoch that no later user message answers."""

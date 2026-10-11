@@ -348,7 +348,9 @@ class Api:
         interactions = [self.engine.interactions.public(i) for i in
                         self.store.all("SELECT * FROM interactions WHERE task_id = ? ORDER BY created_at", (task_id,))]
         deliveries = self.store.all("SELECT delivery_id, kind, tier, slot, state, playback, attempt, created_at, updated_at "
-                                    "FROM deliveries WHERE task_id = ? ORDER BY gseq", (task_id,))
+                                    "FROM deliveries WHERE task_id = ? OR CASE WHEN json_valid(payload_json) "
+                                    "THEN json_extract(payload_json, '$.origin_task_id') END = ? "
+                                    "ORDER BY gseq", (task_id, task_id))
         usage = self.store.all("SELECT ts, turn_id, model, mode, effort, turn_kind, request_id, ttft_ms, stop_reason, "
                                "input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, "
                                "web_search_requests, web_fetch_requests, cost_usd, input_transformations_json "
@@ -357,7 +359,7 @@ class Api:
                                      "WHERE task_id = ? ORDER BY id", (task_id,))
         created = timeutil.parse(task["created_at"])
         end = timeutil.parse(task["finished_at"]) if task["finished_at"] else timeutil.now()
-        return JSONResponse({
+        return JSONResponse(jsonlog.scrub({
             "task": self.public_task(task),
             "turns": [dict(self.public_turn(t), text_chars=len(t["text"] or "")) for t in turns],
             "events": [{"seq": e["seq"], "ts": e["ts"], "type": e["type"], "turn_id": e["turn_id"],
@@ -368,7 +370,7 @@ class Api:
             "metrics": {"turns": len(turns), "interrupts": sum(1 for t in turns if t["state"] == "interrupted"),
                         "total_ms": int((end - created).total_seconds() * 1000), "cost_usd": task["cost_usd"],
                         "ttft_ms": [t["ttft_ms"] for t in turns]},
-        })
+        }))
 
     # ------------------------------------------------------------------ outbox
 

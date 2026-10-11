@@ -2,9 +2,11 @@
 
 Every ha-mcp tool reaches the turn loop through `HaSession.call_tool`; the ha-mcp policy alone decides
 held versus free. A call that has not returned after HA_CALL_BUDGET_S answers PENDING_APPROVAL while
-the original request keeps waiting (up to the policy's wait_seconds). Held calls are owned only on an
-exact match in `/api/policy/pending` (polled every HA_PENDING_POLL_S while any is open) and decided
-through `/api/policy/approve|deny`. An unknown result is never retried.
+the original request keeps waiting (up to the policy's wait_seconds). A held call is owned only through
+the token its own request returned (`token_source = 'response'`); `/api/policy/pending` is observed,
+never used to claim a hold. Only owned holds are decided through `/api/policy/approve|deny`. Every call
+ends with a disposition (executed, failed, not_sent, denied, expired, unknown, pending, blocked); an
+unknown write is never retried and blocks an identical write until the original can no longer run.
 """
 import asyncio
 import contextlib
@@ -20,7 +22,7 @@ from weixue_hamcp import SESSION_EXPIRED, HaMcpClient, HaMcpError, PolicyError
 
 from . import jsonlog, policy_model, timeutil
 from .config import (
-    ACTION_MAX, HA_CALL_BUDGET_S, HA_CORRELATION_WINDOW_S, HA_IDLE_POLL_S, HA_MCP_FALLBACK_WAIT_S,
+    ACTION_MAX, HA_CALL_BUDGET_S, HA_IDLE_POLL_S, HA_MCP_FALLBACK_WAIT_S, HA_UNKNOWN_FALLBACK_TTL_S,
     HA_PENDING_POLL_S, HA_TOOLS_REFRESH_S, HA_TOOLS_RETRY_MAX_S, HA_TOOLS_RETRY_MIN_S, Settings,
 )
 from .ids import new_id
@@ -28,11 +30,14 @@ from .store import Store, dumps, loads
 
 OPEN_STATES = ("in_flight", "pending", "awaiting_decision_after_wait", "replay_dispatched")
 HOLD_STATES = ("pending", "awaiting_decision_after_wait")
-TERMINAL_STATES = ("executed", "failed", "denied", "expired", "unknown")
+TERMINAL_STATES = ("executed", "failed", "not_sent", "denied", "expired", "unknown")
 NOT_SENT_ERRORS = ("ConnectError", "ConnectTimeout")
+DISPOSITIONS_KEPT = 256
 UNREACHABLE_TEXT = "Home Assistant is unreachable right now."
 UNKNOWN_TEXT = ("The Home Assistant call ended without a result; it may or may not have run. "
                 "Do not call it again.")
+BLOCKED_TEXT = ("Not sent: an identical Home Assistant call ended with an unknown result and may still run or "
+                "have run. Do not call it again; check the state with a read-only tool and tell the user.")
 GUARD_TEXT = ("Refused by the end-to-end test guard: this call would change Home Assistant without approval. "
               "Do not retry it.")
 REVERSIBLE_DOMAINS = {"light", "switch", "fan", "input_boolean", "media_player", "cover", "climate"}
@@ -47,7 +52,8 @@ class ApprovalListener(Protocol):
 
 
 class Uncorrelated(Exception):
-    """The held call is not provably ours: it can only be decided in the Home Assistant panel."""
+    """The held call is not provably ours (no token from its own request): only the Home Assistant panel
+    decides it."""
 
 
 class AlreadyDecided(Exception):
@@ -103,36 +109,6 @@ def parse_error(text: str) -> Tuple[Optional[str], Optional[str], Optional[float
     return code, (str(token) if token is not None else None), (float(expires) if expires is not None else None)
 
 
-def _as_epoch(value: Any) -> Optional[float]:
-    if isinstance(value, (int, float)):
-        return float(value)
-    if isinstance(value, str):
-        with contextlib.suppress(ValueError):
-            return float(value)
-        dt = None
-        with contextlib.suppress(ValueError):
-            dt = timeutil.parse(value)
-        return dt.timestamp() if dt else None
-    return None
-
-
-def _value_matches(ours: Any, theirs: Any) -> bool:
-    """Exact identity of one argument value; a listing that may be truncated never matches a longer value."""
-    if ours == theirs:
-        return True
-    if not isinstance(theirs, str) or isinstance(ours, str):
-        return False
-    renderings = {json.dumps(ours, ensure_ascii=False), json.dumps(ours, ensure_ascii=False, sort_keys=True),
-                  json.dumps(ours, separators=(",", ":"), ensure_ascii=False), str(ours)}
-    return theirs in renderings
-
-
-def args_match(ours: Dict[str, Any], theirs: Any) -> bool:
-    if not isinstance(theirs, dict) or set(ours) != set(theirs):
-        return False
-    return all(_value_matches(ours[k], theirs[k]) for k in ours)
-
-
 def describe_call(tool: str, args: Dict[str, Any]) -> Tuple[str, Optional[str]]:
     """Card text (≤60) and target of a call."""
     if tool == "ha_call_service":
@@ -184,6 +160,7 @@ class HaGateway:
         self._background: Set[asyncio.Task] = set()
         self._loops: List[asyncio.Task] = []
         self._poll_wakeup = asyncio.Event()
+        self._dispositions: Dict[str, Tuple[Optional[str], str]] = {}
 
     # ------------------------------------------------------------------ lifecycle
 
@@ -292,6 +269,25 @@ class HaGateway:
         minutes = self.policy.get("approval_ttl_minutes")
         return float(minutes) * 60 if minutes else None
 
+    @property
+    def unknown_hold_s(self) -> float:
+        """How long an unknown write may still run in ha-mcp: the policy wait plus the approval TTL."""
+        return self.wait_seconds + (self.approval_ttl_s or HA_UNKNOWN_FALLBACK_TTL_S)
+
+    @staticmethod
+    def owned(row: Optional[Dict[str, Any]]) -> bool:
+        return bool(row and row["ha_token"] and row["token_source"] == "response")
+
+    def take_disposition(self, tool_use_id: Optional[str]) -> Optional[Tuple[Optional[str], str]]:
+        """(approval_id, disposition) of a finished `call` for this tool use, once."""
+        return self._dispositions.pop(tool_use_id, None) if tool_use_id else None
+
+    def _dispose(self, waiter: Dict[str, Any], approval_id: Optional[str], disposition: str) -> None:
+        if waiter.get("tool_use_id"):
+            self._dispositions[waiter["tool_use_id"]] = (approval_id, disposition)
+            while len(self._dispositions) > DISPOSITIONS_KEPT:
+                self._dispositions.pop(next(iter(self._dispositions)))
+
     def is_read_only(self, tool: str) -> bool:
         return tool in self.read_only
 
@@ -326,23 +322,54 @@ class HaGateway:
 
     def pending_text(self, approval: Dict[str, Any]) -> str:
         text, _ = describe_call(approval["tool"], loads(approval["args_json"], {}))
-        return (f"PENDING_APPROVAL id={approval['approval_id']}: Home Assistant is holding {text} for approval on "
-                "the weixue panel. Do not call it again; the outcome will arrive as a follow-up message.")
+        return (f"PENDING_APPROVAL id={approval['approval_id']}: Home Assistant has not answered {text} yet; it may "
+                "be holding it for approval or still running it. Do not call it again; the outcome will arrive as "
+                "a follow-up message.")
+
+    @staticmethod
+    def _scrubbed(result: CallToolResult) -> CallToolResult:
+        """A tool result as the model and the transcript get it: secrets redacted."""
+        data = result.model_dump(exclude_none=True)
+        return CallToolResult.model_validate(jsonlog.scrub(data))
+
+    def _disposition_of(self, approval_id: str) -> str:
+        row = self.store.approval(approval_id)
+        state = row["state"] if row else "unknown"
+        return "pending" if state in OPEN_STATES else state
 
     @staticmethod
     def _text_result(text: str, is_error: bool = False) -> CallToolResult:
         return CallToolResult(content=[TextContent(type="text", text=text)], isError=is_error)
 
     async def call(self, waiter: Dict[str, Any], tool: str, args: Dict[str, Any]) -> CallToolResult:
+        result, approval_id = await self._call(waiter, tool, args)
+        if approval_id is not None:
+            self._dispose(waiter, approval_id, self._disposition_of(approval_id))
+        return self._scrubbed(result)
+
+    async def _call(self, waiter: Dict[str, Any], tool: str,
+                    args: Dict[str, Any]) -> Tuple[CallToolResult, Optional[str]]:
         if not self._reachable():
-            return self._text_result(UNREACHABLE_TEXT, True)
+            self._dispose(waiter, None, "not_sent")
+            return self._text_result(UNREACHABLE_TEXT, True), None
         if self.settings.e2e_guard and not self._guard_allows(tool, args):
             jsonlog.log("e2e guard refused a free call", level="warning", task_id=waiter.get("task_id"), tool=tool)
-            return self._text_result(GUARD_TEXT, True)
+            self._dispose(waiter, None, "not_sent")
+            return self._text_result(GUARD_TEXT, True), None
         digest = args_hash(args)
         existing = self.store.one(
             "SELECT * FROM approvals WHERE tool = ? AND args_hash = ? AND state IN ('in_flight', 'pending', "
             "'awaiting_decision_after_wait', 'replay_dispatched') ORDER BY created_at DESC LIMIT 1", (tool, digest))
+        if existing is None and not self.is_read_only(tool):
+            since = timeutil.iso(timeutil.from_epoch(time.time() - self.unknown_hold_s))
+            unresolved = self.store.one(
+                "SELECT approval_id FROM approvals WHERE tool = ? AND args_hash = ? AND state = 'unknown' "
+                "AND updated_at > ? ORDER BY updated_at DESC LIMIT 1", (tool, digest, since))
+            if unresolved:
+                jsonlog.log("ha call blocked by an unknown identical call", level="warning", tool=tool,
+                            task_id=waiter.get("task_id"), event="ha_blocked", detail=unresolved["approval_id"])
+                self._dispose(waiter, unresolved["approval_id"], "blocked")
+                return self._text_result(BLOCKED_TEXT, True), None
         if existing and existing["state"] != "in_flight":
             waiters = loads(existing["waiters_json"], []) + [waiter]
             self.store.update("approvals", "approval_id", existing["approval_id"],
@@ -350,14 +377,15 @@ class HaGateway:
             existing = self.store.approval(existing["approval_id"])
             if self.listener:
                 self.listener.on_pending(existing, waiter)
-            return self._text_result(self.pending_text(existing))
+            return self._text_result(self.pending_text(existing)), existing["approval_id"]
         if existing:
             send = self._inflight.get(existing["approval_id"])
             if send is not None:
                 waiters = loads(existing["waiters_json"], []) + [waiter]
                 self.store.update("approvals", "approval_id", existing["approval_id"],
                                   {"waiters_json": dumps(waiters), "updated_at": timeutil.iso()})
-                return await self._await_send(existing["approval_id"], send, waiter, time.monotonic())
+                return (await self._await_send(existing["approval_id"], send, waiter, time.monotonic()),
+                        existing["approval_id"])
         now = timeutil.iso()
         approval_id = new_id("apr")
         self.store.insert("approvals", {
@@ -370,7 +398,7 @@ class HaGateway:
         send = asyncio.create_task(self._send(approval_id, tool, args, started), name=f"ha:{approval_id}")
         self._inflight[approval_id] = send
         send.add_done_callback(lambda _t: self._inflight.pop(approval_id, None))
-        return await self._await_send(approval_id, send, waiter, started)
+        return await self._await_send(approval_id, send, waiter, started), approval_id
 
     async def _await_send(self, approval_id: str, send: asyncio.Task, waiter: Dict[str, Any],
                           started: float) -> CallToolResult:
@@ -400,9 +428,10 @@ class HaGateway:
             result = await self.client.call_tool(tool, args, read_timeout_s=self.wait_seconds + 20)
         except HaMcpError as e:
             name = str(e)
-            state = "failed" if name in NOT_SENT_ERRORS or name == SESSION_EXPIRED else "unknown"
-            self._finish(approval_id, state, UNREACHABLE_TEXT if state == "failed" else f"result unknown ({name})", started)
-            return self._text_result(UNREACHABLE_TEXT if state == "failed" else UNKNOWN_TEXT, True)
+            state = "not_sent" if name in NOT_SENT_ERRORS or name == SESSION_EXPIRED else "unknown"
+            self._finish(approval_id, state, UNREACHABLE_TEXT if state == "not_sent" else f"result unknown ({name})",
+                         started)
+            return self._text_result(UNREACHABLE_TEXT if state == "not_sent" else UNKNOWN_TEXT, True)
         except asyncio.CancelledError:
             self._finish(approval_id, "unknown", "service stopped", started)
             raise
@@ -421,13 +450,14 @@ class HaGateway:
         return CallToolResult.model_validate({k: v for k, v in result.items() if k in ("content", "structuredContent", "isError")})
 
     def _awaiting(self, approval_id: str, token: Optional[str], expires_in: Optional[float]) -> CallToolResult:
-        """The wait elapsed without a decision: ha-mcp returned the token of the held call."""
+        """The wait elapsed without a decision: the token our own request returned makes the hold ours."""
         row = self.store.approval(approval_id)
         values: Dict[str, Any] = {"state": "awaiting_decision_after_wait", "updated_at": timeutil.iso()}
-        if token and not row["ha_token"]:
-            values["ha_token"] = token
-        if expires_in:
-            values["ha_expires_at"] = timeutil.iso(timeutil.from_epoch(time.time() + expires_in))
+        if token:
+            values.update(ha_token=token, token_source="response")
+        ttl = expires_in or self.approval_ttl_s
+        if ttl:
+            values["ha_expires_at"] = timeutil.iso(timeutil.from_epoch(time.time() + ttl))
         self.store.update("approvals", "approval_id", approval_id, values)
         updated = self.store.approval(approval_id)
         if self.listener:
@@ -436,8 +466,9 @@ class HaGateway:
                     self.listener.on_pending(updated, waiter)
             if token:
                 self.listener.on_correlated(updated)
+        self._claim_replay(approval_id)
         self._poll_wakeup.set()
-        return self._text_result(self.pending_text(updated))
+        return self._text_result(self.pending_text(self.store.approval(approval_id)))
 
     def _finish(self, approval_id: str, state: str, text: str, started: float) -> None:
         row = self.store.approval(approval_id)
@@ -453,7 +484,7 @@ class HaGateway:
         if notify and self.listener:
             self.listener.on_terminal(self.store.approval(approval_id))
 
-    # ------------------------------------------------------------------ correlation
+    # ------------------------------------------------------------------ pending listing (observed only)
 
     def open_holds(self) -> List[Dict[str, Any]]:
         return self.store.all("SELECT * FROM approvals WHERE state IN ('pending', 'awaiting_decision_after_wait')")
@@ -468,6 +499,7 @@ class HaGateway:
                 await self.poll_once()
 
     async def poll_once(self) -> List[Dict[str, Any]]:
+        """The ha-mcp pending listing for the monitor and expiry; it never makes a hold ours."""
         try:
             pending = await self.client.pending()
         except (HaMcpError, PolicyError) as e:
@@ -476,42 +508,10 @@ class HaGateway:
         self.last_ok = time.time()
         self.last_pending_count = len(pending)
         self.last_pending = pending
-        self.correlate(pending)
         self._expire_overdue()
         if self.listener is not None and hasattr(self.listener, "on_poll"):
             self.listener.on_poll(self.open_holds())
         return pending
-
-    def correlate(self, pending: List[Dict[str, Any]]) -> None:
-        taken = {r["ha_token"] for r in self.store.all("SELECT ha_token FROM approvals WHERE ha_token IS NOT NULL")}
-        for row in self.open_holds():
-            if row["ha_token"]:
-                continue
-            ours = loads(row["args_json"], {})
-            created = timeutil.parse(row["created_at"]).timestamp()
-            matches = []
-            for entry in pending:
-                token = entry.get("token")
-                if not token or token in taken or entry.get("tool_name") != row["tool"]:
-                    continue
-                at = _as_epoch(entry.get("created_at"))
-                if at is None or abs(at - created) > HA_CORRELATION_WINDOW_S:
-                    continue
-                if args_match(ours, entry.get("args")):
-                    matches.append(entry)
-            if len(matches) != 1:
-                continue
-            entry = matches[0]
-            values = {"ha_token": entry["token"], "updated_at": timeutil.iso()}
-            expires = _as_epoch(entry.get("expires_at"))
-            if expires:
-                values["ha_expires_at"] = timeutil.iso(timeutil.from_epoch(expires))
-            self.store.update("approvals", "approval_id", row["approval_id"], values)
-            taken.add(entry["token"])
-            jsonlog.log("ha hold correlated", tool=row["tool"], task_id=row["task_id"], detail=row["approval_id"],
-                        event="approval_correlated")
-            if self.listener:
-                self.listener.on_correlated(self.store.approval(row["approval_id"]))
 
     def _expire_overdue(self) -> None:
         now = timeutil.iso()
@@ -529,12 +529,8 @@ class HaGateway:
             raise AlreadyDecided(row["decision"] or row["state"])
         if device_id is not None and row["device_id"] != device_id:
             raise NotOwner()
-        if not row["ha_token"]:
-            with contextlib.suppress(Exception):
-                await self.poll_once()
-            row = self.store.approval(approval_id)
-            if not row["ha_token"]:
-                raise Uncorrelated()
+        if not self.owned(row):
+            raise Uncorrelated()
         try:
             if decision == "approve":
                 await self.client.approve(row["ha_token"])
@@ -556,15 +552,22 @@ class HaGateway:
             self._finish(approval_id, "unknown", "decision response lost", time.monotonic())
             return self.store.approval(approval_id)
         self._record_decision(approval_id, applied, via)
-        row = self.store.approval(approval_id)
-        if row["state"] == "awaiting_decision_after_wait":
-            if applied == "approve":
-                self.store.update("approvals", "approval_id", approval_id,
-                                  {"state": "replay_dispatched", "updated_at": timeutil.iso()})
-                self._spawn(self._replay(approval_id), f"replay:{approval_id}")
-            else:
-                self._finish(approval_id, "denied", "denied on the weixue panel", time.monotonic())
+        if applied == "approve":
+            self._claim_replay(approval_id)
+        elif self.store.approval(approval_id)["state"] == "awaiting_decision_after_wait":
+            self._finish(approval_id, "denied", "denied on the weixue panel", time.monotonic())
         return self.store.approval(approval_id)
+
+    def _claim_replay(self, approval_id: str) -> bool:
+        """The single replay of an owned hold: needs our successful approve and the original's wait-elapsed
+        answer, whichever is recorded second claims it."""
+        claimed = self.store.execute(
+            "UPDATE approvals SET state = 'replay_dispatched', updated_at = ? WHERE approval_id = ? "
+            "AND state = 'awaiting_decision_after_wait' AND decision = 'approve' AND token_source = 'response'",
+            (timeutil.iso(), approval_id))
+        if claimed:
+            self._spawn(self._replay(approval_id), f"replay:{approval_id}")
+        return bool(claimed)
 
     def _record_decision(self, approval_id: str, decision: str, via: str) -> None:
         now = timeutil.iso()
@@ -597,18 +600,15 @@ class HaGateway:
             return "closed"
         if row["decision"]:
             return "decided"
-        if not row["ha_token"]:
-            with contextlib.suppress(Exception):
-                await self.poll_once()
-            row = self.store.approval(approval_id)
-        if not row["ha_token"]:
+        if not self.owned(row):
             return "uncorrelated"
         with contextlib.suppress(Exception):
             await self.decide(approval_id, "deny", via, None)
         return "denied"
 
     async def boot_reconcile(self) -> List[Dict[str, Any]]:
-        """Rows left by a previous process: deny pending tokens they own; everything else ends unknown."""
+        """Rows left by a previous process: deny the listed tokens their own requests returned; everything else
+        ends unknown and is never decided."""
         rows = self.store.all("SELECT * FROM approvals WHERE state IN "
                               "('in_flight', 'pending', 'awaiting_decision_after_wait', 'replay_dispatched')")
         if not rows:
@@ -617,7 +617,6 @@ class HaGateway:
         if self.client is not None and self._reachable():
             try:
                 pending = await self.client.pending()
-                self.correlate(pending)
             except Exception as e:
                 jsonlog.log("boot reconcile: ha-mcp unreachable", level="warning", code=type(e).__name__)
         listed = {p.get("token") for p in pending}
@@ -625,7 +624,7 @@ class HaGateway:
         for row in rows:
             row = self.store.approval(row["approval_id"])
             state, text = "unknown", "service restarted"
-            if row["ha_token"] and row["ha_token"] in listed and row["state"] in HOLD_STATES:
+            if self.owned(row) and row["ha_token"] in listed and row["state"] in HOLD_STATES:
                 try:
                     await self.client.deny(row["ha_token"])
                     state, text = "denied", "denied at service restart"

@@ -1,12 +1,11 @@
-"""ADR-9 inside the service: budget → pending, exact ownership, decisions (route B), replay, dedupe."""
+"""ADR-9 inside the service: budget → pending, ownership by our own token, decisions (route B), single replay,
+dedupe, dispositions (unknown blocks an identical write)."""
 import asyncio
 import json
 import uuid
 
-import pytest
-
 from fake_hamcp import FakeHaMcp, Pending
-from weixue_agent import ha_adapter, interactions
+from weixue_agent import ha_adapter
 
 PLUG = {"domain": "switch", "service": "turn_on", "entity_id": "switch.working_desk_plug"}
 LIGHT = {"domain": "light", "service": "turn_on", "entity_id": "light.living_room_ceiling_lights"}
@@ -38,9 +37,6 @@ async def decide(h, chat_id, interaction_id, decision, via="panel"):
                              json={"interaction_id": interaction_id, "decision_id": str(uuid.uuid4()), "via": via})
 
 
-@pytest.fixture(autouse=True)
-def quick_poll(monkeypatch):
-    monkeypatch.setattr(interactions, "HA_PENDING_POLL_S", 0.05)
 
 
 async def test_free_light_call_runs_inside_the_budget(make):
@@ -55,19 +51,37 @@ async def test_free_light_call_runs_inside_the_budget(make):
     assert not h.events(events[0]["chat_id"], "needs_approval")
 
 
-async def test_held_call_pending_then_denied_through_the_policy_api(make):
+async def owned(h, row):
+    """The original request's wait elapses: the token it returns makes the hold ours."""
+    h.fake_ha.elapse_wait()
+    await h.wait_for(lambda: h.store.approval(row["external_ref"])["state"] == "awaiting_decision_after_wait",
+                     what="wait elapsed")
+    await h.wait_for(lambda: h.store.interaction(row["interaction_id"])["state"] == "pending", what="card actionable")
+    return h.store.approval(row["external_ref"])
+
+
+async def test_held_call_is_read_only_until_its_own_request_returns_the_token(make):
     results = {}
     h = await make(held_script(results), fake_ha=FakeHaMcp(wait_seconds=30))
     events, task_id, row = await held(h)
     assert results["first"][0].startswith("PENDING_APPROVAL id=apr_")
     token = next(iter(h.fake_ha.queue))
     assert token not in results["first"][0]
+    assert row["state"] == "uncorrelated" and row["voice_can_approve"] == 0
+    card = json.loads(h.deliveries(slot=f"int:{row['interaction_id']}")[-1]["payload_json"])
+    assert "options" not in card
+    await h.poll()
+    assert h.store.approval(row["external_ref"])["ha_token"] is None
+    resp = await decide(h, events[0]["chat_id"], row["interaction_id"], "deny")
+    assert resp.status_code == 409 and h.fake_ha.decisions == []
+    approval = await owned(h, row)
+    assert approval["ha_token"] == token and approval["token_source"] == "response"
+    row = h.store.interaction(row["interaction_id"])
     assert row["voice_can_approve"] == 1
     action = json.loads(row["action_json"])
     assert action["text"] == "switch.turn_on switch.working_desk_plug" and action["reversible"] is True
-    await h.poll()
-    approval = h.store.approval(row["external_ref"])
-    assert approval["ha_token"] == token and approval["state"] == "pending"
+    spoken = h.deliveries(slot=f"int:{row['interaction_id']}")[-1]
+    assert json.loads(spoken["payload_json"])["options"] and spoken["speak"]
     resp = await decide(h, events[0]["chat_id"], row["interaction_id"], "deny")
     assert resp.status_code == 200, resp.text
     assert h.fake_ha.decisions == [{"token": token, "decision": "denied"}]
@@ -80,17 +94,14 @@ async def test_held_call_pending_then_denied_through_the_policy_api(make):
     assert resolved[0]["data"]["state"] == "denied"
 
 
-async def test_early_approve_lets_the_original_request_execute(make):
+async def test_panel_approval_lets_the_original_request_execute(make):
     results = {}
     h = await make(held_script(results), fake_ha=FakeHaMcp(wait_seconds=30))
     events, task_id, row = await held(h)
-    await h.poll()
-    resp = await decide(h, events[0]["chat_id"], row["interaction_id"], "approve")
-    assert resp.status_code == 200, resp.text
+    h.fake_ha.panel(next(iter(h.fake_ha.queue)), "approved")
     task = await h.wait_task(task_id, "done")
     assert task["outcome"] == "ok"
-    assert h.fake_ha.states.get("switch.working_desk_plug") is None
-    assert [c["tool"] for c in h.fake_ha.calls] == ["ha_call_service"]
+    assert [c["tool"] for c in h.fake_ha.calls] == ["ha_call_service"] and h.fake_ha.decisions == []
     assert h.store.approval(row["external_ref"])["state"] == "executed"
     assert "executed" in results["events"][0]
 
@@ -107,6 +118,39 @@ async def test_late_approve_replays_once_after_our_approve_succeeded(make):
     await h.wait_task(task_id, "done")
     assert h.store.approval(row["external_ref"])["state"] == "executed"
     assert len(h.fake_ha.calls) == 2 and len(h.fake_ha.executed) == 1
+
+
+async def test_concurrent_decisions_claim_a_single_replay(make):
+    results = {}
+    h = await make(held_script(results), fake_ha=FakeHaMcp(wait_seconds=30))
+    events, task_id, row = await held(h)
+    await owned(h, row)
+    gw = h.service.ha
+    outcomes = await asyncio.gather(gw.decide(row["external_ref"], "approve", "tap", None),
+                                    gw.decide(row["external_ref"], "approve", "panel", None), return_exceptions=True)
+    assert sum(1 for o in outcomes if isinstance(o, ha_adapter.AlreadyDecided)) <= 1
+    await h.wait_task(task_id, "done")
+    assert len(h.fake_ha.executed) == 1 and len(h.fake_ha.calls) == 2
+
+
+async def test_wait_elapsed_answer_after_a_recorded_approval_still_replays(make):
+    """Whichever of the decision and the original's wait-elapsed answer is recorded second claims the replay."""
+    h = await make()
+    gw = h.service.ha
+    now = ha_adapter.timeutil.iso()
+    token = "tok-" + "x" * 20
+    pending = Pending("ha_call_service", dict(PLUG))
+    pending.token, pending.decision, pending.timed_out = token, "approved", True
+    h.fake_ha.queue[token] = pending
+    h.store.insert("approvals", {
+        "approval_id": "apr_race", "device_id": "sim-device-01", "tool": "ha_call_service",
+        "args_json": json.dumps(PLUG), "args_hash": ha_adapter.args_hash(PLUG), "state": "pending",
+        "ha_token": token, "token_source": "response", "decision": "approve", "via": "tap", "decided_at": now,
+        "waiters_json": "[]", "created_at": now, "updated_at": now})
+    gw._awaiting("apr_race", token, 60)
+    await h.wait_for(lambda: h.store.approval("apr_race")["state"] == "executed", what="replay")
+    assert len(h.fake_ha.executed) == 1
+    assert not gw._claim_replay("apr_race")
 
 
 async def test_lost_approve_response_is_unknown_and_never_replayed(make):
@@ -150,30 +194,35 @@ async def test_identical_call_joins_the_pending_one_without_a_second_request(mak
     assert len(h.fake_ha.calls) == 1
     approval = h.store.approval(row["external_ref"])
     assert len(json.loads(approval["waiters_json"])) == 2
-    await h.poll()
+    await owned(h, row)
     await decide(h, events[0]["chat_id"], row["interaction_id"], "deny")
     await h.wait_task(task_id, "done")
     await h.wait_task(events_b[0]["task_id"], "done")
     assert len(results["events"]) == 2
 
 
-async def test_another_clients_identical_call_makes_ownership_ambiguous(make):
+async def test_another_clients_identical_call_is_never_adopted(make):
+    """F01: a single tool/args/time match in the pending listing is no ownership, even when ours is not listed."""
     results = {}
-    h = await make(held_script(results), fake_ha=FakeHaMcp(wait_seconds=30))
-    _, events = await h.send("turn on the desk plug")
-    await h.wait_for(lambda: h.fake_ha.queue, what="held")
+    fake = FakeHaMcp(wait_seconds=30)
+    h = await make(held_script(results), fake_ha=fake)
     stranger = Pending("ha_call_service", dict(PLUG))
-    h.fake_ha.queue[stranger.token] = stranger
+    fake.queue[stranger.token] = stranger
+    fake.call_delay = 5.0
+    _, events = await h.send("turn on the desk plug")
     await h.wait_task(events[0]["task_id"], "needs_approval")
-    await h.poll()
+    for _ in range(3):
+        await h.poll()
     row = h.store.one("SELECT * FROM interactions WHERE task_id = ?", (events[0]["task_id"],))
+    assert row["state"] == "uncorrelated"
     assert h.store.approval(row["external_ref"])["ha_token"] is None
     resp = await decide(h, events[0]["chat_id"], row["interaction_id"], "approve")
     assert resp.status_code == 409 and resp.json()["error"]["code"] == "invalid_state"
-    assert h.fake_ha.decisions == []
-    await asyncio.sleep(0.2)
-    await h.poll()
-    assert h.store.interaction(row["interaction_id"])["state"] == "uncorrelated"
+    resp = await h.http.post(f"/v1/chats/{events[0]['chat_id']}/interrupt",
+                             json={"decision_id": str(uuid.uuid4()), "reason": "panel"})
+    assert resp.status_code == 200
+    await h.restart()
+    assert h.fake_ha.decisions == [] and stranger.token in h.fake_ha.queue
 
 
 async def test_truncated_listing_never_matches_a_long_argument(make):
@@ -191,8 +240,7 @@ async def test_cancel_denies_owned_tokens(make):
     results = {}
     h = await make(held_script(results), fake_ha=FakeHaMcp(wait_seconds=30))
     events, task_id, row = await held(h)
-    await h.poll()
-    token = h.store.approval(row["external_ref"])["ha_token"]
+    token = (await owned(h, row))["ha_token"]
     resp = await h.http.post(f"/v1/chats/{events[0]['chat_id']}/interrupt",
                              json={"decision_id": str(uuid.uuid4()), "reason": "panel"})
     assert resp.status_code == 200, resp.text
@@ -204,14 +252,64 @@ async def test_boot_denies_only_provably_owned_pending_calls(make):
     results = {}
     h = await make(held_script(results), fake_ha=FakeHaMcp(wait_seconds=30))
     events, task_id, row = await held(h)
-    await h.poll()
-    token = h.store.approval(row["external_ref"])["ha_token"]
+    token = (await owned(h, row))["ha_token"]
     stranger = Pending("ha_call_service", {"domain": "lock", "service": "unlock", "entity_id": "lock.front"})
     h.fake_ha.queue[stranger.token] = stranger
     await h.restart()
     decided = {d["token"]: d["decision"] for d in h.fake_ha.decisions}
     assert decided.get(token) == "denied" and stranger.token not in decided
     assert h.store.approval(row["external_ref"])["state"] == "denied"
+
+
+async def test_transport_failure_before_the_budget_is_unknown_and_blocks_an_identical_write(make):
+    """F02: unknown is its own disposition in tool_calls and the task, and no identical write is sent again."""
+    results = {}
+    h = await make(held_script(results, args=LIGHT))
+    h.transport.drop.add("/private_test")
+    _, events = await h.send("turn on the living room light")
+    task = await h.wait_task(events[0]["task_id"], "done")
+    h.transport.drop.clear()
+    call = h.store.one("SELECT * FROM tool_calls WHERE task_id = ? AND tool = 'ha_call_service'", (task["task_id"],))
+    assert call["status"] == "unknown" and call["approval_id"]
+    assert task["outcome"] == "unknown" and task["retry_allowed"] == 0
+    assert json.loads(task["side_effects_json"]) == [
+        {"tool": "ha_call_service", "target": "light.living_room_ceiling_lights", "status": "unknown"}]
+    assert len(h.fake_ha.calls) == 1
+    _, again = await h.send("turn on the living room light again")
+    second = await h.wait_task(again[0]["task_id"], "done")
+    assert results["first"][-1] == ha_adapter.BLOCKED_TEXT
+    assert len(h.fake_ha.calls) == 1
+    blocked = h.store.one("SELECT * FROM tool_calls WHERE task_id = ? AND tool = 'ha_call_service'", (second["task_id"],))
+    assert blocked["status"] == "not_run" and second["outcome"] != "ok"
+
+
+async def test_unknown_read_is_not_blocked(make):
+    async def script(turn):
+        await turn.tool("ha_get_state", {"entity_id": "sun.sun"})
+        await turn.text("Checked.")
+    h = await make(script)
+    h.transport.drop.add("/private_test")
+    _, events = await h.send("is the sun up")
+    await h.wait_task(events[0]["task_id"], "done")
+    h.transport.drop.clear()
+    _, again = await h.send("is the sun up now")
+    await h.wait_task(again[0]["task_id"], "done")
+    assert len(h.fake_ha.calls) == 2
+
+
+async def test_not_sent_failure_is_not_run_and_allows_a_retry(make):
+    results = {}
+    h = await make(held_script(results, args=LIGHT))
+    h.transport.refuse.add("/private_test")
+    _, events = await h.send("turn on the living room light")
+    task = await h.wait_task(events[0]["task_id"], "done")
+    h.transport.refuse.clear()
+    call = h.store.one("SELECT * FROM tool_calls WHERE task_id = ? AND tool = 'ha_call_service'", (task["task_id"],))
+    assert call["status"] == "not_run" and h.store.approval(call["approval_id"])["state"] == "not_sent"
+    assert task["outcome"] == "none" and task["retry_allowed"] == 1
+    _, again = await h.send("turn on the living room light again")
+    await h.wait_task(again[0]["task_id"], "done")
+    assert h.fake_ha.states["light.living_room_ceiling_lights"] == "on"
 
 
 async def test_e2e_guard_refuses_free_writes_except_the_test_entity(make):
@@ -262,3 +360,19 @@ async def test_every_ha_mcp_tool_is_declared_and_only_the_hot_set_is_loaded(make
     assert tools["tool_search_tool_bm25"]["type"] == "tool_search_tool_bm25_20251119"
     assert "memory" not in tools
     assert {"ask_user", "start_task", "set_chat_title", "notify_user", "set_result_tier", "awaiting_answer"} <= set(tools)
+
+
+async def test_a_token_arriving_after_cancel_is_denied_not_offered(make):
+    results = {}
+    h = await make(held_script(results), fake_ha=FakeHaMcp(wait_seconds=30))
+    events, task_id, row = await held(h)
+    resp = await h.http.post(f"/v1/chats/{events[0]['chat_id']}/interrupt",
+                             json={"decision_id": str(uuid.uuid4()), "reason": "panel"})
+    assert resp.status_code == 200 and h.fake_ha.decisions == []
+    token = next(iter(h.fake_ha.queue))
+    h.fake_ha.elapse_wait()
+    await h.wait_for(lambda: h.fake_ha.decisions, what="deny after the token arrived")
+    assert h.fake_ha.decisions == [{"token": token, "decision": "denied"}]
+    assert h.store.approval(row["external_ref"])["state"] == "denied"
+    cards = [json.loads(d["payload_json"]) for d in h.deliveries(slot=f"int:{row['interaction_id']}")]
+    assert all("options" not in c for c in cards)

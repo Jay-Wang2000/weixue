@@ -126,3 +126,110 @@ async def test_connection_events_are_recorded(make):
     kinds = [r["kind"] for r in h.store.all("SELECT kind FROM connection_events WHERE device_id = ?", (DEVICE,))]
     assert kinds == ["open", "close"]
     assert h.store.device(DEVICE)["connected"] == 0
+
+
+async def test_acks_never_move_a_delivery_backwards(make):
+    """F10: played then a late accepted keeps delivered; terminal acks are idempotent."""
+    h = await make()
+    box = h.service.outbox
+    did = box.enqueue(DEVICE, "agent", "WHEN_IDLE", "task:m1", {"task_id": "m1"}, task_id="m1", speak="x")
+    offer = box.offer(h.store.delivery(did))
+    lease = offer["lease_id"]
+    box.ack(did, {"lease_id": lease, "outcome": "accepted", "ttl_s": 60})
+    box.ack(did, {"lease_id": lease, "outcome": "played"})
+    with pytest.raises(StaleLease):
+        box.ack(did, {"lease_id": lease, "outcome": "accepted", "ttl_s": 60})
+    for outcome in ("played", "cut_off", "lost", "spoken", "dropped", "shown"):
+        box.ack(did, {"lease_id": lease, "outcome": outcome})
+    with pytest.raises(StaleLease):
+        box.ack(did, {"lease_id": lease, "outcome": "deferred"})
+    row = h.store.delivery(did)
+    assert row["state"] == "delivered" and row["playback"] == "played"
+    ignored = h.store.all("SELECT detail FROM delivery_acks WHERE delivery_id = ? AND detail LIKE 'ignored%'", (did,))
+    assert len(ignored) == 6
+
+
+async def test_a_late_played_ack_upgrades_uncertain_playback(make):
+    h = await make()
+    box = h.service.outbox
+    did = box.enqueue(DEVICE, "agent", "WHEN_IDLE", "task:m2", {"task_id": "m2"}, task_id="m2", speak="x")
+    offer = box.offer(h.store.delivery(did))
+    box.ack(did, {"lease_id": offer["lease_id"], "outcome": "accepted", "ttl_s": 10})
+    h.store.update("deliveries", "delivery_id", did, {"lease_until": "2000-01-01T00:00:00.000Z"})
+    box.sweep()
+    assert h.store.delivery(did)["state"] == "uncertain"
+    box.ack(did, {"lease_id": offer["lease_id"], "outcome": "played"})
+    assert h.store.delivery(did)["playback"] == "played"
+    card = json.loads(h.deliveries(slot="task:m2")[-1]["payload_json"])
+    assert card["playback"] == "played"
+
+
+async def test_the_service_owns_retries_and_acks_carry_the_offer_attempt(make):
+    h = await make()
+    box = h.service.outbox
+    did = box.enqueue(DEVICE, "agent", "WHEN_IDLE", "task:m3", {"task_id": "m3"}, task_id="m3", speak="x")
+    first = box.offer(h.store.delivery(did))
+    box.ack(did, {"lease_id": first["lease_id"], "outcome": "deferred", "attempt": 1})
+    with pytest.raises(StaleLease):
+        box.ack(did, {"lease_id": first["lease_id"], "outcome": "accepted", "attempt": 1})
+    second = box.offer(h.store.delivery(did))
+    assert second["attempt"] == 2 and second["lease_id"] != first["lease_id"]
+    with pytest.raises(StaleLease):
+        box.ack(did, {"lease_id": second["lease_id"], "outcome": "accepted", "attempt": 1})
+    box.ack(did, {"lease_id": second["lease_id"], "outcome": "accepted", "attempt": 2, "ttl_s": 60})
+    assert h.store.delivery(did)["state"] == "handed_off"
+
+
+async def test_a_revoked_consumer_cannot_hand_off_its_old_offer(make):
+    h = await make()
+    box = h.service.outbox
+    did = box.enqueue(DEVICE, "agent", "WHEN_IDLE", "task:m4", {"task_id": "m4"}, task_id="m4", speak="x")
+    box.register_consumer(DEVICE)
+    old = box.offer(h.store.delivery(did))
+    box.register_consumer(DEVICE)
+    with pytest.raises(StaleLease):
+        box.ack(did, {"lease_id": old["lease_id"], "outcome": "accepted", "ttl_s": 60})
+    assert h.store.delivery(did)["state"] == "pending"
+
+
+async def test_restart_never_reoffers_offered_speech(make):
+    """F09: a missing acceptance ack is no evidence that speech did not start."""
+    h = await make()
+    box = h.service.outbox
+    spoken = box.enqueue(DEVICE, "agent", "WHEN_IDLE", "task:m5", {"task_id": "m5"}, task_id="m5", speak="x")
+    card = box.enqueue(DEVICE, "agent", "SILENT", "task:m6", {"task_id": "m6"}, task_id="m6")
+    box.offer(h.store.delivery(spoken))
+    box.offer(h.store.delivery(card))
+    await h.restart()
+    assert h.store.delivery(spoken)["state"] == "uncertain"
+    assert h.store.delivery(card)["state"] == "pending" and h.store.delivery(card)["lease_id"] is None
+    assert all(o["speak"] is None for o in h.service.outbox.next_offers(DEVICE))
+
+
+async def test_notify_user_is_an_unread_agent_card_spoken_at_its_tier(make):
+    """F12: notices use the agent kind the gateway carries, with their own card id, tier, TTL and acks."""
+    async def script(turn):
+        await turn.tool("notify_user", {"text": "The washing machine finished.", "urgent": True})
+        await turn.tool("notify_user", {"text": "Bins go out tonight."})
+        await turn.text("Told you.")
+    h = await make(script)
+    _, events = await h.send("remind me")
+    await h.wait_task(events[0]["task_id"], "done")
+    notices = [d for d in h.deliveries() if d["slot"].startswith("notify:")]
+    assert [(d["kind"], d["tier"]) for d in notices] == [("agent", "INTERRUPT"), ("agent", "WHEN_IDLE")]
+    payload = json.loads(notices[0]["payload_json"])
+    assert payload["state"] == "unread" and payload["task_id"] == notices[0]["task_id"]
+    assert payload["task_id"].startswith("ntf_") and len(payload["task_id"]) <= 36
+    assert payload["origin_task_id"] == events[0]["task_id"] and payload["speaks"] is True
+    assert notices[0]["speak"] == "The washing machine finished." and notices[0]["expires_at"]
+    offer = h.service.outbox.offer(notices[0])
+    assert offer["urgent"] is True and offer["kind"] == "agent"
+    import sys
+    sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[2] / "overlay"))
+    import weixue_agent_msg as wire
+    fields, speech = wire.from_delivery(offer)
+    assert fields["state"] == "unread" and fields["delivery"] == "interrupt" and speech == notices[0]["speak"]
+    item = wire.build_item(fields, 1, 0)
+    assert item["task_id"] == payload["task_id"] and item["state"] == "unread" and item["delivery"] == "interrupt"
+    trace = (await h.http.get(f"/v1/tasks/{events[0]['task_id']}/trace")).json()
+    assert len([d for d in trace["deliveries"] if d["slot"].startswith("notify:")]) == 2

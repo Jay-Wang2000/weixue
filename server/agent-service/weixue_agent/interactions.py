@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from . import jsonlog, routing, timeutil
 from .config import (
-    HA_PENDING_POLL_S, INPUT_TTL_S, OPTION_MAX, QUESTION_MAX, SUMMARY_MAX, VOICE_WINDOW_S,
+    INPUT_TTL_S, OPTION_MAX, QUESTION_MAX, SUMMARY_MAX, VOICE_WINDOW_S,
 )
 from .deliveries import agent_payload
 from .ha_adapter import AlreadyDecided, NotOwner, Uncorrelated, describe_call, reversible
@@ -21,6 +21,13 @@ STEER_ANSWER = "No answer; the user's new message follows."
 OPEN_STATES = ("pending", "uncorrelated")
 UNCORRELATED_TEXT = {"en": "This may still be waiting in the Home Assistant panel.",
                      "zh": "这个可能还在 Home Assistant 面板里等待确认。"}
+PANEL_CUE = {"en": "That needs approval in the Home Assistant panel.", "zh": "这个需要在 Home Assistant 面板里确认。"}
+
+
+def panel_cue(lang: str, action_text: str) -> str:
+    if lang == "zh":
+        return f"要{action_text}，需要在 Home Assistant 面板里确认。"
+    return f"To {action_text}, approve it in the Home Assistant panel."
 
 
 class Interactions:
@@ -51,14 +58,14 @@ class Interactions:
 
     def _new(self, run_or_task: Any, kind: str, source: str, ttl_s: Optional[float], question=None, action=None,
              external_ref: Optional[str] = None, tool_use_id: Optional[str] = None, voice_can_approve: bool = False,
-             expires_at: Optional[str] = None, turn_id: Optional[str] = None) -> Dict[str, Any]:
+             expires_at: Optional[str] = None, turn_id: Optional[str] = None, state: str = "pending") -> Dict[str, Any]:
         task = self.store.task(run_or_task if isinstance(run_or_task, str) else run_or_task.task_id)
         now = timeutil.now()
         interaction_id = new_id("int")
         self.store.insert("interactions", {
             "interaction_id": interaction_id, "task_id": task["task_id"], "chat_id": task["chat_id"],
-            "turn_id": turn_id, "device_id": task["device_id"], "kind": kind, "source": source, "state": "pending",
-            "question_json": dumps(question) if question else None, "action_json": dumps(action) if action else None,
+            "turn_id": turn_id, "device_id": task["device_id"], "kind": kind, "source": source, "state": state,
+            "question_json": question or None, "action_json": action or None,
             "voice_can_approve": int(voice_can_approve), "tool_use_id": tool_use_id, "external_ref": external_ref,
             "created_at": timeutil.iso(now),
             "expires_at": expires_at or (timeutil.iso(now + timedelta(seconds=ttl_s)) if ttl_s else None),
@@ -69,6 +76,8 @@ class Interactions:
         if row["kind"] == "input":
             return (loads(row["question_json"], {}) or {}).get("text") or ""
         action = loads(row["action_json"], {}) or {}
+        if row["state"] == "uncorrelated":
+            return panel_cue(lang, routing.describe_for_speech(action.get("text") or "do that"))
         return routing.approval_cue(lang, routing.describe_for_speech(action.get("text") or "do that"))
 
     def announce(self, row: Dict[str, Any], run: Optional["TurnRun"], speak: Optional[str] = None) -> None:
@@ -88,7 +97,8 @@ class Interactions:
         if inline:
             self.store.update("interactions", "interaction_id", row["interaction_id"], {"spoken_at": timeutil.iso()})
             self.open_voice_window(task["device_id"], row["interaction_id"])
-        self.card(row, speak=None if inline else speak)
+        self.card(row, speak=None if inline else speak,
+                  note=UNCORRELATED_TEXT[task["lang"]] if row["state"] == "uncorrelated" else None)
 
     def card(self, row: Dict[str, Any], speak: Optional[str] = None, note: Optional[str] = None) -> None:
         row = self.store.interaction(row["interaction_id"])
@@ -220,7 +230,9 @@ class Interactions:
         accepted = self.engine.emit(task["chat_id"], "accepted", {"routed": "approval", "task_state": task["state"],
                                                                   "reply_id": reply_id}, trace, task_id=task["task_id"])
         reason = "ack"
-        if decision == "deny":
+        if row["state"] == "uncorrelated":
+            speak = PANEL_CUE[lang]
+        elif decision == "deny":
             await self._decide_approval(row, "deny", "voice")
             speak = routing.DENIED[lang]
         elif decision == "approve" and row["voice_can_approve"] and on_screen == 1 and row["state"] == "pending":
@@ -260,7 +272,7 @@ class Interactions:
 
     def _mark_answered(self, row: Dict[str, Any], value: Any, via: str, decision_id: Optional[str]) -> None:
         self.store.update("interactions", "interaction_id", row["interaction_id"], {
-            "state": "answered", "decision_json": dumps({"answer": value}), "via": via, "decision_id": decision_id,
+            "state": "answered", "decision_json": {"answer": value}, "via": via, "decision_id": decision_id,
             "decided_at": timeutil.iso()})
         self.resolved(row, "answered", via)
 
@@ -311,7 +323,7 @@ class Interactions:
             chosen = [labels[o] for o in body["option_ids"]]
             value: Any = chosen if question.get("multi_select") else chosen[0]
         else:
-            value = body["text"]
+            value = jsonlog.redact_text(body["text"])
         task = self.store.task(row["task_id"])
         run = self.engine.current_run(row["chat_id"])
         future = run.futures.get(interaction_id) if run else None
@@ -359,7 +371,7 @@ class Interactions:
         current = self.store.interaction(row["interaction_id"])
         if current["state"] in OPEN_STATES:
             self.store.update("interactions", "interaction_id", row["interaction_id"], {
-                "state": state, "decision_json": dumps({"decision": decision}), "via": via,
+                "state": state, "decision_json": {"decision": decision}, "via": via,
                 "decided_at": timeutil.iso()})
             self.resolved(row, state, via)
         run = self.engine.current_run(row["chat_id"])
@@ -406,9 +418,11 @@ class Interactions:
         action = {"text": text, "detail": jsonlog.truncate(f"{approval['tool']} {target or ''}".strip(), 120),
                   "tool": approval["tool"], "risk": "low" if can_voice else "high", "reversible": can_voice}
         ttl = self.engine.ha.approval_ttl_s
+        owned = self.engine.ha.owned(approval)
         row = self._new(task["task_id"], "approval", "ha_mcp", ttl, action=action, external_ref=approval["approval_id"],
-                        tool_use_id=waiter.get("tool_use_id"), voice_can_approve=can_voice,
-                        expires_at=approval["ha_expires_at"], turn_id=waiter.get("turn_id"))
+                        tool_use_id=waiter.get("tool_use_id"), voice_can_approve=can_voice and owned,
+                        expires_at=approval["ha_expires_at"], turn_id=waiter.get("turn_id"),
+                        state="pending" if owned else "uncorrelated")
         if waiter.get("tool_use_id"):
             self.store.update("tool_calls", "tool_use_id", waiter["tool_use_id"],
                               {"status": "pending", "approval_id": approval["approval_id"]})
@@ -418,32 +432,33 @@ class Interactions:
         self.announce(row, run)
 
     def on_correlated(self, approval: Dict[str, Any]) -> None:
+        """Our own request returned the hold's token: its cards become actionable; a hold whose tasks all ended
+        (cancelled meanwhile) is denied instead."""
+        if not self.engine.ha.owned(approval):
+            return
+        tasks = [self.store.task(w.get("task_id")) for w in loads(approval["waiters_json"], [])]
+        if tasks and all(t is None or t["state"] in TERMINAL_STATES for t in tasks):
+            self.engine.spawn(self.engine.ha.withdraw(approval["approval_id"], via="cancelled"),
+                              f"withdraw:{approval['approval_id']}")
+            return
         for row in self.store.all("SELECT * FROM interactions WHERE external_ref = ? AND state IN ('pending', 'uncorrelated')",
                                   (approval["approval_id"],)):
-            values = {"state": "pending"}
+            action = loads(row["action_json"], {}) or {}
+            values = {"state": "pending", "voice_can_approve": int(bool(action.get("reversible")))}
             if approval["ha_expires_at"]:
                 values["expires_at"] = approval["ha_expires_at"]
             self.store.update("interactions", "interaction_id", row["interaction_id"], values)
-            self.card(row)
+            task = self.store.task(row["task_id"])
+            live = task is not None and task["state"] not in TERMINAL_STATES
+            self.card(row, speak=self._speak_text(self.store.interaction(row["interaction_id"]), task["lang"])
+                      if live else None)
         if approval["tool_use_id"]:
             self.store.update("tool_calls", "tool_use_id", approval["tool_use_id"], {"ha_token_id": approval["approval_id"]})
 
-    def on_poll(self, holds: List[Dict[str, Any]]) -> None:
-        """Holds still without an exact owner after two polls become read-only cards."""
-        horizon = timeutil.now() - timedelta(seconds=2 * HA_PENDING_POLL_S)
-        for approval in holds:
-            if approval["ha_token"] or timeutil.parse(approval["updated_at"]) > horizon:
-                continue
-            for row in self.store.all("SELECT * FROM interactions WHERE external_ref = ? AND state = 'pending'",
-                                      (approval["approval_id"],)):
-                self.store.update("interactions", "interaction_id", row["interaction_id"], {"state": "uncorrelated",
-                                                                                          "voice_can_approve": 0})
-                task = self.store.task(row["task_id"])
-                self.card(row, note=UNCORRELATED_TEXT[task["lang"] if task else "en"])
-
     def on_terminal(self, approval: Dict[str, Any]) -> None:
         state = approval["state"]
-        status = {"executed": "ok", "failed": "error", "denied": "denied", "expired": "expired"}.get(state, "unknown")
+        status = {"executed": "ok", "failed": "error", "not_sent": "not_run", "denied": "denied",
+                  "expired": "expired"}.get(state, "unknown")
         text, _ = describe_call(approval["tool"], loads(approval["args_json"], {}))
         waiters = loads(approval["waiters_json"], [])
         for waiter in waiters:
@@ -459,7 +474,7 @@ class Interactions:
                 self.store.update("interactions", "interaction_id", row["interaction_id"], {"state": interaction_state})
                 self.resolved(row, interaction_state, row["via"] or approval["via"])
         outcome = {"executed": "executed", "failed": f"failed: {approval['result_text'] or ''}", "denied": "denied",
-                   "expired": "expired"}.get(state, "result unknown")
+                   "expired": "expired", "not_sent": "not sent"}.get(state, "result unknown")
         line = (f"[event approval {approval['approval_id']}] {approval['tool']} {text}: "
                 f"{jsonlog.truncate(outcome, 300)}. Already handled; do not call the tool again.")
         chats = []

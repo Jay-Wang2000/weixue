@@ -19,9 +19,10 @@ import anthropic
 from anthropic.lib.tools.mcp import async_mcp_tool
 
 from . import app_tools, jsonlog, models
-from .config import COMPACT_AT_TOKENS, MAX_ITERATIONS, PAUSE_RESUME_MAX, QUICK_MAX_ROUNDS, TURN_BUDGET_USD
+from .config import (COMPACT_AT_TOKENS, MAX_ITERATIONS, PAUSE_RESUME_MAX, QUICK_MAX_ROUNDS, SETTLE_MAX,
+                     TURN_BUDGET_USD)
 from .memory import MemoryTool
-from .transcript import Transcript, echo_form, without_unpaired_server_tools
+from .transcript import Transcript, echo_form, unpaired_server_uses, user_blocks, without_unpaired_server_tools
 
 if TYPE_CHECKING:
     from .turns import Engine, TurnRun
@@ -85,15 +86,18 @@ class ChatActor:
 
     # ------------------------------------------------------------------ tools of this chat
 
+    def take_use(self, name: str, args: Dict[str, Any]) -> Optional[str]:
+        """The id of the pending tool_use of the message being handled with this name and input."""
+        for use in self.pending_uses:
+            if use["name"] == name and use["input"] == args:
+                self.pending_uses.remove(use)
+                return use["id"]
+        return None
+
     async def _resolve(self, tool: str, args: Dict[str, Any]) -> Dict[str, Any]:
         """Identity of an HA call: the tool_use of the message being handled with this name and input."""
         run = self.current
-        tool_use_id = None
-        for use in self.pending_uses:
-            if use["name"] == tool and use["input"] == args:
-                tool_use_id = use["id"]
-                self.pending_uses.remove(use)
-                break
+        tool_use_id = self.take_use(tool, args)
         chat = self.engine.store.chat(self.chat_id)
         return {"device_id": chat["device_id"] if chat else None, "chat_id": self.chat_id,
                 "task_id": run.task_id if run else None, "turn_id": run.turn_id if run else None,
@@ -114,7 +118,7 @@ class ChatActor:
         return self._tools[key]
 
     async def _app_tool(self, name: str, args: Dict[str, Any]) -> str:
-        return await self.engine.app_tool(self, name, args)
+        return jsonlog.redact_text(await self.engine.app_tool(self, name, args))
 
     # ------------------------------------------------------------------ the model loop
 
@@ -122,15 +126,16 @@ class ChatActor:
         engine = self.engine
         transcript = Transcript(engine.store, self.chat_id)
         prompt = engine.prompt(self.chat_id)
-        if compose:
-            engine.compose_turn(run, transcript)
-        chat = engine.store.chat(self.chat_id)
-        model = models.model_for(run.mode, chat["task_model"])
-        runner = self._runner(model, transcript, prompt)
+        model = models.model_for(run.mode, engine.store.chat(self.chat_id)["task_model"])
+        runner = None
         pauses = 0
         continued = False
         outcome: Optional[Outcome] = None
         try:
+            if compose:
+                await self._settle(run, transcript, prompt, model)
+                engine.compose_turn(run, transcript)
+            runner = self._runner(model, transcript, prompt)
             requests = 0
             while True:
                 if run.cost_usd >= TURN_BUDGET_USD:
@@ -167,7 +172,7 @@ class ChatActor:
                     continue
                 assistant = as_param(message)
                 assistant["content"] = echo_form(assistant["content"])
-                if stop != "pause_turn":
+                if stop not in ("pause_turn", "tool_use"):
                     assistant["content"] = without_unpaired_server_tools(assistant["content"])
                 transcript.commit()
                 transcript.append([assistant], run.turn_id, state="committed", model=message.model,
@@ -181,16 +186,21 @@ class ChatActor:
                     self.pending_uses = []
                     run = self.current or run
                     engine.record_tool_results(run, response)
-                    switch = run.mode == models.QUICK and (run.started_task or run.rounds >= QUICK_MAX_ROUNDS)
+                    server_pending = bool(unpaired_server_uses(assistant["content"]))
+                    switch = not server_pending and run.mode == models.QUICK and (
+                        run.started_task or run.rounds >= QUICK_MAX_ROUNDS)
                     appended: List[Dict[str, Any]] = []
                     if switch:
                         appended.append(engine.switch_to_task(run))
                         model = models.model_for(models.TASK, engine.store.chat(self.chat_id)["task_model"])
                     blocks = list((response or {}).get("content") or [])
-                    run, user_extra, notes = engine.boundary(self, run)
-                    appended.append({"role": "user", "content": blocks + user_extra})
-                    if notes:
-                        appended.append(notes)
+                    if server_pending:
+                        appended.append({"role": "user", "content": blocks})
+                    else:
+                        run, user_extra, notes = engine.boundary(self, run)
+                        appended.append({"role": "user", "content": blocks + user_extra})
+                        if notes:
+                            appended.append(notes)
                     transcript.append(appended, run.turn_id)
                     if switch:
                         await close_runner(runner, None)
@@ -234,6 +244,57 @@ class ChatActor:
             self.stream = None
         self.finishing = True
         await engine.finish_drive(self, self.current or run, outcome)
+
+    async def _settle(self, run: "TurnRun", transcript: Transcript, prompt: Dict[str, Any], model: str) -> None:
+        """A server tool left without a result (a paused, cancelled or mixed client/server response) runs before
+        anything else is appended: the message after it may hold only client tool results. Each settling request
+        answers open client uses "not run", and its own client uses never run; nothing of it is spoken. It runs on
+        the model that sent the server tool use."""
+        engine = self.engine
+        for _ in range(SETTLE_MAX):
+            pending = transcript.pending_server_turn()
+            if pending is None:
+                return
+            if any(m["role"] != "user" or any(b.get("type") != "tool_result" for b in user_blocks(m))
+                   for m in pending["after"]):
+                raise Stop("api_error", "a server tool use without a result is followed by other content")
+            if not pending["after"]:
+                uses = [b for b in pending["message"].get("content") or [] if b.get("type") == "tool_use"]
+                if uses:
+                    transcript.append([{"role": "user", "content": [engine._unanswered_result(u) for u in uses]}],
+                                      run.turn_id)
+            if pending["model"] in (models.MODELS[models.QUICK], models.MODELS[models.TASK], models.RETENTION_MODEL):
+                model = pending["model"]
+            runner = self._runner(model, transcript, prompt)
+            stream = None
+            try:
+                self.streaming = self.resuming_pause = True
+                stream = self.stream = await runner.__anext__()
+                async for event in stream:
+                    if event.type == "content_block_start" and event.content_block.type == "tool_use":
+                        runner.defer_tool_call(event.content_block)
+                message = await stream.get_final_message()
+            finally:
+                self.streaming = self.resuming_pause = False
+                await asyncio.shield(close_runner(runner, stream))
+                self.stream = None
+            engine.account(run, message, model, None, stream)
+            if message.stop_reason == "compaction":
+                transcript.new_epoch(as_param(message), run.turn_id, message.model, _request_id(stream))
+                engine.on_compaction(self.chat_id, run)
+                continue
+            if message.stop_reason == "refusal":
+                continue
+            assistant = as_param(message)
+            assistant["content"] = echo_form(assistant["content"])
+            if message.stop_reason not in ("pause_turn", "tool_use"):
+                assistant["content"] = without_unpaired_server_tools(assistant["content"])
+            transcript.commit()
+            transcript.append([assistant], run.turn_id, state="committed", model=message.model,
+                              request_id=_request_id(stream))
+            engine.record_tool_uses(run, message)
+            engine.settled(run, message)
+        raise Stop("api_error", "a server tool did not settle")
 
     def _runner(self, model: str, transcript: Transcript, prompt: Dict[str, Any], compact: bool = False) -> Any:
         engine = self.engine

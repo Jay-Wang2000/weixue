@@ -47,6 +47,7 @@ class Pending:
         self.decision = "pending"
         self.event = asyncio.Event()
         self.timed_out = False
+        self.force_timeout = False
 
 
 class FakeHaMcp:
@@ -62,6 +63,23 @@ class FakeHaMcp:
         self.list_pending_hidden = False
         self.rules = RULES
         self.call_delay = 0.0
+        self.panel_decisions: List[Dict[str, str]] = []
+
+    def elapse_wait(self) -> None:
+        """The policy wait of every held call ends now: each answers USER_APPROVAL_REQUIRED with its token."""
+        for pending in self.queue.values():
+            if pending.decision == "pending" and not pending.timed_out:
+                pending.force_timeout = True
+                pending.event.set()
+
+    def panel(self, token: str, decision: str) -> None:
+        """A decision in the Home Assistant panel (not through the policy API)."""
+        pending = self.queue[token]
+        pending.decision = decision
+        pending.event.set()
+        self.panel_decisions.append({"token": token, "decision": decision})
+        if decision == "denied":
+            self.queue.pop(token, None)
 
     def _held(self, tool: str, args: Dict[str, Any]) -> bool:
         from weixue_agent import policy_model
@@ -98,7 +116,10 @@ class FakeHaMcp:
         self.queue[pending.token] = pending
         try:
             await asyncio.wait_for(pending.event.wait(), timeout=self.wait_seconds)
+            timed_out = pending.force_timeout and pending.decision == "pending"
         except asyncio.TimeoutError:
+            timed_out = True
+        if timed_out:
             pending.timed_out = True
             return {"content": [{"type": "text", "text": json.dumps({"success": False, "error": {
                 "code": "USER_APPROVAL_REQUIRED", "message": "Re-call this tool with the same arguments after the user approves.",

@@ -1,7 +1,9 @@
 """Durable device outbox: tiers, slots, leases, two-phase acks and playback evidence.
 
 One consumer per device: a new stream revokes the previous one. Offers are ordered INTERRUPT,
-WHEN_IDLE, SILENT, then gseq; every ack echoes the offer's lease_id. Speech that may have started
+WHEN_IDLE, SILENT, then gseq; every ack echoes the offer's lease_id (and attempt). The service is the only
+retry owner: a deferred delivery is offered again with a new attempt and lease. Acks only move a delivery
+forward (ACK_FROM); one that does not fits its state changes nothing. Speech that may have started
 without a played/cut_off ack is never offered again (its card is marked "may not have played").
 """
 import asyncio
@@ -12,11 +14,21 @@ from typing import Any, Dict, List, Optional
 from . import jsonlog, timeutil
 from .config import DELIVERY_LEASE_S, DONE_SPEECH_TTL_S
 from .ids import new_id
-from .store import Store, dumps, loads
+from .store import Store, loads_or
 
 TIERS = {"INTERRUPT": 0, "WHEN_IDLE": 1, "SILENT": 2}
 OPEN_STATES = ("pending", "offered", "handed_off")
 SNAPSHOT_HIDDEN = ("superseded", "dropped", "expired")
+ACK_FROM = {
+    "accepted": ("offered",),
+    "spoken": ("offered", "handed_off"),
+    "played": ("offered", "handed_off", "uncertain"),
+    "cut_off": ("offered", "handed_off", "uncertain"),
+    "shown": ("pending", "offered"),
+    "deferred": ("offered", "handed_off"),
+    "lost": ("offered", "handed_off"),
+    "dropped": ("pending", "offered", "handed_off"),
+}
 
 
 class StaleLease(Exception):
@@ -60,7 +72,7 @@ class Outbox:
             delivery_id = new_id("dlv")
             self.store.insert("deliveries", {
                 "delivery_id": delivery_id, "device_id": device_id, "task_id": task_id, "chat_id": chat_id,
-                "turn_id": turn_id, "kind": kind, "tier": tier, "slot": slot, "payload_json": dumps(payload),
+                "turn_id": turn_id, "kind": kind, "tier": tier, "slot": slot, "payload_json": payload,
                 "speak": speak, "lang": lang, "state": "pending", "attempt": 0,
                 "expires_at": timeutil.iso(now + timedelta(seconds=ttl_s)) if ttl_s else None,
                 "created_at": timeutil.iso(now), "updated_at": timeutil.iso(now),
@@ -91,7 +103,7 @@ class Outbox:
     def _card_update(self, row: Dict[str, Any], playback: str) -> None:
         if row["kind"] != "agent":
             return
-        payload = dict(loads(row["payload_json"], {}), playback=playback, unread=True)
+        payload = dict(loads_or(row["payload_json"], {}), playback=playback, unread=True)
         payload.pop("tier", None)
         payload.pop("speaks", None)
         self.enqueue(row["device_id"], "agent", "SILENT", row["slot"], payload, task_id=row["task_id"],
@@ -103,7 +115,7 @@ class Outbox:
             "UPDATE deliveries SET state = 'expired', updated_at = ? WHERE state IN ('pending', 'offered') "
             "AND expires_at IS NOT NULL AND expires_at < ?", (now, now))
         self.store.execute(
-            "UPDATE deliveries SET state = 'pending', updated_at = ? "
+            "UPDATE deliveries SET state = 'pending', lease_id = NULL, updated_at = ? "
             "WHERE state = 'offered' AND lease_until IS NOT NULL AND lease_until < ?", (now, now))
         for row in self.store.all("SELECT * FROM deliveries WHERE state = 'handed_off' AND lease_until < ?", (now,)):
             if row["speak"]:
@@ -134,7 +146,7 @@ class Outbox:
             "delivery_id": row["delivery_id"], "gseq": row["gseq"], "lease_id": row["lease_id"],
             "device_id": row["device_id"], "task_id": row["task_id"], "chat_id": row["chat_id"],
             "turn_id": row["turn_id"], "kind": row["kind"], "tier": row["tier"], "slot": row["slot"],
-            "payload": loads(row["payload_json"], {}), "speak": row["speak"], "lang": row["lang"],
+            "payload": loads_or(row["payload_json"], {}), "speak": row["speak"], "lang": row["lang"],
             "attempt": row["attempt"], "idempotency_key": f"{row['delivery_id']}:{max(1, row['attempt'])}",
             "urgent": row["tier"] == "INTERRUPT", "expires_at": row["expires_at"], "created_at": row["created_at"],
             "state": row["state"], "playback": row["playback"],
@@ -144,13 +156,25 @@ class Outbox:
         row = self.store.delivery(delivery_id)
         if row is None:
             raise KeyError(delivery_id)
-        if row["lease_id"] != body["lease_id"]:
+        if row["lease_id"] is None or row["lease_id"] != body["lease_id"]:
+            raise StaleLease()
+        if body.get("attempt") is not None and int(body["attempt"]) != max(1, row["attempt"]):
             raise StaleLease()
         outcome = body["outcome"]
         now = timeutil.now()
         values: Dict[str, Any] = {"updated_at": timeutil.iso(now)}
         card_playback: Optional[str] = None
-        if outcome == "accepted":
+        allowed = ACK_FROM.get(outcome)
+        if outcome == "accepted" and row["state"] == "handed_off":
+            allowed = None
+        elif allowed is not None and row["state"] not in allowed:
+            if outcome == "accepted" or (outcome == "deferred" and row["playback"]):
+                raise StaleLease()
+            self._record_ack(row, body, now, f"ignored in {row['state']}")
+            return self.public(row)
+        if allowed is None:
+            pass
+        elif outcome == "accepted":
             ttl = int(body.get("ttl_s") or DELIVERY_LEASE_S)
             until = now + timedelta(seconds=ttl)
             expires = timeutil.parse(row["expires_at"]) if row["expires_at"] else None
@@ -160,6 +184,8 @@ class Outbox:
             values.update(playback="spoken")
         elif outcome == "played":
             values.update(state="delivered", playback="played")
+            if row["state"] == "uncertain":
+                card_playback = "played"
         elif outcome == "cut_off":
             values.update(state="delivered", playback="cut_off")
             card_playback = "cut_off"
@@ -167,7 +193,7 @@ class Outbox:
             if row["state"] in ("pending", "offered") and not row["speak"]:
                 values.update(state="delivered")
         elif outcome == "deferred":
-            if row["state"] == "handed_off" and row["playback"]:
+            if row["playback"]:
                 raise StaleLease()
             delay_ms = int(body.get("retry_after_ms") or 0)
             values.update(state="pending", attempt=row["attempt"] + 1, lease_id=None, lease_until=None,
@@ -178,25 +204,30 @@ class Outbox:
         elif outcome == "dropped":
             values.update(state="dropped")
         self.store.update("deliveries", "delivery_id", delivery_id, values)
-        self.store.insert("delivery_acks", {
-            "delivery_id": delivery_id, "device_id": row["device_id"], "outcome": outcome, "boot": body.get("boot"),
-            "device_seq": body.get("device_seq"), "sentence_id": body.get("sentence_id"),
-            "cut_at_ms": body.get("cut_at_ms"), "reason": body.get("reason"), "proactive_id": body.get("proactive_id"),
-            "detail": jsonlog.truncate(body.get("detail"), 200), "received_at": timeutil.iso(now)})
-        jsonlog.log("delivery ack", device_id=row["device_id"], task_id=row["task_id"], event="delivery_ack",
-                    outcome=outcome, detail=delivery_id)
+        self._record_ack(row, body, now, body.get("detail"))
         if card_playback:
             self._card_update(row, card_playback)
         if outcome == "deferred":
             self._wake(row["device_id"])
         return self.public(self.store.delivery(delivery_id))
 
+    def _record_ack(self, row: Dict[str, Any], body: Dict[str, Any], now: Any, detail: Optional[str]) -> None:
+        self.store.insert("delivery_acks", {
+            "delivery_id": row["delivery_id"], "device_id": row["device_id"], "outcome": body["outcome"],
+            "boot": body.get("boot"), "device_seq": body.get("device_seq"), "sentence_id": body.get("sentence_id"),
+            "cut_at_ms": body.get("cut_at_ms"), "reason": body.get("reason"), "proactive_id": body.get("proactive_id"),
+            "detail": jsonlog.truncate(detail, 200), "received_at": timeutil.iso(now)})
+        jsonlog.log("delivery ack", device_id=row["device_id"], task_id=row["task_id"], event="delivery_ack",
+                    outcome=body["outcome"], detail=f"{row['delivery_id']} {detail or ''}".strip())
+
     def on_restart(self) -> Dict[str, int]:
-        """Offers return to pending; speech handed off without a playback ack is never repeated."""
+        """Unspoken offers return to pending; speech offered or handed off without a playback ack is never
+        repeated (a lost acceptance ack is no evidence that it did not start)."""
         counts = {"reoffer": 0, "uncertain": 0}
         counts["reoffer"] = self.store.execute(
-            "UPDATE deliveries SET state = 'pending', updated_at = ? WHERE state = 'offered'", (timeutil.iso(),))
-        for row in self.store.all("SELECT * FROM deliveries WHERE state = 'handed_off'"):
+            "UPDATE deliveries SET state = 'pending', lease_id = NULL, updated_at = ? "
+            "WHERE state = 'offered' AND speak IS NULL", (timeutil.iso(),))
+        for row in self.store.all("SELECT * FROM deliveries WHERE state IN ('offered', 'handed_off')"):
             if row["speak"]:
                 counts["uncertain"] += 1
                 self._mark_uncertain(row, "service restart")
@@ -211,7 +242,7 @@ class Outbox:
         self._consumers[device_id] = consumer
         self._wakeups.setdefault(device_id, asyncio.Event()).set()
         if previous:
-            self.store.execute("UPDATE deliveries SET state = 'pending', updated_at = ? "
+            self.store.execute("UPDATE deliveries SET state = 'pending', lease_id = NULL, updated_at = ? "
                                "WHERE device_id = ? AND state = 'offered'", (timeutil.iso(), device_id))
         return consumer
 
