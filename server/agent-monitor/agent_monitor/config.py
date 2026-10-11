@@ -22,7 +22,7 @@ class Settings:
     mcp_endpoint: str = "mcp-endpoint-server:8004"
     monitor_token: str = ""
     tunnel: bool = False
-    home: bool = False
+    home: bool = True
     tz: str = DEFAULT_TZ
     ha_probe_s: float = DEFAULT_HA_PROBE_S
     host: str = "0.0.0.0"
@@ -64,7 +64,7 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
         mcp_endpoint=_host_port(env.get("MCP_ENDPOINT", "mcp-endpoint-server:8004")),
         monitor_token=token,
         tunnel=env.get("WG_TUNNEL", "").strip() == "1",
-        home=env.get("MONITOR_HOME", "").strip() == "1",
+        home=env.get("MONITOR_HOME", "1").strip() != "0",
         tz=tz if tz and tz != "UTC" else DEFAULT_TZ,
         ha_probe_s=ha_probe_s,
         host=env.get("MONITOR_HOST", "0.0.0.0"),

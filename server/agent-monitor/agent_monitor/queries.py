@@ -43,7 +43,8 @@ APPROVAL_COLS = ("approval_id", "task_id", "chat_id", "tool", "state", "decision
                  "created_at")
 PROBE_COLS = ("id", "ts", "probe", "ok", "latency_ms", "detail_json")
 CONNECTION_COLS = ("id", "ts", "device_id", "kind", "detail_json")
-HOME_COLS = ("entity_id", "name", "state", "last_changed", "fetched_at")
+HOME_COLS = ("entity_id", "name", "state", "attributes_json", "last_changed", "updated_at")
+HOME_META_COLS = ("period_s", "attempted_at", "fetched_at", "entity_count", "error_code")
 
 TOKEN_FIELDS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_creation_tokens")
 _URL = re.compile(r"[a-z][a-z0-9+.-]*://\S+", re.I)
@@ -424,8 +425,15 @@ def tools_cache(db: ReadOnlyDb) -> Optional[Dict[str, Any]]:
     return db.one("SELECT json_array_length(tools_json) AS tool_count, fetched_at FROM ha_tools_cache WHERE id = 1")
 
 
-def home(db: ReadOnlyDb) -> Optional[List[Dict[str, Any]]]:
-    """Rows of home_snapshot, None while the table does not exist."""
+def home(db: ReadOnlyDb) -> Optional[Dict[str, Any]]:
+    """The home snapshot rows and its meta row (None before the first attempt), None while the table does not exist."""
     if not db.has_table("home_snapshot"):
         return None
-    return db.query(f"SELECT {cols(HOME_COLS)} FROM home_snapshot ORDER BY entity_id")
+    rows = db.query(f"SELECT {cols(HOME_COLS)} FROM home_snapshot ORDER BY entity_id")
+    for row in rows:
+        row["attributes"] = _scrub_obj(_json(row.pop("attributes_json"), {}))
+        row["name"] = text(row["name"])
+        row["state"] = scrub(row["state"], 32)
+    meta = db.one(f"SELECT {cols(HOME_META_COLS)} FROM home_snapshot_meta WHERE id = 1") \
+        if db.has_table("home_snapshot_meta") else None
+    return {"rows": rows, "meta": meta}

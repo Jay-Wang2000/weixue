@@ -13,7 +13,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 from . import jsonlog, timeutil
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 _SCHEMA = """
 CREATE TABLE devices (
@@ -335,6 +335,22 @@ CREATE TABLE errors (
   trace_id TEXT
 );
 CREATE INDEX errors_ts ON errors(ts);
+CREATE TABLE home_snapshot (
+  entity_id TEXT PRIMARY KEY,
+  name TEXT,
+  state TEXT NOT NULL,
+  attributes_json TEXT,
+  last_changed TEXT,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE home_snapshot_meta (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  period_s REAL NOT NULL,
+  attempted_at TEXT NOT NULL,
+  fetched_at TEXT,
+  entity_count INTEGER NOT NULL DEFAULT 0,
+  error_code TEXT
+);
 CREATE TABLE transcript (
   chat_id TEXT NOT NULL,
   epoch INTEGER NOT NULL,
@@ -363,6 +379,10 @@ CREATE TABLE chat_prompts (
 _MIGRATIONS = {
     2: ("ALTER TABLE approvals ADD COLUMN token_source TEXT;"
         "ALTER TABLE tool_calls ADD COLUMN dispatch_id TEXT;"),
+    3: ("CREATE TABLE home_snapshot (entity_id TEXT PRIMARY KEY, name TEXT, state TEXT NOT NULL, "
+        "attributes_json TEXT, last_changed TEXT, updated_at TEXT NOT NULL);"
+        "CREATE TABLE home_snapshot_meta (id INTEGER PRIMARY KEY CHECK (id = 1), period_s REAL NOT NULL, "
+        "attempted_at TEXT NOT NULL, fetched_at TEXT, entity_count INTEGER NOT NULL DEFAULT 0, error_code TEXT);"),
 }
 # Free-text columns: redacted before they are first written (the transcript is composed from redacted inputs).
 # `*_json` columns and JSON_COLUMNS take structured values: each string inside is redacted before serialization.
@@ -378,6 +398,7 @@ SCRUBBED = {
     "errors": {"message"},
     "connection_events": {"detail_json"},
     "health_probes": {"detail_json"},
+    "home_snapshot": {"name", "attributes_json"},
 }
 JSON_COLUMNS = {"args_summary"}
 
@@ -612,11 +633,51 @@ class Store:
         self.insert("health_probes", {"ts": timeutil.iso(), "probe": probe, "ok": int(ok), "latency_ms": latency_ms,
                                       "detail_json": detail})
 
+    def replace_home_snapshot(self, rows: List[Dict[str, Any]], period_s: float) -> int:
+        """Makes home_snapshot equal `rows`; only new or changed rows are written. Returns the rows written."""
+        now = timeutil.iso()
+        fields = ("name", "state", "attributes_json", "last_changed")
+        written = 0
+        with self.tx() as db:
+            known = {r["entity_id"]: dict(r) for r in db.execute(
+                "SELECT entity_id, name, state, attributes_json, last_changed FROM home_snapshot")}
+            for row in rows:
+                values = self._scrubbed("home_snapshot", {k: row.get(k) for k in fields})
+                old = known.pop(row["entity_id"], None)
+                if old is not None and all(old[k] == values[k] for k in fields):
+                    continue
+                db.execute(
+                    "INSERT INTO home_snapshot (entity_id, name, state, attributes_json, last_changed, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(entity_id) DO UPDATE SET name = excluded.name, "
+                    "state = excluded.state, attributes_json = excluded.attributes_json, "
+                    "last_changed = excluded.last_changed, updated_at = excluded.updated_at",
+                    (row["entity_id"], values["name"], values["state"], values["attributes_json"],
+                     values["last_changed"], now))
+                written += 1
+            for entity_id in known:
+                db.execute("DELETE FROM home_snapshot WHERE entity_id = ?", (entity_id,))
+        return written
+
+    def record_home_attempt(self, period_s: float, error_code: Optional[str], entity_count: int) -> None:
+        """One home_snapshot_meta row: fetched_at and entity_count move only on a successful cycle."""
+        now = timeutil.iso()
+        ok = error_code is None
+        self.execute(
+            "INSERT INTO home_snapshot_meta (id, period_s, attempted_at, fetched_at, entity_count, error_code) "
+            "VALUES (1, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET period_s = excluded.period_s, "
+            "attempted_at = excluded.attempted_at, error_code = excluded.error_code, "
+            "fetched_at = CASE WHEN ? THEN excluded.fetched_at ELSE fetched_at END, "
+            "entity_count = CASE WHEN ? THEN excluded.entity_count ELSE entity_count END",
+            (period_s, now, now if ok else None, entity_count if ok else 0, error_code, int(ok), int(ok)))
+
     def prune(self, days: int) -> Dict[str, int]:
         cutoff = timeutil.iso(timeutil.now() - timedelta(days=days))
         removed = {}
         for table, column in RETENTION_TABLES.items():
             removed[table] = self.execute(f"DELETE FROM {table} WHERE {column} < ?", (cutoff,))
+        removed["approvals"] = self.execute(
+            "DELETE FROM approvals WHERE state IN ('executed', 'failed', 'not_sent', 'denied', 'expired') "
+            "AND updated_at < ?", (cutoff,))
         removed["idempotency"] = self.execute(
             "DELETE FROM idempotency WHERE created_at < ?", (timeutil.iso(timeutil.now() - timedelta(days=1)),))
         return removed

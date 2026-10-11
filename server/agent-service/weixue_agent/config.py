@@ -1,8 +1,9 @@
 """Service configuration and constants. Error messages never echo a value."""
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Optional
+from typing import List, Mapping, Optional, Tuple
 
 from weixue_hamcp import UrlError, parse_ha_mcp_url
 
@@ -41,6 +42,9 @@ DONE_SPEECH_TTL_S = 24 * 3600
 NOTIFY_TTL_S = 3600
 HEALTH_PROBE_S = 10
 HEALTH_PROBE_TIMEOUT_S = 5
+HOME_SNAPSHOT_S = 300
+HOME_ENTITIES_MAX = 20
+ENTITY_ID = re.compile(r"^[a-z0-9_]+\.[a-z0-9_]+$")
 # A health_probes row is written when a probe's ok flips, else at most this often.
 PROBE_ROW_EVERY_S = 300
 DELIVERY_LEASE_S = 30
@@ -84,11 +88,27 @@ class Settings:
     monitor_token: Optional[str] = None
     probe_s: float = HEALTH_PROBE_S
     probe_timeout_s: float = HEALTH_PROBE_TIMEOUT_S
+    home_snapshot_s: float = HOME_SNAPSHOT_S
+    home_entities: Tuple[str, ...] = ()
 
     @property
     def e2e_guard(self) -> bool:
         """The end-to-end test guard is on while `<data dir>/e2e-guard` exists."""
         return (self.data_dir / "e2e-guard").exists()
+
+
+def parse_entity_list(raw: str) -> Tuple[str, ...]:
+    """Entity ids of a comma-separated list, order kept, duplicates dropped, at most HOME_ENTITIES_MAX."""
+    seen: List[str] = []
+    for item in raw.split(","):
+        entity = item.strip().lower()
+        if not entity:
+            continue
+        if not ENTITY_ID.match(entity):
+            raise ValueError("AGENT_HOME_ENTITIES holds an entry that is not an entity id")
+        if entity not in seen:
+            seen.append(entity)
+    return tuple(seen[:HOME_ENTITIES_MAX])
 
 
 def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
@@ -114,6 +134,16 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
         raise ConfigError("AGENT_HA_PROBE_S and AGENT_HA_PROBE_TIMEOUT_S must be numbers") from None
     if not 0 < probe_timeout_s < probe_s:
         raise ConfigError("AGENT_HA_PROBE_TIMEOUT_S must be positive and below AGENT_HA_PROBE_S")
+    try:
+        home_snapshot_s = float(env.get("AGENT_HOME_SNAPSHOT_S", "") or HOME_SNAPSHOT_S)
+    except ValueError:
+        raise ConfigError("AGENT_HOME_SNAPSHOT_S must be a number") from None
+    if home_snapshot_s < 0:
+        raise ConfigError("AGENT_HOME_SNAPSHOT_S must not be negative")
+    try:
+        home_entities = parse_entity_list(env.get("AGENT_HOME_ENTITIES", ""))
+    except ValueError as e:
+        raise ConfigError(str(e)) from None
     data_dir = Path(env.get("AGENT_DATA_DIR", "/data"))
     return Settings(
         token=token,
@@ -129,6 +159,8 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
         monitor_token=monitor_token,
         probe_s=probe_s,
         probe_timeout_s=probe_timeout_s,
+        home_snapshot_s=home_snapshot_s,
+        home_entities=home_entities,
     )
 
 

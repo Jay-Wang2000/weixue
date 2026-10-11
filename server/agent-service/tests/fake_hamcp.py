@@ -19,6 +19,8 @@ TOOLS = [
      "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}},
     {"name": "ha_get_state", "description": "Get state", "annotations": {"readOnlyHint": True},
      "inputSchema": {"type": "object", "properties": {"entity_id": {"type": "string"}}, "required": ["entity_id"]}},
+    {"name": "ha_get_overview", "description": "Overview", "annotations": {"readOnlyHint": True},
+     "inputSchema": {"type": "object", "properties": {"domains": {"type": "array"}}}},
     {"name": "ha_get_history", "description": "Get history", "annotations": {"readOnlyHint": True},
      "inputSchema": {"type": "object", "properties": {"entity_id": {"type": "string"}}, "required": ["entity_id"]}},
     {"name": "ha_call_service", "description": "Call a service", "annotations": {"destructiveHint": True},
@@ -59,6 +61,7 @@ class FakeHaMcp:
         self.executed: List[Dict[str, Any]] = []
         self.decisions: List[Dict[str, str]] = []
         self.states: Dict[str, str] = {"light.living_room_ceiling_lights": "off", "sun.sun": "above_horizon"}
+        self.home: Dict[str, Dict[str, Any]] = {}
         self.down = False
         self.list_pending_hidden = False
         self.rules = RULES
@@ -90,6 +93,29 @@ class FakeHaMcp:
         if tool == "ha_call_service" and args.get("entity_id") in self.states:
             self.states[args["entity_id"]] = "on" if args.get("service") == "turn_on" else "off"
             return {"content": [{"type": "text", "text": json.dumps({"success": True})}]}
+        if tool == "ha_get_overview":
+            stats: Dict[str, Any] = {}
+            for entity_id, record in self.home.items():
+                domain = entity_id.split(".", 1)[0]
+                if domain in (args.get("domains") or [domain]):
+                    stats.setdefault(domain, {"entities": []})["entities"].append({
+                        "entity_id": entity_id, "friendly_name": record["attributes"].get("friendly_name"),
+                        "state": record["state"]})
+            return {"content": [{"type": "text", "text": json.dumps({"success": True, "domain_stats": stats})}]}
+        if tool == "ha_get_state" and isinstance(args.get("entity_id"), list):
+            keys = args.get("attribute_keys")
+            states, errors = {}, []
+            for entity_id in args["entity_id"]:
+                record = self.home.get(entity_id)
+                if record is None:
+                    errors.append({"entity_id": entity_id, "error": {"code": "ENTITY_NOT_FOUND"}})
+                    continue
+                attributes = {k: v for k, v in record["attributes"].items() if keys is None or k in keys}
+                states[entity_id] = {"entity_id": entity_id, "state": record["state"], "attributes": attributes,
+                                     "last_changed": record.get("last_changed")}
+            body = {"data": {"success": bool(states), "count": len(states), "states": states, "errors": errors},
+                    "metadata": {}}
+            return {"content": [{"type": "text", "text": json.dumps(body)}]}
         if tool == "ha_get_state":
             state = self.states.get(args.get("entity_id"))
             if state is None:

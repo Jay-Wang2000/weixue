@@ -826,6 +826,9 @@ def test_monitor_is_bound_to_localhost_only():
     assert {e.split("=", 1)[0] for e in monitor["environment"]} == {
         "AGENT_SERVICE_URL", "MONITOR_TOKEN", "GATEWAY_URL", "MCP_ENDPOINT", "WG_TUNNEL", "AGENT_HA_PROBE_S",
         "MONITOR_HOME", "TZ"}
+    assert "MONITOR_HOME=${MONITOR_HOME:-1}" in monitor["environment"]
+    agent = services["agent-service"]["environment"]
+    assert "AGENT_HOME_SNAPSHOT_S=${AGENT_HOME_SNAPSHOT_S:-300}" in agent and "AGENT_HOME_ENTITIES=${AGENT_HOME_ENTITIES:-}" in agent
     assert monitor["volumes"] == ["./data/agent-service/db:/db", "./data/mcp-bridge/status:/bridge:ro"]
     assert all("memory" not in v for v in monitor["volumes"])
     assert "./data/mcp-bridge/status:/app/status" in services["mcp-bridge"]["volumes"]
