@@ -23,6 +23,9 @@ STREAM_DEADLINE_S = google_stt.MAX_SYNC_AUDIO_BYTES / google_stt.BYTES_PER_SECON
 # latest_short reports confidence 0.91 on every Mandarin final
 # (docs/logs/feat-stt-streaming-accuracy-2026-10-07.md).
 DEFAULT_ZH_FALLBACK_CONFIDENCE = 0.9
+DEFAULT_REPEAT_REPLY = "Sorry, I didn't catch that. Please say it again.\n抱歉，我没听清，请再说一遍。"
+# Problems after which the streamed text is incomplete: only a complete-buffer fallback transcript is used.
+STREAM_PROBLEMS = ("no_stream", "stream_error", "timeout")
 _HAN = re.compile(r"[一-鿿]")
 
 
@@ -137,7 +140,8 @@ class ASRProvider(google_stt.ASRProvider):
     frame, the stream is half-closed when the VAD ends the utterance, and the final transcript is
     taken from the stream. A stream error or timeout, and a Chinese final below
     zh_fallback_confidence, are re-recognized with fallback_model batch Recognize on the buffered
-    utterance."""
+    utterance. After a stream error or timeout only that re-recognition is used: when it fails the
+    utterance is rejected (no turn) and the device speaks repeat_reply."""
 
     def __init__(self, config: dict, delete_audio_file: bool):
         super().__init__({**config, "timeout": config.get("fallback_timeout", 15)}, delete_audio_file)
@@ -149,6 +153,8 @@ class ASRProvider(google_stt.ASRProvider):
         self.zh_fallback_confidence = float(
             config.get("zh_fallback_confidence", DEFAULT_ZH_FALLBACK_CONFIDENCE)
         )
+        self.repeat_reply = config.get("repeat_reply") or DEFAULT_REPEAT_REPLY
+        self._rejected: Optional[str] = None
         self._conn = None
         self._client_lock = threading.Lock()
         self._streams: List[RecognitionStream] = []
@@ -223,11 +229,21 @@ class ASRProvider(google_stt.ASRProvider):
         try:
             if sum(len(frame) for frame in frames) > MIN_UTTERANCE_BYTES:
                 self._pending = streams
+                self._rejected = None
                 await self.handle_voice_stop(conn, frames)
+                if self._rejected is not None:
+                    await self._ask_to_repeat(conn)
         finally:
             self._pending = None
+            self._rejected = None
             for stream in streams:
                 stream.cancel()
+
+    async def _ask_to_repeat(self, conn):
+        try:
+            await self._speak(conn, self.repeat_reply)
+        except Exception as e:
+            logger.bind(tag=TAG).error(f"repeat reply failed: {type(e).__name__}: {e}")
 
     async def speech_to_text(
         self, opus_data: List[bytes], session_id: str, artifacts=None
@@ -242,11 +258,16 @@ class ASRProvider(google_stt.ASRProvider):
         model = self.model
         if problem is None and text and is_chinese(text, language) and confidence < self.zh_fallback_confidence:
             problem = "zh_low_confidence"
+        recognized = None
         if problem is not None and self.fallback_model:
             recognized = await self._fallback(artifacts.pcm_bytes, problem)
             if recognized is not None and (recognized[0] or problem != "zh_low_confidence"):
                 text, language = recognized
                 model = self.fallback_model
+        rejected = problem in STREAM_PROBLEMS and recognized is None
+        if rejected:
+            text, model = "", "-"
+            self._rejected = problem
         latency_ms = round((time.monotonic() - stopped_at) * 1000)
         if self._conn is not None:
             self._conn.weixue_stt = {"at": time.monotonic(), "latency_ms": latency_ms, "language": language}
@@ -254,6 +275,7 @@ class ASRProvider(google_stt.ASRProvider):
         logger.bind(tag=TAG).info(
             f"stt_final_latency_ms={latency_ms} model={model} language={language} "
             f"confidence={shown} fallback={problem or '-'} streams={len(streams)} interims={interims}"
+            + (" rejected=fallback_failed" if rejected else "")
         )
         return text, None
 

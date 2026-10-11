@@ -1,0 +1,73 @@
+diff --git a/main/application.cc b/main/application.cc
+index 001e26c..9117aaf 100644
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -1339,6 +1339,7 @@ void Application::ProactivePollTask() {
+         http->SetHeader(kAgentFeatureHeader, std::to_string(weixue_agent::kFeatureLevel));
+         bool speak = true;
+         bool body_ok = false;
++        std::string invoke_text = kProactiveWakeText;
+         if (http->Open("GET", proactive_poll_url_)) {
+             auto code = http->GetStatusCode();
+             if (code) {
+@@ -1356,6 +1357,7 @@ void Application::ProactivePollTask() {
+                     if (body_ok) {
+                         urgent = cJSON_IsTrue(cJSON_GetObjectItem(root, "urgent"));
+                         speak = WeixueAgent::GetInstance().OnPollBody(root);
++                        invoke_text = weixue_agent::InvokeText(root);
+                     } else {
+                         ESP_LOGW(TAG, "Proactive poll body unreadable (%u of %u bytes)",
+                                  static_cast<unsigned>(body.size()), static_cast<unsigned>(expected));
+@@ -1374,7 +1376,7 @@ void Application::ProactivePollTask() {
+         } else if (step == weixue_agent::PollStep::kInvoke) {
+             retry_ms = kProactiveRetryMinMs;
+             ESP_LOGI(TAG, "Proactive message pending (urgent=%d)", urgent);
+-            Schedule([this, urgent]() { ProactiveInvoke(urgent); });
++            Schedule([this, urgent, invoke_text]() { ProactiveInvoke(urgent, invoke_text); });
+             vTaskDelay(pdMS_TO_TICKS(2000));
+         } else if (step == weixue_agent::PollStep::kWait) {
+             retry_ms = kProactiveRetryMinMs;
+@@ -1400,7 +1402,8 @@ void Application::ResyncClock(const std::string& date) {
+     ESP_LOGI(TAG, "Clock: resynced from the backend Date header (was %+lld s)", resync.drift_s);
+ }
+ 
+-void Application::ProactiveInvoke(bool urgent) {
++// invoke_text names the reserved message and its lease (weixue_agent::InvokeText).
++void Application::ProactiveInvoke(bool urgent, const std::string& invoke_text) {
+     if (!protocol_ || mic_muted_ || GetDeviceState() != kDeviceStateIdle) {
+         return;
+     }
+@@ -1409,7 +1412,7 @@ void Application::ProactiveInvoke(bool urgent) {
+         next_session_origin_ = SessionOrigin::kUser;
+         return;
+     }
+-    Schedule([this]() {
++    Schedule([this, invoke_text]() {
+         if (GetDeviceState() != kDeviceStateConnecting) {
+             return;
+         }
+@@ -1418,8 +1421,9 @@ void Application::ProactiveInvoke(bool urgent) {
+             SetDeviceState(kDeviceStateIdle);
+             return;
+         }
+-        ESP_LOGI(TAG, "Proactive session opened");
+-        protocol_->SendWakeWordDetected(kProactiveWakeText);
++        ESP_LOGI(TAG, "Proactive session opened (%s invocation)",
++                 invoke_text == kProactiveWakeText ? "bare" : "lease-bound");
++        protocol_->SendWakeWordDetected(invoke_text);
+         SetListeningMode(GetDefaultListeningMode());
+     });
+ }
+diff --git a/main/application.h b/main/application.h
+index 13492cc..7ee6c0e 100644
+--- a/main/application.h
++++ b/main/application.h
+@@ -246,7 +246,7 @@ private:
+     void StartProactivePoller(const std::string& ota_url);
+     void ProactivePollTask();
+     void ResyncClock(const std::string& date);
+-    void ProactiveInvoke(bool urgent);
++    void ProactiveInvoke(bool urgent, const std::string& invoke_text);
+ 
+     // Activation task (runs in background)
+     void ActivationTask();

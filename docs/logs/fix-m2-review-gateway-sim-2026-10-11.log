@@ -1,0 +1,635 @@
+# fix-m2-review-gateway sim rounds, 2026-10-11
+# scratch agent-service: server/sim/scratch_agent_service.py --port 18810 --data <tmp> (lease 3 s, scripted model, fake ha-mcp, fault injection)
+# gateway: server/sim/gateway_recovery_sim.py --url http://127.0.0.1:18810 --state <tmp> (real AgentGateway + Proactive over HTTP, simulated device sessions)
+# times are local (Europe/Dublin)
+# Run 1: scratch service from main before fix-m2-review-service. Run 2: that branch (a12925a). Run 3: main after its merge (b312518), this branch rebased.
+
+03:34:12 info agent connection open device=7c:0c:5f:42:4b:fc session=s1
+03:34:12 info agent session device=7c:0c:5f:42:4b:fc session=s1: snapshot once the agent-service snapshot is restored
+03:34:12 info agent restore device=7c:0c:5f:42:4b:fc: 0 cards from the agent-service snapshot; mirror 0
+03:34:12 info agent chats queued device=7c:0c:5f:42:4b:fc current=None chats=0/0 seq=1791686052619 bytes=78 delivery=gw_c9041f45eea743a79f644b2e
+03:34:12 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791686052619
+03:34:12 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791686052620
+
+== F04 decision receipts ==
+03:34:12 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4MCZ2VG9M0FENY6AF99NVJ9 task=tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3 state=needs_input seq=1791686052819 tier=silent speaks=False delivery=dlv_01M4MCZ2YJ4VV7XX4WRJH79GEV
+03:34:12 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3 state=needs_input seq=1791686052819
+03:34:13 info agent ack shown delivery=gw_c9041f45eea743a79f644b2e device=7c:0c:5f:42:4b:fc seq=1791686052619 via=shown
+03:34:13 info agent ack shown delivery=dlv_01M4MCZ2YJ4VV7XX4WRJH79GEV device=7c:0c:5f:42:4b:fc seq=1791686052819 via=shown
+03:34:13 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4MCZ2VG9M0FENY6AF99NVJ9 chats=1/1 seq=1791686053224 bytes=225 delivery=dlv_01M4MCZ3B6PZC24QCYPRP8MRGX
+03:34:13 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791686053224
+03:34:13 info agent ack shown delivery=dlv_01M4MCZ3B6PZC24QCYPRP8MRGX device=7c:0c:5f:42:4b:fc seq=1791686053224 via=shown
+03:34:13 info agent response answer device=7c:0c:5f:42:4b:fc chat=cht_01M4MCZ2VG9M0FENY6AF99NVJ9 task=tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3 card=int_01M4MCZ2YHBAFRFWSWT4H0MVFQ option=opt2 via=tap boot=4242 seq=3
+PASS no receipt while the service is answering 503
+03:34:13 warn agent-service /v1/chats/cht_01M4MCZ2VG9M0FENY6AF99NVJ9/answer: HTTP 503
+03:34:14 warn agent-service /v1/chats/cht_01M4MCZ2VG9M0FENY6AF99NVJ9/answer: HTTP 503
+03:34:15 warn agent-service /v1/chats/cht_01M4MCZ2VG9M0FENY6AF99NVJ9/answer: HTTP 503
+03:34:17 warn agent-service /v1/chats/cht_01M4MCZ2VG9M0FENY6AF99NVJ9/answer: HTTP 503
+03:34:21 warn agent-service /v1/chats/cht_01M4MCZ2VG9M0FENY6AF99NVJ9/answer: HTTP 503
+03:34:21 info agent answer device=7c:0c:5f:42:4b:fc card=int_01M4MCZ2YHBAFRFWSWT4H0MVFQ seq=3 service=unconfirmed result=stale
+03:34:21 info agent receipt answer boot=4242 seq=3 card=int_01M4MCZ2YHBAFRFWSWT4H0MVFQ result=stale
+PASS 503 for the whole window: receipt stale (never accepted)
+PASS service interaction still pending
+03:34:21 info agent response answer device=7c:0c:5f:42:4b:fc chat=cht_01M4MCZ2VG9M0FENY6AF99NVJ9 task=tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3 card=int_01M4MCZ2YHBAFRFWSWT4H0MVFQ option=opt2 via=tap boot=4242 seq=4
+03:34:21 warn agent-service /v1/chats/cht_01M4MCZ2VG9M0FENY6AF99NVJ9/answer: HTTP 503
+03:34:21 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4MCZ2VG9M0FENY6AF99NVJ9 task=tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3 state=working seq=1791686061333 tier=silent speaks=False delivery=dlv_01M4MCZB8KYQXJ9T3HKR1KHV56
+03:34:21 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3 state=working seq=1791686061333
+03:34:21 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4MCZ2VG9M0FENY6AF99NVJ9 task=tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3 state=unread seq=1791686061336 tier=when_idle speaks=True delivery=dlv_01M4MCZB8Q8QXPBN4RT0SAVKRB
+03:34:21 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3 state=unread seq=1791686061336
+03:34:21 info agent ack accepted delivery=dlv_01M4MCZB8Q8QXPBN4RT0SAVKRB device=7c:0c:5f:42:4b:fc proactive_id=1c27ec38f3524037a6caa376e29496a6 ttl_s=600
+03:34:21 info proactive 1c27ec38f3524037a6caa376e29496a6 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:34:21 info agent speech ed6048aa663f47b6 handed off: delivery=dlv_01M4MCZB8Q8QXPBN4RT0SAVKRB proactive=1c27ec38f3524037a6caa376e29496a6 urgent=False attempt=1 reason=busy
+03:34:21 info proactive 1c27ec38f3524037a6caa376e29496a6 delivering: attempt=1 session=s1 invoked=False urgent=False
+03:34:21 info device plays 'Okay: The user answered: Thursday.' sentence=s-1c27ec38
+03:34:21 info agent ack shown delivery=dlv_01M4MCZB8KYQXJ9T3HKR1KHV56 device=7c:0c:5f:42:4b:fc seq=1791686061333 via=shown
+03:34:21 info agent ack shown delivery=dlv_01M4MCZB8Q8QXPBN4RT0SAVKRB device=7c:0c:5f:42:4b:fc seq=1791686061336 via=shown
+03:34:21 info agent speech ed6048aa663f47b6 tts stop sentence=s-1c27ec38
+03:34:21 info agent speech ed6048aa663f47b6 played: sentence=s-1c27ec38 cut_at_ms=None reason=None
+03:34:21 info agent ack spoken delivery=dlv_01M4MCZB8Q8QXPBN4RT0SAVKRB device=7c:0c:5f:42:4b:fc proactive_id=1c27ec38f3524037a6caa376e29496a6
+03:34:21 info agent ack played delivery=dlv_01M4MCZB8Q8QXPBN4RT0SAVKRB device=7c:0c:5f:42:4b:fc sentence_id=s-1c27ec38 boot=4242 device_seq=6
+03:34:21 info proactive 1c27ec38f3524037a6caa376e29496a6 delivered
+03:34:21 info agent answer device=7c:0c:5f:42:4b:fc card=int_01M4MCZ2YHBAFRFWSWT4H0MVFQ seq=4 service=accepted result=accepted
+03:34:21 info agent receipt answer boot=4242 seq=4 card=int_01M4MCZ2YHBAFRFWSWT4H0MVFQ result=accepted
+03:34:21 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4MCZ2VG9M0FENY6AF99NVJ9 chats=1/1 seq=1791686061838 bytes=222 delivery=dlv_01M4MCZBRDJ8ZY0V76PXY7MRJ2
+03:34:21 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791686061838
+PASS answer handled but its reply lost, retried with the same decision id: receipt accepted
+PASS service: interaction answered, 1 decision row
+03:34:21 info agent response answer device=7c:0c:5f:42:4b:fc task=tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3 card=int_01M4MCZ2YHBAFRFWSWT4H0MVFQ stale (current card=None): dropped
+03:34:22 info agent ack shown delivery=dlv_01M4MCZBRDJ8ZY0V76PXY7MRJ2 device=7c:0c:5f:42:4b:fc seq=1791686061838 via=shown
+PASS a third tap is not forwarded again: receipt stale, 1 decision row
+
+== F09 speech hand-off ==
+03:34:22 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim1 state=unread seq=1791686062933 tier=when_idle speaks=True delivery=dlv_01M4MCZCTN7SJ3PVYMQA875B76
+03:34:22 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim1 state=unread seq=1791686062933
+03:34:22 warn agent-service /v1/deliveries/dlv_01M4MCZCTN7SJ3PVYMQA875B76/ack: HTTP 503
+03:34:23 info agent ack shown delivery=dlv_01M4MCZCTN7SJ3PVYMQA875B76 device=7c:0c:5f:42:4b:fc seq=1791686062933 via=shown
+03:34:23 warn agent-service /v1/deliveries/dlv_01M4MCZCTN7SJ3PVYMQA875B76/ack: HTTP 503
+03:34:23 info agent ack accepted delivery=dlv_01M4MCZCTN7SJ3PVYMQA875B76 device=7c:0c:5f:42:4b:fc proactive_id=7a9b4bcc00f44b89ade1f66db2358e6e ttl_s=600
+03:34:23 info proactive 7a9b4bcc00f44b89ade1f66db2358e6e queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:34:23 info agent speech 2a0138319a464691 handed off: delivery=dlv_01M4MCZCTN7SJ3PVYMQA875B76 proactive=7a9b4bcc00f44b89ade1f66db2358e6e urgent=False attempt=1 reason=busy
+03:34:23 info proactive 7a9b4bcc00f44b89ade1f66db2358e6e delivering: attempt=1 session=s1 invoked=False urgent=False
+03:34:23 info device plays 'Your laundry is done.' sentence=s-7a9b4bcc
+03:34:23 info agent speech 2a0138319a464691 tts stop sentence=s-7a9b4bcc
+03:34:23 info agent speech 2a0138319a464691 played: sentence=s-7a9b4bcc cut_at_ms=None reason=None
+03:34:23 info agent ack spoken delivery=dlv_01M4MCZCTN7SJ3PVYMQA875B76 device=7c:0c:5f:42:4b:fc proactive_id=7a9b4bcc00f44b89ade1f66db2358e6e
+03:34:23 info agent ack played delivery=dlv_01M4MCZCTN7SJ3PVYMQA875B76 device=7c:0c:5f:42:4b:fc sentence_id=s-7a9b4bcc boot=4242 device_seq=10
+03:34:23 info proactive 7a9b4bcc00f44b89ade1f66db2358e6e delivered
+PASS d1 speech acks after two 503s on accepted: ['accepted', 'spoken', 'played']
+PASS d1 proactive messages: 1
+03:34:24 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim2 state=unread seq=1791686064366 tier=when_idle speaks=True delivery=dlv_01M4MCZE7DNQ7CXD08PCMF5ECC
+03:34:24 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim2 state=unread seq=1791686064366
+03:34:24 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:24 info agent ack shown delivery=dlv_01M4MCZE7DNQ7CXD08PCMF5ECC device=7c:0c:5f:42:4b:fc seq=1791686064366 via=shown
+03:34:24 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:24 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:25 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:25 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:27 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:27 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:29 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim2 state=unread seq=1791686069371 tier=when_idle speaks=True delivery=dlv_01M4MCZE7DNQ7CXD08PCMF5ECC
+03:34:29 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim2 state=unread seq=1791686069371
+03:34:29 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:29 info agent ack shown delivery=dlv_01M4MCZE7DNQ7CXD08PCMF5ECC device=7c:0c:5f:42:4b:fc seq=1791686069371 via=shown
+03:34:29 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:30 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:31 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:31 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 503
+03:34:31 info agent speech b764d084cf5847c0 delivery=dlv_01M4MCZE7DNQ7CXD08PCMF5ECC not played: agent-service did not record the hand-off
+PASS d2 not queued while the service cannot record the hand-off
+03:34:32 info agent ack accepted delivery=dlv_01M4MCZE7DNQ7CXD08PCMF5ECC device=7c:0c:5f:42:4b:fc proactive_id=0224221788fd4a849bb09b837b7bf93e ttl_s=600
+03:34:32 info proactive 0224221788fd4a849bb09b837b7bf93e queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:34:32 info agent speech e21b23971be84b04 handed off: delivery=dlv_01M4MCZE7DNQ7CXD08PCMF5ECC proactive=0224221788fd4a849bb09b837b7bf93e urgent=False attempt=1 reason=busy
+03:34:32 info proactive 0224221788fd4a849bb09b837b7bf93e delivering: attempt=1 session=s1 invoked=False urgent=False
+03:34:32 info device plays 'The oven is preheated.' sentence=s-02242217
+03:34:33 info agent speech e21b23971be84b04 tts stop sentence=s-02242217
+03:34:33 info agent speech e21b23971be84b04 played: sentence=s-02242217 cut_at_ms=None reason=None
+03:34:33 info agent ack spoken delivery=dlv_01M4MCZE7DNQ7CXD08PCMF5ECC device=7c:0c:5f:42:4b:fc proactive_id=0224221788fd4a849bb09b837b7bf93e
+03:34:33 info agent ack played delivery=dlv_01M4MCZE7DNQ7CXD08PCMF5ECC device=7c:0c:5f:42:4b:fc sentence_id=s-02242217 boot=4242 device_seq=13
+03:34:33 info proactive 0224221788fd4a849bb09b837b7bf93e delivered
+03:34:39 warn agent-service /v1/deliveries/dlv_01M4MCZE7DNQ7CXD08PCMF5ECC/ack: HTTP 409
+03:34:39 warn agent ack shown delivery=dlv_01M4MCZE7DNQ7CXD08PCMF5ECC not recorded by agent-service (HTTP 409)
+PASS d2 played once after the service's lease expired: messages=1, acks=['accepted', 'shown', 'spoken', 'played']
+
+== F10 one retry owner ==
+03:34:39 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim3 state=unread seq=1791686079747 tier=when_idle speaks=True delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V
+03:34:39 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791686079747
+03:34:39 info agent ack accepted delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V device=7c:0c:5f:42:4b:fc proactive_id=21228c438a7e410d97d55890d9b2f283 ttl_s=600
+03:34:39 info proactive 21228c438a7e410d97d55890d9b2f283 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:34:39 info agent speech 57bee66c28c947e7 handed off: delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V proactive=21228c438a7e410d97d55890d9b2f283 urgent=False attempt=1 reason=busy
+03:34:39 info proactive 21228c438a7e410d97d55890d9b2f283 delivering: attempt=1 session=s1 invoked=False urgent=False
+03:34:39 info proactive 21228c438a7e410d97d55890d9b2f283 requeued: no_audio; retry in 2s
+03:34:40 info agent ack shown delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V device=7c:0c:5f:42:4b:fc seq=1791686079747 via=shown
+03:34:41 info proactive 21228c438a7e410d97d55890d9b2f283 delivering: attempt=2 session=s1 invoked=False urgent=False
+03:34:41 info proactive 21228c438a7e410d97d55890d9b2f283 requeued: no_audio; retry in 5s
+03:34:46 info proactive 21228c438a7e410d97d55890d9b2f283 delivering: attempt=3 session=s1 invoked=False urgent=False
+03:34:46 info proactive 21228c438a7e410d97d55890d9b2f283 failed: no_audio
+03:34:47 info agent ack deferred delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V device=7c:0c:5f:42:4b:fc retry_after_ms=5000 detail=no_audio
+03:34:52 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim3 state=unread seq=1791686092293 tier=when_idle speaks=True delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V
+03:34:52 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791686092293
+03:34:52 info agent ack accepted delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V device=7c:0c:5f:42:4b:fc proactive_id=ebfb25c41b3c4721a2e5835e30005020 ttl_s=600
+03:34:52 info proactive ebfb25c41b3c4721a2e5835e30005020 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:34:52 info agent speech 75324960b37540a7 handed off: delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V proactive=ebfb25c41b3c4721a2e5835e30005020 urgent=False attempt=2 reason=busy
+03:34:52 info proactive ebfb25c41b3c4721a2e5835e30005020 delivering: attempt=1 session=s1 invoked=False urgent=False
+03:34:52 info device plays 'The door is unlocked.' sentence=s-ebfb25c4
+03:34:52 info agent ack shown delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V device=7c:0c:5f:42:4b:fc seq=1791686092293 via=shown
+03:34:52 info agent speech 75324960b37540a7 tts stop sentence=s-ebfb25c4
+03:34:52 info agent speech 75324960b37540a7 played: sentence=s-ebfb25c4 cut_at_ms=None reason=None
+03:34:52 info agent ack spoken delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V device=7c:0c:5f:42:4b:fc proactive_id=ebfb25c41b3c4721a2e5835e30005020
+03:34:52 info agent ack played delivery=dlv_01M4MCZX82EW05B3MFPNW2ZA0V device=7c:0c:5f:42:4b:fc sentence_id=s-ebfb25c4 boot=4242 device_seq=16
+03:34:52 info proactive ebfb25c41b3c4721a2e5835e30005020 delivered
+PASS d3: attempt 2 offered by the service, proactive keys ['dlv_01M4MCZX82EW05B3MFPNW2ZA0V:1', 'dlv_01M4MCZX82EW05B3MFPNW2ZA0V:2']
+PASS d3 speech acks: ['accepted', 'deferred', 'accepted', 'spoken', 'played']
+
+== F11 gateway restart ==
+03:34:52 info mirror before the restart: ['tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3', 'tsk_sim1', 'tsk_sim2', 'tsk_sim3']
+03:34:52 info agent connection open device=7c:0c:5f:42:4b:fc session=after-restart
+03:34:52 info agent session device=7c:0c:5f:42:4b:fc session=after-restart: snapshot once the agent-service snapshot is restored
+PASS no snapshot or agent_sync before the service snapshot is restored
+03:34:53 info agent restore device=7c:0c:5f:42:4b:fc: 5 cards from the agent-service snapshot; mirror 4
+03:34:53 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4MCZ2VG9M0FENY6AF99NVJ9 chats=1/1 seq=1791686093088 bytes=223 delivery=gw_d1d0f5cf1606423b984defae
+03:34:53 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3 state=unread seq=1791686061336
+03:34:53 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim1 state=unread seq=1791686062933
+03:34:53 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim2 state=unread seq=1791686069371
+03:34:53 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791686092293
+03:34:53 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791686093088
+03:34:53 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791686093089
+PASS agent_sync lists every task the device held: ['tsk_01M4MCZ2VHNFB2SSCW1BPB4JA3', 'tsk_sim1', 'tsk_sim2', 'tsk_sim3']
+PASS restored cards keep their wire seqs: 4/4
+PASS restored cards do not speak
+
+== F13 INTERRUPT ==
+03:34:53 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim5 state=unread seq=1791686093186 tier=interrupt speaks=True delivery=dlv_01M4MD0AC162QDM1EMGBB0P92X
+03:34:53 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim5 state=unread seq=1791686093186
+03:34:53 info agent ack accepted delivery=dlv_01M4MD0AC162QDM1EMGBB0P92X device=7c:0c:5f:42:4b:fc proactive_id=4f3fc08beb1e469f967179ca3090afca ttl_s=600
+03:34:53 info proactive 4f3fc08beb1e469f967179ca3090afca queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=True ttl=600
+03:34:53 info agent speech 9befb9b777234520 handed off: delivery=dlv_01M4MD0AC162QDM1EMGBB0P92X proactive=4f3fc08beb1e469f967179ca3090afca urgent=True attempt=1 reason=busy
+03:34:53 info proactive 4f3fc08beb1e469f967179ca3090afca interrupts session after-restart: voice turn stopped
+03:34:53 info server abort on session after-restart
+03:34:53 info proactive 4f3fc08beb1e469f967179ca3090afca delivering: attempt=1 session=after-restart invoked=False urgent=True
+03:34:53 info device plays 'Water detected under the sink.' sentence=s-4f3fc08b
+03:34:53 info agent speech 9befb9b777234520 tts stop sentence=s-4f3fc08b
+03:34:53 info agent speech 9befb9b777234520 played: sentence=s-4f3fc08b cut_at_ms=None reason=None
+03:34:53 info agent ack spoken delivery=dlv_01M4MD0AC162QDM1EMGBB0P92X device=7c:0c:5f:42:4b:fc proactive_id=4f3fc08beb1e469f967179ca3090afca
+03:34:53 info agent ack played delivery=dlv_01M4MD0AC162QDM1EMGBB0P92X device=7c:0c:5f:42:4b:fc sentence_id=s-4f3fc08b boot=4242 device_seq=1
+03:34:53 info proactive 4f3fc08beb1e469f967179ca3090afca delivered
+03:34:53 info agent ack shown delivery=gw_d1d0f5cf1606423b984defae device=7c:0c:5f:42:4b:fc seq=1791686093088 via=shown
+03:34:53 info agent ack shown delivery=dlv_01M4MD0AC162QDM1EMGBB0P92X device=7c:0c:5f:42:4b:fc seq=1791686093186 via=shown
+PASS INTERRUPT item played while the session was speaking a voice turn
+03:34:53 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim6 state=unread seq=1791686093804 tier=when_idle speaks=True delivery=dlv_01M4MD0AZAVYJJQZ3AWCWDRKN6
+03:34:53 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791686093804
+03:34:53 info agent ack accepted delivery=dlv_01M4MD0AZAVYJJQZ3AWCWDRKN6 device=7c:0c:5f:42:4b:fc proactive_id=ef110b02ed9b4861820797d072571e19 ttl_s=600
+03:34:53 info proactive ef110b02ed9b4861820797d072571e19 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:34:53 info agent speech 325aa2a621ec46ea handed off: delivery=dlv_01M4MD0AZAVYJJQZ3AWCWDRKN6 proactive=ef110b02ed9b4861820797d072571e19 urgent=False attempt=1 reason=busy
+03:34:54 info agent ack shown delivery=dlv_01M4MD0AZAVYJJQZ3AWCWDRKN6 device=7c:0c:5f:42:4b:fc seq=1791686093804 via=shown
+03:34:54 info proactive ef110b02ed9b4861820797d072571e19 delivering: attempt=1 session=after-restart invoked=False urgent=False
+03:34:54 info device plays 'Here is the long weather report.' sentence=s-ef110b02
+03:34:54 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim7 state=unread seq=1791686094843 tier=interrupt speaks=True delivery=dlv_01M4MD0BZSZ18VFQVV9AC3B39Z
+03:34:54 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim7 state=unread seq=1791686094843
+03:34:54 info agent ack accepted delivery=dlv_01M4MD0BZSZ18VFQVV9AC3B39Z device=7c:0c:5f:42:4b:fc proactive_id=f3f8d0dd19f3455696a308db22b09868 ttl_s=600
+03:34:54 info proactive f3f8d0dd19f3455696a308db22b09868 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=True ttl=600
+03:34:54 info agent speech 1331c66c6e7a4adc handed off: delivery=dlv_01M4MD0BZSZ18VFQVV9AC3B39Z proactive=f3f8d0dd19f3455696a308db22b09868 urgent=True attempt=1 reason=busy
+03:34:54 info proactive f3f8d0dd19f3455696a308db22b09868 interrupts session after-restart: delivery ef110b02ed9b4861820797d072571e19 stopped
+03:34:54 info agent speech 325aa2a621ec46ea cut_off: sentence=s-ef110b02 interrupted by an INTERRUPT item
+03:34:54 info agent ack cut_off delivery=dlv_01M4MD0AZAVYJJQZ3AWCWDRKN6 device=7c:0c:5f:42:4b:fc sentence_id=s-ef110b02 reason=superseded
+03:34:54 info server abort on session after-restart
+03:34:54 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim6 state=unread seq=1791686094858 tier=silent speaks=False delivery=dlv_01M4MD0C08M438329B5J3YTQP2
+03:34:54 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791686094858
+03:34:54 info device playback of 'Here is the long weather report.' stopped by the server
+03:34:54 info proactive ef110b02ed9b4861820797d072571e19 delivered
+03:34:54 info proactive f3f8d0dd19f3455696a308db22b09868 delivering: attempt=1 session=after-restart invoked=False urgent=True
+03:34:54 info device plays 'Smoke alarm in the kitchen.' sentence=s-f3f8d0dd
+03:34:55 info agent ack shown delivery=dlv_01M4MD0BZSZ18VFQVV9AC3B39Z device=7c:0c:5f:42:4b:fc seq=1791686094843 via=shown
+03:34:55 info agent ack shown delivery=dlv_01M4MD0C08M438329B5J3YTQP2 device=7c:0c:5f:42:4b:fc seq=1791686094858 via=shown
+03:34:55 info agent speech 1331c66c6e7a4adc tts stop sentence=s-f3f8d0dd
+03:34:55 info agent speech 1331c66c6e7a4adc played: sentence=s-f3f8d0dd cut_at_ms=None reason=None
+03:34:55 info agent ack spoken delivery=dlv_01M4MD0BZSZ18VFQVV9AC3B39Z device=7c:0c:5f:42:4b:fc proactive_id=f3f8d0dd19f3455696a308db22b09868
+03:34:55 info agent ack played delivery=dlv_01M4MD0BZSZ18VFQVV9AC3B39Z device=7c:0c:5f:42:4b:fc sentence_id=s-f3f8d0dd boot=4242 device_seq=5
+03:34:55 info proactive f3f8d0dd19f3455696a308db22b09868 delivered
+PASS d6 cut off by d7: ['accepted', 'shown', 'cut_off'] reason=superseded
+PASS service: d6 cut_off, d7 played
+03:34:55 info agent played for sentence s-ef110b02 after speech 325aa2a621ec46ea ended (cut_off): ignored
+PASS a late played ack of the cut sentence is not posted
+
+ALL PASS
+
+
+# ---- Run 2: scratch service from the fix-m2-review-service branch (a12925a) ----
+
+03:41:51 info agent connection open device=7c:0c:5f:42:4b:fc session=s1
+03:41:51 info agent session device=7c:0c:5f:42:4b:fc session=s1: snapshot once the agent-service snapshot is restored
+03:41:51 info agent restore device=7c:0c:5f:42:4b:fc: 0 cards from the agent-service snapshot; mirror 0
+03:41:51 info agent chats queued device=7c:0c:5f:42:4b:fc current=None chats=0/0 seq=1791686511924 bytes=78 delivery=gw_fbd08fd8f82849ed913e260a
+03:41:51 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791686511924
+03:41:51 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791686511925
+
+== F04 decision receipts ==
+03:41:52 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4MDD3CSAQHMQD84Z66VEN48 task=tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z state=needs_input seq=1791686512127 tier=silent speaks=False delivery=dlv_01M4MDD3FYA70XDWR21YDCGCS3
+03:41:52 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z state=needs_input seq=1791686512127
+03:41:52 info agent ack shown delivery=gw_fbd08fd8f82849ed913e260a device=7c:0c:5f:42:4b:fc seq=1791686511924 via=shown
+03:41:52 info agent ack shown delivery=dlv_01M4MDD3FYA70XDWR21YDCGCS3 device=7c:0c:5f:42:4b:fc seq=1791686512127 via=shown
+03:41:52 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4MDD3CSAQHMQD84Z66VEN48 chats=1/1 seq=1791686512528 bytes=225 delivery=dlv_01M4MDD3WFT5VDTNHSVH450HQM
+03:41:52 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791686512528
+03:41:52 info agent ack shown delivery=dlv_01M4MDD3WFT5VDTNHSVH450HQM device=7c:0c:5f:42:4b:fc seq=1791686512528 via=shown
+03:41:53 info agent response answer device=7c:0c:5f:42:4b:fc chat=cht_01M4MDD3CSAQHMQD84Z66VEN48 task=tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z card=int_01M4MDD3FX76MKDX8WPZ4QP0E6 option=opt2 via=tap boot=4242 seq=3
+PASS no receipt while the service is answering 503
+03:41:53 warn agent-service /v1/chats/cht_01M4MDD3CSAQHMQD84Z66VEN48/answer: HTTP 503
+03:41:53 warn agent-service /v1/chats/cht_01M4MDD3CSAQHMQD84Z66VEN48/answer: HTTP 503
+03:41:54 warn agent-service /v1/chats/cht_01M4MDD3CSAQHMQD84Z66VEN48/answer: HTTP 503
+03:41:56 warn agent-service /v1/chats/cht_01M4MDD3CSAQHMQD84Z66VEN48/answer: HTTP 503
+03:42:00 warn agent-service /v1/chats/cht_01M4MDD3CSAQHMQD84Z66VEN48/answer: HTTP 503
+03:42:00 info agent answer device=7c:0c:5f:42:4b:fc card=int_01M4MDD3FX76MKDX8WPZ4QP0E6 seq=3 service=unconfirmed result=stale
+03:42:00 info agent receipt answer boot=4242 seq=3 card=int_01M4MDD3FX76MKDX8WPZ4QP0E6 result=stale
+PASS 503 for the whole window: receipt stale (never accepted)
+PASS service interaction still pending
+03:42:00 info agent response answer device=7c:0c:5f:42:4b:fc chat=cht_01M4MDD3CSAQHMQD84Z66VEN48 task=tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z card=int_01M4MDD3FX76MKDX8WPZ4QP0E6 option=opt2 via=tap boot=4242 seq=4
+03:42:00 warn agent-service /v1/chats/cht_01M4MDD3CSAQHMQD84Z66VEN48/answer: HTTP 503
+03:42:00 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4MDD3CSAQHMQD84Z66VEN48 task=tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z state=working seq=1791686520578 tier=silent speaks=False delivery=dlv_01M4MDDBR0DK1JZKPWMW081TYG
+03:42:00 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z state=working seq=1791686520578
+03:42:00 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4MDD3CSAQHMQD84Z66VEN48 task=tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z state=unread seq=1791686520580 tier=when_idle speaks=True delivery=dlv_01M4MDDBR3RRYDGG1ETMPXT3KW
+03:42:00 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z state=unread seq=1791686520580
+03:42:00 info agent ack accepted delivery=dlv_01M4MDDBR3RRYDGG1ETMPXT3KW device=7c:0c:5f:42:4b:fc proactive_id=557115129df1436f9c9d44d8421c741e ttl_s=600
+03:42:00 info proactive 557115129df1436f9c9d44d8421c741e queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:42:00 info agent speech 4eca73649501418d handed off: delivery=dlv_01M4MDDBR3RRYDGG1ETMPXT3KW proactive=557115129df1436f9c9d44d8421c741e urgent=False attempt=1 reason=busy
+03:42:00 info proactive 557115129df1436f9c9d44d8421c741e delivering: attempt=1 session=s1 invoked=False urgent=False
+03:42:00 info device plays 'Okay: The user answered: Thursday.' sentence=s-55711512
+03:42:00 info agent ack shown delivery=dlv_01M4MDDBR0DK1JZKPWMW081TYG device=7c:0c:5f:42:4b:fc seq=1791686520578 via=shown
+03:42:00 info agent ack shown delivery=dlv_01M4MDDBR3RRYDGG1ETMPXT3KW device=7c:0c:5f:42:4b:fc seq=1791686520580 via=shown
+03:42:00 info agent speech 4eca73649501418d tts stop sentence=s-55711512
+03:42:00 info agent speech 4eca73649501418d played: sentence=s-55711512 cut_at_ms=None reason=None
+03:42:00 info agent ack spoken delivery=dlv_01M4MDDBR3RRYDGG1ETMPXT3KW device=7c:0c:5f:42:4b:fc proactive_id=557115129df1436f9c9d44d8421c741e
+03:42:00 info agent ack played delivery=dlv_01M4MDDBR3RRYDGG1ETMPXT3KW device=7c:0c:5f:42:4b:fc sentence_id=s-55711512 boot=4242 device_seq=6
+03:42:00 info proactive 557115129df1436f9c9d44d8421c741e delivered
+03:42:01 info agent answer device=7c:0c:5f:42:4b:fc card=int_01M4MDD3FX76MKDX8WPZ4QP0E6 seq=4 service=accepted result=accepted
+03:42:01 info agent receipt answer boot=4242 seq=4 card=int_01M4MDD3FX76MKDX8WPZ4QP0E6 result=accepted
+03:42:01 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4MDD3CSAQHMQD84Z66VEN48 chats=1/1 seq=1791686521081 bytes=222 delivery=dlv_01M4MDDC7R28CQTP3NJFVYY92D
+03:42:01 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791686521081
+PASS answer handled but its reply lost, retried with the same decision id: receipt accepted
+PASS service: interaction answered, 1 decision row
+03:42:01 info agent response answer device=7c:0c:5f:42:4b:fc task=tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z card=int_01M4MDD3FX76MKDX8WPZ4QP0E6 stale (current card=None): dropped
+03:42:01 info agent ack shown delivery=dlv_01M4MDDC7R28CQTP3NJFVYY92D device=7c:0c:5f:42:4b:fc seq=1791686521081 via=shown
+PASS a third tap is not forwarded again: receipt stale, 1 decision row
+
+== F09 speech hand-off ==
+03:42:02 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim1 state=unread seq=1791686522203 tier=when_idle speaks=True delivery=dlv_01M4MDDDARXM54GNVKHKPPPN6Z
+03:42:02 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim1 state=unread seq=1791686522203
+03:42:02 warn agent-service /v1/deliveries/dlv_01M4MDDDARXM54GNVKHKPPPN6Z/ack: HTTP 503
+03:42:02 info agent ack shown delivery=dlv_01M4MDDDARXM54GNVKHKPPPN6Z device=7c:0c:5f:42:4b:fc seq=1791686522203 via=shown
+03:42:02 warn agent-service /v1/deliveries/dlv_01M4MDDDARXM54GNVKHKPPPN6Z/ack: HTTP 503
+03:42:02 info agent ack accepted delivery=dlv_01M4MDDDARXM54GNVKHKPPPN6Z device=7c:0c:5f:42:4b:fc proactive_id=93038d74d56347d796660c5de177d534 ttl_s=600
+03:42:02 info proactive 93038d74d56347d796660c5de177d534 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:42:02 info agent speech 4e8ffa12f44d4811 handed off: delivery=dlv_01M4MDDDARXM54GNVKHKPPPN6Z proactive=93038d74d56347d796660c5de177d534 urgent=False attempt=1 reason=busy
+03:42:02 info proactive 93038d74d56347d796660c5de177d534 delivering: attempt=1 session=s1 invoked=False urgent=False
+03:42:02 info device plays 'Your laundry is done.' sentence=s-93038d74
+03:42:03 info agent speech 4e8ffa12f44d4811 tts stop sentence=s-93038d74
+03:42:03 info agent speech 4e8ffa12f44d4811 played: sentence=s-93038d74 cut_at_ms=None reason=None
+03:42:03 info agent ack spoken delivery=dlv_01M4MDDDARXM54GNVKHKPPPN6Z device=7c:0c:5f:42:4b:fc proactive_id=93038d74d56347d796660c5de177d534
+03:42:03 info agent ack played delivery=dlv_01M4MDDDARXM54GNVKHKPPPN6Z device=7c:0c:5f:42:4b:fc sentence_id=s-93038d74 boot=4242 device_seq=10
+03:42:03 info proactive 93038d74d56347d796660c5de177d534 delivered
+PASS d1 speech acks after two 503s on accepted: ['accepted', 'spoken', 'played']
+PASS d1 proactive messages: 1
+03:42:03 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim2 state=unread seq=1791686523631 tier=when_idle speaks=True delivery=dlv_01M4MDDEQDWFNRR02F3CYPEW5H
+03:42:03 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim2 state=unread seq=1791686523631
+03:42:03 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:03 info agent ack shown delivery=dlv_01M4MDDEQDWFNRR02F3CYPEW5H device=7c:0c:5f:42:4b:fc seq=1791686523631 via=shown
+03:42:03 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:04 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:04 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:05 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:07 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:07 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:08 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim2 state=unread seq=1791686528633 tier=when_idle speaks=True delivery=dlv_01M4MDDEQDWFNRR02F3CYPEW5H
+03:42:08 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim2 state=unread seq=1791686528633
+03:42:08 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:09 info agent ack shown delivery=dlv_01M4MDDEQDWFNRR02F3CYPEW5H device=7c:0c:5f:42:4b:fc seq=1791686528633 via=shown
+03:42:09 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:10 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:11 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:11 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 503
+03:42:11 info agent speech cc67c5c74d8b4ae4 delivery=dlv_01M4MDDEQDWFNRR02F3CYPEW5H not played: agent-service did not record the hand-off
+PASS d2 not queued while the service cannot record the hand-off
+03:42:12 info agent ack accepted delivery=dlv_01M4MDDEQDWFNRR02F3CYPEW5H device=7c:0c:5f:42:4b:fc proactive_id=d247440f60ea44ee8474c283a32f2343 ttl_s=600
+03:42:12 info proactive d247440f60ea44ee8474c283a32f2343 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:42:12 info agent speech 30883a191b294c2b handed off: delivery=dlv_01M4MDDEQDWFNRR02F3CYPEW5H proactive=d247440f60ea44ee8474c283a32f2343 urgent=False attempt=1 reason=busy
+03:42:12 info proactive d247440f60ea44ee8474c283a32f2343 delivering: attempt=1 session=s1 invoked=False urgent=False
+03:42:12 info device plays 'The oven is preheated.' sentence=s-d247440f
+03:42:12 info agent speech 30883a191b294c2b tts stop sentence=s-d247440f
+03:42:12 info agent speech 30883a191b294c2b played: sentence=s-d247440f cut_at_ms=None reason=None
+03:42:12 info agent ack spoken delivery=dlv_01M4MDDEQDWFNRR02F3CYPEW5H device=7c:0c:5f:42:4b:fc proactive_id=d247440f60ea44ee8474c283a32f2343
+03:42:12 info agent ack played delivery=dlv_01M4MDDEQDWFNRR02F3CYPEW5H device=7c:0c:5f:42:4b:fc sentence_id=s-d247440f boot=4242 device_seq=13
+03:42:12 info proactive d247440f60ea44ee8474c283a32f2343 delivered
+03:42:19 warn agent-service /v1/deliveries/dlv_01M4MDDEQDWFNRR02F3CYPEW5H/ack: HTTP 409
+03:42:19 warn agent ack shown delivery=dlv_01M4MDDEQDWFNRR02F3CYPEW5H not recorded by agent-service (HTTP 409)
+PASS d2 played once after the service's lease expired: messages=1, acks=['accepted', 'shown', 'spoken', 'played']
+
+== F10 one retry owner ==
+03:42:19 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim3 state=unread seq=1791686539160 tier=when_idle speaks=True delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT
+03:42:19 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791686539160
+03:42:19 info agent ack accepted delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT device=7c:0c:5f:42:4b:fc proactive_id=50dbb1bc7c4c4823a342ea8af15bc4a9 ttl_s=600
+03:42:19 info proactive 50dbb1bc7c4c4823a342ea8af15bc4a9 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:42:19 info agent speech 51043bdb8865463a handed off: delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT proactive=50dbb1bc7c4c4823a342ea8af15bc4a9 urgent=False attempt=1 reason=busy
+03:42:19 info proactive 50dbb1bc7c4c4823a342ea8af15bc4a9 delivering: attempt=1 session=s1 invoked=False urgent=False
+03:42:19 info proactive 50dbb1bc7c4c4823a342ea8af15bc4a9 requeued: no_audio; retry in 2s
+03:42:19 info agent ack shown delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT device=7c:0c:5f:42:4b:fc seq=1791686539160 via=shown
+03:42:21 info proactive 50dbb1bc7c4c4823a342ea8af15bc4a9 delivering: attempt=2 session=s1 invoked=False urgent=False
+03:42:21 info proactive 50dbb1bc7c4c4823a342ea8af15bc4a9 requeued: no_audio; retry in 5s
+03:42:26 info proactive 50dbb1bc7c4c4823a342ea8af15bc4a9 delivering: attempt=3 session=s1 invoked=False urgent=False
+03:42:26 info proactive 50dbb1bc7c4c4823a342ea8af15bc4a9 failed: no_audio
+03:42:26 info agent ack deferred delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT device=7c:0c:5f:42:4b:fc retry_after_ms=5000 detail=no_audio
+03:42:31 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim3 state=unread seq=1791686551589 tier=when_idle speaks=True delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT
+03:42:31 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791686551589
+03:42:31 info agent ack accepted delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT device=7c:0c:5f:42:4b:fc proactive_id=4da207a1159740cca33d9a59ecafe3ef ttl_s=600
+03:42:31 info proactive 4da207a1159740cca33d9a59ecafe3ef queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:42:31 info agent speech 74da724d4b784d96 handed off: delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT proactive=4da207a1159740cca33d9a59ecafe3ef urgent=False attempt=2 reason=busy
+03:42:31 info proactive 4da207a1159740cca33d9a59ecafe3ef delivering: attempt=1 session=s1 invoked=False urgent=False
+03:42:31 info device plays 'The door is unlocked.' sentence=s-4da207a1
+03:42:31 info agent ack shown delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT device=7c:0c:5f:42:4b:fc seq=1791686551589 via=shown
+03:42:32 info agent speech 74da724d4b784d96 tts stop sentence=s-4da207a1
+03:42:32 info agent speech 74da724d4b784d96 played: sentence=s-4da207a1 cut_at_ms=None reason=None
+03:42:32 info agent ack spoken delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT device=7c:0c:5f:42:4b:fc proactive_id=4da207a1159740cca33d9a59ecafe3ef
+03:42:32 info agent ack played delivery=dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT device=7c:0c:5f:42:4b:fc sentence_id=s-4da207a1 boot=4242 device_seq=16
+03:42:32 info proactive 4da207a1159740cca33d9a59ecafe3ef delivered
+PASS d3: attempt 2 offered by the service, proactive keys ['dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT:1', 'dlv_01M4MDDXWQE5DXBSQ7H9CN3HTT:2']
+PASS d3 speech acks: ['accepted', 'deferred', 'accepted', 'spoken', 'played']
+
+== F11 gateway restart ==
+03:42:32 info mirror before the restart: ['tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z', 'tsk_sim1', 'tsk_sim2', 'tsk_sim3']
+03:42:32 info agent connection open device=7c:0c:5f:42:4b:fc session=after-restart
+03:42:32 info agent session device=7c:0c:5f:42:4b:fc session=after-restart: snapshot once the agent-service snapshot is restored
+PASS no snapshot or agent_sync before the service snapshot is restored
+03:42:32 info agent restore device=7c:0c:5f:42:4b:fc: 5 cards from the agent-service snapshot; mirror 4
+03:42:32 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4MDD3CSAQHMQD84Z66VEN48 chats=1/1 seq=1791686552231 bytes=223 delivery=gw_02b3e1dd7a004038a903e3c6
+03:42:32 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z state=unread seq=1791686520580
+03:42:32 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim1 state=unread seq=1791686522203
+03:42:32 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim2 state=unread seq=1791686528633
+03:42:32 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791686551589
+03:42:32 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791686552231
+03:42:32 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791686552232
+PASS agent_sync lists every task the device held: ['tsk_01M4MDD3CSZPJJMN6PHN0QDG7Z', 'tsk_sim1', 'tsk_sim2', 'tsk_sim3']
+PASS restored cards keep their wire seqs: 4/4
+PASS restored cards do not speak
+
+== F13 INTERRUPT ==
+03:42:32 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim5 state=unread seq=1791686552333 tier=interrupt speaks=True delivery=dlv_01M4MDEARC7HF3AH10Y0W3FS4Y
+03:42:32 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim5 state=unread seq=1791686552333
+03:42:32 info agent ack accepted delivery=dlv_01M4MDEARC7HF3AH10Y0W3FS4Y device=7c:0c:5f:42:4b:fc proactive_id=a687889a3e1e44c5857f7da6650a4717 ttl_s=600
+03:42:32 info proactive a687889a3e1e44c5857f7da6650a4717 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=True ttl=600
+03:42:32 info agent speech b24c8669f5844b0f handed off: delivery=dlv_01M4MDEARC7HF3AH10Y0W3FS4Y proactive=a687889a3e1e44c5857f7da6650a4717 urgent=True attempt=1 reason=busy
+03:42:32 info proactive a687889a3e1e44c5857f7da6650a4717 interrupts session after-restart: voice turn stopped
+03:42:32 info server abort on session after-restart
+03:42:32 info proactive a687889a3e1e44c5857f7da6650a4717 delivering: attempt=1 session=after-restart invoked=False urgent=True
+03:42:32 info device plays 'Water detected under the sink.' sentence=s-a687889a
+03:42:32 info agent speech b24c8669f5844b0f tts stop sentence=s-a687889a
+03:42:32 info agent speech b24c8669f5844b0f played: sentence=s-a687889a cut_at_ms=None reason=None
+03:42:32 info agent ack spoken delivery=dlv_01M4MDEARC7HF3AH10Y0W3FS4Y device=7c:0c:5f:42:4b:fc proactive_id=a687889a3e1e44c5857f7da6650a4717
+03:42:32 info agent ack played delivery=dlv_01M4MDEARC7HF3AH10Y0W3FS4Y device=7c:0c:5f:42:4b:fc sentence_id=s-a687889a boot=4242 device_seq=1
+03:42:32 info proactive a687889a3e1e44c5857f7da6650a4717 delivered
+03:42:32 info agent ack shown delivery=gw_02b3e1dd7a004038a903e3c6 device=7c:0c:5f:42:4b:fc seq=1791686552231 via=shown
+03:42:32 info agent ack shown delivery=dlv_01M4MDEARC7HF3AH10Y0W3FS4Y device=7c:0c:5f:42:4b:fc seq=1791686552333 via=shown
+PASS INTERRUPT item played while the session was speaking a voice turn
+03:42:32 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim6 state=unread seq=1791686552960 tier=when_idle speaks=True delivery=dlv_01M4MDEBBZMN8A3M9F0K28M7SX
+03:42:32 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791686552960
+03:42:32 info agent ack accepted delivery=dlv_01M4MDEBBZMN8A3M9F0K28M7SX device=7c:0c:5f:42:4b:fc proactive_id=603f70b4377d4703b879748de763cb92 ttl_s=600
+03:42:32 info proactive 603f70b4377d4703b879748de763cb92 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+03:42:32 info agent speech 59a35be174514f2c handed off: delivery=dlv_01M4MDEBBZMN8A3M9F0K28M7SX proactive=603f70b4377d4703b879748de763cb92 urgent=False attempt=1 reason=busy
+03:42:33 info agent ack shown delivery=dlv_01M4MDEBBZMN8A3M9F0K28M7SX device=7c:0c:5f:42:4b:fc seq=1791686552960 via=shown
+03:42:33 info proactive 603f70b4377d4703b879748de763cb92 delivering: attempt=1 session=after-restart invoked=False urgent=False
+03:42:33 info device plays 'Here is the long weather report.' sentence=s-603f70b4
+03:42:33 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim7 state=unread seq=1791686553980 tier=interrupt speaks=True delivery=dlv_01M4MDECBTRDV0R0SFHYQVZ833
+03:42:33 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim7 state=unread seq=1791686553980
+03:42:33 info agent ack accepted delivery=dlv_01M4MDECBTRDV0R0SFHYQVZ833 device=7c:0c:5f:42:4b:fc proactive_id=6bf593d64ada48de9d16e8a307f72dfe ttl_s=600
+03:42:33 info proactive 6bf593d64ada48de9d16e8a307f72dfe queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=True ttl=600
+03:42:33 info agent speech 02b2546482094c3c handed off: delivery=dlv_01M4MDECBTRDV0R0SFHYQVZ833 proactive=6bf593d64ada48de9d16e8a307f72dfe urgent=True attempt=1 reason=busy
+03:42:33 info proactive 6bf593d64ada48de9d16e8a307f72dfe interrupts session after-restart: delivery 603f70b4377d4703b879748de763cb92 stopped
+03:42:33 info agent speech 59a35be174514f2c cut_off: sentence=s-603f70b4 interrupted by an INTERRUPT item
+03:42:33 info agent ack cut_off delivery=dlv_01M4MDEBBZMN8A3M9F0K28M7SX device=7c:0c:5f:42:4b:fc sentence_id=s-603f70b4 reason=superseded
+03:42:33 info server abort on session after-restart
+03:42:33 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim6 state=unread seq=1791686553991 tier=silent speaks=False delivery=dlv_01M4MDECC5NW1BEDT3MXPVFR93
+03:42:33 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791686553991
+03:42:34 info device playback of 'Here is the long weather report.' stopped by the server
+03:42:34 info proactive 603f70b4377d4703b879748de763cb92 delivered
+03:42:34 info proactive 6bf593d64ada48de9d16e8a307f72dfe delivering: attempt=1 session=after-restart invoked=False urgent=True
+03:42:34 info device plays 'Smoke alarm in the kitchen.' sentence=s-6bf593d6
+03:42:34 info agent ack shown delivery=dlv_01M4MDECBTRDV0R0SFHYQVZ833 device=7c:0c:5f:42:4b:fc seq=1791686553980 via=shown
+03:42:34 info agent ack shown delivery=dlv_01M4MDECC5NW1BEDT3MXPVFR93 device=7c:0c:5f:42:4b:fc seq=1791686553991 via=shown
+03:42:34 info agent speech 02b2546482094c3c tts stop sentence=s-6bf593d6
+03:42:34 info agent speech 02b2546482094c3c played: sentence=s-6bf593d6 cut_at_ms=None reason=None
+03:42:34 info agent ack spoken delivery=dlv_01M4MDECBTRDV0R0SFHYQVZ833 device=7c:0c:5f:42:4b:fc proactive_id=6bf593d64ada48de9d16e8a307f72dfe
+03:42:34 info agent ack played delivery=dlv_01M4MDECBTRDV0R0SFHYQVZ833 device=7c:0c:5f:42:4b:fc sentence_id=s-6bf593d6 boot=4242 device_seq=5
+03:42:34 info proactive 6bf593d64ada48de9d16e8a307f72dfe delivered
+PASS d6 cut off by d7: ['accepted', 'shown', 'cut_off'] reason=superseded
+PASS service: d6 cut_off, d7 played
+03:42:34 info agent played for sentence s-603f70b4 after speech 59a35be174514f2c ended (cut_off): ignored
+PASS a late played ack of the cut sentence is not posted
+
+ALL PASS
+
+
+# ---- Run 3: scratch service from main after the fix-m2-review-service merge (b312518), this branch rebased ----
+
+04:05:19 info agent connection open device=7c:0c:5f:42:4b:fc session=s1
+04:05:19 info agent session device=7c:0c:5f:42:4b:fc session=s1: snapshot once the agent-service snapshot is restored
+04:05:19 info agent restore device=7c:0c:5f:42:4b:fc: 0 cards from the agent-service snapshot; mirror 0
+04:05:19 info agent chats queued device=7c:0c:5f:42:4b:fc current=None chats=0/0 seq=1791687919545 bytes=78 delivery=gw_0db398645b914175933b8e64
+04:05:19 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791687919545
+04:05:19 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791687919546
+
+== F04 decision receipts ==
+04:05:19 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4MER20XZQ47BQY0739AA2K7 task=tsk_01M4MER20YAYNDCBHH2ZV3CV1N state=needs_input seq=1791687919749 tier=silent speaks=False delivery=dlv_01M4MER245GVNXGH7MPKB69WCG
+04:05:19 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MER20YAYNDCBHH2ZV3CV1N state=needs_input seq=1791687919749
+04:05:20 info agent ack shown delivery=gw_0db398645b914175933b8e64 device=7c:0c:5f:42:4b:fc seq=1791687919545 via=shown
+04:05:20 info agent ack shown delivery=dlv_01M4MER245GVNXGH7MPKB69WCG device=7c:0c:5f:42:4b:fc seq=1791687919749 via=shown
+04:05:20 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4MER20XZQ47BQY0739AA2K7 chats=1/1 seq=1791687920155 bytes=225 delivery=dlv_01M4MER2GT7TVRN3FTPK7SMYNT
+04:05:20 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791687920155
+04:05:20 info agent ack shown delivery=dlv_01M4MER2GT7TVRN3FTPK7SMYNT device=7c:0c:5f:42:4b:fc seq=1791687920155 via=shown
+04:05:20 info agent response answer device=7c:0c:5f:42:4b:fc chat=cht_01M4MER20XZQ47BQY0739AA2K7 task=tsk_01M4MER20YAYNDCBHH2ZV3CV1N card=int_01M4MER2448QXAMCWG1EBRCB24 option=opt2 via=tap boot=4242 seq=3
+PASS no receipt while the service is answering 503
+04:05:20 warn agent-service /v1/chats/cht_01M4MER20XZQ47BQY0739AA2K7/answer: HTTP 503
+04:05:21 warn agent-service /v1/chats/cht_01M4MER20XZQ47BQY0739AA2K7/answer: HTTP 503
+04:05:22 warn agent-service /v1/chats/cht_01M4MER20XZQ47BQY0739AA2K7/answer: HTTP 503
+04:05:24 warn agent-service /v1/chats/cht_01M4MER20XZQ47BQY0739AA2K7/answer: HTTP 503
+04:05:28 warn agent-service /v1/chats/cht_01M4MER20XZQ47BQY0739AA2K7/answer: HTTP 503
+04:05:28 info agent answer device=7c:0c:5f:42:4b:fc card=int_01M4MER2448QXAMCWG1EBRCB24 seq=3 service=unconfirmed result=stale
+04:05:28 info agent receipt answer boot=4242 seq=3 card=int_01M4MER2448QXAMCWG1EBRCB24 result=stale
+PASS 503 for the whole window: receipt stale (never accepted)
+PASS service interaction still pending
+04:05:28 info agent response answer device=7c:0c:5f:42:4b:fc chat=cht_01M4MER20XZQ47BQY0739AA2K7 task=tsk_01M4MER20YAYNDCBHH2ZV3CV1N card=int_01M4MER2448QXAMCWG1EBRCB24 option=opt2 via=tap boot=4242 seq=4
+04:05:28 warn agent-service /v1/chats/cht_01M4MER20XZQ47BQY0739AA2K7/answer: HTTP 503
+04:05:28 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4MER20XZQ47BQY0739AA2K7 task=tsk_01M4MER20YAYNDCBHH2ZV3CV1N state=working seq=1791687928269 tier=silent speaks=False delivery=dlv_01M4MERAECGP1A9FKD2904HMPN
+04:05:28 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MER20YAYNDCBHH2ZV3CV1N state=working seq=1791687928269
+04:05:28 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4MER20XZQ47BQY0739AA2K7 task=tsk_01M4MER20YAYNDCBHH2ZV3CV1N state=unread seq=1791687928271 tier=when_idle speaks=True delivery=dlv_01M4MERAEEKDSSQ6FV7S7XFQA5
+04:05:28 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MER20YAYNDCBHH2ZV3CV1N state=unread seq=1791687928271
+04:05:28 info agent ack accepted delivery=dlv_01M4MERAEEKDSSQ6FV7S7XFQA5 device=7c:0c:5f:42:4b:fc proactive_id=79dba1b393ea4a14bcf00fabb8149aa7 ttl_s=600
+04:05:28 info proactive 79dba1b393ea4a14bcf00fabb8149aa7 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+04:05:28 info agent speech 16bd70f8b5644a45 handed off: delivery=dlv_01M4MERAEEKDSSQ6FV7S7XFQA5 proactive=79dba1b393ea4a14bcf00fabb8149aa7 urgent=False attempt=1 reason=busy
+04:05:28 info proactive 79dba1b393ea4a14bcf00fabb8149aa7 delivering: attempt=1 session=s1 invoked=False urgent=False
+04:05:28 info device plays 'Okay: The user answered: Thursday.' sentence=s-79dba1b3
+04:05:28 info agent ack shown delivery=dlv_01M4MERAECGP1A9FKD2904HMPN device=7c:0c:5f:42:4b:fc seq=1791687928269 via=shown
+04:05:28 info agent ack shown delivery=dlv_01M4MERAEEKDSSQ6FV7S7XFQA5 device=7c:0c:5f:42:4b:fc seq=1791687928271 via=shown
+04:05:28 info agent speech 16bd70f8b5644a45 tts stop sentence=s-79dba1b3
+04:05:28 info agent speech 16bd70f8b5644a45 played: sentence=s-79dba1b3 cut_at_ms=None reason=None
+04:05:28 info agent ack spoken delivery=dlv_01M4MERAEEKDSSQ6FV7S7XFQA5 device=7c:0c:5f:42:4b:fc proactive_id=79dba1b393ea4a14bcf00fabb8149aa7
+04:05:28 info agent ack played delivery=dlv_01M4MERAEEKDSSQ6FV7S7XFQA5 device=7c:0c:5f:42:4b:fc sentence_id=s-79dba1b3 boot=4242 device_seq=6
+04:05:28 info proactive 79dba1b393ea4a14bcf00fabb8149aa7 delivered
+04:05:28 info agent answer device=7c:0c:5f:42:4b:fc card=int_01M4MER2448QXAMCWG1EBRCB24 seq=4 service=accepted result=accepted
+04:05:28 info agent receipt answer boot=4242 seq=4 card=int_01M4MER2448QXAMCWG1EBRCB24 result=accepted
+PASS answer handled but its reply lost, retried with the same decision id: receipt accepted
+04:05:28 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4MER20XZQ47BQY0739AA2K7 chats=1/1 seq=1791687928772 bytes=222 delivery=dlv_01M4MERAY3KRYKT2S9M5R2PR5S
+04:05:28 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791687928772
+PASS service: interaction answered, 1 decision row
+04:05:28 info agent response answer device=7c:0c:5f:42:4b:fc task=tsk_01M4MER20YAYNDCBHH2ZV3CV1N card=int_01M4MER2448QXAMCWG1EBRCB24 stale (current card=None): dropped
+04:05:29 info agent ack shown delivery=dlv_01M4MERAY3KRYKT2S9M5R2PR5S device=7c:0c:5f:42:4b:fc seq=1791687928772 via=shown
+PASS a third tap is not forwarded again: receipt stale, 1 decision row
+
+== F09 speech hand-off ==
+04:05:29 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim1 state=unread seq=1791687929781 tier=when_idle speaks=True delivery=dlv_01M4MERBXM03MZR9QCWND6BM9B
+04:05:29 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim1 state=unread seq=1791687929781
+04:05:29 warn agent-service /v1/deliveries/dlv_01M4MERBXM03MZR9QCWND6BM9B/ack: HTTP 503
+04:05:30 info agent ack shown delivery=dlv_01M4MERBXM03MZR9QCWND6BM9B device=7c:0c:5f:42:4b:fc seq=1791687929781 via=shown
+04:05:30 warn agent-service /v1/deliveries/dlv_01M4MERBXM03MZR9QCWND6BM9B/ack: HTTP 503
+04:05:30 info agent ack accepted delivery=dlv_01M4MERBXM03MZR9QCWND6BM9B device=7c:0c:5f:42:4b:fc proactive_id=149093ff001b4936bbc863e976ab3e4e ttl_s=600
+04:05:30 info proactive 149093ff001b4936bbc863e976ab3e4e queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+04:05:30 info agent speech 0f0af3459c2643ae handed off: delivery=dlv_01M4MERBXM03MZR9QCWND6BM9B proactive=149093ff001b4936bbc863e976ab3e4e urgent=False attempt=1 reason=busy
+04:05:30 info proactive 149093ff001b4936bbc863e976ab3e4e delivering: attempt=1 session=s1 invoked=False urgent=False
+04:05:30 info device plays 'Your laundry is done.' sentence=s-149093ff
+04:05:30 info agent speech 0f0af3459c2643ae tts stop sentence=s-149093ff
+04:05:30 info agent speech 0f0af3459c2643ae played: sentence=s-149093ff cut_at_ms=None reason=None
+04:05:30 info agent ack spoken delivery=dlv_01M4MERBXM03MZR9QCWND6BM9B device=7c:0c:5f:42:4b:fc proactive_id=149093ff001b4936bbc863e976ab3e4e
+04:05:30 info agent ack played delivery=dlv_01M4MERBXM03MZR9QCWND6BM9B device=7c:0c:5f:42:4b:fc sentence_id=s-149093ff boot=4242 device_seq=10
+04:05:30 info proactive 149093ff001b4936bbc863e976ab3e4e delivered
+PASS d1 speech acks after two 503s on accepted: ['accepted', 'spoken', 'played']
+PASS d1 proactive messages: 1
+04:05:31 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim2 state=unread seq=1791687931221 tier=when_idle speaks=True delivery=dlv_01M4MERDAMYZ712BN00K4HF338
+04:05:31 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim2 state=unread seq=1791687931221
+04:05:31 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:31 info agent ack shown delivery=dlv_01M4MERDAMYZ712BN00K4HF338 device=7c:0c:5f:42:4b:fc seq=1791687931221 via=shown
+04:05:31 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:31 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:32 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:32 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:34 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:34 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:36 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim2 state=unread seq=1791687936224 tier=when_idle speaks=True delivery=dlv_01M4MERDAMYZ712BN00K4HF338
+04:05:36 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim2 state=unread seq=1791687936224
+04:05:36 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:36 info agent ack shown delivery=dlv_01M4MERDAMYZ712BN00K4HF338 device=7c:0c:5f:42:4b:fc seq=1791687936224 via=shown
+04:05:36 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:37 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:38 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:38 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 503
+04:05:38 info agent speech a3796aa3e939484b delivery=dlv_01M4MERDAMYZ712BN00K4HF338 not played: agent-service did not record the hand-off
+PASS d2 not queued while the service cannot record the hand-off
+04:05:39 info agent ack accepted delivery=dlv_01M4MERDAMYZ712BN00K4HF338 device=7c:0c:5f:42:4b:fc proactive_id=2c5e073f7c1040f1a9f0822dca264cdc ttl_s=600
+04:05:39 info proactive 2c5e073f7c1040f1a9f0822dca264cdc queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+04:05:39 info agent speech 2cf9b38ae08e42a2 handed off: delivery=dlv_01M4MERDAMYZ712BN00K4HF338 proactive=2c5e073f7c1040f1a9f0822dca264cdc urgent=False attempt=1 reason=busy
+04:05:39 info proactive 2c5e073f7c1040f1a9f0822dca264cdc delivering: attempt=1 session=s1 invoked=False urgent=False
+04:05:39 info device plays 'The oven is preheated.' sentence=s-2c5e073f
+04:05:40 info agent speech 2cf9b38ae08e42a2 tts stop sentence=s-2c5e073f
+04:05:40 info agent speech 2cf9b38ae08e42a2 played: sentence=s-2c5e073f cut_at_ms=None reason=None
+04:05:40 info agent ack spoken delivery=dlv_01M4MERDAMYZ712BN00K4HF338 device=7c:0c:5f:42:4b:fc proactive_id=2c5e073f7c1040f1a9f0822dca264cdc
+04:05:40 info agent ack played delivery=dlv_01M4MERDAMYZ712BN00K4HF338 device=7c:0c:5f:42:4b:fc sentence_id=s-2c5e073f boot=4242 device_seq=13
+04:05:40 info proactive 2c5e073f7c1040f1a9f0822dca264cdc delivered
+04:05:46 warn agent-service /v1/deliveries/dlv_01M4MERDAMYZ712BN00K4HF338/ack: HTTP 409
+04:05:46 warn agent ack shown delivery=dlv_01M4MERDAMYZ712BN00K4HF338 not recorded by agent-service (HTTP 409)
+PASS d2 played once after the service's lease expired: messages=1, acks=['accepted', 'shown', 'spoken', 'played']
+
+== F10 one retry owner ==
+04:05:46 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim3 state=unread seq=1791687946830 tier=when_idle speaks=True delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ
+04:05:46 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791687946830
+04:05:46 info agent ack accepted delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ device=7c:0c:5f:42:4b:fc proactive_id=9852090c965743f6bc31d7eeaf35bce4 ttl_s=600
+04:05:46 info proactive 9852090c965743f6bc31d7eeaf35bce4 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+04:05:46 info agent speech 90de981e61a84095 handed off: delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ proactive=9852090c965743f6bc31d7eeaf35bce4 urgent=False attempt=1 reason=busy
+04:05:46 info proactive 9852090c965743f6bc31d7eeaf35bce4 delivering: attempt=1 session=s1 invoked=False urgent=False
+04:05:46 info proactive 9852090c965743f6bc31d7eeaf35bce4 requeued: no_audio; retry in 2s
+04:05:47 info agent ack shown delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ device=7c:0c:5f:42:4b:fc seq=1791687946830 via=shown
+04:05:48 info proactive 9852090c965743f6bc31d7eeaf35bce4 delivering: attempt=2 session=s1 invoked=False urgent=False
+04:05:48 info proactive 9852090c965743f6bc31d7eeaf35bce4 requeued: no_audio; retry in 5s
+04:05:53 info proactive 9852090c965743f6bc31d7eeaf35bce4 delivering: attempt=3 session=s1 invoked=False urgent=False
+04:05:53 info proactive 9852090c965743f6bc31d7eeaf35bce4 failed: no_audio
+04:05:54 info agent ack deferred delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ device=7c:0c:5f:42:4b:fc retry_after_ms=5000 detail=no_audio
+04:05:59 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim3 state=unread seq=1791687959204 tier=when_idle speaks=True delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ
+04:05:59 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791687959204
+04:05:59 info agent ack accepted delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ device=7c:0c:5f:42:4b:fc proactive_id=c169b5281bf44b4ba9c91cb121d89ab7 ttl_s=600
+04:05:59 info proactive c169b5281bf44b4ba9c91cb121d89ab7 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+04:05:59 info agent speech cfc763fa44ff4a0e handed off: delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ proactive=c169b5281bf44b4ba9c91cb121d89ab7 urgent=False attempt=2 reason=busy
+04:05:59 info proactive c169b5281bf44b4ba9c91cb121d89ab7 delivering: attempt=1 session=s1 invoked=False urgent=False
+04:05:59 info device plays 'The door is unlocked.' sentence=s-c169b528
+04:05:59 info agent ack shown delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ device=7c:0c:5f:42:4b:fc seq=1791687959204 via=shown
+04:05:59 info agent speech cfc763fa44ff4a0e tts stop sentence=s-c169b528
+04:05:59 info agent speech cfc763fa44ff4a0e played: sentence=s-c169b528 cut_at_ms=None reason=None
+04:05:59 info agent ack spoken delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ device=7c:0c:5f:42:4b:fc proactive_id=c169b5281bf44b4ba9c91cb121d89ab7
+04:05:59 info agent ack played delivery=dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ device=7c:0c:5f:42:4b:fc sentence_id=s-c169b528 boot=4242 device_seq=16
+04:05:59 info proactive c169b5281bf44b4ba9c91cb121d89ab7 delivered
+PASS d3: attempt 2 offered by the service, proactive keys ['dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ:1', 'dlv_01M4MERWJDAMQBHGYFCM7ZA8MJ:2']
+PASS d3 speech acks: ['accepted', 'deferred', 'accepted', 'spoken', 'played']
+
+== F11 gateway restart ==
+04:05:59 info mirror before the restart: ['tsk_01M4MER20YAYNDCBHH2ZV3CV1N', 'tsk_sim1', 'tsk_sim2', 'tsk_sim3']
+04:05:59 info agent connection open device=7c:0c:5f:42:4b:fc session=after-restart
+04:05:59 info agent session device=7c:0c:5f:42:4b:fc session=after-restart: snapshot once the agent-service snapshot is restored
+PASS no snapshot or agent_sync before the service snapshot is restored
+04:05:59 info agent restore device=7c:0c:5f:42:4b:fc: 5 cards from the agent-service snapshot; mirror 4
+04:05:59 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4MER20XZQ47BQY0739AA2K7 chats=1/1 seq=1791687959990 bytes=223 delivery=gw_96e824af4ca24b7a83f77ff9
+04:05:59 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4MER20YAYNDCBHH2ZV3CV1N state=unread seq=1791687928271
+04:05:59 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim1 state=unread seq=1791687929781
+04:05:59 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim2 state=unread seq=1791687936224
+04:05:59 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791687959204
+04:05:59 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791687959990
+04:05:59 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791687959991
+PASS agent_sync lists every task the device held: ['tsk_01M4MER20YAYNDCBHH2ZV3CV1N', 'tsk_sim1', 'tsk_sim2', 'tsk_sim3']
+PASS restored cards keep their wire seqs: 4/4
+PASS restored cards do not speak
+
+== F13 INTERRUPT ==
+04:06:00 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim5 state=unread seq=1791687960091 tier=interrupt speaks=True delivery=dlv_01M4MES9GRAB9T6D6GV3QZAQFV
+04:06:00 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim5 state=unread seq=1791687960091
+04:06:00 info agent ack accepted delivery=dlv_01M4MES9GRAB9T6D6GV3QZAQFV device=7c:0c:5f:42:4b:fc proactive_id=0e8cea3de5a3489194c9933402224a84 ttl_s=600
+04:06:00 info proactive 0e8cea3de5a3489194c9933402224a84 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=True ttl=600
+04:06:00 info agent speech e46cc3940ce54c18 handed off: delivery=dlv_01M4MES9GRAB9T6D6GV3QZAQFV proactive=0e8cea3de5a3489194c9933402224a84 urgent=True attempt=1 reason=busy
+04:06:00 info proactive 0e8cea3de5a3489194c9933402224a84 interrupts session after-restart: voice turn stopped
+04:06:00 info server abort on session after-restart
+04:06:00 info proactive 0e8cea3de5a3489194c9933402224a84 delivering: attempt=1 session=after-restart invoked=False urgent=True
+04:06:00 info device plays 'Water detected under the sink.' sentence=s-0e8cea3d
+04:06:00 info agent speech e46cc3940ce54c18 tts stop sentence=s-0e8cea3d
+04:06:00 info agent speech e46cc3940ce54c18 played: sentence=s-0e8cea3d cut_at_ms=None reason=None
+04:06:00 info agent ack spoken delivery=dlv_01M4MES9GRAB9T6D6GV3QZAQFV device=7c:0c:5f:42:4b:fc proactive_id=0e8cea3de5a3489194c9933402224a84
+04:06:00 info agent ack played delivery=dlv_01M4MES9GRAB9T6D6GV3QZAQFV device=7c:0c:5f:42:4b:fc sentence_id=s-0e8cea3d boot=4242 device_seq=1
+04:06:00 info proactive 0e8cea3de5a3489194c9933402224a84 delivered
+04:06:00 info agent ack shown delivery=gw_96e824af4ca24b7a83f77ff9 device=7c:0c:5f:42:4b:fc seq=1791687959990 via=shown
+04:06:00 info agent ack shown delivery=dlv_01M4MES9GRAB9T6D6GV3QZAQFV device=7c:0c:5f:42:4b:fc seq=1791687960091 via=shown
+PASS INTERRUPT item played while the session was speaking a voice turn
+04:06:00 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim6 state=unread seq=1791687960715 tier=when_idle speaks=True delivery=dlv_01M4MESA4A55NCV671WKPCG80X
+04:06:00 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791687960715
+04:06:00 info agent ack accepted delivery=dlv_01M4MESA4A55NCV671WKPCG80X device=7c:0c:5f:42:4b:fc proactive_id=d23484c638584ad9803b92cf1b817cba ttl_s=600
+04:06:00 info proactive d23484c638584ad9803b92cf1b817cba queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+04:06:00 info agent speech 343ee59e57534f31 handed off: delivery=dlv_01M4MESA4A55NCV671WKPCG80X proactive=d23484c638584ad9803b92cf1b817cba urgent=False attempt=1 reason=busy
+04:06:01 info agent ack shown delivery=dlv_01M4MESA4A55NCV671WKPCG80X device=7c:0c:5f:42:4b:fc seq=1791687960715 via=shown
+04:06:01 info proactive d23484c638584ad9803b92cf1b817cba delivering: attempt=1 session=after-restart invoked=False urgent=False
+04:06:01 info device plays 'Here is the long weather report.' sentence=s-d23484c6
+04:06:01 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim7 state=unread seq=1791687961743 tier=interrupt speaks=True delivery=dlv_01M4MESB4D162PRZG89Z20ZASQ
+04:06:01 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim7 state=unread seq=1791687961743
+04:06:01 info agent ack accepted delivery=dlv_01M4MESB4D162PRZG89Z20ZASQ device=7c:0c:5f:42:4b:fc proactive_id=be64a802f0154b12ba58d37b01058bc7 ttl_s=600
+04:06:01 info proactive be64a802f0154b12ba58d37b01058bc7 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=True ttl=600
+04:06:01 info agent speech 61f8846d18054210 handed off: delivery=dlv_01M4MESB4D162PRZG89Z20ZASQ proactive=be64a802f0154b12ba58d37b01058bc7 urgent=True attempt=1 reason=busy
+04:06:01 info proactive be64a802f0154b12ba58d37b01058bc7 interrupts session after-restart: delivery d23484c638584ad9803b92cf1b817cba stopped
+04:06:01 info agent speech 343ee59e57534f31 cut_off: sentence=s-d23484c6 interrupted by an INTERRUPT item
+04:06:01 info agent ack cut_off delivery=dlv_01M4MESA4A55NCV671WKPCG80X device=7c:0c:5f:42:4b:fc sentence_id=s-d23484c6 reason=superseded
+04:06:01 info server abort on session after-restart
+04:06:01 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_sim6 state=unread seq=1791687961758 tier=silent speaks=False delivery=dlv_01M4MESB4VP5GGFHFNT112V0DA
+04:06:01 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791687961758
+04:06:01 info device playback of 'Here is the long weather report.' stopped by the server
+04:06:01 info proactive d23484c638584ad9803b92cf1b817cba delivered
+04:06:01 info proactive be64a802f0154b12ba58d37b01058bc7 delivering: attempt=1 session=after-restart invoked=False urgent=True
+04:06:01 info device plays 'Smoke alarm in the kitchen.' sentence=s-be64a802
+04:06:02 info agent ack shown delivery=dlv_01M4MESB4D162PRZG89Z20ZASQ device=7c:0c:5f:42:4b:fc seq=1791687961743 via=shown
+04:06:02 info agent ack shown delivery=dlv_01M4MESB4VP5GGFHFNT112V0DA device=7c:0c:5f:42:4b:fc seq=1791687961758 via=shown
+04:06:02 info agent speech 61f8846d18054210 tts stop sentence=s-be64a802
+04:06:02 info agent speech 61f8846d18054210 played: sentence=s-be64a802 cut_at_ms=None reason=None
+04:06:02 info agent ack spoken delivery=dlv_01M4MESB4D162PRZG89Z20ZASQ device=7c:0c:5f:42:4b:fc proactive_id=be64a802f0154b12ba58d37b01058bc7
+04:06:02 info agent ack played delivery=dlv_01M4MESB4D162PRZG89Z20ZASQ device=7c:0c:5f:42:4b:fc sentence_id=s-be64a802 boot=4242 device_seq=5
+04:06:02 info proactive be64a802f0154b12ba58d37b01058bc7 delivered
+PASS d6 cut off by d7: ['accepted', 'shown', 'cut_off'] reason=superseded
+PASS service: d6 cut_off, d7 played
+04:06:02 info agent played for sentence s-d23484c6 after speech 343ee59e57534f31 ended (cut_off): ignored
+PASS a late played ack of the cut sentence is not posted
+
+ALL PASS

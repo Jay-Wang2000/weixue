@@ -222,6 +222,29 @@ void TestReceipt() {
           "every response but shown waits for a receipt");
 }
 
+std::string InvokeOf(const char* json) {
+    cJSON* root = cJSON_Parse(json);
+    std::string text = InvokeText(root);
+    cJSON_Delete(root);
+    return text;
+}
+
+void TestInvokeText() {
+    Check(InvokeOf(R"({"pending":true,"speak":true,"id":"9f2c41d0aa","lease":"b7e1_0-Z"})") ==
+              "weixue:proactive:9f2c41d0aa:b7e1_0-Z",
+          "poll answer id and lease bind the invocation");
+    Check(InvokeOf(R"({"pending":true,"speak":true,"id":null,"lease":null})") == "weixue:proactive",
+          "no id or lease: bare marker");
+    Check(InvokeOf(R"({"speak":true,"id":"abc"})") == "weixue:proactive", "lease missing: bare marker");
+    Check(InvokeOf(R"({"speak":true,"id":"a:b","lease":"c"})") == "weixue:proactive",
+          "a ':' in the id is not carried");
+    Check(InvokeOf(R"({"speak":true,"id":"abc","lease":""})") == "weixue:proactive", "empty lease: bare marker");
+    std::string long_id(kMaxBindingChars + 1, 'a');
+    Check(InvokeOf((R"({"speak":true,"id":")" + long_id + R"(","lease":"c"})").c_str()) == "weixue:proactive",
+          "over-long id: bare marker");
+    Check(InvokeOf(R"({"speak":true,"id":7,"lease":"c"})") == "weixue:proactive", "non-string id: bare marker");
+}
+
 void TestPollStep() {
     Check(NextPollStep(200, true, true) == PollStep::kInvoke, "200 speak opens a session");
     Check(NextPollStep(200, true, false) == PollStep::kRepoll, "200 cards only polls again");
@@ -280,6 +303,7 @@ int main() {
     TestBuilders();
     TestReceipt();
     TestPollStep();
+    TestInvokeText();
     TestChats();
     std::printf("%s: %d failure(s)\n", failures ? "FAILED" : "OK", failures);
     return failures ? 1 : 0;

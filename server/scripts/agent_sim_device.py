@@ -3,7 +3,9 @@
 Long-polls with X-Weixue-Agent-Seq (and X-Weixue-Agent-Feature at --level 2), applies `agent` /
 `agent_sync` items by seq per task (the weixue_agent_store rules) and the newest `agent_chats`
 list, acks `shown` in session and implicitly through the poll, opens a session on `speak:true`
-(hello with features.agent = --level), sends `played` complete when the audio of an
+(hello with features.agent = --level) invoked as the firmware does (level 2:
+`weixue:proactive:<id>:<lease>` of the poll answer; level 1: the bare marker), sends `played`
+complete when the audio of an
 `ack:true` sentence has played out (60 ms per frame from its first frame) or cut with
 --cut-after-ms, and answers `debug_reply` after 2 s (loopback) over its session or a short
 session of its own. --busy N first holds a user session open for N seconds.
@@ -266,8 +268,9 @@ class SimDevice:
             self.state = "connecting"
             log(f"session opened ({'proactive' if invoke else 'user'}) id={self.session_id}")
             if invoke:
+                text = invoke if isinstance(invoke, str) else "weixue:proactive"
                 await ws.send(json.dumps({"session_id": self.session_id, "type": "listen", "state": "detect",
-                                          "text": "weixue:proactive"}))
+                                          "text": text}))
             await ws.send(json.dumps({"session_id": self.session_id, "type": "listen", "state": "start", "mode": "auto"}))
             self.state = "listening"
             track = {"sentence": None, "first": None, "frames": 0, "stopped": False, "cut": False}
@@ -416,7 +419,8 @@ class SimDevice:
                 for p in items:
                     self.apply(p, "poll")
                 if body.get("speak", True):
-                    await self.session(invoke=True)
+                    bound = self.level >= 2 and body.get("id") and body.get("lease")
+                    await self.session(invoke=f"weixue:proactive:{body['id']}:{body['lease']}" if bound else True)
                 else:
                     await asyncio.sleep(0.2)
             elif status == 204:

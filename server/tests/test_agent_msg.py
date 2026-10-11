@@ -147,7 +147,13 @@ def test_response_routes():
     base = {"boot": 1, "seq": 2, "chat_id": "cht_1", "card_id": "int_1"}
     method, path, body = wire.response_route("dev", dict(base, kind="approve"))
     assert (method, path) == ("POST", "/v1/chats/cht_1/approve") and body["interaction_id"] == "int_1"
-    assert body["decision_id"] == wire.decision_id("dev", 1, 2) and body["via"] == "panel"
+    assert body["decision_id"] == wire.card_decision_id("dev", dict(base, kind="approve")) and body["via"] == "panel"
+    assert body["decision_id"] == wire.response_route("dev", dict(base, kind="approve", boot=9, seq=40))[2]["decision_id"], \
+        "every send and repeat tap of the card's decision carries one id"
+    ids = {wire.response_route("dev", dict(base, **r))[2]["decision_id"] for r in (
+        {"kind": "approve"}, {"kind": "deny"}, {"kind": "answer", "option_id": "o1"}, {"kind": "answer", "option_id": "o2"},
+        {"kind": "answer", "text": "blue"}, {"kind": "answer", "text": "red"}, {"kind": "approve", "card_id": "int_2"})}
+    assert len(ids) == 7, "another kind, answer or card is another decision"
     assert wire.response_route("dev", dict(base, kind="answer", option_id="o1"))[2]["option_ids"] == ["o1"]
     assert wire.response_route("dev", dict(base, kind="answer", text="blue"))[2]["text"] == "blue"
     assert wire.response_route("dev", dict(base, kind="cancel"))[1:] == (

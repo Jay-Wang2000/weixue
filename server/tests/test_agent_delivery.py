@@ -486,16 +486,27 @@ async def test_played_complete_cut_and_lost():
     assert gw.speeches[rec3["speech_id"]].state == "lost" and gw.sink.acks[-1]["outcome"] == "lost"
 
 
-async def test_failed_speech_before_audio_is_resubmitted_with_new_key():
+async def test_failed_speech_before_audio_is_left_to_the_service_to_offer_again():
     proactive, gw = make()
     rec = gw.submit(DEVICE, card("t1", "unread", speaks=True), speech="Again.")
     first = tagged_message(proactive, rec["speech_id"])
     first.status = "failed"
     first.error = "no_audio"
     gw._track_speech()
-    second = [m for m in proactive.messages.values() if (m.agent or {}).get("speech") == rec["speech_id"] and m is not first]
-    assert second and second[0].key == f"{rec['delivery_id']}:2"
-    assert gw.sink.acks[-2]["outcome"] == "deferred"
+    gw._track_speech()
+    assert [m for m in proactive.messages.values() if (m.agent or {}).get("speech") == rec["speech_id"]] == [first]
+    deferred = gw.sink.acks[-1]
+    assert deferred["outcome"] == "deferred" and deferred["retry_after_ms"] == wad.DEFERRED_RETRY_MS
+    assert [a["outcome"] for a in gw.sink.acks] == ["accepted", "deferred"]
+    again = gw.submit(DEVICE, card("t1", "unread", speaks=True), speech="Again.", delivery_id=rec["delivery_id"],
+                      attempt=2)
+    assert tagged_message(proactive, again["speech_id"]).key == f"{rec['delivery_id']}:2"
+    last = gw.submit(DEVICE, card("t1", "unread", speaks=True), speech="Again.", delivery_id=rec["delivery_id"],
+                     attempt=wad.SPEECH_ATTEMPTS)
+    msg = tagged_message(proactive, last["speech_id"])
+    msg.status = "failed"
+    gw._track_speech()
+    assert gw.sink.acks[-1]["outcome"] == "dropped", "the last attempt that fails before audio is dropped"
 
 
 async def test_await_played_holds_until_ack_or_8s_after_stop(monkeypatch):
@@ -621,9 +632,10 @@ async def test_service_sink_posts_acks_and_routes():
     sink.response(DEVICE, {"kind": "approve", "boot": 1, "seq": 2, "chat_id": "cht_1", "card_id": "int_1", "via": "tap"})
     await settle()
     assert posts[0][0] == "http://agent:8010/v1/deliveries/dlv_1/ack"
-    assert posts[0][1] == {"lease_id": "lease-1", "outcome": "played"}
+    assert posts[0][1] == {"lease_id": "lease-1", "outcome": "played", "sentence_id": "s1"}
     assert posts[1][0] == "http://agent:8010/v1/chats/cht_1/approve"
-    assert posts[1][2] == {"Idempotency-Key": wire.decision_id(DEVICE, 1, 2)} and len(posts) == 2
+    decided = {"kind": "approve", "card_id": "int_1"}
+    assert posts[1][2] == {"Idempotency-Key": wire.card_decision_id(DEVICE, decided)} and len(posts) == 2
     sink.connection(DEVICE, "open", "sess-1")
     sink.connection(DEVICE, "close", None)
     await settle()

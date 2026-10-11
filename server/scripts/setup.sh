@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Idempotent bootstrap: pre-flight, model download, config render, image build, validation, atomic
-# publish, start, deployment readiness; a failed start or check restores the previous deployment.
+# publish, start, deployment readiness. One transaction from the first change on: a failure before
+# publishing restores server/.env, the endpoint unit, the images and the agent-service database
+# location; a failure after it restores the previous deployment.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.rd/bin:$PATH"
@@ -47,6 +49,93 @@ case "${WG_TUNNEL:-}" in
     ;;
   *) echo "WG_TUNNEL must be 1 or empty"; exit 1 ;;
 esac
+
+# Images this run tagged :rollback (IMAGES) go back to those tags.
+restore_images() {
+  local rc=0 image
+  for image in ${IMAGES[@]+"${IMAGES[@]}"}; do
+    if docker image inspect "${image%:*}:rollback" >/dev/null 2>&1; then
+      docker tag "${image%:*}:rollback" "$image" || rc=1
+    fi
+  done
+  return $rc
+}
+
+# Restores what this run changed before publishing: images, the endpoint key, URL and service, the
+# agent-service database location and server/.env.
+restore_prepared() {
+  local file
+  restore_images || true
+  for file in "$ENDPOINT_URL" "$ENDPOINT_CFG"; do
+    [ -n "$file" ] || continue
+    if [ -f "$file.rollback" ]; then
+      if ! cmp -s "$file.rollback" "$file"; then
+        cp -p "$file.rollback" "$file"
+        [ "$file" != "$ENDPOINT_CFG" ] || ENDPOINT_RESTART=1
+      fi
+      rm -f "$file.rollback"
+    fi
+  done
+  if [ -n "$ENDPOINT_RESTART" ]; then
+    echo "endpoint key restored from the last run"
+    docker compose up -d --force-recreate mcp-endpoint-server >/dev/null 2>&1 \
+      || echo "mcp-endpoint-server did not restart; run: docker compose up -d --force-recreate mcp-endpoint-server"
+  elif [ "$ENDPOINT_STARTED" = 1 ]; then
+    docker stop mcp-endpoint-server >/dev/null 2>&1 || true
+  fi
+  for file in ${MIGRATED[@]+"${MIGRATED[@]}"}; do
+    mv -f "$AGENT_DATA/db/$file" "$AGENT_DATA/$file" || echo "could not move $AGENT_DATA/db/$file back"
+  done
+  if [ -n "$AGENT_STOPPED" ]; then
+    docker start agent-service >/dev/null 2>&1 || echo "agent-service did not start again; run: docker start agent-service"
+  fi
+  if [ -n "$MONITOR_STOPPED" ]; then
+    docker start agent-monitor >/dev/null 2>&1 || echo "agent-monitor did not start again; run: docker start agent-monitor"
+  fi
+  if [ -f "$ENV_TXN" ]; then cp -p "$ENV_TXN" .env; fi
+}
+
+on_exit() {
+  local rc=$?
+  set +e
+  rm -f "${STAGED:-}"
+  if [ "$rc" -ne 0 ]; then
+    case "$PHASE" in
+      prepare | migrate)
+        PHASE=restored
+        restore_prepared
+        echo "setup failed (exit $rc${FAILED_LINE:+, line $FAILED_LINE}) before publishing; server/.env, the endpoint unit, the images and the agent-service database are as before"
+        ;;
+      publish)
+        rm -f "$ENV_TXN"
+        trap - EXIT
+        rollback "setup failed (exit $rc${FAILED_LINE:+, line $FAILED_LINE}) while publishing"
+        ;;
+    esac
+  fi
+  rm -f "$ENV_TXN"
+  exit "$rc"
+}
+
+ENDPOINT_CFG=""
+ENDPOINT_URL=""
+ENDPOINT_RESTART=""
+ENDPOINT_STARTED=""
+AGENT_DATA=data/agent-service
+AGENT_STOPPED=""
+MONITOR_STOPPED=""
+MIGRATED=()
+IMAGES=()
+
+# Transaction: PHASE is prepare (server/.env, endpoint unit, images, staged config), migrate (agent-service
+# stopped while its database moves) or publish (rollback); done after the new version is ready.
+PHASE=prepare
+ENV_TXN=.env.txn
+cp -p .env "$ENV_TXN"
+chmod 600 "$ENV_TXN"
+FAILED_LINE=""
+trap 'FAILED_LINE=$LINENO' ERR
+trap on_exit EXIT
 
 # COMPOSE_PROFILES in .env holds `tunnel` exactly while WG_TUNNEL=1, so every docker compose command in server/ sees wg.
 ENV_PROFILES=$(sed -n 's/^COMPOSE_PROFILES=//p' .env | tail -n 1 | sed -E "s/^\"(.*)\"$/\\1/; s/^'(.*)'$/\\1/")
@@ -105,13 +194,12 @@ docker info >/dev/null 2>&1 || { echo "docker daemon is not running"; exit 1; }
 
 CONFIG=data/.config.yaml
 SERVICES=($TUNNEL_SERVICES mcp-bridge agent-service agent-monitor xiaozhi-esp32-server)
-IMAGES=(weixue/mcp-bridge:local weixue/agent-service:local weixue/agent-monitor:local weixue/xiaozhi-esp32-server:local)
-[ -z "$TUNNEL_SERVICES" ] || IMAGES+=(weixue/wg:local)
+IMAGES_ALL=(weixue/mcp-bridge:local weixue/agent-service:local weixue/agent-monitor:local weixue/xiaozhi-esp32-server:local)
+[ -z "$TUNNEL_SERVICES" ] || IMAGES_ALL+=(weixue/wg:local)
 ready_host() { if [ "$BIND_IP" = 0.0.0.0 ]; then echo 127.0.0.1; else echo "$BIND_IP"; fi; }
 
 umask 077
 STAGED=$(mktemp "$CONFIG.XXXXXX")
-trap 'rm -f "$STAGED"' EXIT
 
 # The endpoint key, the URL derived from it and its two consumers (the server config and the
 # bridge's URL file) are one deployment unit: rollback restores all of them.
@@ -122,6 +210,7 @@ for file in "$ENDPOINT_CFG" "$ENDPOINT_URL"; do
   if [ -f "$file" ]; then cp -p "$file" "$file.rollback"; fi
 done
 
+[ "$(docker inspect -f '{{.State.Running}}' mcp-endpoint-server 2>/dev/null || echo false)" = true ] || ENDPOINT_STARTED=1
 docker compose up -d mcp-endpoint-server
 MCP=""
 for _ in $(seq 1 30); do
@@ -139,21 +228,12 @@ AGENT_REQUIRED=1
 AGENT_PREVIOUS=$(docker image inspect weixue/agent-service:local >/dev/null 2>&1 && echo 1 || true)
 MONITOR_REQUIRED=1
 MONITOR_PREVIOUS=$(docker image inspect weixue/agent-monitor:local >/dev/null 2>&1 && echo 1 || true)
-for image in "${IMAGES[@]}"; do
+for image in "${IMAGES_ALL[@]}"; do
   if docker image inspect "$image" >/dev/null 2>&1; then
     docker tag "$image" "${image%:*}:rollback"
   fi
+  IMAGES+=("$image")
 done
-
-restore_images() {
-  local rc=0
-  for image in "${IMAGES[@]}"; do
-    if docker image inspect "${image%:*}:rollback" >/dev/null 2>&1; then
-      docker tag "${image%:*}:rollback" "$image" || rc=1
-    fi
-  done
-  return $rc
-}
 
 # .env of the last successful run (0600); rollback restores it and keeps the attempted one as .env.failed.
 ENV_DEPLOYED=.env.deployed
@@ -209,6 +289,7 @@ manual_restore() {
 
 # Restores the previous config, endpoint unit, .env and images and recreates the containers; always exits 1.
 rollback() {
+  PHASE=restored
   echo "$1; rolling back"
   if [ -f "$CONFIG.rollback" ]; then mv -f "$CONFIG.rollback" "$CONFIG"; fi
   if [ -f "$ENDPOINT_URL.rollback" ]; then mv -f "$ENDPOINT_URL.rollback" "$ENDPOINT_URL"; fi
@@ -253,7 +334,6 @@ rollback() {
 }
 
 if ! docker compose build "${SERVICES[@]}"; then
-  restore_images
   echo "image build failed; $CONFIG and the images are unchanged"
   exit 1
 fi
@@ -261,23 +341,27 @@ if ! docker run --rm --entrypoint python \
     -v "$PWD/$STAGED:/tmp/config.yaml:ro" \
     -v "$PWD/scripts/validate_config.py:/tmp/validate_config.py:ro" \
     weixue/xiaozhi-esp32-server:local /tmp/validate_config.py /tmp/config.yaml; then
-  restore_images
   echo "rendered config is invalid; $CONFIG and the images are unchanged"
   exit 1
 fi
 
 # agent-service's database moves into data/agent-service/db/ (the directory agent-monitor mounts) while the
 # service is stopped; compose sets AGENT_DB for this and for a rolled-back image.
-AGENT_DATA=data/agent-service
 if [ -f "$AGENT_DATA/agent.db" ] && [ ! -e "$AGENT_DATA/db/agent.db" ]; then
+  PHASE=migrate
+  if [ "$(docker inspect -f '{{.State.Running}}' agent-service 2>/dev/null || echo false)" = true ]; then
+    AGENT_STOPPED=1
+  fi
   docker stop agent-service >/dev/null 2>&1 || true
   if [ "$(docker inspect -f '{{.State.Running}}' agent-service 2>/dev/null || echo false)" != false ]; then
-    restore_images
     echo "agent-service is still running; its database was not moved and nothing was published"
     exit 1
   fi
   for file in agent.db agent.db-wal agent.db-shm; do
-    if [ -e "$AGENT_DATA/$file" ]; then mv "$AGENT_DATA/$file" "$AGENT_DATA/db/$file"; fi
+    if [ -e "$AGENT_DATA/$file" ]; then
+      mv "$AGENT_DATA/$file" "$AGENT_DATA/db/$file"
+      MIGRATED+=("$file")
+    fi
   done
   echo "agent-service database moved to server/$AGENT_DATA/db/"
 fi
@@ -288,6 +372,8 @@ backup_agent_db() {
   local file
   rm -rf "$AGENT_DATA/db-rollback"
   [ -f "$AGENT_DATA/db/agent.db" ] || return 0
+  [ "$(docker inspect -f '{{.State.Running}}' agent-service 2>/dev/null || echo false)" != true ] || AGENT_STOPPED=1
+  [ "$(docker inspect -f '{{.State.Running}}' agent-monitor 2>/dev/null || echo false)" != true ] || MONITOR_STOPPED=1
   docker stop agent-service agent-monitor >/dev/null 2>&1 || true
   [ "$(docker inspect -f '{{.State.Running}}' agent-service 2>/dev/null || echo false)" = false ] || return 1
   mkdir -p "$AGENT_DATA/db-rollback"
@@ -307,21 +393,24 @@ restore_agent_db() {
   done
   echo "agent-service database restored from before this run; the attempted one is server/$AGENT_DATA/db-failed/"
 }
+PHASE=migrate
 if ! backup_agent_db; then
-  restore_images
   echo "agent-service is still running; its database was not backed up and nothing was published"
   exit 1
 fi
 
+PHASE=publish
+rm -f "$CONFIG.rollback"
+if [ -f "$CONFIG" ]; then cp -p "$CONFIG" "$CONFIG.rollback"; fi
 ENDPOINT_FILE=$(mktemp "$ENDPOINT_URL.XXXXXX")
 printf '%s\n' "$MCP_ENDPOINT_INTERNAL" > "$ENDPOINT_FILE"
 mv -f "$ENDPOINT_FILE" "$ENDPOINT_URL"
-if [ -f "$CONFIG" ]; then cp -p "$CONFIG" "$CONFIG.rollback"; fi
 mv -f "$STAGED" "$CONFIG"
 
 docker compose up -d --force-recreate "${SERVICES[@]}" || rollback "docker compose up failed"
 [ -n "$TUNNEL_SERVICES" ] || docker rm -f wg >/dev/null 2>&1 || true
 deploy_ready || rollback "new version is not ready"
+PHASE=done
 cp .env "$ENV_DEPLOYED"
 chmod 600 "$ENV_DEPLOYED"
 rm -f .env.failed "$ENDPOINT_CFG.rollback" "$ENDPOINT_URL.rollback"

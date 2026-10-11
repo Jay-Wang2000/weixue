@@ -2,6 +2,7 @@
 `agent` / `agent_sync` / `agent_ack` / `agent_chats` payloads and of the device → server
 `agent_response` / `played` notifications, the limits, and the agent-service delivery and chat
 index → wire mapping (the only mapper)."""
+import hashlib
 import json
 import re
 import uuid
@@ -316,8 +317,17 @@ def parse_played(params):
 
 
 def decision_id(device, boot, seq):
-    """First-wins decision id of a device response (agent-service section 5)."""
+    """Decision id of a device response (agent-service section 5)."""
     return str(uuid.uuid5(uuid.NAMESPACE_URL, f"weixue:{device}:{boot}:{seq}"))
+
+
+def card_decision_id(device, response):
+    """Decision id of an approve / deny / answer: one per card, kind and answer, so every resend
+    and every tap that repeats the decision carries the same id."""
+    answer = response.get("option_id") or ""
+    if response["kind"] == "answer" and "option_id" not in response:
+        answer = "text:" + hashlib.sha256(str(response.get("text", "")).encode()).hexdigest()[:16]
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"weixue:{device}:card:{response['card_id']}:{response['kind']}:{answer}"))
 
 
 # agent-service Delivery → wire
@@ -415,7 +425,8 @@ def response_route(device, response, lang="en"):
         if not is_id(chat):
             raise WireError("bad chat_id")
         chat = quote(chat, safe="")
-    decision = decision_id(device, response["boot"], response["seq"])
+    decision = card_decision_id(device, response) if kind in CARD_KINDS else \
+        decision_id(device, response["boot"], response["seq"])
     if kind in ("approve", "deny") and chat:
         return "POST", f"/v1/chats/{chat}/{kind}", {
             "interaction_id": response["card_id"], "decision_id": decision, "via": "panel"}

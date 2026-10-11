@@ -358,14 +358,92 @@ async def test_stream_error_falls_back_to_batch(tmp_path, monkeypatch, started, 
     assert any(level == "error" and "stream broke" in msg for level, msg in log_records)
 
 
-async def test_stream_error_without_fallback_ends_the_turn(tmp_path, monkeypatch, started, log_records):
+def spoken_text(conn):
+    items = _drain(conn.tts.tts_text_queue)
+    return "".join(i.content_detail for i in items if i.content_type.name == "TEXT")
+
+
+async def test_stream_error_without_fallback_rejects_the_utterance(tmp_path, monkeypatch, started, log_records):
     client = FakeClient(fails_after(1, gexc.ServiceUnavailable("stream broke")))
     provider = make_provider(tmp_path, monkeypatch, client, fallback_model="")
     conn = make_listening_conn(provider)
     await speak(provider, conn)
     await stop(provider, conn)
     assert started == [] and client.recognize_calls == []
-    assert "fallback=stream_error" in stt_lines(log_records)[0]
+    line = stt_lines(log_records)[0]
+    assert "fallback=stream_error" in line and "rejected=fallback_failed" in line
+    assert spoken_text(conn) == google_stt_stream.DEFAULT_REPEAT_REPLY
+
+
+def finals_then_fails(text, error):
+    """One final for the first words, then the stream breaks before the rest of the utterance."""
+
+    def run(call, requests):
+        call.config = next(requests)
+        for request in requests:
+            call.audio.append(request.audio)
+            if len(call.audio) == 3:
+                yield _result(text)
+            if len(call.audio) >= 5:
+                raise error
+
+    return run
+
+
+def finals_then_hangs(text):
+    def run(call, requests):
+        call.config = next(requests)
+        for request in requests:
+            call.audio.append(request.audio)
+            if len(call.audio) == 3:
+                yield _result(text)
+        call.cancelled.wait(10)
+        raise gexc.Cancelled("cancelled")
+
+    return run
+
+
+@pytest.mark.parametrize("behaviour, problem", [
+    (finals_then_fails("Turn on", gexc.ServiceUnavailable("stream broke")), "stream_error"),
+    (finals_then_hangs("Turn on"), "timeout"),
+])
+async def test_partial_finals_with_a_failed_fallback_never_become_a_turn(
+        tmp_path, monkeypatch, started, log_records, behaviour, problem):
+    client = FakeClient(behaviour, recognize=[gexc.ServiceUnavailable("batch down")])
+    provider = make_provider(tmp_path, monkeypatch, client, final_timeout=0.2)
+    conn = make_listening_conn(provider)
+    await speak(provider, conn, voiced=4)
+    wait_for(lambda: call_of(client).audio and len(provider._streams[0].finals) == 1)
+    await speak(provider, conn, voiced=16)
+    await stop(provider, conn)
+
+    assert started == [] and len(client.recognize_calls) == 1
+    line = stt_lines(log_records)[0]
+    assert f"fallback={problem}" in line and "model=-" in line and "rejected=fallback_failed" in line
+    assert spoken_text(conn) == google_stt_stream.DEFAULT_REPEAT_REPLY
+
+
+async def test_partial_finals_take_the_complete_fallback_transcript(tmp_path, monkeypatch, started, log_records):
+    client = FakeClient(
+        finals_then_fails("Turn on", gexc.ServiceUnavailable("stream broke")),
+        recognize=[_response(("Turn on the porch light, no, the hall light.", "en-US"))],
+    )
+    provider = make_provider(tmp_path, monkeypatch, client)
+    conn = make_listening_conn(provider)
+    await speak(provider, conn, voiced=20)
+    await stop(provider, conn)
+    assert started == ["Turn on the porch light, no, the hall light."]
+    assert "rejected" not in stt_lines(log_records)[0]
+    assert spoken_text(conn) == ""
+
+
+async def test_repeat_reply_is_configurable(tmp_path, monkeypatch, started):
+    client = FakeClient(fails_after(1, gexc.ServiceUnavailable("stream broke")), recognize=[gexc.DeadlineExceeded("slow")])
+    provider = make_provider(tmp_path, monkeypatch, client, repeat_reply="Once more?")
+    conn = make_listening_conn(provider)
+    await speak(provider, conn)
+    await stop(provider, conn)
+    assert started == [] and spoken_text(conn) == "Once more?"
 
 
 async def test_final_timeout_cancels_the_stream_and_falls_back(tmp_path, monkeypatch, started, log_records):

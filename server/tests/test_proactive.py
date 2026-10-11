@@ -439,6 +439,56 @@ async def test_delayed_invoke_does_not_consume_a_newer_lease():
     assert speaker.calls == [(b["id"], True)]
 
 
+async def test_level_2_device_must_name_its_lease():
+    clock = Clock()
+    speaker = Speaker()
+    p = make(clock, speaker)
+    _, a = p.submit(fields(key="a"), "ha")
+    item = p.reserve(DEVICE)
+    bare = Conn(session_id="bare")
+    bare.features = {"mcp": True, "agent": 2}
+    clock.t += 1
+    p.on_session_open(DEVICE, bare)
+    await p.on_invoke(bare)
+    assert await drained(bare) and p._delivery is None
+    assert (item.status, item.attempts, item.reserved_for) == ("queued", 0, DEVICE)
+    bound = Conn(session_id="bound")
+    bound.features = {"mcp": True, "agent": 2}
+    p.on_session_open(DEVICE, bound)
+    await p.on_invoke(bound, f"{wp.INVOKE_TEXT}:{item.id}:{item.lease}")
+    await p._delivery
+    assert speaker.calls == [(a["id"], True)]
+
+
+async def test_level_from_the_gateway_applies_without_hello_features():
+    clock = Clock()
+    p = make(clock)
+    p.agent = types.SimpleNamespace(devices={DEVICE: types.SimpleNamespace(level=2)}, on_connection=lambda *a: None,
+                                    poll_ready=lambda d: False)
+    p.submit(fields(key="a"), "ha")
+    item = p.reserve(DEVICE)
+    conn = Conn()
+    clock.t += 1
+    p.on_session_open(DEVICE, conn)
+    await p.on_invoke(conn)
+    assert await drained(conn) and p._delivery is None and item.status == "queued"
+
+
+async def test_level_1_device_keeps_the_bare_marker():
+    clock = Clock()
+    speaker = Speaker()
+    p = make(clock, speaker)
+    _, a = p.submit(fields(key="a"), "ha")
+    p.reserve(DEVICE)
+    conn = Conn()
+    conn.features = {"mcp": True, "agent": 1}
+    clock.t += 1
+    p.on_session_open(DEVICE, conn)
+    await p.on_invoke(conn)
+    await p._delivery
+    assert speaker.calls == [(a["id"], True)]
+
+
 async def test_overlapping_polls_keep_each_invoke_to_its_own_lease():
     clock = Clock()
     speaker = Speaker()
