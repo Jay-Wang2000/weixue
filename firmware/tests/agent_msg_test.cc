@@ -80,6 +80,24 @@ void TestStatesAndTiers() {
           "defaults: when_idle, silent speech, no timeout");
 }
 
+void TestActivity() {
+    auto r = ParseText(R"({"kind":"agent","v":1,"seq":5,"chat_id":"c","task_id":"t","state":"working","summary":"x",)"
+                       R"("progress":{"step":2,"total":null,"activity":"搜索中…"}})");
+    Check(r.message && r.message->item.activity == "搜索中…" && r.message->item.has_progress &&
+              r.message->item.progress_step == 2,
+          "progress.activity next to the step");
+    auto longer = ParseText(R"({"kind":"agent","v":1,"seq":6,"chat_id":"c","task_id":"t","state":"working","summary":"x",)"
+                            R"("progress":{"activity":"查看家里状态查看家里状态查看家里状态查看家里状态查看家里状态…"}})");
+    Check(longer.message && longer.message->item.activity == "查看家里状态查看家里状态查看家里状态查看家里状态",
+          "activity truncated to 24 code points");
+    auto old = ParseText(R"({"kind":"agent","v":1,"seq":7,"chat_id":"c","task_id":"t","state":"working","summary":"x",)"
+                         R"("progress":{"step":1,"total":3}})");
+    Check(old.message && old.message->item.activity.empty(), "no activity: empty");
+    auto bad = ParseText(R"({"kind":"agent","v":1,"seq":8,"chat_id":"c","task_id":"t","state":"working","summary":"x",)"
+                         R"("progress":{"activity":7}})");
+    Check(bad.message && bad.message->item.activity.empty(), "a non-string activity is ignored");
+}
+
 void TestDrops() {
     Check(ParseText(R"({"kind":"agent","v":2,"seq":5,"chat_id":"c","task_id":"t","state":"working","summary":"x"})").error != nullptr,
           "v 2 dropped");
@@ -296,6 +314,7 @@ void TestChats() {
 }  // namespace
 
 int main() {
+    TestActivity();
     TestApproval();
     TestStatesAndTiers();
     TestDrops();

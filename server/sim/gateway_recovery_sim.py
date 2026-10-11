@@ -2,8 +2,10 @@
 """Gateway recovery sim rounds against server/sim/scratch_agent_service.py: the real agent gateway
 and proactive queue (server/overlay) talking HTTP to the scratch service, with simulated device
 sessions (playback, played acks, card answers) in place of the board. Rounds: decisions (F04),
-speech hand-off (F09), retries and attempts (F10), gateway restart (F11), INTERRUPT (F13). Run
-with the server test venv after starting the scratch service:
+speech hand-off (F09), retries and attempts (F10), gateway restart (F11), INTERRUPT (F13), and
+`--rounds activity`: a turn of fake tools whose working items carry the activity label (decision 68;
+start the scratch service with --reply-hold-s 1). Run with the server test venv after starting the
+scratch service:
 
     SIM_TOKEN=<same token> python server/sim/gateway_recovery_sim.py --url http://127.0.0.1:18810 --state <tmp dir>
 
@@ -16,6 +18,7 @@ import sys
 import threading
 import time
 import types
+import uuid
 from pathlib import Path
 
 SERVER = Path(__file__).resolve().parents[1]
@@ -395,11 +398,38 @@ async def round_interrupt(sim, conn):
     check(late is None and len(r6b["acks"]) == len(r6["acks"]), "a late played ack of the cut sentence is not posted")
 
 
+async def round_activity(sim, conn):
+    print("\n== decision 68 activity label ==", flush=True)
+    async with sim.http.post(sim.url + "/v1/chats/current/messages", headers={"Idempotency-Key": str(uuid.uuid4())},
+                             json={"device_id": DEVICE, "text": "tools:web_search,ha_get_state,ha_call_service,"
+                                                                "tool_search_tool_bm25"}) as resp:
+        sent = await resp.json()
+    task_id = sent["task_id"]
+
+    def items():
+        return [p for p in conn.websocket.payloads() if p.get("kind") == "agent" and p.get("task_id") == task_id]
+
+    await sim.wait(lambda: any(p["state"] != "working" for p in items()), 30, "the activity turn ends")
+    labels = []
+    for p in items():
+        label = (p.get("progress") or {}).get("activity")
+        if p["state"] == "working" and label and (not labels or labels[-1] != label):
+            labels.append(label)
+    print(f"working item labels: {labels}", flush=True)
+    want = ["Searching…", "Checking the house…", "Acting…", "Finding a tool…"]
+    check([x for x in labels if x in want] == want, f"labels follow the tools in order: {labels}")
+    check(all(wad.wire.size(p) <= wad.wire.MAX_ITEM_BYTES for p in items()), "every item within the item budget")
+    check(items()[-1]["state"] == "unread" and "progress" not in items()[-1], "the result item has no activity")
+
+
 async def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--url", default="http://127.0.0.1:18810")
     ap.add_argument("--state", required=True)
+    ap.add_argument("--rounds", default="questions,decisions,speech,attempts,restart,interrupt",
+                    help="comma list of questions, decisions, speech, attempts, restart, interrupt, activity")
     a = ap.parse_args()
+    rounds = a.rounds.split(",")
     token = os.environ["SIM_TOKEN"]
     os.chdir(a.state)
     sim = Sim(a.url, token, a.state)
@@ -407,12 +437,20 @@ async def main():
     sim.start()
     conn = sim.open_session("s1")
     await sim.wait(lambda: sim.gw.devices[DEVICE].restored, 10, "first restore")
-    await round_questions(sim, conn)
-    await round_decisions(sim, conn)
-    await round_speech(sim, conn)
-    await round_attempts(sim, conn)
-    conn = await round_restart(sim, conn)
-    await round_interrupt(sim, conn)
+    if "questions" in rounds:
+        await round_questions(sim, conn)
+    if "decisions" in rounds:
+        await round_decisions(sim, conn)
+    if "speech" in rounds:
+        await round_speech(sim, conn)
+    if "attempts" in rounds:
+        await round_attempts(sim, conn)
+    if "restart" in rounds:
+        conn = await round_restart(sim, conn)
+    if "interrupt" in rounds:
+        await round_interrupt(sim, conn)
+    if "activity" in rounds:
+        await round_activity(sim, conn)
     await sim.stop_gateway()
     await sim.http.close()
     print(f"\n{'ALL PASS' if not FAILURES else 'FAILED: ' + '; '.join(FAILURES)}", flush=True)

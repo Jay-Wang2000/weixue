@@ -91,6 +91,7 @@ void FaceDisplay::LoadZhFont() {
     }
     zh_font_ = font;
     agent_view_->SetZhFont(font->font());
+    agent_.SetCjkFont(true);
     ESP_LOGI(TAG, "agent ui: 20 px CJK font loaded (%u bytes)", static_cast<unsigned>(size));
 }
 
@@ -410,6 +411,13 @@ void FaceDisplay::UpdateAgent(int64_t now_us, DeviceState state) {
     int64_t now = now_us / 1000;
     if (agent_dirty_) {
         agent_dirty_ = false;
+        for (const auto& t : agent_pending_) {
+            const auto* old = agent_.Find(t.item.task_id);
+            if (t.item.state == State::kWorking && !t.item.activity.empty() &&
+                (old == nullptr || old->item.activity != t.item.activity)) {
+                ESP_LOGI(TAG, "agent ui: activity=%s task=%s", t.item.activity.c_str(), t.item.task_id.c_str());
+            }
+        }
         auto arrivals = agent_.SetTasks(agent_pending_, now, LocalHhmm(), agent_synced_out_);
         agent_synced_out_.clear();
         if (agent_pending_chats_.seq > agent_chats_seq_) {

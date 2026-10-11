@@ -1,6 +1,6 @@
-# Agent protocol v1.2 (feat-protocol-agent-msg, fix-agent-msg-delivery, feat-ui-sessions, fix-m2-review-gateway)
+# Agent protocol v1.3 (feat-protocol-agent-msg, fix-agent-msg-delivery, feat-ui-sessions, fix-m2-review-gateway, feat-panel-current-tool)
 
-Server → device task-state messages, the chat list and response receipts, device → server responses and playback acks. Contract of DESIGN.md M2 and ADR-11; brief `docs/briefs/feat-protocol-agent-msg.md`. v1.1 adds the `agent_ack` receipt and the poll body cap; v1.2 adds the `agent_chats` chat list for devices at feature level 2; `v` stays 1.
+Server → device task-state messages, the chat list and response receipts, device → server responses and playback acks. Contract of DESIGN.md M2 and ADR-11; brief `docs/briefs/feat-protocol-agent-msg.md`. v1.1 adds the `agent_ack` receipt and the poll body cap; v1.2 adds the `agent_chats` chat list for devices at feature level 2; v1.3 adds `progress.activity`; `v` stays 1.
 
 | Part | Where |
 |---|---|
@@ -26,7 +26,7 @@ Server → device, on the WebSocket `custom` channel (`CONFIG_RECEIVE_CUSTOM_MES
   "title":"Living room",   // optional, ≤ 24 chars
   "summary":"Turn on living room lights",       // ≤ 60 code points
   "lang":"en",             // en|zh
-  "progress":{"step":2,"total":5},              // working only; total may be null
+  "progress":{"step":2,"total":5,"activity":"Searching…"},  // working only; step or activity; total may be null
   "card_id":"i_44c0",      // required with options; echoed in responses
   "options":[{"id":"approve","label":"Approve"},{"id":"deny","label":"Deny"}],  // ≤ 4, label ≤ 12 Latin / ≤ 4 CJK
   "risk":"reversible",     // needs_approval only: reversible|irreversible|money
@@ -44,6 +44,8 @@ Server → device, on the WebSocket `custom` channel (`CONFIG_RECEIVE_CUSTOM_MES
 ```
 
 A `needs_input` item is a question card: `summary` is the question and `options` holds 2-4 choices, shown as the card's buttons; agent-service never sends a question without options (decision 67). The device still renders an option-less question with Later for items stored before that rule. A spoken reply to the card answers it in the user's own words through the normal voice path.
+
+`progress.activity` (v1.3, ≤ 24 chars, the chat's language) is what the agent is doing now (Service deliveries, Activity); a working item without it shows the state word. `progress` without `step` carries only the activity. A device that does not know the field ignores it (unknown fields are ignored).
 
 `agent_sync` ends a snapshot: the device drops every task not listed. `agent_chats` replaces the device's chat list (the newest seq wins; a task snapshot keeps it): at most 12 entries, the payload ≤ 1024 B (the gateway leaves out the oldest chats that do not fit, never the current one), `title` ≤ 24 chars, `state` `idle|working|needs_you|unread|failed` (unknown reads `idle`), `age_s` seconds since the chat's last activity at send time. Agent speech `tts` frames (`start`, `sentence_start`, `stop`) carry `"sentence_id":"…","ack":true`.
 
@@ -135,6 +137,7 @@ The device outbox (`weixue_agent_outbox.h`) holds 8 entries in RAM, sends one at
 
 Offers on `GET /v1/deliveries/stream` have kind `agent` (task cards and notices) or `chats`; acks go to `POST /v1/deliveries/{id}/ack`.
 
+- **Activity.** A task's working deliveries carry `progress: {phase, step, tool, label, activity}`; the gateway passes `step`/`total` and `activity` (cut to 24 chars) to the wire item. agent-service sets `activity` from the current tool (`docs/agent-service.md`, Turn loop), changes it at most once a second per task and clears it when the turn ends.
 - **Notices.** `notify_user` is an `agent` delivery of its own card: `task_id` = `ntf_<ulid>` (no task row), `state: unread`, `title` `Notice` / `通知`, `summary` its text (≤ 60), `speak` its text, tier `INTERRUPT` (`urgent`) or `WHEN_IDLE`, `expires_at` 1 h; the payload adds `notice: true` and `origin_task_id`. The gateway carries it as any task item (mirror, speech through the proactive queue with `urgent` for INTERRUPT, playback and `ack_seen` acks); a tap on it clears it.
 - **Lease and attempt.** Every ack carries the offer's `lease_id` and may carry its `attempt`; one that is not the current offer's is `409 stale_lease`, and the gateway forgets that offer. A revoked stream's offers return to pending without a lease.
 - **Retry owner.** The service: `deferred` (only before any audio) returns the delivery to pending with `attempt + 1`; the next offer has a new lease and `Idempotency-Key` `<delivery_id>:<attempt>`. The gateway does not resubmit an offer it acked `deferred`.

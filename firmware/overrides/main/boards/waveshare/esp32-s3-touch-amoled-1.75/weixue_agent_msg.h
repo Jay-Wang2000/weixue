@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-// Agent wire contract v1.2 (docs/agent-protocol.md): parsing of server `agent` / `agent_sync` /
+// Agent wire contract v1.3 (docs/agent-protocol.md): parsing of server `agent` / `agent_sync` /
 // `agent_ack` / `agent_chats` payloads and building of device `agent_response` / `played`
 // notifications. No ESP-IDF types.
 namespace weixue_agent {
@@ -23,6 +23,7 @@ constexpr size_t kMaxNotificationBytes = 512;
 constexpr size_t kMaxIdChars = 36;
 constexpr size_t kMaxOptionIdChars = 32;
 constexpr size_t kMaxTitleChars = 24;
+constexpr size_t kMaxActivityChars = 24;
 constexpr size_t kMaxSummaryChars = 60;
 constexpr size_t kMaxOptions = 4;
 // Label width: Latin characters count 1, CJK characters 3 (12 Latin or 4 CJK).
@@ -78,6 +79,7 @@ struct Item {
     bool has_progress = false;
     int progress_step = 0;
     int progress_total = -1;  // -1 = unknown
+    std::string activity;     // what the agent is doing now, "" = none
     std::string card_id;
     std::vector<Option> options;
     Risk risk = Risk::kNone;
@@ -415,6 +417,9 @@ inline ParseResult Parse(const cJSON* payload) {
             if (Integer(cJSON_GetObjectItemCaseSensitive(progress, "total"), 1, 10000, &total)) {
                 it.progress_total = static_cast<int>(total);
             }
+        }
+        if (const char* activity = String(progress, "activity")) {
+            it.activity = TruncateChars(activity, kMaxActivityChars);
         }
     }
     const cJSON* options = cJSON_GetObjectItemCaseSensitive(payload, "options");

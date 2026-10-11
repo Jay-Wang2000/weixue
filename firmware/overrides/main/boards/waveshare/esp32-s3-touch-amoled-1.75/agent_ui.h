@@ -308,6 +308,29 @@ inline std::string Plain(const std::string& s) {
     return out;
 }
 
+// A task's activity label as the 20 px state line can draw it: without the CJK font only Latin-1
+// stays ("…" becomes "..."), and a label with other code points is dropped.
+inline std::string ActivityText(const std::string& label, bool cjk_font) {
+    std::string out = Plain(label);
+    if (cjk_font) return out;
+    std::string latin;
+    for (size_t i = 0; i < out.size();) {
+        unsigned char c = static_cast<unsigned char>(out[i]);
+        if (c < 0x80) {
+            latin += out[i++];
+        } else if (out.compare(i, 3, "\xE2\x80\xA6") == 0) {
+            latin += "...";
+            i += 3;
+        } else if ((c == 0xC2 || c == 0xC3) && i + 1 < out.size()) {
+            latin += out.substr(i, 2);
+            i += 2;
+        } else {
+            return "";
+        }
+    }
+    return latin;
+}
+
 // What the device knows about the moment, for card and complication decisions.
 struct Context {
     bool voice_idle = true;   // device idle (no session)
@@ -493,6 +516,15 @@ public:
         return Plain(t.item.title.empty() ? t.item.summary : t.item.title);
     }
 
+    // The 20 px state lines can draw CJK (the assets font is loaded).
+    void SetCjkFont(bool on) { cjk_font_ = on; }
+
+    // What a working task is doing now ("Searching…"), "" when not working or unknown.
+    std::string ActivityOf(const Task& t) const {
+        if (t.item.state != State::kWorking) return "";
+        return ActivityText(t.item.activity, cjk_font_);
+    }
+
     static Glyph GlyphFor(State s) {
         switch (s) {
             case State::kNeedsApproval: return Glyph::kApproval;
@@ -508,21 +540,27 @@ public:
         return Glyph::kNone;
     }
 
-    // "Step 2 of 5 · 4 min" / "Working · 4 min", plus " · 3 min ago" after kStaleUpdateMs
-    // without an update.
+    // "Searching… · step 2 of 5 · 4 min" / "Step 2 of 5 · 4 min" / "Working · 4 min", plus
+    // " · 3 min ago" after kStaleUpdateMs without an update.
     Line WorkingStatus(const Task& t, int64_t now_ms) const {
         const Info* info = FindInfo(t.item.task_id);
         Line line;
         std::string head;
+        std::string activity = ActivityOf(t);
+        bool steps = t.item.has_progress && t.item.progress_total > 0;
+        std::string step = std::to_string(t.item.progress_step) + " of " + std::to_string(t.item.progress_total);
         if (t.item.state == State::kInterrupted) {
             head = "Interrupted";
-        } else if (t.item.has_progress && t.item.progress_total > 0) {
-            head = "Step " + std::to_string(t.item.progress_step) + " of " +
-                   std::to_string(t.item.progress_total);
+        } else if (!activity.empty()) {
+            head = activity;
+        } else if (steps) {
+            head = "Step " + step;
+            steps = false;
         } else {
             head = "Working";
         }
         line.push_back({head, color::kLabel});
+        if (steps && t.item.state != State::kInterrupted) line.push_back({" · step " + step, color::kLabel});
         if (info != nullptr) {
             int64_t minutes = (now_ms - info->first_ms) / 60000;
             if (minutes >= 1) line.push_back({" · " + std::to_string(minutes) + " min", color::kLabel});
@@ -735,7 +773,10 @@ public:
                     break;
                 case State::kWorking:
                 case State::kInterrupted: {
-                    std::string word = t.item.state == State::kInterrupted ? "Interrupted" : "Working";
+                    std::string activity = ActivityOf(t);
+                    std::string word = t.item.state == State::kInterrupted ? "Interrupted"
+                                       : activity.empty()                  ? "Working"
+                                                                           : activity;
                     r.status = {{word, color::kValue}};
                     if (t.item.has_progress && t.item.progress_total > 0) {
                         r.status.push_back({" · step " + std::to_string(t.item.progress_step) + " of " +
@@ -1305,6 +1346,7 @@ private:
 
     std::vector<Task> tasks_;
     std::vector<Info> infos_;
+    bool cjk_font_ = false;
     std::vector<std::string> read_;
     std::vector<PendingOpen> pending_open_;
     std::vector<ChatInfo> chats_;

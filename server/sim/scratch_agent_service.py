@@ -14,6 +14,9 @@ Control routes (same bearer token):
   POST /sim/ask     {"device_id", "question", "options"}  a chat turn that leaves a question card
   POST /sim/enqueue {"device_id", "tier", "slot", "payload", "speak", "task_id", "chat_id"}  outbox.enqueue
   GET  /sim/rows?delivery_id=  the deliveries row and its delivery_acks; ?interaction_id= that row
+
+A message "tools:<name>,<name>,..." is a turn that says one sentence, then uses each tool 1.5 s apart
+(web_search, web_fetch and tool_search_* as server tools, others as client tools) and says "Done."
 """
 import argparse
 import asyncio
@@ -36,13 +39,15 @@ from starlette.routing import Mount, Route  # noqa: E402
 from fake_api import FakeApi  # noqa: E402
 from fake_hamcp import FakeHaMcp  # noqa: E402
 import httpx  # noqa: E402
-from weixue_agent import config as service_config, deliveries, interactions  # noqa: E402
+from weixue_agent import config as service_config, deliveries, interactions, turns  # noqa: E402
 from weixue_agent.api import Api  # noqa: E402
 from weixue_agent.config import load_settings  # noqa: E402
 from weixue_agent.service import Service  # noqa: E402
 from weixue_hamcp import HaMcpClient  # noqa: E402
 
 HA_URL = "http://ha.test:9584/private_sim"
+TOOL_ARGS = {"ha_get_state": {"entity_id": "light.kitchen"}, "ha_search": {"query": "kitchen"},
+             "ha_call_service": {"domain": "light", "service": "turn_on", "entity_id": "light.kitchen"}}
 
 
 async def script(turn):
@@ -51,6 +56,15 @@ async def script(turn):
         answer = await turn.ask(question, options.split("|"))
         await turn.text(f"Okay: {answer}.")
         return
+    if turn.user_text.startswith("tools:"):
+        await turn.text("Let me look.")
+        for name in turn.user_text[len("tools:"):].split(","):
+            await asyncio.sleep(1.5)
+            if name in ("web_search", "web_fetch") or name.startswith("tool_search"):
+                turn.server_tool(name, "sim")
+            else:
+                await turn.tool(name, TOOL_ARGS.get(name, {}))
+        await asyncio.sleep(1.5)
     await turn.text("Done.")
 
 
@@ -80,7 +94,10 @@ def main():
     ap.add_argument("--port", type=int, default=18810)
     ap.add_argument("--data", required=True)
     ap.add_argument("--lease-s", type=float, default=3, help="offer lease (DELIVERY_LEASE_S)")
+    ap.add_argument("--reply-hold-s", type=float, help="REPLY_HOLD_S (default: the service's)")
     a = ap.parse_args()
+    if a.reply_hold_s is not None:
+        turns.REPLY_HOLD_S = a.reply_hold_s
     token = os.environ["SIM_TOKEN"]
     deliveries.DELIVERY_LEASE_S = a.lease_s
     service_config.DELIVERY_LEASE_S = a.lease_s

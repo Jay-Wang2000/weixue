@@ -1,4 +1,4 @@
-"""Agent wire contract v1.2 (docs/agent-protocol.md): builders and validators of the server → device
+"""Agent wire contract v1.3 (docs/agent-protocol.md): builders and validators of the server → device
 `agent` / `agent_sync` / `agent_ack` / `agent_chats` payloads and of the device → server
 `agent_response` / `played` notifications, the limits, and the agent-service delivery and chat
 index → wire mapping (the only mapper)."""
@@ -45,6 +45,7 @@ MAX_NOTIFICATION_BYTES = 512
 MAX_ID_CHARS = 36
 MAX_OPTION_ID_CHARS = 32
 MAX_TITLE_CHARS = 24
+MAX_ACTIVITY_CHARS = 24
 MAX_SUMMARY_CHARS = 60
 MAX_OPTIONS = 4
 MAX_LABEL_WIDTH = 12
@@ -141,11 +142,18 @@ def build_item(fields, seq, ts):
     if progress is not None:
         if state != "working" or not isinstance(progress, dict):
             raise WireError("progress is an object on working items only")
-        step = _int(progress.get("step"), "progress.step", 0, 10000)
-        total = progress.get("total")
-        if total is not None:
-            total = _int(total, "progress.total", 1, 10000)
-        out["progress"] = {"step": step, "total": total}
+        activity = progress.get("activity")
+        if progress.get("step") is None and activity is None:
+            raise WireError("progress needs step or activity")
+        out["progress"] = {}
+        if progress.get("step") is not None:
+            step = _int(progress.get("step"), "progress.step", 0, 10000)
+            total = progress.get("total")
+            if total is not None:
+                total = _int(total, "progress.total", 1, 10000)
+            out["progress"] = {"step": step, "total": total}
+        if activity is not None:
+            out["progress"]["activity"] = truncate_chars(_str(activity, "progress.activity"), MAX_ACTIVITY_CHARS)
     options = fields.get("options")
     if options is not None:
         if not isinstance(options, list) or not 1 <= len(options) <= MAX_OPTIONS:
@@ -365,8 +373,14 @@ def from_delivery(offer, now=None):
     if lang:
         fields["lang"] = lang
     progress = payload.get("progress")
-    if state == "working" and isinstance(progress, dict) and isinstance(progress.get("step"), int):
-        fields["progress"] = {"step": progress["step"], "total": progress.get("total")}
+    if state == "working" and isinstance(progress, dict):
+        wire = {}
+        if isinstance(progress.get("step"), int):
+            wire = {"step": progress["step"], "total": progress.get("total")}
+        if isinstance(progress.get("activity"), str) and progress["activity"]:
+            wire["activity"] = truncate_chars(progress["activity"], MAX_ACTIVITY_CHARS)
+        if wire:
+            fields["progress"] = wire
     interaction = payload.get("interaction") or {}
     if state in ("needs_input", "needs_approval") and interaction.get("interaction_id"):
         fields["card_id"] = interaction["interaction_id"]
