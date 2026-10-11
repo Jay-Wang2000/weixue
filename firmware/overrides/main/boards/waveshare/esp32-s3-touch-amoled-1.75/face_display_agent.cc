@@ -217,10 +217,10 @@ void FaceDisplay::SetTransient(const std::string& title, const std::string& summ
     agent_view_->SetTransient(title, summary, color);
 }
 
-void FaceDisplay::OpenAgentCard(const std::string& task_id) {
+bool FaceDisplay::OpenAgentCard(const std::string& task_id) {
     int64_t now = NowMs();
     if (!agent_.OpenCard(task_id, now)) {
-        return;
+        return false;
     }
     if (panel_->IsShown()) {
         ShowPanel(false);
@@ -231,6 +231,7 @@ void FaceDisplay::OpenAgentCard(const std::string& task_id) {
 #if WEIXUE_FACE_DIAG
     diag_dump_due_us_ = esp_timer_get_time() + 800 * 1000;
 #endif
+    return true;
 }
 
 void FaceDisplay::CloseAgentCard() {
@@ -436,7 +437,19 @@ void FaceDisplay::UpdateAgent(int64_t now_us, DeviceState state) {
         if (bedside_) {
             bedside_resume_us_ = now_us + kBedsideResumeAgentUs;
         }
+        if (!agent_.pick_reason().empty()) {
+            ESP_LOGI(TAG, "agent ui: card advanced task=none by=%s reason=%s", open.c_str(),
+                     agent_.pick_reason().c_str());
+        }
         OpenAgentCard(open);
+    } else if (agent_.card_open()) {
+        auto swap = agent_.WantPreempt(ctx, now);
+        if (!swap.to.empty()) {
+            ESP_LOGI(TAG, "agent ui: card preempted task=%s by=%s", swap.from.c_str(), swap.to.c_str());
+            if (!OpenAgentCard(swap.to)) {
+                CloseAgentCard();
+            }
+        }
     }
 
     bool expired = false;
@@ -448,7 +461,13 @@ void FaceDisplay::UpdateAgent(int64_t now_us, DeviceState state) {
     }
     if (agent_.card_open()) {
         auto tick = agent_.TickCard(now);
-        if (tick.close) {
+        if (!tick.advance_to.empty()) {
+            ESP_LOGI(TAG, "agent ui: card advanced task=%s by=%s reason=%s", tick.advance_from.c_str(),
+                     tick.advance_to.c_str(), agent_.pick_reason().c_str());
+            if (!OpenAgentCard(tick.advance_to)) {
+                CloseAgentCard();
+            }
+        } else if (tick.close) {
             CloseAgentCard();
         } else if (tick.changed || expired || now - agent_drawn_ms_ >= kRenderGapMs) {
             agent_view_->SetCard(agent_.Card(now));

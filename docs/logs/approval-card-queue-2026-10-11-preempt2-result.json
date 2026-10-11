@@ -1,0 +1,71 @@
+[
+ {
+  "round": "P",
+  "name": "preempt",
+  "run": false,
+  "result": "no_hold: message routed to chat cht_01M4NVPJA10DF5Z4KWYNKHQ3V3 task tsk_01M4NVPJD9QKX8PZ4H7ARPXDNB (answer)",
+  "cleanup": [],
+  "question": {
+   "task": "tsk_01M4NVPJD9QKX8PZ4H7ARPXDNB",
+   "chat": "cht_01M4NVPJA10DF5Z4KWYNKHQ3V3",
+   "pending": {
+    "interaction_id": "int_01M4NVPMNDM9K5D5WC7KC8MXAA",
+    "task_id": "tsk_01M4NVPJD9QKX8PZ4H7ARPXDNB",
+    "chat_id": "cht_01M4NVPJA10DF5Z4KWYNKHQ3V3",
+    "turn_id": "trn_01M4NVPJDACEYXQESYPQX6X2G2",
+    "kind": "input",
+    "source": "text",
+    "state": "pending",
+    "voice_can_approve": false,
+    "created_at": "2026-10-11T16:10:59.117Z",
+    "expires_at": "2026-10-11T16:40:59.117Z",
+    "decision": null,
+    "via": null,
+    "question": {
+     "text": "Which room is this probe for, the kitchen or the bedroom?",
+     "options": [],
+     "multi_select": false
+    }
+   },
+   "opened_by": "complication tap",
+   "card_open_line": 652,
+   "state": "progress",
+   "settle": {
+    "task_id": "tsk_01M4NVPJD9QKX8PZ4H7ARPXDNB",
+    "chat_id": "cht_01M4NVPJA10DF5Z4KWYNKHQ3V3",
+    "before": "progress",
+    "action": "interrupt HTTP 200",
+    "after": "cancelled"
+   }
+  },
+  "task": null,
+  "chat": "cht_01M4NVQ0XCS821DGZ4DBNMBZSA",
+  "pending": null,
+  "held_call": {
+   "status": null,
+   "result_summary": null
+  },
+  "settle": null
+ },
+ {
+  "round": "A",
+  "name": "approve",
+  "run": false,
+  "result": "no_hold: task done without a pending approval (ha_call_service denied: Home Assistant: the user denied this action. Do not retry it.)",
+  "cleanup": [],
+  "task": "tsk_01M4NVQ617T70V0B2N4HF6NCEK",
+  "chat": "cht_01M4NVQ5Y2VTXXSJF542TJBJJT",
+  "pending": null,
+  "held_call": {
+   "status": "denied",
+   "result_summary": "Home Assistant: the user denied this action. Do not retry it."
+  },
+  "settle": {
+   "task_id": "tsk_01M4NVQ617T70V0B2N4HF6NCEK",
+   "chat_id": "cht_01M4NVQ5Y2VTXXSJF542TJBJJT",
+   "before": "done",
+   "action": "none",
+   "after": "done"
+  }
+ }
+]

@@ -46,6 +46,8 @@ constexpr int64_t kCardTapGuardMs = 400;
 constexpr int64_t kSwitchTimeoutMs = 3000;
 constexpr int64_t kOutcomeMs = 900;
 constexpr int64_t kCardIdleLaterMs = 60000;
+constexpr int64_t kCardAdvanceMs = 20000;
+constexpr int64_t kBootPickMs = 60000;
 constexpr int64_t kHintMs = 10000;
 constexpr int64_t kMoodMs = 3000;
 constexpr int64_t kStaleUpdateMs = 120000;
@@ -341,6 +343,7 @@ public:
         std::vector<Arrival> out;
         std::vector<Info> next;
         std::vector<std::string> dropped_chats;
+        if (boot_until_ms_ < 0) boot_until_ms_ = now_ms + kBootPickMs;
         for (const auto& old : tasks_) {
             if (std::find(synced_out.begin(), synced_out.end(), old.item.task_id) != synced_out.end()) {
                 dropped_chats.push_back(old.item.chat_id);
@@ -384,7 +387,7 @@ public:
                 const Task* t = Find(a.task_id);
                 if (t != nullptr) {
                     DropPending(t->item.card_id);
-                    pending_open_.push_back({t->item.card_id, a.tier});
+                    pending_open_.push_back({t->item.card_id, a.tier, now_ms});
                 }
             }
         }
@@ -914,29 +917,64 @@ public:
 
     // Cards
 
-    // Card to open without a tap (§3.2), or "" for none: INTERRUPT once no finger is down and
-    // the panel was untouched for kCardTapGuardMs, WHEN_IDLE once the device is idle and
-    // untouched and the face is showing.
+    // Card to open without a tap (§3.2), or "" for none: INTERRUPT cards and a preempted question
+    // once no finger is down and the panel was untouched for kCardTapGuardMs, WHEN_IDLE once the
+    // device is idle and untouched and the face is showing. Order: approvals, then (once no
+    // approval card waits) the question an approval preempted, then the other questions, each
+    // kind in arrival order; before the first card opens within kBootPickMs of the first task
+    // list, the newest approval first.
     std::string WantAutoOpen(const Context& ctx, int64_t now_ms) {
+        pick_reason_.clear();
         pending_open_.erase(
             std::remove_if(pending_open_.begin(), pending_open_.end(),
                            [&](const PendingOpen& p) { return CardTaskId(p.card_id, now_ms).empty(); }),
             pending_open_.end());
         if (card_.kind != CardKind::kNone || ctx.touch_down) return "";
+        bool boot = !opened_since_boot_ && now_ms < boot_until_ms_;
         if (now_ms - ctx.last_touch_ms >= kCardTapGuardMs) {
-            for (const auto& p : pending_open_) {
-                if (p.tier == Tier::kInterrupt) return CardTaskId(p.card_id, now_ms);
-            }
+            std::string id = PickPending(now_ms, true, boot, false, "");
+            if (!id.empty()) return id;
         }
         if (ctx.panel_shown || ctx.bedside || ctx.dimmed || !ctx.voice_idle ||
             now_ms - ctx.idle_since_ms < kIdleBeforeMiniMs ||
             now_ms - ctx.last_touch_ms < kWhenIdleTouchGapMs) {
             return "";
         }
-        for (const auto& p : pending_open_) {
-            if (p.tier != Tier::kInterrupt) return CardTaskId(p.card_id, now_ms);
+        return PickPending(now_ms, false, boot, false, "");
+    }
+
+    // Why the last WantAutoOpen or TickCard advance chose its card: "boot_newest_approval" (not
+    // the first approval to arrive), "return" (a preempted question), "untouched_20s" (advance),
+    // "" (arrival order).
+    const std::string& pick_reason() const { return pick_reason_; }
+
+    struct Swap {
+        std::string from, to;  // question card left, approval card to open; empty: no swap
+    };
+
+    // While a question card is open with no decision and no finger down, an approval card that
+    // arrived after it opened takes its place: INTERRUPT once the panel was untouched for
+    // kCardTapGuardMs, WHEN_IDLE once the device is idle and the card untouched for
+    // kWhenIdleTouchGapMs. The question is queued to return once no approval card waits.
+    Swap WantPreempt(const Context& ctx, int64_t now_ms) {
+        Swap s;
+        if (card_.kind != CardKind::kQuestion || card_.phase != CardPhase::kOpen || ctx.touch_down ||
+            now_ms - ctx.last_touch_ms < kCardTapGuardMs || FindDecision(card_.card_id) != nullptr) {
+            return s;
         }
-        return "";
+        bool idle = ctx.voice_idle && now_ms - ctx.idle_since_ms >= kIdleBeforeMiniMs &&
+                    now_ms - ctx.last_touch_ms >= kWhenIdleTouchGapMs &&
+                    now_ms - card_.touched_ms >= kWhenIdleTouchGapMs;
+        for (const auto& p : pending_open_) {
+            if (p.returns || p.arrived_ms < card_.shown_ms || (p.tier != Tier::kInterrupt && !idle)) continue;
+            const Task* t = Find(CardTaskId(p.card_id, now_ms));
+            if (t == nullptr || t->item.state != State::kNeedsApproval) continue;
+            s.from = card_.task_id;
+            s.to = t->item.task_id;
+            Requeue(now_ms);
+            return s;
+        }
+        return s;
     }
 
     bool HasInterruptPending(int64_t now_ms) const {
@@ -959,6 +997,8 @@ public:
         card_ = CardState();
         Snapshot(*t, now_ms);
         card_.touched_ms = now_ms;
+        card_.shown_ms = now_ms;
+        opened_since_boot_ = true;
         return true;
     }
 
@@ -1170,8 +1210,8 @@ public:
         return out;
     }
 
-    // Right swipe or 60 s idle: the card closes, the item stays pending on the face. A decision
-    // in flight keeps its record.
+    // Right swipe, 60 s idle or an advance: the card closes, the item stays pending on the face. A
+    // decision in flight keeps its record.
     void Later() {
         if (!card_.card_id.empty()) DropPending(card_.card_id);
         card_ = CardState();
@@ -1180,8 +1220,13 @@ public:
     struct CardTick {
         bool close = false;    // slide the card out now
         bool changed = false;  // content changed (re-render)
+        std::string advance_from, advance_to;  // the card was left for advance_to's card (open it)
     };
 
+    // Card timers: outcome, answered elsewhere, expiry, refresh; untouched for kCardAdvanceMs with
+    // no decision while another card is pending, the card is left for that one (advance_to): an
+    // approval for the next approval, a question for an approval (the question returns after it)
+    // or the next question; untouched for kCardIdleLaterMs, Later.
     CardTick TickCard(int64_t now_ms) {
         CardTick r;
         if (card_.kind == CardKind::kNone) return r;
@@ -1206,9 +1251,26 @@ public:
         } else if (rec == nullptr && !SameCard(*t)) {
             Snapshot(*t, now_ms);
             r.changed = true;
-        } else if (now_ms - card_.touched_ms >= kCardIdleLaterMs) {
-            Later();
-            r.close = true;
+        } else {
+            int64_t idle = now_ms - card_.touched_ms;
+            bool approval = card_.kind == CardKind::kApproval;
+            std::string next = rec == nullptr && idle >= kCardAdvanceMs
+                                   ? PickPending(now_ms, false, false, approval, card_.card_id)
+                                   : "";
+            if (!next.empty()) {
+                const Task* to = Find(next);
+                r.advance_from = card_.task_id;
+                r.advance_to = next;
+                pick_reason_ = "untouched_20s";
+                if (!approval && to != nullptr && to->item.state == State::kNeedsApproval) {
+                    Requeue(now_ms);
+                } else {
+                    Later();
+                }
+            } else if (idle >= kCardIdleLaterMs) {
+                Later();
+                r.close = true;
+            }
         }
         return r;
     }
@@ -1217,6 +1279,8 @@ private:
     struct PendingOpen {
         std::string card_id;
         Tier tier;
+        int64_t arrived_ms = 0;
+        bool returns = false;  // a question card an approval preempted
     };
     struct CardState {
         CardKind kind = CardKind::kNone;
@@ -1226,6 +1290,7 @@ private:
         uint32_t outcome_color = color::kText;
         Glyph outcome_glyph = Glyph::kNone;
         int64_t opened_ms = 0, touched_ms = 0, phase_ms = 0, heard_ms = 0;
+        int64_t shown_ms = 0;  // OpenCard (opened_ms also moves on a refresh)
     };
     enum class SendPhase : uint8_t { kQueued, kSent, kNotSent };
     // One decision per card_id, kept until its card is no longer open on any task (and, while
@@ -1250,6 +1315,9 @@ private:
     bool new_chat_pending_ = false;
     bool server_chats_ = false;
     int64_t server_seq_ = 0;
+    int64_t boot_until_ms_ = -1;
+    bool opened_since_boot_ = false;
+    std::string pick_reason_;
     Flash flash_;
     CardState card_;
 
@@ -1323,6 +1391,53 @@ private:
             }
         }
         return "";
+    }
+
+    // Task of the pending card to open next, other than skip_card, or "": approvals first (boot:
+    // the newest by seq), then, once no approval card waits, a preempted question, then the other
+    // questions, each in arrival order. urgent: INTERRUPT and preempted cards only. Sets
+    // pick_reason_.
+    std::string PickPending(int64_t now_ms, bool urgent, bool boot, bool approvals_only,
+                            const std::string& skip_card) {
+        const Task* first_approval = nullptr;
+        const Task* approval = nullptr;
+        const Task* back = nullptr;
+        const Task* question = nullptr;
+        bool approval_waits = false;
+        for (const auto& p : pending_open_) {
+            if (p.card_id == skip_card) continue;
+            const Task* t = Find(CardTaskId(p.card_id, now_ms));
+            if (t == nullptr) continue;
+            bool is_approval = t->item.state == State::kNeedsApproval;
+            approval_waits = approval_waits || is_approval;
+            if (urgent && p.tier != Tier::kInterrupt && !p.returns) continue;
+            if (is_approval) {
+                if (first_approval == nullptr) first_approval = t;
+                if (approval == nullptr || (boot && t->item.seq > approval->item.seq)) approval = t;
+            } else if (p.returns) {
+                if (back == nullptr) back = t;
+            } else if (question == nullptr) {
+                question = t;
+            }
+        }
+        if (approval != nullptr) {
+            if (approval != first_approval) pick_reason_ = "boot_newest_approval";
+            return approval->item.task_id;
+        }
+        if (approvals_only || approval_waits) return "";
+        if (back != nullptr) {
+            pick_reason_ = "return";
+            return back->item.task_id;
+        }
+        return question != nullptr ? question->item.task_id : "";
+    }
+
+    // Closes the open question card and queues it to return after the approval cards.
+    void Requeue(int64_t now_ms) {
+        std::string card_id = card_.card_id;
+        card_ = CardState();
+        DropPending(card_id);
+        pending_open_.push_back({card_id, Tier::kWhenIdle, now_ms, true});
     }
 
     void DropPending(const std::string& card_id) {

@@ -1,0 +1,238 @@
+[
+ {
+  "round": "A",
+  "name": "approve",
+  "run": false,
+  "result": "no_hold: no pending approval within 90 s",
+  "cleanup": [
+   {
+    "task_id": "tsk_01M4NG76ATW0C5239WK83F8M1G",
+    "chat_id": "cht_01M4NG7606M4ZNPPKATVD5252R",
+    "before": "cancelled",
+    "action": "none",
+    "after": "cancelled"
+   },
+   {
+    "task_id": "tsk_01M4M7YC4HJ6C16JZA4R3A1YTK",
+    "chat_id": "cht_01M4M7MX0E4YJM3VZ43BX07XAY",
+    "before": "cancelled",
+    "action": "none",
+    "after": "cancelled"
+   }
+  ],
+  "task": "tsk_01M4NSX072C8JP92PGWJES5QW4",
+  "chat": "cht_01M4NV87GDJMBX7GXVZE1ZYS3D",
+  "pending": null,
+  "held_call": {
+   "status": null,
+   "result_summary": null
+  },
+  "settle": {
+   "task_id": "tsk_01M4NSX072C8JP92PGWJES5QW4",
+   "chat_id": "cht_01M4NGJ62D74JRKM2KXEWSVJ8W",
+   "before": "progress",
+   "action": "interrupt HTTP 200",
+   "after": "cancelled"
+  }
+ },
+ {
+  "round": "C",
+  "name": "duplicate taps",
+  "run": true,
+  "result": "pass",
+  "cleanup": [],
+  "task": "tsk_01M4NVB0RC7AEN0FVSH0TRR42J",
+  "chat": "cht_01M4NVB0M6FK8QB8X20MN2QBD6",
+  "pending": {
+   "interaction_id": "int_01M4NVBAHRYJ95PACKN3166FV5",
+   "task_id": "tsk_01M4NVB0RC7AEN0FVSH0TRR42J",
+   "chat_id": "cht_01M4NVB0M6FK8QB8X20MN2QBD6",
+   "turn_id": "trn_01M4NVB0RCNTZ6W0FGD2HH9QT7",
+   "kind": "approval",
+   "source": "ha_mcp",
+   "state": "pending",
+   "voice_can_approve": true,
+   "created_at": "2026-10-11T16:04:48.312Z",
+   "expires_at": "2026-10-11T16:14:39.378Z",
+   "decision": null,
+   "via": null,
+   "action": {
+    "text": "input_boolean.toggle input_boolean.weixue_session_probe",
+    "detail": "ha_call_service input_boolean.weixue_session_probe",
+    "tool": "ha_call_service",
+    "risk": "low",
+    "reversible": true
+   }
+  },
+  "card_open_line": 3185,
+  "advanced": [],
+  "preempted": [],
+  "taps": [
+   {
+    "kind": "approve",
+    "ok": true,
+    "line": 3357
+   },
+   {
+    "kind": "approve",
+    "ok": true,
+    "line": 3370
+   }
+  ],
+  "receipts": [
+   {
+    "line": 3379,
+    "kind": "approve",
+    "card": "int_01M4NVBAHRYJ95PACKN3166FV5",
+    "result": "accepted"
+   }
+  ],
+  "responses": 1,
+  "earcons": [
+   {
+    "line": 2676,
+    "earcon": "needs_you"
+   },
+   {
+    "line": 3388,
+    "earcon": "approved"
+   }
+  ],
+  "held_call": {
+   "status": "error",
+   "approval_decision": "approve",
+   "result_summary": "{ \"success\": false, \"error\": { \"code\": \"ENTITY_NOT_FOUND\", \"message\": \"Entity 'input_boolean.weixue_session_probe' not found\", \"details\": \"No entity with ID 'input_boolean.weixue_session_probe' exist\u2026"
+  },
+  "end_state": "progress",
+  "settle": {
+   "task_id": "tsk_01M4NVB0RC7AEN0FVSH0TRR42J",
+   "chat_id": "cht_01M4NVB0M6FK8QB8X20MN2QBD6",
+   "before": "progress",
+   "action": "interrupt HTTP 200",
+   "after": "cancelled"
+  },
+  "replays": 1
+ },
+ {
+  "round": "P",
+  "name": "preempt",
+  "run": false,
+  "result": "card_not_opened",
+  "cleanup": [],
+  "question": {
+   "task": "tsk_01M4NVBWMXFP4FG2JQ5SGNPSNV",
+   "chat": "cht_01M4NVBWJ2YSZVPKCZCAG7ABY5",
+   "pending": {
+    "interaction_id": "int_01M4NVBYBZ6MT25E59X0P75TWM",
+    "task_id": "tsk_01M4NVBWMXFP4FG2JQ5SGNPSNV",
+    "chat_id": "cht_01M4NVBWJ2YSZVPKCZCAG7ABY5",
+    "turn_id": "trn_01M4NVBWMXYMR7CJG45TTKHGXS",
+    "kind": "input",
+    "source": "sdk",
+    "state": "pending",
+    "voice_can_approve": false,
+    "created_at": "2026-10-11T16:05:08.607Z",
+    "expires_at": "2026-10-11T16:35:08.607Z",
+    "decision": null,
+    "via": null,
+    "question": {
+     "text": "Which room is this probe for?",
+     "options": [
+      {
+       "id": "opt1",
+       "label": "Kitchen"
+      },
+      {
+       "id": "opt2",
+       "label": "Bedroom"
+      }
+     ],
+     "multi_select": false
+    }
+   },
+   "card_open_line": null,
+   "state": "needs_input",
+   "settle": {
+    "task_id": "tsk_01M4NVBWMXFP4FG2JQ5SGNPSNV",
+    "chat_id": "cht_01M4NVBWJ2YSZVPKCZCAG7ABY5",
+    "before": "needs_input",
+    "action": "interrupt HTTP 200",
+    "after": "cancelled"
+   }
+  },
+  "open_card_task": null
+ },
+ {
+  "round": "B",
+  "name": "deny",
+  "run": true,
+  "result": "pass",
+  "cleanup": [],
+  "task": "tsk_01M4NVEQWKYQC52WFQ9YG44C49",
+  "chat": "cht_01M4NVEQRTWZG5T63X41DD8SVV",
+  "pending": {
+   "interaction_id": "int_01M4NVF1KY2N964WYMHRHF14SF",
+   "task_id": "tsk_01M4NVEQWKYQC52WFQ9YG44C49",
+   "chat_id": "cht_01M4NVEQRTWZG5T63X41DD8SVV",
+   "turn_id": "trn_01M4NVEQWKMTPVXPJZKWF1VY2G",
+   "kind": "approval",
+   "source": "ha_mcp",
+   "state": "pending",
+   "voice_can_approve": true,
+   "created_at": "2026-10-11T16:06:50.238Z",
+   "expires_at": "2026-10-11T16:16:41.370Z",
+   "decision": null,
+   "via": null,
+   "action": {
+    "text": "input_boolean.toggle input_boolean.weixue_session_probe",
+    "detail": "ha_call_service input_boolean.weixue_session_probe",
+    "tool": "ha_call_service",
+    "risk": "low",
+    "reversible": true
+   }
+  },
+  "card_open_line": 5794,
+  "advanced": [],
+  "preempted": [],
+  "taps": [
+   {
+    "kind": "deny",
+    "ok": true,
+    "line": 6479
+   }
+  ],
+  "receipts": [
+   {
+    "line": 6503,
+    "kind": "deny",
+    "card": "int_01M4NVF1KY2N964WYMHRHF14SF",
+    "result": "accepted"
+   }
+  ],
+  "responses": 1,
+  "earcons": [
+   {
+    "line": 5788,
+    "earcon": "needs_you"
+   },
+   {
+    "line": 6504,
+    "earcon": "denied skipped: device busy or muted"
+   }
+  ],
+  "held_call": {
+   "status": "denied",
+   "approval_decision": "deny",
+   "result_summary": "denied on the weixue panel"
+  },
+  "end_state": "done",
+  "settle": {
+   "task_id": "tsk_01M4NVEQWKYQC52WFQ9YG44C49",
+   "chat_id": "cht_01M4NVEQRTWZG5T63X41DD8SVV",
+   "before": "done",
+   "action": "none",
+   "after": "done"
+  },
+  "replays": 0
+ }
+]

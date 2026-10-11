@@ -375,6 +375,172 @@ void TestLaterAndIdle() {
     Check(r.model.TickCard(90000).close && !r.model.card_open(), "60 s idle is Later");
 }
 
+void TestPreempt() {
+    Rig r;
+    r.Apply(Question("q", 2), 0);
+    Check(r.model.WantAutoOpen(IdleCtx(-10000), 10000) == "q", "a lone question opens");
+    r.model.OpenCard("q", 10000);
+    r.Apply(Approval("a", Tier::kInterrupt), 12000);
+    Context down = IdleCtx(-10000);
+    down.touch_down = true;
+    Check(r.model.WantPreempt(down, 12500).to.empty() && r.model.card_task() == "q",
+          "no preemption under a finger");
+    Context recent = IdleCtx(-10000);
+    recent.last_touch_ms = 12300;
+    Check(r.model.WantPreempt(recent, 12500).to.empty(), "no preemption within 400 ms of a touch");
+    Model::Swap s = r.model.WantPreempt(IdleCtx(-10000), 12500);
+    Check(s.from == "q" && s.to == "a" && !r.model.card_open(), "an INTERRUPT approval preempts the open question");
+    Check(r.model.OpenCard("a", 12500) && r.model.Card(12500).kind == CardKind::kApproval, "the approval card opens");
+    Check(r.model.WantAutoOpen(IdleCtx(-10000), 13000).empty(), "the question waits while the approval is open");
+    Model::Decision d = r.model.Tap(0, 13000);
+    Check(d.send && d.task_id == "a", "approve tap goes to the approval");
+    r.model.OnDecisionSent(d.card_id, d.token, true, 13200);
+    Check(r.model.TickCard(14200).close, "outcome shown, card closes");
+    std::string back = r.model.WantAutoOpen(IdleCtx(-10000), 14200);
+    Check(back == "q" && r.model.pick_reason() == "return", "the question returns once the approval is decided");
+    Check(r.model.OpenCard("q", 14200) && r.model.Card(14200).kind == CardKind::kQuestion &&
+              r.model.Card(14200).options.size() == 2,
+          "the returned question shows its options");
+
+    Rig w;
+    w.Apply(Question("q", 2), 0);
+    w.model.OpenCard("q", 0);
+    w.Apply(Approval("a"), 1000);
+    Context busy = IdleCtx(0);
+    busy.voice_idle = false;
+    Check(w.model.WantPreempt(busy, 10000).to.empty(), "a WHEN_IDLE approval does not preempt during a session");
+    w.model.TouchCard(8000);
+    Check(w.model.WantPreempt(IdleCtx(-10000), 12000).to.empty(), "nor within 5 s of a card touch");
+    Check(w.model.WantPreempt(IdleCtx(-10000), 13000).to == "a", "WHEN_IDLE preempts once idle and untouched");
+
+    Rig e;
+    e.Apply(Question("q", 2), 0);
+    e.model.OpenCard("q", 0);
+    e.Apply(Approval("a", Tier::kInterrupt, 10), 1000);
+    Check(e.model.WantPreempt(IdleCtx(-10000), 1500).to == "a" && e.model.OpenCard("a", 1500), "preempted");
+    Check(e.model.TickCard(11500).changed && e.model.Card(11500).outcome == "Timed out", "the approval expires");
+    Check(e.model.TickCard(12500).close, "expired card closes");
+    Check(e.model.WantAutoOpen(IdleCtx(-10000), 12500) == "q", "the question returns after the expiry");
+
+    Rig two;
+    two.Apply(Question("q", 2), 0);
+    two.model.OpenCard("q", 0);
+    two.Apply(Approval("a1", Tier::kInterrupt), 1000);
+    two.model.WantPreempt(IdleCtx(-10000), 1500);
+    two.model.OpenCard("a1", 1500);
+    two.Apply(Approval("a2"), 2000);
+    Model::Decision d2 = two.model.Tap(1, 3000);
+    two.model.OnDecisionSent(d2.card_id, d2.token, true, 3100);
+    two.model.TickCard(4100);
+    Context touched = IdleCtx(-10000);
+    touched.last_touch_ms = 3000;
+    Check(two.model.WantAutoOpen(touched, 4100).empty(), "a waiting approval holds the question back");
+    Check(two.model.WantAutoOpen(IdleCtx(-10000), 9000) == "a2", "the next approval opens first");
+    two.model.OpenCard("a2", 9000);
+    two.model.Later();
+    Check(two.model.WantAutoOpen(IdleCtx(-10000), 9500) == "q", "then the question returns");
+
+    Rig sending;
+    sending.Apply(Question("q", 2), 0);
+    sending.model.OpenCard("q", 0);
+    Model::Decision a = sending.model.Tap(1, 1000);
+    sending.Apply(Approval("a", Tier::kInterrupt), 1100);
+    Check(a.send && sending.model.WantPreempt(IdleCtx(-10000), 2000).to.empty() &&
+              sending.model.card_task() == "q",
+          "a question with an answer in flight is not preempted");
+    sending.model.OnDecisionSent(a.card_id, a.token, false, 2500);
+    Check(sending.model.WantPreempt(IdleCtx(-10000), 3000).to.empty(), "nor after Not sent");
+
+    Rig older;
+    older.Apply(Approval("a", Tier::kInterrupt), 0);
+    older.Apply(Question("q", 2), 100);
+    older.model.OpenCard("q", 200);
+    Check(older.model.WantPreempt(IdleCtx(-10000), 1000).to.empty(),
+          "an approval that was waiting when the question was tapped open does not preempt it");
+}
+
+void TestCardAdvance() {
+    Rig r;
+    r.Apply(Question("q", 2), 0);
+    r.model.OpenCard("q", 0);
+    r.Apply(Question("q2", 2), 1000);
+    Model::CardTick t = r.model.TickCard(19000);
+    Check(t.advance_to.empty() && r.model.card_task() == "q", "no advance before 20 s untouched");
+    t = r.model.TickCard(20000);
+    Check(t.advance_from == "q" && t.advance_to == "q2" && r.model.pick_reason() == "untouched_20s" &&
+              !t.close && !r.model.card_open(),
+          "20 s untouched: the question is left for the next question");
+    Check(r.model.OpenCard("q2", 20000), "next question opens");
+    Check(r.model.TickCard(45000).advance_to.empty(), "nothing else pending: no advance");
+    Check(r.model.TickCard(80000).close, "60 s idle is still Later");
+    Check(r.model.WantAutoOpen(IdleCtx(-100000), 100000).empty(), "the question left does not reopen");
+    Complication c = r.model.Face(100000);
+    Check(c.show, "both questions stay on the face");
+
+    Rig touched;
+    touched.Apply(Approval("a1"), 0);
+    touched.model.OpenCard("a1", 0);
+    touched.Apply(Approval("a2"), 1000);
+    touched.model.TouchCard(15000);
+    Check(touched.model.TickCard(30000).advance_to.empty(), "a touch restarts the 20 s");
+    Check(touched.model.TickCard(35000).advance_to == "a2", "approval to approval 20 s after the last touch");
+
+    Rig keep;
+    keep.Apply(Approval("a"), 0);
+    keep.model.OpenCard("a", 0);
+    keep.Apply(Question("q", 2), 1000);
+    Check(keep.model.TickCard(30000).advance_to.empty() && keep.model.card_task() == "a",
+          "an approval is not left for a question");
+
+    Rig order;
+    order.Apply(Approval("a1"), 0);
+    order.Apply(Question("q", 2), 0);
+    order.model.OpenCard("q", 100);
+    Check(order.model.TickCard(20100).advance_to == "a1", "an untouched question is left for an older approval");
+    order.model.OpenCard("a1", 20100);
+    order.model.Later();
+    Check(order.model.WantAutoOpen(IdleCtx(-100000), 21000) == "q" && order.model.pick_reason() == "return",
+          "and returns after it");
+
+    Rig sending;
+    sending.Apply(Question("q", 2), 0);
+    sending.model.OpenCard("q", 0);
+    sending.Apply(Question("q2", 2), 1000);
+    Model::Decision d = sending.model.Tap(0, 1000);
+    sending.model.OnDecisionSent(d.card_id, d.token, false, 1500);
+    Check(sending.model.TickCard(30000).advance_to.empty() && sending.model.card_task() == "q",
+          "a card with a decision (Not sent) is not left");
+}
+
+void TestBootOrder() {
+    Rig r;
+    r.Apply(Question("q", 2), 0);
+    r.Apply(Approval("a1"), 0);
+    r.Apply(Approval("a2"), 0);
+    Check(r.model.WantAutoOpen(IdleCtx(-10000), 7000) == "a2" && r.model.pick_reason() == "boot_newest_approval",
+          "boot: the newest approval opens first");
+    r.model.OpenCard("a2", 7000);
+    r.model.Later();
+    Check(r.model.WantAutoOpen(IdleCtx(-100000), 20000) == "a1" && r.model.pick_reason().empty(),
+          "after the first card: approvals in arrival order");
+    r.model.OpenCard("a1", 20000);
+    r.model.Later();
+    Check(r.model.WantAutoOpen(IdleCtx(-100000), 30000) == "q", "then the question");
+
+    Rig late;
+    late.Apply(Question("q", 2), 0);
+    late.Apply(Approval("a1"), 1000);
+    late.Apply(Approval("a2"), 2000);
+    Check(late.model.WantAutoOpen(IdleCtx(-100000), 70000) == "a1" && late.model.pick_reason().empty(),
+          "past the boot window: approvals in arrival order, before the question");
+
+    Rig single;
+    single.Apply(Approval("a"), 0);
+    single.Apply(Question("q", 2), 0);
+    Check(single.model.WantAutoOpen(IdleCtx(-10000), 7000) == "a" && single.model.pick_reason().empty(),
+          "a single approval logs no reason");
+}
+
 void TestExternalAndExpiry() {
     Rig r;
     r.Apply(Approval("a", Tier::kWhenIdle, 10), 0);
@@ -826,6 +992,9 @@ int main() {
     TestTapUsesOpenedCard();
     TestAutoOpenTouchGuard();
     TestLaterAndIdle();
+    TestPreempt();
+    TestCardAdvance();
+    TestBootOrder();
     TestExternalAndExpiry();
     TestTiers();
     TestQuestion();

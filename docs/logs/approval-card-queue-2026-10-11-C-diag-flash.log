@@ -1,0 +1,310 @@
+port: /dev/cu.usbmodem2101
+provenance: matches the current checkout
+#define WEIXUE_FACE_DIAG 1
+device lock: held by caller (pid=56711 since=2026-10-11T15:31:50Z by=holder(1200s))
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+MAC:                <mac>
+Detected flash size: 32MB
+backup: /Users/jwang14/Projects/weixue/backup/flash-20261007-072301.bin
+backup sha256: 22d93f070ae79bb11583ff84371287b4090e33639211111b37633a7acab2163c
+esptool --chip esp32s3 --port /dev/cu.usbmodem2101 --baud 460800 --before default-reset --after hard-reset write-flash --flash-mode dio --flash-freq 80m --flash-size 32MB 0x0 bootloader/bootloader.bin 0x8000 partition_table/partition-table.bin 0x10d000 ota_data_initial.bin 0xa00000 generated_assets.bin 0x200000 xiaozhi.bin
+esptool v5.4.0
+Serial port /dev/cu.usbmodem2101:
+Connecting...
+Connected to ESP32-S3 on /dev/cu.usbmodem2101:
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+Features:           Wi-Fi, BT 5 (LE), Dual Core + LP Core, 240MHz, Embedded PSRAM 8MB (AP_3v3)
+Crystal frequency:  40MHz
+USB mode:           USB-Serial/JTAG
+MAC:                <mac>
+
+Uploading stub flasher...
+Running stub flasher...
+Stub flasher running.
+Changing baud rate to 460800...
+Changed.
+
+Configuring flash size...
+
+Writing 'bootloader/bootloader.bin' at 0x00000000...
+SHA digest in image updated.
+Flash will be erased from 0x00000000 to 0x00004fff...
+Compressed 16736 bytes to 11597...
+Writing at 0x00004160 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% 11.33kB/11.33kB [0s] 
+Wrote 16736 bytes (11597 compressed) at 0x00000000 in 0.2 seconds (544.2 kbit/s).
+Verifying written data...
+Hash of data verified.
+
+Writing 'partition_table/partition-table.bin' at 0x00008000...
+Flash will be erased from 0x00008000 to 0x00008fff...
+Compressed 3072 bytes to 158...
+Writing at 0x00008c00 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% 158B/158B [0s] 
+Wrote 3072 bytes (158 compressed) at 0x00008000 in 0.0 seconds (614.2 kbit/s).
+Verifying written data...
+Hash of data verified.
+
+Writing 'ota_data_initial.bin' at 0x0010d000...
+Flash will be erased from 0x0010d000 to 0x0010efff...
+Compressed 8192 bytes to 31...
+Writing at 0x0010f000 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% 31B/31B [0s] 
+Wrote 8192 bytes (31 compressed) at 0x0010d000 in 0.1 seconds (963.3 kbit/s).
+Verifying written data...
+Hash of data verified.
+
+Writing 'generated_assets.bin' at 0x00a00000...
+Flash will be erased from 0x00a00000 to 0x00e13fff...
+Compressed 4273504 bytes to 2092437...
+Writing at 0x00a0f722                                  0.8% 16.00kB/2.00MB [0s] 
+Writing at 0x00a184a8                                  1.6% 32.00kB/2.00MB [0s] 
+Writing at 0x00a20c66 ╸                                2.3% 48.00kB/2.00MB [0s] 
+Writing at 0x00a28101 ╸                                3.1% 64.00kB/2.00MB [0s] 
+Writing at 0x00a2f1ed ━                                3.9% 80.00kB/2.00MB [1s] 
+Writing at 0x00a3604a ━                                4.7% 96.00kB/2.00MB [1s] 
+Writing at 0x00a3d4da ━╸                               5.5% 112.00kB/2.00MB [1s] 
+Writing at 0x00a43c1c ━╸                               6.3% 128.00kB/2.00MB [1s] 
+Writing at 0x00a4a94a ━━                               7.0% 144.00kB/2.00MB [1s] 
+Writing at 0x00a510bb ━━                               7.8% 160.00kB/2.00MB [2s] 
+Writing at 0x00a58288 ━━╸                              8.6% 176.00kB/2.00MB [2s] 
+Writing at 0x00a5ee68 ━━╸                              9.4% 192.00kB/2.00MB [2s] 
+Writing at 0x00a6546d ━━━                             10.2% 208.00kB/2.00MB [2s] 
+Writing at 0x00a6c10a ━━━                             11.0% 224.00kB/2.00MB [2s] 
+Writing at 0x00a725bf ━━━╸                            11.7% 240.00kB/2.00MB [3s] 
+Writing at 0x00a78d22 ━━━╸                            12.5% 256.00kB/2.00MB [3s] 
+Writing at 0x00a7fa7d ━━━╸                            13.3% 272.00kB/2.00MB [3s] 
+Writing at 0x00a85a66 ━━━━                            14.1% 288.00kB/2.00MB [3s] 
+Writing at 0x00a8c7b5 ━━━━                            14.9% 304.00kB/2.00MB [3s] 
+Writing at 0x00a92aed ━━━━╸                           15.7% 320.00kB/2.00MB [4s] 
+Writing at 0x00a98a46 ━━━━╸                           16.4% 336.00kB/2.00MB [4s] 
+Writing at 0x00a9edb5 ━━━━━                           17.2% 352.00kB/2.00MB [4s] 
+Writing at 0x00aa5632 ━━━━━                           18.0% 368.00kB/2.00MB [4s] 
+Writing at 0x00aabb99 ━━━━━╸                          18.8% 384.00kB/2.00MB [4s] 
+Writing at 0x00ab237d ━━━━━╸                          19.6% 400.00kB/2.00MB [5s] 
+Writing at 0x00ab7f88 ━━━━━━                          20.4% 416.00kB/2.00MB [5s] 
+Writing at 0x00abdd5c ━━━━━━                          21.1% 432.00kB/2.00MB [5s] 
+Writing at 0x00ac4148 ━━━━━━╸                         21.9% 448.00kB/2.00MB [5s] 
+Writing at 0x00acac2c ━━━━━━╸                         22.7% 464.00kB/2.00MB [5s] 
+Writing at 0x00ad13d2 ━━━━━━━                         23.5% 480.00kB/2.00MB [6s] 
+Writing at 0x00ad7693 ━━━━━━━                         24.3% 496.00kB/2.00MB [6s] 
+Writing at 0x00addfd0 ━━━━━━━╸                        25.1% 512.00kB/2.00MB [6s] 
+Writing at 0x00ae4600 ━━━━━━━╸                        25.8% 528.00kB/2.00MB [6s] 
+Writing at 0x00aeaa2d ━━━━━━━╸                        26.6% 544.00kB/2.00MB [6s] 
+Writing at 0x00af0fc4 ━━━━━━━━                        27.4% 560.00kB/2.00MB [6s] 
+Writing at 0x00af7010 ━━━━━━━━                        28.2% 576.00kB/2.00MB [7s] 
+Writing at 0x00afd57c ━━━━━━━━╸                       29.0% 592.00kB/2.00MB [7s] 
+Writing at 0x00b0368a ━━━━━━━━╸                       29.8% 608.00kB/2.00MB [7s] 
+Writing at 0x00b09268 ━━━━━━━━━                       30.5% 624.00kB/2.00MB [7s] 
+Writing at 0x00b129fb ━━━━━━━━━                       31.3% 640.00kB/2.00MB [7s] 
+Writing at 0x00b1b791 ━━━━━━━━━╸                      32.1% 656.00kB/2.00MB [8s] 
+Writing at 0x00b284b7 ━━━━━━━━━╸                      32.9% 672.00kB/2.00MB [8s] 
+Writing at 0x00b37f28 ━━━━━━━━━━                      33.7% 688.00kB/2.00MB [8s] 
+Writing at 0x00b43af2 ━━━━━━━━━━                      34.5% 704.00kB/2.00MB [9s] 
+Writing at 0x00b52331 ━━━━━━━━━━╸                     35.2% 720.00kB/2.00MB [9s] 
+Writing at 0x00b5d466 ━━━━━━━━━━╸                     36.0% 736.00kB/2.00MB [10s] 
+Writing at 0x00b69064 ━━━━━━━━━━━                     36.8% 752.00kB/2.00MB [10s] 
+Writing at 0x00b74b35 ━━━━━━━━━━━                     37.6% 768.00kB/2.00MB [10s] 
+Writing at 0x00b8023a ━━━━━━━━━━━╸                    38.4% 784.00kB/2.00MB [10s] 
+Writing at 0x00b89b0b ━━━━━━━━━━━╸                    39.2% 800.00kB/2.00MB [11s] 
+Writing at 0x00b9387b ━━━━━━━━━━━╸                    39.9% 816.00kB/2.00MB [11s] 
+Writing at 0x00b9cf15 ━━━━━━━━━━━━                    40.7% 832.00kB/2.00MB [11s] 
+Writing at 0x00ba6dff ━━━━━━━━━━━━                    41.5% 848.00kB/2.00MB [12s] 
+Writing at 0x00bb176d ━━━━━━━━━━━━╸                   42.3% 864.00kB/2.00MB [12s] 
+Writing at 0x00bbac32 ━━━━━━━━━━━━╸                   43.1% 880.00kB/2.00MB [12s] 
+Writing at 0x00bc3b74 ━━━━━━━━━━━━━                   43.8% 896.00kB/2.00MB [12s] 
+Writing at 0x00bcd6e0 ━━━━━━━━━━━━━                   44.6% 912.00kB/2.00MB [13s] 
+Writing at 0x00bd64d8 ━━━━━━━━━━━━━╸                  45.4% 928.00kB/2.00MB [13s] 
+Writing at 0x00bde612 ━━━━━━━━━━━━━╸                  46.2% 944.00kB/2.00MB [13s] 
+Writing at 0x00be8a93 ━━━━━━━━━━━━━━                  47.0% 960.00kB/2.00MB [13s] 
+Writing at 0x00bf2ed0 ━━━━━━━━━━━━━━                  47.8% 976.00kB/2.00MB [14s] 
+Writing at 0x00bfbb1c ━━━━━━━━━━━━━━╸                 48.5% 992.00kB/2.00MB [14s] 
+Writing at 0x00c04bbf ━━━━━━━━━━━━━━╸                 49.3% 1008.00kB/2.00MB [14s] 
+Writing at 0x00c0d11e ━━━━━━━━━━━━━━━                 50.1% 1.00MB/2.00MB [14s] 
+Writing at 0x00c157ac ━━━━━━━━━━━━━━━                 50.9% 1.02MB/2.00MB [15s] 
+Writing at 0x00c1ef07 ━━━━━━━━━━━━━━━╸                51.7% 1.03MB/2.00MB [15s] 
+Writing at 0x00c27a66 ━━━━━━━━━━━━━━━╸                52.5% 1.05MB/2.00MB [15s] 
+Writing at 0x00c2f0fa ━━━━━━━━━━━━━━━╸                53.2% 1.06MB/2.00MB [15s] 
+Writing at 0x00c38c6a ━━━━━━━━━━━━━━━━                54.0% 1.08MB/2.00MB [15s] 
+Writing at 0x00c425c9 ━━━━━━━━━━━━━━━━                54.8% 1.09MB/2.00MB [16s] 
+Writing at 0x00c4ae94 ━━━━━━━━━━━━━━━━╸               55.6% 1.11MB/2.00MB [16s] 
+Writing at 0x00c52970 ━━━━━━━━━━━━━━━━╸               56.4% 1.12MB/2.00MB [16s] 
+Writing at 0x00c5b771 ━━━━━━━━━━━━━━━━━               57.2% 1.14MB/2.00MB [16s] 
+Writing at 0x00c64826 ━━━━━━━━━━━━━━━━━               57.9% 1.16MB/2.00MB [16s] 
+Writing at 0x00c6ca3b ━━━━━━━━━━━━━━━━━╸              58.7% 1.17MB/2.00MB [17s] 
+Writing at 0x00c74333 ━━━━━━━━━━━━━━━━━╸              59.5% 1.19MB/2.00MB [17s] 
+Writing at 0x00c7c4bc ━━━━━━━━━━━━━━━━━━              60.3% 1.20MB/2.00MB [17s] 
+Writing at 0x00c843be ━━━━━━━━━━━━━━━━━━              61.1% 1.22MB/2.00MB [17s] 
+Writing at 0x00c8cb82 ━━━━━━━━━━━━━━━━━━╸             61.9% 1.23MB/2.00MB [17s] 
+Writing at 0x00c95d25 ━━━━━━━━━━━━━━━━━━╸             62.6% 1.25MB/2.00MB [17s] 
+Writing at 0x00c9ef84 ━━━━━━━━━━━━━━━━━━━             63.4% 1.27MB/2.00MB [18s] 
+Writing at 0x00ca733a ━━━━━━━━━━━━━━━━━━━             64.2% 1.28MB/2.00MB [18s] 
+Writing at 0x00cafb51 ━━━━━━━━━━━━━━━━━━━             65.0% 1.30MB/2.00MB [18s] 
+Writing at 0x00cb85c6 ━━━━━━━━━━━━━━━━━━━╸            65.8% 1.31MB/2.00MB [18s] 
+Writing at 0x00cbf6ca ━━━━━━━━━━━━━━━━━━━╸            66.6% 1.33MB/2.00MB [18s] 
+Writing at 0x00cc6bb4 ━━━━━━━━━━━━━━━━━━━━            67.3% 1.34MB/2.00MB [19s] 
+Writing at 0x00ccea90 ━━━━━━━━━━━━━━━━━━━━            68.1% 1.36MB/2.00MB [19s] 
+Writing at 0x00cd7b74 ━━━━━━━━━━━━━━━━━━━━╸           68.9% 1.38MB/2.00MB [19s] 
+Writing at 0x00ce00f9 ━━━━━━━━━━━━━━━━━━━━╸           69.7% 1.39MB/2.00MB [19s] 
+Writing at 0x00ceaa6c ━━━━━━━━━━━━━━━━━━━━━           70.5% 1.41MB/2.00MB [19s] 
+Writing at 0x00cf3d30 ━━━━━━━━━━━━━━━━━━━━━           71.3% 1.42MB/2.00MB [20s] 
+Writing at 0x00cfc300 ━━━━━━━━━━━━━━━━━━━━━╸          72.0% 1.44MB/2.00MB [20s] 
+Writing at 0x00d04bb3 ━━━━━━━━━━━━━━━━━━━━━╸          72.8% 1.45MB/2.00MB [20s] 
+Writing at 0x00d0db5a ━━━━━━━━━━━━━━━━━━━━━━          73.6% 1.47MB/2.00MB [20s] 
+Writing at 0x00d169e6 ━━━━━━━━━━━━━━━━━━━━━━          74.4% 1.48MB/2.00MB [20s] 
+Writing at 0x00d1f2a7 ━━━━━━━━━━━━━━━━━━━━━━╸         75.2% 1.50MB/2.00MB [20s] 
+Writing at 0x00d276a2 ━━━━━━━━━━━━━━━━━━━━━━╸         76.0% 1.52MB/2.00MB [21s] 
+Writing at 0x00d30360 ━━━━━━━━━━━━━━━━━━━━━━━         76.7% 1.53MB/2.00MB [21s] 
+Writing at 0x00d38687 ━━━━━━━━━━━━━━━━━━━━━━━         77.5% 1.55MB/2.00MB [21s] 
+Writing at 0x00d4010f ━━━━━━━━━━━━━━━━━━━━━━━         78.3% 1.56MB/2.00MB [21s] 
+Writing at 0x00d48fa5 ━━━━━━━━━━━━━━━━━━━━━━━╸        79.1% 1.58MB/2.00MB [21s] 
+Writing at 0x00d516ae ━━━━━━━━━━━━━━━━━━━━━━━╸        79.9% 1.59MB/2.00MB [22s] 
+Writing at 0x00d5a2b5 ━━━━━━━━━━━━━━━━━━━━━━━━        80.7% 1.61MB/2.00MB [22s] 
+Writing at 0x00d61f36 ━━━━━━━━━━━━━━━━━━━━━━━━        81.4% 1.62MB/2.00MB [22s] 
+Writing at 0x00d698e8 ━━━━━━━━━━━━━━━━━━━━━━━━╸       82.2% 1.64MB/2.00MB [22s] 
+Writing at 0x00d712f3 ━━━━━━━━━━━━━━━━━━━━━━━━╸       83.0% 1.66MB/2.00MB [22s] 
+Writing at 0x00d80212 ━━━━━━━━━━━━━━━━━━━━━━━━━       83.8% 1.67MB/2.00MB [22s] 
+Writing at 0x00d8d25c ━━━━━━━━━━━━━━━━━━━━━━━━━       84.6% 1.69MB/2.00MB [23s] 
+Writing at 0x00d9930c ━━━━━━━━━━━━━━━━━━━━━━━━━╸      85.3% 1.70MB/2.00MB [23s] 
+Writing at 0x00da5c5c ━━━━━━━━━━━━━━━━━━━━━━━━━╸      86.1% 1.72MB/2.00MB [23s] 
+Writing at 0x00db4d9e ━━━━━━━━━━━━━━━━━━━━━━━━━━      86.9% 1.73MB/2.00MB [23s] 
+Writing at 0x00db9379 ━━━━━━━━━━━━━━━━━━━━━━━━━━      87.7% 1.75MB/2.00MB [24s] 
+Writing at 0x00dbff9e ━━━━━━━━━━━━━━━━━━━━━━━━━━╸     88.5% 1.77MB/2.00MB [24s] 
+Writing at 0x00dc54c5 ━━━━━━━━━━━━━━━━━━━━━━━━━━╸     89.3% 1.78MB/2.00MB [24s] 
+Writing at 0x00dcaacf ━━━━━━━━━━━━━━━━━━━━━━━━━━━     90.0% 1.80MB/2.00MB [24s] 
+Writing at 0x00dcf74a ━━━━━━━━━━━━━━━━━━━━━━━━━━━     90.8% 1.81MB/2.00MB [24s] 
+Writing at 0x00dd8cf7 ━━━━━━━━━━━━━━━━━━━━━━━━━━━     91.6% 1.83MB/2.00MB [24s] 
+Writing at 0x00dde117 ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸    92.4% 1.84MB/2.00MB [25s] 
+Writing at 0x00de32fb ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸    93.2% 1.86MB/2.00MB [25s] 
+Writing at 0x00de94b8 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━    94.0% 1.88MB/2.00MB [25s] 
+Writing at 0x00dee554 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━    94.7% 1.89MB/2.00MB [25s] 
+Writing at 0x00df73c4 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸   95.5% 1.91MB/2.00MB [25s] 
+Writing at 0x00e003fb ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸   96.3% 1.92MB/2.00MB [25s] 
+Writing at 0x00e04418 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   97.1% 1.94MB/2.00MB [26s] 
+Writing at 0x00e08514 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   97.9% 1.95MB/2.00MB [26s] 
+Writing at 0x00e0c604 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸  98.7% 1.97MB/2.00MB [26s] 
+Writing at 0x00e10706 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸  99.4% 1.98MB/2.00MB [26s] 
+Writing at 0x00e13560 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% 2.00MB/2.00MB [26s] 
+Wrote 4273504 bytes (2092437 compressed) at 0x00a00000 in 26.8 seconds (1274.7 kbit/s).
+Verifying written data...
+Hash of data verified.
+
+Writing 'xiaozhi.bin' at 0x00200000...
+Flash will be erased from 0x00200000 to 0x004fffff...
+Compressed 3144224 bytes to 1859676...
+Writing at 0x0020c175                                  0.9% 16.00kB/1.77MB [0s] 
+Writing at 0x00219c07 ╸                                1.8% 32.00kB/1.77MB [0s] 
+Writing at 0x0022705a ╸                                2.6% 48.00kB/1.77MB [0s] 
+Writing at 0x00230ada ━                                3.5% 64.00kB/1.77MB [1s] 
+Writing at 0x002356ee ━                                4.4% 80.00kB/1.77MB [1s] 
+Writing at 0x00239a89 ━╸                               5.3% 96.00kB/1.77MB [1s] 
+Writing at 0x0023dc97 ━╸                               6.2% 112.00kB/1.77MB [1s] 
+Writing at 0x002460a7 ━━                               7.0% 128.00kB/1.77MB [1s] 
+Writing at 0x00250b62 ━━                               7.9% 144.00kB/1.77MB [2s] 
+Writing at 0x00259535 ━━╸                              8.8% 160.00kB/1.77MB [2s] 
+Writing at 0x0025ff68 ━━╸                              9.7% 176.00kB/1.77MB [2s] 
+Writing at 0x0026886a ━━━                             10.6% 192.00kB/1.77MB [2s] 
+Writing at 0x00275136 ━━━                             11.5% 208.00kB/1.77MB [3s] 
+Writing at 0x0027fedd ━━━╸                            12.3% 224.00kB/1.77MB [3s] 
+Writing at 0x0028a96f ━━━╸                            13.2% 240.00kB/1.77MB [3s] 
+Writing at 0x00293242 ━━━━                            14.1% 256.00kB/1.77MB [4s] 
+Writing at 0x0029e13d ━━━━                            15.0% 272.00kB/1.77MB [4s] 
+Writing at 0x002ac418 ━━━━╸                           15.9% 288.00kB/1.77MB [4s] 
+Writing at 0x002b8f02 ━━━━━                           16.7% 304.00kB/1.77MB [5s] 
+Writing at 0x002bd6d6 ━━━━━                           17.6% 320.00kB/1.77MB [5s] 
+Writing at 0x002c4784 ━━━━━╸                          18.5% 336.00kB/1.77MB [5s] 
+Writing at 0x002c9855 ━━━━━╸                          19.4% 352.00kB/1.77MB [5s] 
+Writing at 0x002ce4d2 ━━━━━━                          20.3% 368.00kB/1.77MB [5s] 
+Writing at 0x002d33a6 ━━━━━━                          21.1% 384.00kB/1.77MB [6s] 
+Writing at 0x002d8ac9 ━━━━━━╸                         22.0% 400.00kB/1.77MB [6s] 
+Writing at 0x002dfabd ━━━━━━╸                         22.9% 416.00kB/1.77MB [6s] 
+Writing at 0x002e9bc3 ━━━━━━━                         23.8% 432.00kB/1.77MB [6s] 
+Writing at 0x002f2278 ━━━━━━━                         24.7% 448.00kB/1.77MB [6s] 
+Writing at 0x002f7c45 ━━━━━━━╸                        25.5% 464.00kB/1.77MB [7s] 
+Writing at 0x002fd89e ━━━━━━━╸                        26.4% 480.00kB/1.77MB [7s] 
+Writing at 0x00302c22 ━━━━━━━━                        27.3% 496.00kB/1.77MB [7s] 
+Writing at 0x003085ea ━━━━━━━━                        28.2% 512.00kB/1.77MB [7s] 
+Writing at 0x0030e0e0 ━━━━━━━━╸                       29.1% 528.00kB/1.77MB [7s] 
+Writing at 0x00313be2 ━━━━━━━━╸                       30.0% 544.00kB/1.77MB [8s] 
+Writing at 0x00319698 ━━━━━━━━━                       30.8% 560.00kB/1.77MB [8s] 
+Writing at 0x0031ec51 ━━━━━━━━━╸                      31.7% 576.00kB/1.77MB [8s] 
+Writing at 0x00323e0e ━━━━━━━━━╸                      32.6% 592.00kB/1.77MB [8s] 
+Writing at 0x00329143 ━━━━━━━━━━                      33.5% 608.00kB/1.77MB [8s] 
+Writing at 0x0032e32d ━━━━━━━━━━                      34.4% 624.00kB/1.77MB [8s] 
+Writing at 0x00333d4f ━━━━━━━━━━╸                     35.2% 640.00kB/1.77MB [9s] 
+Writing at 0x003395f8 ━━━━━━━━━━╸                     36.1% 656.00kB/1.77MB [9s] 
+Writing at 0x0033f13c ━━━━━━━━━━━                     37.0% 672.00kB/1.77MB [9s] 
+Writing at 0x00344c16 ━━━━━━━━━━━                     37.9% 688.00kB/1.77MB [9s] 
+Writing at 0x0034aae7 ━━━━━━━━━━━╸                    38.8% 704.00kB/1.77MB [9s] 
+Writing at 0x0034ff06 ━━━━━━━━━━━╸                    39.6% 720.00kB/1.77MB [9s] 
+Writing at 0x0035602e ━━━━━━━━━━━━                    40.5% 736.00kB/1.77MB [10s] 
+Writing at 0x0035b241 ━━━━━━━━━━━━                    41.4% 752.00kB/1.77MB [10s] 
+Writing at 0x00361421 ━━━━━━━━━━━━╸                   42.3% 768.00kB/1.77MB [10s] 
+Writing at 0x00367993 ━━━━━━━━━━━━╸                   43.2% 784.00kB/1.77MB [10s] 
+Writing at 0x0036e2fc ━━━━━━━━━━━━━                   44.1% 800.00kB/1.77MB [10s] 
+Writing at 0x0038a828 ━━━━━━━━━━━━━                   44.9% 816.00kB/1.77MB [10s] 
+Writing at 0x00394c6b ━━━━━━━━━━━━━╸                  45.8% 832.00kB/1.77MB [11s] 
+Writing at 0x0039a251 ━━━━━━━━━━━━━━                  46.7% 848.00kB/1.77MB [11s] 
+Writing at 0x0039f1ed ━━━━━━━━━━━━━━                  47.6% 864.00kB/1.77MB [11s] 
+Writing at 0x003a41e2 ━━━━━━━━━━━━━━╸                 48.5% 880.00kB/1.77MB [11s] 
+Writing at 0x003a9072 ━━━━━━━━━━━━━━╸                 49.3% 896.00kB/1.77MB [12s] 
+Writing at 0x003ae03c ━━━━━━━━━━━━━━━                 50.2% 912.00kB/1.77MB [12s] 
+Writing at 0x003b3619 ━━━━━━━━━━━━━━━                 51.1% 928.00kB/1.77MB [12s] 
+Writing at 0x003b8516 ━━━━━━━━━━━━━━━╸                52.0% 944.00kB/1.77MB [12s] 
+Writing at 0x003bd448 ━━━━━━━━━━━━━━━╸                52.9% 960.00kB/1.77MB [12s] 
+Writing at 0x003c2b37 ━━━━━━━━━━━━━━━━                53.7% 976.00kB/1.77MB [12s] 
+Writing at 0x003c8b9f ━━━━━━━━━━━━━━━━                54.6% 992.00kB/1.77MB [13s] 
+Writing at 0x003ce9de ━━━━━━━━━━━━━━━━╸               55.5% 1008.00kB/1.77MB [13s] 
+Writing at 0x003d42d7 ━━━━━━━━━━━━━━━━╸               56.4% 1.00MB/1.77MB [13s] 
+Writing at 0x003d94e0 ━━━━━━━━━━━━━━━━━               57.3% 1.02MB/1.77MB [13s] 
+Writing at 0x003df00d ━━━━━━━━━━━━━━━━━               58.1% 1.03MB/1.77MB [13s] 
+Writing at 0x003e444b ━━━━━━━━━━━━━━━━━╸              59.0% 1.05MB/1.77MB [13s] 
+Writing at 0x003e983a ━━━━━━━━━━━━━━━━━╸              59.9% 1.06MB/1.77MB [13s] 
+Writing at 0x003eef50 ━━━━━━━━━━━━━━━━━━              60.8% 1.08MB/1.77MB [14s] 
+Writing at 0x003f4b83 ━━━━━━━━━━━━━━━━━━╸             61.7% 1.09MB/1.77MB [14s] 
+Writing at 0x003fb832 ━━━━━━━━━━━━━━━━━━╸             62.6% 1.11MB/1.77MB [14s] 
+Writing at 0x004018aa ━━━━━━━━━━━━━━━━━━━             63.4% 1.12MB/1.77MB [14s] 
+Writing at 0x00407d4b ━━━━━━━━━━━━━━━━━━━             64.3% 1.14MB/1.77MB [14s] 
+Writing at 0x0040e080 ━━━━━━━━━━━━━━━━━━━╸            65.2% 1.16MB/1.77MB [14s] 
+Writing at 0x004136ab ━━━━━━━━━━━━━━━━━━━╸            66.1% 1.17MB/1.77MB [14s] 
+Writing at 0x0041873a ━━━━━━━━━━━━━━━━━━━━            67.0% 1.19MB/1.77MB [15s] 
+Writing at 0x0041da7e ━━━━━━━━━━━━━━━━━━━━            67.8% 1.20MB/1.77MB [15s] 
+Writing at 0x00422d7b ━━━━━━━━━━━━━━━━━━━━╸           68.7% 1.22MB/1.77MB [15s] 
+Writing at 0x004286dd ━━━━━━━━━━━━━━━━━━━━╸           69.6% 1.23MB/1.77MB [15s] 
+Writing at 0x0042de2d ━━━━━━━━━━━━━━━━━━━━━           70.5% 1.25MB/1.77MB [15s] 
+Writing at 0x004330b3 ━━━━━━━━━━━━━━━━━━━━━           71.4% 1.27MB/1.77MB [15s] 
+Writing at 0x004384af ━━━━━━━━━━━━━━━━━━━━━╸          72.2% 1.28MB/1.77MB [15s] 
+Writing at 0x0043d9e4 ━━━━━━━━━━━━━━━━━━━━━╸          73.1% 1.30MB/1.77MB [16s] 
+Writing at 0x004433ce ━━━━━━━━━━━━━━━━━━━━━━          74.0% 1.31MB/1.77MB [16s] 
+Writing at 0x004488da ━━━━━━━━━━━━━━━━━━━━━━          74.9% 1.33MB/1.77MB [16s] 
+Writing at 0x0044df04 ━━━━━━━━━━━━━━━━━━━━━━╸         75.8% 1.34MB/1.77MB [16s] 
+Writing at 0x00453459 ━━━━━━━━━━━━━━━━━━━━━━╸         76.6% 1.36MB/1.77MB [16s] 
+Writing at 0x004585cc ━━━━━━━━━━━━━━━━━━━━━━━         77.5% 1.38MB/1.77MB [16s] 
+Writing at 0x0045d5e7 ━━━━━━━━━━━━━━━━━━━━━━━╸        78.4% 1.39MB/1.77MB [17s] 
+Writing at 0x00462fa8 ━━━━━━━━━━━━━━━━━━━━━━━╸        79.3% 1.41MB/1.77MB [17s] 
+Writing at 0x004686d8 ━━━━━━━━━━━━━━━━━━━━━━━━        80.2% 1.42MB/1.77MB [17s] 
+Writing at 0x0046db00 ━━━━━━━━━━━━━━━━━━━━━━━━        81.1% 1.44MB/1.77MB [17s] 
+Writing at 0x00472e9e ━━━━━━━━━━━━━━━━━━━━━━━━╸       81.9% 1.45MB/1.77MB [17s] 
+Writing at 0x00478301 ━━━━━━━━━━━━━━━━━━━━━━━━╸       82.8% 1.47MB/1.77MB [17s] 
+Writing at 0x0047e313 ━━━━━━━━━━━━━━━━━━━━━━━━━       83.7% 1.48MB/1.77MB [17s] 
+Writing at 0x00483676 ━━━━━━━━━━━━━━━━━━━━━━━━━       84.6% 1.50MB/1.77MB [18s] 
+Writing at 0x0048883f ━━━━━━━━━━━━━━━━━━━━━━━━━╸      85.5% 1.52MB/1.77MB [18s] 
+Writing at 0x0048dadf ━━━━━━━━━━━━━━━━━━━━━━━━━╸      86.3% 1.53MB/1.77MB [18s] 
+Writing at 0x00495bcd ━━━━━━━━━━━━━━━━━━━━━━━━━━      87.2% 1.55MB/1.77MB [18s] 
+Writing at 0x0049db63 ━━━━━━━━━━━━━━━━━━━━━━━━━━      88.1% 1.56MB/1.77MB [18s] 
+Writing at 0x004a575d ━━━━━━━━━━━━━━━━━━━━━━━━━━╸     89.0% 1.58MB/1.77MB [18s] 
+Writing at 0x004ac8f4 ━━━━━━━━━━━━━━━━━━━━━━━━━━╸     89.9% 1.59MB/1.77MB [18s] 
+Writing at 0x004b2099 ━━━━━━━━━━━━━━━━━━━━━━━━━━━     90.7% 1.61MB/1.77MB [19s] 
+Writing at 0x004b8882 ━━━━━━━━━━━━━━━━━━━━━━━━━━━     91.6% 1.62MB/1.77MB [19s] 
+Writing at 0x004c50aa ━━━━━━━━━━━━━━━━━━━━━━━━━━━╸    92.5% 1.64MB/1.77MB [19s] 
+Writing at 0x004d22f1 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━    93.4% 1.66MB/1.77MB [19s] 
+Writing at 0x004d883b ━━━━━━━━━━━━━━━━━━━━━━━━━━━━    94.3% 1.67MB/1.77MB [19s] 
+Writing at 0x004de77f ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸   95.1% 1.69MB/1.77MB [20s] 
+Writing at 0x004e3f1e ━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸   96.0% 1.70MB/1.77MB [20s] 
+Writing at 0x004e9c78 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   96.9% 1.72MB/1.77MB [20s] 
+Writing at 0x004f0412 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   97.8% 1.73MB/1.77MB [20s] 
+Writing at 0x004f6645 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸  98.7% 1.75MB/1.77MB [20s] 
+Writing at 0x004fc62a ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸  99.6% 1.77MB/1.77MB [20s] 
+Writing at 0x004ffa20 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% 1.77MB/1.77MB [21s] 
+Wrote 3144224 bytes (1859676 compressed) at 0x00200000 in 21.1 seconds (1189.9 kbit/s).
+Verifying written data...
+Hash of data verified.
+
+Hard resetting via RTS pin...

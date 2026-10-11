@@ -33,11 +33,10 @@ Observations:
 
 ## Rounds B, C, D
 
-Not run: blocked by the permission classifier (real HA replays). The driver is `docs/logs/approval-gate-2026-10-11-driver.py`; rerun under the device lock with the board on the diag build:
+Not run: blocked by the permission classifier (real HA replays). The driver of these rounds is now `scripts/approval_gate.py`; rerun under the device lock with the board on the diag build:
 
 ```
-.venv/bin/python docs/logs/approval-gate-2026-10-11-driver.py <port> <device-mac> BC <out-prefix>        # B, C
-.venv/bin/python docs/logs/approval-gate-2026-10-11-driver.py <port> <device-mac> D  <out-prefix> 780    # D
+.venv/bin/python scripts/approval_gate.py --port <port> --device <device-mac> --rounds B,C,D --out <out-prefix>
 ```
 
 It logs per-step timestamps, the receipt of each tap, task and trace state at 8 s and 33 s after the tap (B), 10 s and 25 s (C), and at the end of the wait (D). Capture `docker logs agent-service` for the same window and count `ha call finished` for the tasks (expected 1 for C, 0 for B and D).
@@ -51,4 +50,4 @@ D waits for the approval TTL (10 min per the lead's brief; not confirmed from th
 
 ## Files
 
-`approval-gate-2026-10-11-A.md`, `-A-serial.log`, `-A-server.log` (xiaozhi-esp32-server), `-A-agent-service.log`, `-release-flash.log`, `-release-boot-serial.log`, `-driver.py`. MACs redacted; no tokens or ha-mcp URLs in the logs.
+`approval-gate-2026-10-11-A.md`, `-A-serial.log`, `-A-server.log` (xiaozhi-esp32-server), `-A-agent-service.log`, `-release-flash.log`, `-release-boot-serial.log`. MACs redacted; no tokens or ha-mcp URLs in the logs.

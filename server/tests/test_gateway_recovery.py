@@ -447,7 +447,7 @@ async def test_no_pruning_sync_before_the_snapshot_is_restored(tmp_path):
     gw._sources[DEVICE] = asyncio.get_running_loop().create_future()
     conn = Conn()
     gw.on_agent_session(DEVICE, conn, 2)
-    gw.on_poll(DEVICE, "0", "2")
+    gw.on_poll(DEVICE, "1", "2")
     await settle()
     assert conn.websocket.payloads() == [] and gw.poll_items(DEVICE) == [] and not gw.poll_ready(DEVICE)
     assert await gw.restore(DEVICE)
