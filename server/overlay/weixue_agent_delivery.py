@@ -10,7 +10,9 @@ agent_sync), outbox stream and chat index (GET /v1/chats). Acks go to the sink: 
 for GET /weixue/agent/deliveries, and in live mode posted to agent-service in order per delivery,
 retried until the service answers. Speech plays only after agent-service recorded its hand-off;
 card decisions are receipted after agent-service answered them. Hand-offs, card decisions, wire
-seqs and unsent acks are kept in a state file across restarts."""
+seqs and unsent acks are kept in a state file across restarts. Open cards are reconciled against
+agent-service task state after the restore, on every stream reconnect and before every seq-0 or
+session snapshot."""
 import asyncio
 import json
 import os
@@ -69,6 +71,9 @@ SPEECH_FINAL = ("played", "cut_off", "lost", "dropped", "deferred", "stale", "un
 HANDED_OFF = ("handed_off", "played", "cut_off", "lost")
 OPEN_CARD_STATES = ("needs_approval", "needs_input")
 STATE_KEEP = 256
+# Per GET /v1/tasks/{id} of a reconcile; the requests run concurrently.
+RECONCILE_SECONDS = 2
+SERVICE_TERMINAL = ("done", "failed", "cancelled")
 
 
 @dataclass
@@ -116,6 +121,8 @@ class Device:
     restored: bool = True
     # A seq-0 poll asked for a snapshot whose cards have not been ranked yet.
     boot_snapshot: bool = False
+    # The reconcile the next snapshot waits for.
+    reconciling: Optional[asyncio.Task] = None
 
 
 @dataclass
@@ -145,6 +152,14 @@ class Speech:
     ended_at: Optional[float] = None
     played: Optional[dict] = None
     spoken_acked: bool = False
+
+
+def _ended(latest, payload):
+    """Whether payload would reopen a task whose mirrored agent-service item is terminal."""
+    if latest is None or latest.delivery_id is None or latest.delivery_id.startswith("fx_"):
+        return False
+    done = lambda state: state in wire.TERMINAL or state == "unread"
+    return done(latest.payload.get("state")) and not done(payload.get("state"))
 
 
 def _eviction_victim(mirror):
@@ -293,6 +308,22 @@ class ServiceSink(FixtureSink):
             self.logger.bind(tag=TAG).warning(f"agent-service {path}: {type(e).__name__}")
             return None
 
+    async def get_task(self, task_id):
+        """("found", body) of GET /v1/tasks/{id}, ("unknown", None) on 404, None without an answer."""
+        async def fetch():
+            async with self._http().get(f"{self.base}/v1/tasks/{quote(task_id, safe='')}") as resp:
+                if resp.status == 404:
+                    return "unknown", None
+                if resp.status != 200:
+                    return None
+                body = await resp.json()
+                return ("found", body) if isinstance(body, dict) else None
+
+        try:
+            return await asyncio.wait_for(fetch(), RECONCILE_SECONDS)
+        except Exception:
+            return None
+
     async def get_chats(self, device):
         """The agent-service chat index of the device (GET /v1/chats), or None."""
         return await self._get("/v1/chats", {"device_id": device})
@@ -421,6 +452,8 @@ class AgentGateway:
         self._sources = {}
         self.service_url = ""
         self.service_token = ""
+        # A reconcile found agent-service unreachable and logged it.
+        self._reconcile_failing = False
         self.state = state or StateFile(None)
         self._load()
 
@@ -508,6 +541,12 @@ class AgentGateway:
             elif lease_id:
                 self.sink.ack(delivery_id, lease_id, "dropped", device_id, detail="older than the task's card")
             return record
+        if _ended(latest, payload) and not delivery_id.startswith("fx_"):
+            self._log(f"agent delivery {delivery_id} state={payload['state']} for task={task} that ended "
+                      f"({latest.payload.get('state')}): not sent")
+            if lease_id:
+                self.sink.ack(delivery_id, lease_id, "dropped", device_id, detail="task already ended")
+            return {"delivery_id": delivery_id, "seq": seq, "task_id": task, "ended": True}
         if latest is None and len(dev.mirror) >= MIRROR_TASKS:
             old_task = _eviction_victim(dev.mirror)
             if old_task is None:
@@ -654,7 +693,7 @@ class AgentGateway:
     def _dispatch(self, device_id, dev, entries):
         sessions = self.live_sessions(dev)
         if sessions:
-            payloads = self._snapshot_payloads(device_id, dev) if dev.snapshot_due and dev.restored else None
+            payloads = self._snapshot_payloads(device_id, dev) if self._snapshot_ready(dev) else None
             if payloads is not None:
                 dev.snapshot_due = False
                 asyncio.get_running_loop().create_task(self._send(device_id, sessions[-1], payloads, "snapshot"))
@@ -710,7 +749,12 @@ class AgentGateway:
         if conn not in dev.sessions:
             dev.sessions.append(conn)
         self._set_level(device_id, dev, level, dispatch=False)
-        if dev.restored:
+        if self._reconcile_first(device_id, dev):
+            payloads = []
+            dev.snapshot_due = True
+            self._log(f"agent session device={device_id} session={getattr(conn, 'session_id', None)}: "
+                      f"snapshot once the open cards are reconciled")
+        elif dev.restored:
             payloads = self._snapshot_payloads(device_id, dev)
             dev.snapshot_due = False
             self._log(f"agent session device={device_id} session={getattr(conn, 'session_id', None)}: "
@@ -755,6 +799,7 @@ class AgentGateway:
             dev.snapshot_from = 0
             dev.page_retries = 0
             dev.boot_snapshot = True
+            self._reconcile_first(device_id, dev)
         elif page is not None and seq < page.upto and dev.page_retries < PAGE_RETRIES:
             dev.page_retries += 1
             dev.snapshot_due = True
@@ -803,7 +848,9 @@ class AgentGateway:
         dev = self.devices.get(device_id)
         if dev is None or not dev.polls_with_seq or self.live_sessions(dev):
             return False
-        return (dev.snapshot_due and dev.restored) or bool(self._poll_entries(dev))
+        if dev.reconciling is not None and not dev.reconciling.done():
+            return False
+        return self._snapshot_ready(dev) or bool(self._poll_entries(dev))
 
     def poll_items(self, device_id, budget=wire.POLL_BODY_BYTES - POLL_BASE_BYTES):
         """The `agent` array of a poll body: at most POLL_BODY_ENTRIES entries within budget bytes
@@ -811,9 +858,9 @@ class AgentGateway:
         agent_sync once every mirrored task was sent. A snapshot page the next poll's header shows
         unapplied is sent again (on_poll)."""
         dev = self.devices.get(device_id)
-        if dev is None or not dev.polls_with_seq:
+        if dev is None or not dev.polls_with_seq or (dev.reconciling is not None and not dev.reconciling.done()):
             return []
-        snapshot = dev.snapshot_due and dev.restored
+        snapshot = self._snapshot_ready(dev)
         start = dev.snapshot_from
         if snapshot and start == 0:
             self._rank_boot_snapshot(device_id, dev)
@@ -1229,6 +1276,105 @@ class AgentGateway:
             if resume is not None:
                 resume()
 
+    # Reconcile
+
+    @staticmethod
+    def _open_cards(dev):
+        """Mirrored agent-service open cards: task id → entry."""
+        return {t: e for t, e in dev.mirror.items() if e.payload.get("state") in OPEN_CARD_STATES
+                and e.delivery_id and not e.delivery_id.startswith(("fx_", "gw_"))}
+
+    def _snapshot_ready(self, dev):
+        return dev.snapshot_due and dev.restored and (dev.reconciling is None or dev.reconciling.done())
+
+    def _reconcile_first(self, device_id, dev):
+        """Starts a reconcile of the device's open cards that the next snapshot waits for; returns
+        whether one runs."""
+        if dev.reconciling is not None and not dev.reconciling.done():
+            return True
+        if getattr(self.sink, "get_task", None) is None or not dev.restored or not self._open_cards(dev):
+            return False
+
+        async def run():
+            try:
+                await self.reconcile(device_id)
+            finally:
+                dev.reconciling = None
+                if dev.snapshot_due:
+                    self._dispatch(device_id, dev, [])
+                self.proactive._notify()
+
+        dev.reconciling = asyncio.get_running_loop().create_task(run())
+        return True
+
+    async def reconcile(self, device_id):
+        """Checks the device's open cards against agent-service (GET /v1/tasks/{id}): a task it
+        reports ended gets its terminal item, one it does not know is dropped, and a running task
+        whose card's interaction closed gets a working item. Without an answer the mirror stays.
+        Returns the reconciled task ids."""
+        fetch = getattr(self.sink, "get_task", None)
+        dev = self.device(device_id)
+        cards = self._open_cards(dev)
+        if fetch is None or not cards:
+            return []
+        results = await asyncio.gather(*(fetch(t) for t in cards))
+        unanswered = sum(r is None for r in results)
+        if unanswered and not self._reconcile_failing:
+            self.logger.bind(tag=TAG).warning(
+                f"mirror reconcile device={device_id}: agent-service did not answer for {unanswered} of "
+                f"{len(cards)} open cards; mirror kept")
+        self._reconcile_failing = unanswered > 0
+        changed, drops = [], []
+        for (task, entry), result in zip(cards.items(), results):
+            if result is None or dev.mirror.get(task) is not entry:
+                continue
+            found, body = result
+            state = body.get("state") if body else None
+            pending = {p.get("interaction_id") for p in (body or {}).get("pending") or [] if isinstance(p, dict)}
+            if found == "unknown":
+                reason, replace = "unknown", None
+            elif state in SERVICE_TERMINAL:
+                reason, replace = state, state
+            elif state == "progress" and entry.payload.get("card_id") not in pending:
+                reason, replace = "card closed", "working"
+            else:
+                continue
+            self._log(f"mirror reconcile dropped task={task} reason={reason} device={device_id} "
+                      f"card={entry.payload.get('card_id')} now={replace or 'dropped'}")
+            self._discard_outgoing(device_id, dev, task)
+            if replace is None:
+                drops.append(task)
+            else:
+                self._replace_card(device_id, dev, entry, replace, body.get("summary"))
+            changed.append(task)
+        if drops:
+            self.drop(device_id, drops)
+        if changed and dev.restored:
+            refresh = self.refresh_chats(device_id)
+            if refresh is not None:
+                await refresh
+        return changed
+
+    def _discard_outgoing(self, device_id, dev, task):
+        """Removes the task's unsent items; their deliveries are acked dropped."""
+        for e in [e for e in dev.outgoing if not e.raw and e.payload.get("task_id") == task]:
+            dev.outgoing.remove(e)
+            if e.lease_id:
+                self.sink.ack(e.delivery_id, e.lease_id, "dropped", device_id, detail="card closed in agent-service")
+
+    def _replace_card(self, device_id, dev, entry, state, summary):
+        """Mirrors and queues the task's state in place of its open card."""
+        p = entry.payload
+        fields = {"chat_id": p["chat_id"], "task_id": p["task_id"], "state": state, "summary": summary or "",
+                  "lang": p.get("lang"), "delivery": "silent"}
+        if p.get("title"):
+            fields["title"] = p["title"]
+        item = Entry(payload=wire.build_item(fields, self._next_seq(dev), int(self.wall() * 1000)),
+                     delivery_id=f"gw_{uuid.uuid4().hex[:24]}", gseq=entry.gseq)
+        dev.mirror[p["task_id"]] = item
+        dev.outgoing.append(item)
+        self._dispatch(device_id, dev, [item])
+
     # agent-service outbox stream
 
     def watch_device(self, device_id):
@@ -1265,6 +1411,8 @@ class AgentGateway:
             latest = dev.mirror.get(task)
             if latest is not None and (latest.gseq is None or (entry.gseq or 0) <= latest.gseq):
                 continue
+            if _ended(latest, entry.payload):
+                continue
             if latest is None and len(dev.mirror) >= MIRROR_TASKS:
                 victim = _eviction_victim(dev.mirror)
                 if victim is None:
@@ -1273,6 +1421,7 @@ class AgentGateway:
             dev.mirror[task] = entry
             dev.mirror.move_to_end(task)
             restored += 1
+        await self.reconcile(device_id)
         dev.restored = True
         self._log(f"agent restore device={device_id}: {restored} cards from the agent-service snapshot; "
                   f"mirror {len(dev.mirror)}")
@@ -1291,7 +1440,9 @@ class AgentGateway:
         backoff = 1
         while True:
             try:
-                if not await self.restore(device_id):
+                if self.device(device_id).restored:
+                    await self.reconcile(device_id)
+                elif not await self.restore(device_id):
                     raise RuntimeError("device snapshot unavailable")
                 async with aiohttp.ClientSession(headers=headers) as http:
                     async with http.get(url, params={"device_id": device_id}, timeout=None) as resp:

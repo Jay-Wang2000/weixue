@@ -3,7 +3,8 @@
 and proactive queue (server/overlay) talking HTTP to the scratch service, with simulated device
 sessions (playback, played acks, card answers) in place of the board. Rounds: decisions (F04),
 speech hand-off (F09), retries and attempts (F10), gateway restart (F11), INTERRUPT (F13), answer
-routing and open-card tiers (routing), and
+routing and open-card tiers (routing), open cards reconciled against the service's task state
+(reconcile, finding 76), and
 `--rounds activity`: a turn of fake tools whose working items carry the activity label (decision 68;
 start the scratch service with --reply-hold-s 1). Run with the server test venv after starting the
 scratch service:
@@ -472,13 +473,90 @@ async def round_activity(sim, conn):
     check(items()[-1]["state"] == "unread" and "progress" not in items()[-1], "the result item has no activity")
 
 
+def reboot(sim, conn, name):
+    """The device reboots: its session closes and a new one opens without the delivery stream."""
+    conn.stop_event.set()
+    fresh = DeviceSession(name)
+    sim.proactive.on_session_open(DEVICE, fresh)
+    sim.gw.on_agent_session(DEVICE, fresh, 2)
+    fresh.shown_task = asyncio.get_running_loop().create_task(sim.ack_shown(fresh))
+    return fresh
+
+
+def snapshot_of(conn):
+    """(task id → state of its last item, agent_sync task ids) once a snapshot ended on conn."""
+    payloads = conn.websocket.payloads()
+    states = {p["task_id"]: p["state"] for p in payloads if p.get("kind") == "agent"}
+    syncs = [p["task_ids"] for p in payloads if p.get("kind") == "agent_sync"]
+    return states, (syncs[-1] if syncs else None)
+
+
+async def round_reconcile(sim, conn):
+    print("\n== finding 76 open cards reconciled ==", flush=True)
+    asked = await sim.ctl("POST", "/sim/ask", {"device_id": DEVICE, "question": "Which lamp?",
+                                               "options": ["Desk", "Floor"]})
+    card, task, chat = asked["interaction_id"], asked["task_id"], asked["chat_id"]
+    await sim.wait(lambda: mirrored_card(sim, card), 10, "question card mirrored")
+    stream = sim.gw._sources[DEVICE]
+    stream.cancel()
+    await asyncio.gather(stream, return_exceptions=True)
+    status, body = await sim.api("POST", f"/v1/chats/{chat}/interrupt",
+                                 {"decision_id": str(uuid.uuid4()), "reason": "panel"})
+    await asyncio.sleep(1)
+    entry = sim.gw.devices[DEVICE].mirror.get(task)
+    check(status == 200 and body["task"]["state"] == "cancelled" and entry is not None and
+          entry.payload["state"] == "needs_input",
+          f"task cancelled in the service ({body.get('task', {}).get('state')}) while the delivery stream is down: "
+          f"mirror still {entry and entry.payload['state']}")
+    _, snap = await sim.api("GET", f"/v1/devices/{DEVICE}/snapshot")
+    states = [c["payload"]["state"] for c in snap["cards"] if c["task_id"] == task]
+    check(states == ["cancelled"], f"service snapshot of the task: {states}")
+    fresh = reboot(sim, conn, "reboot-1")
+    await sim.wait(lambda: snapshot_of(fresh)[1] is not None, 10, "snapshot after the reconcile")
+    states, sync = snapshot_of(fresh)
+    check(states.get(task) == "cancelled" and task in sync and card not in json.dumps(fresh.websocket.payloads()),
+          f"after the reboot: task {states.get(task)}, card {card} not sent")
+    chats = [p for p in fresh.websocket.payloads() if p.get("kind") == "agent_chats"]
+    chip = next((c["state"] for c in (chats[-1]["chats"] if chats else []) if c["id"] == chat), None)
+    check(chip in ("idle", "unread"), f"chat chip after the reconcile: {chip}")
+
+    del sim.gw._sources[DEVICE]
+    sim.gw.watch_device(DEVICE)
+    ghost = "tsk_sim_ghost"
+    payload = {"task_id": ghost, "chat_id": chat, "state": "needs_input", "summary": "Ghost question?", "lang": "en",
+               "interaction": {"interaction_id": "int_sim_ghost", "question": {"options": [
+                   {"id": "opt1", "label": "Yes"}, {"id": "opt2", "label": "No"}]}}}
+    await sim.ctl("POST", "/sim/enqueue", {"device_id": DEVICE, "tier": "WHEN_IDLE", "slot": "int:int_sim_ghost",
+                                           "payload": payload, "speak": None, "task_id": ghost, "chat_id": chat})
+    await sim.wait(lambda: ghost in sim.gw.devices[DEVICE].mirror, 10, "card of an unknown task mirrored")
+    fresh = reboot(sim, fresh, "reboot-2")
+    await sim.wait(lambda: snapshot_of(fresh)[1] is not None, 10, "snapshot after the second reconcile")
+    states, sync = snapshot_of(fresh)
+    check(ghost not in sync and ghost not in sim.gw.devices[DEVICE].mirror,
+          f"a card of a task the service does not know is dropped: agent_sync {sync}")
+
+    _, other = await sim.api("POST", "/v1/chats", {"device_id": DEVICE, "switch": False})
+    asked = await sim.ctl("POST", "/sim/ask", {"device_id": DEVICE, "question": "Which fan?",
+                                               "options": ["Hall", "Attic"], "chat_id": other["chat_id"]})
+    await sim.wait(lambda: mirrored_card(sim, asked["interaction_id"]), 10, "second question mirrored")
+    await sim.fault(r"^/v1/tasks/", 503, count=100)
+    fresh = reboot(sim, fresh, "reboot-3")
+    await sim.wait(lambda: snapshot_of(fresh)[1] is not None, 10, "snapshot with the service unreachable")
+    states, sync = snapshot_of(fresh)
+    check(states.get(asked["task_id"]) == "needs_input" and asked["task_id"] in sync,
+          f"service unreachable: the open card stays ({states.get(asked['task_id'])})")
+    await sim.clear()
+    await sim.api("POST", f"/v1/chats/{asked['chat_id']}/interrupt", {"decision_id": str(uuid.uuid4()), "reason": "panel"})
+    return fresh
+
+
 async def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--url", default="http://127.0.0.1:18810")
     ap.add_argument("--state", required=True)
-    ap.add_argument("--rounds", default="questions,decisions,speech,attempts,restart,interrupt,routing",
+    ap.add_argument("--rounds", default="questions,decisions,speech,attempts,restart,interrupt,routing,reconcile",
                     help="comma list of questions, decisions, speech, attempts, restart, interrupt, routing, "
-                         "activity")
+                         "reconcile, activity")
     a = ap.parse_args()
     rounds = a.rounds.split(",")
     token = os.environ["SIM_TOKEN"]
@@ -504,6 +582,8 @@ async def main():
         await round_activity(sim, conn)
     if "routing" in rounds:
         await round_routing(sim, conn)
+    if "reconcile" in rounds:
+        conn = await round_reconcile(sim, conn)
     await sim.stop_gateway()
     await sim.http.close()
     print(f"\n{'ALL PASS' if not FAILURES else 'FAILED: ' + '; '.join(FAILURES)}", flush=True)

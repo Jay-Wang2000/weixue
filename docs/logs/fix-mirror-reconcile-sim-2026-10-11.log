@@ -1,0 +1,134 @@
+# fix-mirror-reconcile: server/sim/gateway_recovery_sim.py (all rounds) against server/sim/scratch_agent_service.py of this branch, 2026-10-11
+# PASS/FAIL lines of every round, then the reconcile round in full
+== question cards (decision 67) ==
+PASS open-ended question: no interaction (None), 0 question card mirrored
+PASS real choice: one card, question as summary, options ['Living room', 'Bedroom']
+PASS option tap: receipt accepted, interaction answered
+== F04 decision receipts ==
+PASS no receipt while the service is answering 503
+PASS 503 for the whole window: receipt stale (never accepted)
+PASS service interaction still pending
+PASS answer handled but its reply lost, retried with the same decision id: receipt accepted
+PASS service: interaction answered, 1 decision row
+PASS a third tap is not forwarded again: receipt stale, 1 decision row
+== F09 speech hand-off ==
+PASS d1 speech acks after two 503s on accepted: ['accepted', 'spoken', 'played']
+PASS d1 proactive messages: 1
+PASS d2 not queued while the service cannot record the hand-off
+PASS d2 played once after the service's lease expired: messages=1, acks=['accepted', 'shown', 'spoken', 'played']
+== F10 one retry owner ==
+PASS d3: attempt 2 offered by the service, proactive keys ['dlv_01M4P354EW2EMDWTKHQZ2JJ9TV:1', 'dlv_01M4P354EW2EMDWTKHQZ2JJ9TV:2']
+PASS d3 speech acks: ['accepted', 'deferred', 'accepted', 'spoken', 'played']
+== F11 gateway restart ==
+PASS no snapshot or agent_sync before the service snapshot is restored
+PASS agent_sync lists every task the device held: ['tsk_01M4P3474RCJEAMT8BQRTBG8ZQ', 'tsk_01M4P3493DWJFEFMMRF7FZR2A2', 'tsk_01M4P34A5ZGQWN1AB13CBEA3HQ', 'tsk_sim1', 'tsk_sim2', 'tsk_sim3']
+PASS restored cards keep their wire seqs: 6/6
+PASS restored cards do not speak
+== F13 INTERRUPT ==
+PASS INTERRUPT item played while the session was speaking a voice turn
+PASS d6 cut off by d7: ['accepted', 'shown', 'cut_off'] reason=superseded
+PASS service: d6 cut_off, d7 played
+PASS a late played ack of the cut sentence is not posted
+== answer routing and open-card tiers ==
+PASS question spoken in the voice reply: card when_idle speaks=False
+PASS API message to another chat in the voice window: new_task in its chat, question pending
+PASS voice follow-up: answer, question answered
+PASS question from an API message: card when_idle speaks=True
+PASS option 2 tap: receipt accepted, interaction answered
+== finding 76 open cards reconciled ==
+PASS task cancelled in the service (cancelled) while the delivery stream is down: mirror still needs_input
+PASS service snapshot of the task: ['cancelled']
+PASS after the reboot: task cancelled, card int_01M4P35PM8FM673THBQX0PBBMJ not sent
+PASS chat chip after the reconcile: unread
+PASS a card of a task the service does not know is dropped: agent_sync ['tsk_sim3', 'tsk_sim5', 'tsk_sim6', 'tsk_sim7', 'tsk_01M4P35MHN0Y4EGM4TZDW36B5H', 'tsk_01M4P35NH1MW6QZF31CDMS48WM', 'tsk_01M4P35NHHMPEJ5ZGJSV8K79GG']
+PASS service unreachable: the open card stays (needs_input)
+ALL PASS
+
+# reconcile round
+== finding 76 open cards reconciled ==
+19:21:32 info agent mirror full: tsk_sim2 no longer mirrored for device=7c:0c:5f:42:4b:fc
+19:21:32 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4P3474QRKHSNVX8MCAB51QY task=tsk_01M4P35PM32B9VCHAEBS66QHBY state=needs_input seq=1791742892682 tier=when_idle speaks=True delivery=dlv_01M4P35PM9Q9CHCBPJ0NAWS36R
+19:21:32 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35PM32B9VCHAEBS66QHBY state=needs_input seq=1791742892682
+19:21:32 info agent ack accepted delivery=dlv_01M4P35PM9Q9CHCBPJ0NAWS36R device=7c:0c:5f:42:4b:fc proactive_id=f30a315404e0474d9258cd99a45412a9 ttl_s=600
+19:21:32 info agent ack deferred delivery=dlv_01M4P35PM9Q9CHCBPJ0NAWS36R device=7c:0c:5f:42:4b:fc retry_after_ms=5000 detail=rate limited
+19:21:32 info agent ack shown delivery=dlv_01M4P35PH04QRVTGX5GFMDJQKT device=7c:0c:5f:42:4b:fc seq=1791742892577 via=shown
+19:21:32 info agent ack shown delivery=dlv_01M4P35PH3R40G4KABQ2J9JKY4 device=7c:0c:5f:42:4b:fc seq=1791742892579 via=shown
+19:21:32 info agent ack shown delivery=dlv_01M4P35PM9Q9CHCBPJ0NAWS36R device=7c:0c:5f:42:4b:fc seq=1791742892682 via=shown
+19:21:32 warn agent-service /v1/deliveries/dlv_01M4P35PM9Q9CHCBPJ0NAWS36R/ack: HTTP 409
+19:21:32 warn agent ack shown delivery=dlv_01M4P35PM9Q9CHCBPJ0NAWS36R not recorded by agent-service (HTTP 409)
+19:21:33 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4P3474QRKHSNVX8MCAB51QY chats=2/2 seq=1791742893082 bytes=316 delivery=dlv_01M4P35Q0RYHM7KF4JM1A09D4H
+19:21:33 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791742893082
+19:21:33 info proactive 8701b6982255458bb162816b292566da delivering: attempt=1 session=after-restart invoked=False urgent=False
+19:21:33 info device plays 'Okay: The user answered: Bedroom.' sentence=s-8701b698
+19:21:33 info agent ack shown delivery=dlv_01M4P35Q0RYHM7KF4JM1A09D4H device=7c:0c:5f:42:4b:fc seq=1791742893082 via=shown
+19:21:33 info agent speech ee9654cd33984d44 tts stop sentence=s-8701b698
+19:21:33 info agent speech ee9654cd33984d44 played: sentence=s-8701b698 cut_at_ms=None reason=None
+19:21:33 info agent ack spoken delivery=dlv_01M4P35PH3R40G4KABQ2J9JKY4 device=7c:0c:5f:42:4b:fc proactive_id=8701b6982255458bb162816b292566da
+19:21:33 info agent ack played delivery=dlv_01M4P35PH3R40G4KABQ2J9JKY4 device=7c:0c:5f:42:4b:fc sentence_id=s-8701b698 boot=4242 device_seq=15
+19:21:33 info proactive 8701b6982255458bb162816b292566da delivered
+PASS task cancelled in the service (cancelled) while the delivery stream is down: mirror still needs_input
+PASS service snapshot of the task: ['cancelled']
+19:21:34 info agent connection open device=7c:0c:5f:42:4b:fc session=reboot-1
+19:21:34 info agent session device=7c:0c:5f:42:4b:fc session=reboot-1: snapshot once the open cards are reconciled
+19:21:34 info mirror reconcile dropped task=tsk_01M4P35PM32B9VCHAEBS66QHBY reason=cancelled device=7c:0c:5f:42:4b:fc card=int_01M4P35PM8FM673THBQX0PBBMJ now=cancelled
+19:21:34 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35PM32B9VCHAEBS66QHBY state=cancelled seq=1791742894690
+19:21:34 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4P3474QRKHSNVX8MCAB51QY chats=2/2 seq=1791742894691 bytes=313 delivery=gw_ebfa51e58acc46618487203e
+19:21:34 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791742894691
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791742886536
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim5 state=unread seq=1791742887319
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim7 state=unread seq=1791742888937
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791742888945
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35NH1MW6QZF31CDMS48WM state=unread seq=1791742891564
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35MHN0Y4EGM4TZDW36B5H state=unread seq=1791742891572
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35NHHMPEJ5ZGJSV8K79GG state=unread seq=1791742892579
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35PM32B9VCHAEBS66QHBY state=cancelled seq=1791742894690
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791742894691
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791742894692
+PASS after the reboot: task cancelled, card int_01M4P35PM8FM673THBQX0PBBMJ not sent
+PASS chat chip after the reconcile: unread
+19:21:34 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4P3474QRKHSNVX8MCAB51QY task=tsk_01M4P35PM32B9VCHAEBS66QHBY state=cancelled seq=1791742894791 tier=silent speaks=False delivery=dlv_01M4P35QKJPTRPETRAEFJBG7T0
+19:21:34 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35PM32B9VCHAEBS66QHBY state=cancelled seq=1791742894791
+19:21:34 info agent ack shown delivery=dlv_01M4P35R37NX8TGXZRB209DVQY device=7c:0c:5f:42:4b:fc detail=chat list unchanged
+19:21:34 info agent mirror full: tsk_01M4P35PM32B9VCHAEBS66QHBY no longer mirrored for device=7c:0c:5f:42:4b:fc
+19:21:34 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4P3474QRKHSNVX8MCAB51QY task=tsk_sim_ghost state=needs_input seq=1791742894793 tier=when_idle speaks=False delivery=dlv_01M4P35RP53QCTZBEYQCSSMRWV
+19:21:34 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim_ghost state=needs_input seq=1791742894793
+19:21:34 info agent connection open device=7c:0c:5f:42:4b:fc session=reboot-2
+19:21:34 info agent session device=7c:0c:5f:42:4b:fc session=reboot-2: snapshot once the open cards are reconciled
+19:21:34 info mirror reconcile dropped task=tsk_sim_ghost reason=unknown device=7c:0c:5f:42:4b:fc card=int_sim_ghost now=dropped
+19:21:34 info agent ack dropped delivery=dlv_01M4P35RP53QCTZBEYQCSSMRWV device=7c:0c:5f:42:4b:fc detail=card closed in agent-service
+19:21:34 info agent tasks dropped device=7c:0c:5f:42:4b:fc: ['tsk_sim_ghost']; snapshot due
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791742886536
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim5 state=unread seq=1791742887319
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim7 state=unread seq=1791742888937
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791742888945
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35NH1MW6QZF31CDMS48WM state=unread seq=1791742891564
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35MHN0Y4EGM4TZDW36B5H state=unread seq=1791742891572
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35NHHMPEJ5ZGJSV8K79GG state=unread seq=1791742892579
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791742894691
+19:21:34 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791742894901
+PASS a card of a task the service does not know is dropped: agent_sync ['tsk_sim3', 'tsk_sim5', 'tsk_sim6', 'tsk_sim7', 'tsk_01M4P35MHN0Y4EGM4TZDW36B5H', 'tsk_01M4P35NH1MW6QZF31CDMS48WM', 'tsk_01M4P35NHHMPEJ5ZGJSV8K79GG']
+19:21:35 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4P35RWJ3XWMSQ8CRAM61SKR task=tsk_01M4P35RWMH610EAEVRNDBDNXH state=needs_input seq=1791742895003 tier=when_idle speaks=True delivery=dlv_01M4P35RWTZWR2TH4XZEQBY8KC
+19:21:35 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35RWMH610EAEVRNDBDNXH state=needs_input seq=1791742895003
+19:21:35 info agent ack accepted delivery=dlv_01M4P35RWTZWR2TH4XZEQBY8KC device=7c:0c:5f:42:4b:fc proactive_id=16a5c5b825d045bc9257fb8cf6902e73 ttl_s=600
+19:21:35 info agent ack deferred delivery=dlv_01M4P35RWTZWR2TH4XZEQBY8KC device=7c:0c:5f:42:4b:fc retry_after_ms=3000 detail=rate limited
+19:21:35 info agent event duplicate device=7c:0c:5f:42:4b:fc boot=4242 seq=1
+19:21:35 info agent event duplicate device=7c:0c:5f:42:4b:fc boot=4242 seq=1
+19:21:35 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4P3474QRKHSNVX8MCAB51QY chats=3/3 seq=1791742895500 bytes=418 delivery=dlv_01M4P35SCA38SRFC4WBJPZVZ77
+19:21:35 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791742895500
+19:21:35 info agent event duplicate device=7c:0c:5f:42:4b:fc boot=4242 seq=2
+19:21:35 info agent connection open device=7c:0c:5f:42:4b:fc session=reboot-3
+19:21:35 info agent session device=7c:0c:5f:42:4b:fc session=reboot-3: snapshot once the open cards are reconciled
+19:21:36 warn mirror reconcile device=7c:0c:5f:42:4b:fc: agent-service did not answer for 1 of 1 open cards; mirror kept
+19:21:36 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim3 state=unread seq=1791742886536
+19:21:36 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim5 state=unread seq=1791742887319
+19:21:36 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim7 state=unread seq=1791742888937
+19:21:36 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791742888945
+19:21:36 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35NH1MW6QZF31CDMS48WM state=unread seq=1791742891564
+19:21:36 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35MHN0Y4EGM4TZDW36B5H state=unread seq=1791742891572
+19:21:36 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35NHHMPEJ5ZGJSV8K79GG state=unread seq=1791742892579
+19:21:36 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4P35RWMH610EAEVRNDBDNXH state=needs_input seq=1791742895003
+19:21:36 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791742895500
+19:21:36 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791742896001
+PASS service unreachable: the open card stays (needs_input)
+
+ALL PASS

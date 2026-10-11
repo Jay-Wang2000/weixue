@@ -1,9 +1,11 @@
-"""Outbox tiers, leases, playback acks, no replay without evidence, steer supersession."""
+"""Outbox tiers, leases, playback acks, no replay without evidence, steer supersession, closed cards."""
 import asyncio
 import json
+import uuid
 
 import pytest
 
+from fake_hamcp import FakeHaMcp
 from weixue_agent.deliveries import StaleLease
 
 DEVICE = "sim-device-01"
@@ -233,3 +235,49 @@ async def test_notify_user_is_an_unread_agent_card_spoken_at_its_tier(make):
     assert item["task_id"] == payload["task_id"] and item["state"] == "unread" and item["delivery"] == "interrupt"
     trace = (await h.http.get(f"/v1/tasks/{events[0]['task_id']}/trace")).json()
     assert len([d for d in trace["deliveries"] if d["slot"].startswith("notify:")]) == 2
+
+
+async def _approval_card_then_cancel(make):
+    """An owned approval card handed off for speech, then its task cancelled from the panel."""
+    async def script(turn):
+        await turn.tool("ha_call_service", {"domain": "switch", "service": "turn_on",
+                                            "entity_id": "switch.working_desk_plug"})
+        await turn.text("Needs your OK.")
+    h = await make(script, fake_ha=FakeHaMcp(wait_seconds=30))
+    _, first = await h.send("plug on", origin="api")
+    task_id, chat_id = first[0]["task_id"], first[0]["chat_id"]
+    await h.wait_task(task_id, "needs_approval")
+    row = h.store.one("SELECT * FROM interactions WHERE task_id = ?", (task_id,))
+    h.fake_ha.elapse_wait()
+    await h.wait_for(lambda: h.store.interaction(row["interaction_id"])["state"] == "pending", what="owned")
+    slot = f"int:{row['interaction_id']}"
+    spoken = await h.wait_for(lambda: [d for d in h.deliveries(slot=slot) if d["speak"] and d["state"] == "pending"],
+                              what="spoken card")
+    box = h.service.outbox
+    offer = box.offer(spoken[-1])
+    box.ack(offer["delivery_id"], {"lease_id": offer["lease_id"], "outcome": "accepted", "ttl_s": 60})
+    resp = await h.http.post(f"/v1/chats/{chat_id}/interrupt",
+                             json={"decision_id": str(uuid.uuid4()), "reason": "panel"})
+    assert resp.json()["task"]["state"] == "cancelled"
+    return h, task_id, slot, offer
+
+
+async def test_a_lost_ack_after_the_task_ended_queues_no_open_card(make):
+    h, task_id, slot, offer = await _approval_card_then_cancel(make)
+    before = len(h.deliveries(slot=slot))
+    h.service.outbox.ack(offer["delivery_id"], {"lease_id": offer["lease_id"], "outcome": "lost"})
+    assert h.store.delivery(offer["delivery_id"])["playback"] == "uncertain"
+    assert len(h.deliveries(slot=slot)) == before, "no needs_approval card re-queued for a cancelled task"
+    snap = (await h.http.get(f"/v1/devices/{DEVICE}/snapshot")).json()
+    states = [c["payload"]["state"] for c in snap["cards"] if c["task_id"] == task_id]
+    assert states == ["cancelled"]
+
+
+async def test_the_snapshot_leaves_out_an_open_card_of_an_ended_task(make):
+    h, task_id, slot, offer = await _approval_card_then_cancel(make)
+    card = json.loads(h.store.delivery(offer["delivery_id"])["payload_json"])
+    h.service.outbox.enqueue(DEVICE, "agent", "SILENT", slot, dict(card, playback="uncertain"), task_id=task_id,
+                             chat_id=card["chat_id"])
+    snap = (await h.http.get(f"/v1/devices/{DEVICE}/snapshot")).json()
+    states = [c["payload"]["state"] for c in snap["cards"] if c["task_id"] == task_id]
+    assert states == ["cancelled"]
