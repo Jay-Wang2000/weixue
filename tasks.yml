@@ -315,7 +315,7 @@ tasks:
     description: |
       docs/logs/session-2026-10-11-0655-rca.md：latest_short 流式在真机麦克风上 51 条终稿 40 条为空（31 条 interims=0），chirp_3 批量基线 10/10。R1 无终稿的流不得按静音处理——新增 no_final 问题并回退 chirp_3 批量（决定 42 的回退意图），加流级别仪表（每流帧数/字节/首 interim/半关闭时间/终稿）与音频抓取/回放探针（把设备一轮的 16 kHz 音频存盘并离线回放到两种 STT 比对）；查明真因（半关闭过早？Opus 解码后电平？latest_short 自身 endpointing？分块节奏？）并修复；R2 唤醒后 weixue_live_voice 为 false 的仅唤醒词前滚段在送 STT 前丢弃（charters/Chavez/China 不再成为 LLM 轮）；R3 cmn 标签 0.910 常量置信度绕过 zh 回退——改用 R2 后评估是否仍需；A1 设备无触发（无唤醒/BOOT/proactive）却开会话并投递 14 s 前的话语——给每次 idle→connecting 记原因并按会话计包数。验收：抓取/回放集上流式 ≥ 批量准确率、无空终稿；实机 10 次一口气 ≥9（Google TTS 驱动）。VOICE_ASR 默认留 GoogleSTT，修好后由编排器切回 GoogleSTTStream。
     depends_on: [fix-asr-select]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: fix-session-driver-judging

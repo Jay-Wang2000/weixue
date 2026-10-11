@@ -1,0 +1,14 @@
+{
+  "status": "open",
+  "blocking": false,
+  "task_id": "fix-stt-stream-dropouts",
+  "question": "Google STT streaming model for the voice path: keep latest_short with the new chirp_3 fallbacks, or switch the streaming model to latest_long?",
+  "context": "latest_short ends its single utterance at the pause after 'Jarvis,' (14/20 sim one-breath captures, often labelled cmn: 'Jarvis。'/'China。') and returns finals without alternatives on quiet audio. This branch re-recognizes those with chirp_3 batch (truncated / no_final), so accuracy equals batch, but those turns cost about +1.4 s. On the same replay sets latest_long streaming had 0/20 truncations, 0 empty finals on 30 synthetic clips (WER 0.10 vs latest_short 0.27, chirp_3 batch 0.078), Mandarin CER equal to latest_short, and the same final latency after the half-close (225 ms vs 212 ms). Price of latest_long not checked. Evidence: docs/logs/fix-stt-stream-dropouts-replay-2026-10-11.md. Changing the model is a config value (ASR.GoogleSTTStream.model).",
+  "options": [
+    "A: keep latest_short + fallbacks (this branch as is)",
+    "B: latest_long streaming + the same fallbacks, after a device capture run confirms it",
+    "C: keep latest_short and stream only the audio after the wake word (firmware sends the listen detect before the held packets so the server can skip the 1.98 s wake audio)"
+  ],
+  "recommendation": "B, decided on device captures (WEIXUE_STT_CAPTURE=1 run replayed with stt_replay.py --stream-model latest_long)",
+  "timestamp": "2026-10-11T09:20:00Z"
+}
