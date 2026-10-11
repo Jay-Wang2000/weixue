@@ -1,0 +1,5 @@
+{"t": 1791713203.968, "event": "scenario", "name": "approval", "prefix": "110643", "device": "7c:0c:5f:42:4b:fc"}
+{"t": 1791713203.99, "event": "sent", "status": 202, "result": {"items": [{"delivery_id": "fx_93e722d17abf430187b0e490", "seq": 1791713204043, "task_id": "t_110643_ap"}], "dropped": []}}
+{"t": 1791713211.082, "event": "item", "seq": 1791713204043, "task_id": "t_110643_ap", "delivery_id": "fx_93e722d17abf430187b0e490", "acks": [{"outcome": "shown", "received_at": 1791713209.049, "seq": 1791713204043, "via": "poll"}]}
+{"t": 1791713211.082, "event": "responses", "responses": [{"device": "7c:0c:5f:42:4b:fc", "received_at": 1791713210.237, "boot": 3276078690, "seq": 35, "kind": "approve", "chat_id": "c_110643", "task_id": "t_110643_ap", "card_id": "i_110643_ap", "option_id": "approve", "via": "tap"}]}
+{"t": 1791713211.082, "event": "device", "acked_upto": 1791713204043, "agent_sessions": 0, "snapshot_due": false, "mirror": [{"task_id": "t_110643_ap", "seq": 1791713204043, "state": "needs_approval", "delivery_id": "fx_93e722d17abf430187b0e490"}], "unacked": []}
