@@ -105,7 +105,6 @@ class TurnRun:
     stop_reason: Optional[str] = None
     stop_by: Optional[str] = None
     stop_at: Optional[float] = None
-    awaiting_answer: bool = False
     started_task: bool = False
     cost_usd: float = 0.0
     note_buffer: str = ""
@@ -258,6 +257,11 @@ class Engine:
         if routing.is_stop(text) and (open_task is not None or actor.current is not None):
             response = await self._voice_stop(chat, open_task, lang, trace, reply_id)
             return self._remember(key, digest, response)
+
+        if open_task is not None and actor.current is None and not body.get("retry_of"):
+            answered = await self.interactions.answer_by_message(open_task, text, lang, trace, reply_id)
+            if answered is not None:
+                return self._remember(key, digest, answered)
 
         if body.get("retry_of"):
             original = self.store.task(body["retry_of"])
@@ -957,7 +961,8 @@ class Engine:
         self.emit(run.chat_id, "progress", progress, run.trace_id, task_id=run.task_id, turn_id=run.turn_id)
         if not self.reply_open(run):
             task = self.store.task(run.task_id)
-            if task and task["state"] not in TERMINAL_STATES:
+            # A task waiting on its card keeps the card on the device.
+            if task and task["state"] not in TERMINAL_STATES + ("needs_input", "needs_approval"):
                 self.outbox.enqueue(run.device_id, "agent", "SILENT", f"task:{run.task_id}",
                                     agent_payload(task, "progress", progress=progress), task_id=run.task_id,
                                     chat_id=run.chat_id, turn_id=run.turn_id, lang=run.lang)
@@ -989,10 +994,6 @@ class Engine:
             return "Title set."
         if name == "device_action":
             return await self._device_action(run, args, actor.take_use(name, args))
-        if name == "awaiting_answer":
-            if run is not None:
-                run.awaiting_answer = True
-            return "Noted: your final reply is a question; end your turn after asking it."
         if name == "set_result_tier":
             tier = {"interrupt": "INTERRUPT", "silent": "SILENT"}.get(str(args.get("tier")), "WHEN_IDLE")
             if run is not None and run.task_id:
@@ -1302,9 +1303,6 @@ class Engine:
             if run.reply and run.reply.open:
                 self.end_reply(run.chat_id, run.turn_id, run.reply, "turn_done", run.trace_id, run.task_id)
             return
-        if final_text and (run.awaiting_answer or routing.ends_with_question(final_text)):
-            self.interactions.text_question(run, final_text, spoken_inline)
-            return
         if run.reply and run.reply.open:
             self.end_reply(run.chat_id, run.turn_id, run.reply, "turn_done", run.trace_id, run.task_id)
         speak = None if spoken_inline else (final_text or None)
@@ -1329,7 +1327,7 @@ class Engine:
     async def finish_task(self, task_id: str, state: str, error: Optional[Dict[str, str]] = None,
                           speak: Optional[str] = None, reason: Optional[str] = None, outcome: Optional[str] = None,
                           summary_text: Optional[str] = None, turn_id: Optional[str] = None,
-                          spoken_inline: bool = False) -> None:
+                          spoken_inline: bool = False, unread: bool = True) -> None:
         task = self.store.task(task_id)
         if task is None or task["state"] in TERMINAL_STATES:
             return
@@ -1359,7 +1357,7 @@ class Engine:
         options = None
         if state == "failed":
             options = [{"id": "retry", "label": "Retry"}] if retry_allowed else [{"id": "check", "label": "Check state"}]
-        payload = agent_payload(task, state, unread=True, side_effects=effects, options=options)
+        payload = agent_payload(task, state, unread=unread, side_effects=effects, options=options)
         if state == "cancelled" or spoken_inline or not speak:
             self.outbox.enqueue(task["device_id"], "agent", "SILENT", f"task:{task_id}", payload, task_id=task_id,
                                 chat_id=task["chat_id"], turn_id=turn_id, lang=task["lang"])

@@ -43,6 +43,8 @@ Server → device, on the WebSocket `custom` channel (`CONFIG_RECEIVE_CUSTOM_MES
            {"id":"cht_01J8…","state":"idle","age_s":86400}]}}                          // no title: untitled
 ```
 
+A `needs_input` item is a question card: `summary` is the question and `options` holds 2-4 choices, shown as the card's buttons; agent-service never sends a question without options (decision 67). The device still renders an option-less question with Later for items stored before that rule. A spoken reply to the card answers it in the user's own words through the normal voice path.
+
 `agent_sync` ends a snapshot: the device drops every task not listed. `agent_chats` replaces the device's chat list (the newest seq wins; a task snapshot keeps it): at most 12 entries, the payload ≤ 1024 B (the gateway leaves out the oldest chats that do not fit, never the current one), `title` ≤ 24 chars, `state` `idle|working|needs_you|unread|failed` (unknown reads `idle`), `age_s` seconds since the chat's last activity at send time. Agent speech `tts` frames (`start`, `sentence_start`, `stop`) carry `"sentence_id":"…","ack":true`.
 
 Receipt (v1.1), on the session the device's `agent_response` arrived on, for every response kind except `shown`, and again for every repeat of the same (`boot`, `seq`):

@@ -162,6 +162,23 @@ def test_from_delivery_never_leaves_an_approval_card_silent():
     assert wire.from_delivery(offer("needs_approval", "WHEN_IDLE", "OK?"), now=now)[0]["delivery"] == "when_idle"
     assert wire.from_delivery(offer("needs_input", "SILENT"), now=now)[0]["delivery"] == "silent"
     assert wire.from_delivery(offer("progress", "SILENT"), now=now)[0]["delivery"] == "silent"
+def test_from_delivery_question_card_keeps_the_question_and_its_options():
+    options = [{"id": "opt1", "label": "Living room"}, {"id": "opt2", "label": "Bedroom"}, {"id": "opt3", "label": "客厅灯"}]
+    offer = {"kind": "agent", "tier": "WHEN_IDLE", "speak": "Which light?", "chat_id": "cht_1", "task_id": "tsk_1",
+             "payload": {"state": "needs_input", "title": "Lights", "summary": "Which light?", "lang": "en",
+                         "interaction": {"interaction_id": "int_q", "expires_at": "2026-10-07T12:30:00Z",
+                                         "question": {"text": "Which light?", "options": options}}}}
+    fields, speech = wire.from_delivery(offer, now=1791374400.0)
+    item = wire.build_item(fields, 1, 0)
+    assert item["state"] == "needs_input" and item["summary"] == "Which light?" and item["card_id"] == "int_q"
+    assert item["options"] == options and speech == "Which light?"
+
+
+def test_from_delivery_read_done_clears_instead_of_unread():
+    done = {"kind": "agent", "tier": "SILENT", "chat_id": "cht_1", "task_id": "tsk_1",
+            "payload": {"state": "done", "summary": "Anything else?", "unread": False}}
+    fields, speech = wire.from_delivery(done, now=0)
+    assert fields["state"] == "done" and speech is None
 
 
 def test_response_routes():

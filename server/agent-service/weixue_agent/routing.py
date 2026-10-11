@@ -9,7 +9,12 @@ STOP = {"stop", "cancel", "never mind", "nevermind", "停", "停下", "取消", 
 APPROVE = {"approve", "do it", "批准", "同意"}
 DENY = {"no", "deny", "cancel", "stop", "不", "不要", "拒绝", "取消"}
 BARE_YES = {"yes", "ok", "okay", "好", "是", "好的", "是的"}
-QUESTION_ENDS = ("?", "？", "吗", "吗。", "吗？")
+# Open-ended phrasings that are speech, never a question card (decision 67).
+OPEN_ENDED = ("what next", "what s next", "what is next", "anything else", "what else", "what would you like",
+              "what do you want", "what can i do", "how can i help", "how else can i", "can i help", "let me know",
+              "is there anything",
+              "还有什么", "还需要什么", "还需要我", "接下来做什么", "接下来要做", "想让我做", "要我做什么",
+              "需要我做什么", "有什么可以帮", "有什么需要", "告诉我")
 
 STOPPED = {"en": "Stopped.", "zh": "好，停了。"}
 MAYBE_HAPPENED = {"en": " Some of it may already have happened.", "zh": "有些可能已经执行了。"}
@@ -48,8 +53,11 @@ def voice_decision(text: str) -> Optional[str]:
     return None
 
 
-def ends_with_question(text: str) -> bool:
-    return text.strip().endswith(QUESTION_ENDS)
+def is_open_ended(text: str) -> bool:
+    """True for a question that offers no choice ("what would you like me to do next?")."""
+    norm = f" {normalize(text)} "
+    compact = norm.replace(" ", "")
+    return any((f" {phrase} " in norm) if phrase.isascii() else (phrase in compact) for phrase in OPEN_ENDED)
 
 
 def approval_cue(lang: str, action_text: str) -> str:

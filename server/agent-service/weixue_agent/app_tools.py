@@ -3,8 +3,7 @@ from typing import Any, Awaitable, Callable, Dict, List
 
 from anthropic.lib.tools import BetaAsyncFunctionTool, beta_async_tool
 
-NAMES = ("ask_user", "start_task", "set_chat_title", "notify_user", "set_result_tier", "awaiting_answer",
-         "device_action")
+NAMES = ("ask_user", "start_task", "set_chat_title", "notify_user", "set_result_tier", "device_action")
 # Agent-visible device MCP tools (DESIGN.md ADR-13); the gateway enforces the same list.
 DEVICE_TOOLS = ("self.get_device_status", "self.audio_speaker.set_volume", "self.screen.set_brightness",
                 "self.screen.set_theme", "self.screen.set_bedside", "self.imu.get_state")
@@ -13,15 +12,18 @@ DEVICE_SETTERS = ("self.audio_speaker.set_volume", "self.screen.set_brightness",
 
 _SPECS: Dict[str, Dict[str, Any]] = {
     "ask_user": {
-        "description": ("Ask the user a question you need answered before you can continue. The question is "
-                        "spoken and shown on the panel with up to four short options. The result is their answer, "
+        "description": ("Ask the user to pick one of two to four short options when a real choice blocks the work "
+                        "and you cannot make it yourself. The question is spoken and shown on the panel with the "
+                        "options as buttons; the user may also answer in their own words. Not for open-ended "
+                        "questions such as what to do next: say those in your reply. The result is their answer, "
                         "or a note that they have not answered yet."),
         "input_schema": {
-            "type": "object", "additionalProperties": False, "required": ["question"],
+            "type": "object", "additionalProperties": False, "required": ["question", "options"],
             "properties": {
-                "question": {"type": "string", "description": "One short spoken question."},
-                "options": {"type": "array", "maxItems": 4, "items": {"type": "string"},
-                            "description": "Up to four short answer options (a few words each)."},
+                "question": {"type": "string", "description": "One short spoken question naming the choice."},
+                "options": {"type": "array", "minItems": 2, "maxItems": 4, "items": {"type": "string"},
+                            "description": ("Two to four distinct options, each at most 12 letters "
+                                            "(4 Chinese characters).")},
                 "multi_select": {"type": "boolean", "description": "True when several options may be chosen."},
             },
         },
@@ -72,10 +74,6 @@ _SPECS: Dict[str, Dict[str, Any]] = {
             "properties": {"tool": {"enum": list(DEVICE_TOOLS)},
                            "args": {"type": "object", "description": "Arguments of the device tool."}},
         },
-    },
-    "awaiting_answer": {
-        "description": "Call this when your final reply asks the user a question and you need the answer.",
-        "input_schema": {"type": "object", "additionalProperties": False, "properties": {}},
     },
 }
 
