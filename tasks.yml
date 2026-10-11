@@ -398,7 +398,7 @@ tasks:
     description: |
       Jay 2026-10-11: while a task is working, the device panel shows what the agent is doing now, derived from the current tool: web_search/web_fetch -> "搜索中…" / "Searching…", ha_* reads -> "查看家里状态…" / "Checking the house…", ha_call_service -> "正在操作…" / "Acting…", tool_search -> "找工具…" / "Finding a tool…", no tool -> "思考中…" / "Thinking…"; language follows the chat's language. agent-service emits the activity on the task (progress event with a short label, rate-limited to one change per second, cleared at turn end); gateway carries it in the agent item (protocol minor bump, backwards compatible); device renders it under the task line in the panel and the small-face complication, truncated to the row. Tests: service, gateway, firmware host; sim; board check with a live web_search turn (screen dump).
     depends_on: [feat-ui-sessions]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: research-turn-taking
