@@ -98,6 +98,9 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 54. **Orchestrator rulings (our stack, FYI)**: creating or switching a chat closes another chat's open 20 s voice window (its question stays as a card); the agent service's per-turn iteration cap rises from 60 to 150 for long tasks while the token/cost guards stay. Implemented in the next small fix pass.
 
+## M2 status 2026-10-11 03:00
+- All M2 build tasks merged (PRs #1-#10); Codex M2 review = FIX-FIRST (3 P1, 13 P2) → fix-m2-review-service / fix-m2-review-gateway running under the heavy gate. The voice path stays on the legacy provider (VOICE_LLM=anthropic) until those merge and the audio session passes.
+
 ## Night run 2026-10-10 → 11 (Jay asleep)
 - Quiet mode: no `say`, device volume 0 for any test, no audible TTS; the full audio session runs after Jay wakes. Autonomous work continues through M2; anything user-facing in behaviour not already decided, external-service or security-related is parked here for the morning report.
 
