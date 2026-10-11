@@ -308,6 +308,40 @@ int main(int argc, char** argv) {
         g_ring = r.model.Ring(1000, 0);
         Finish(s, out, "agent-idle-working");
     }
+    {  // idle, working with the current activity (decision 68)
+        Rig r;
+        Item news = MakeItem("t_news", State::kWorking, "Irish news today");
+        news.activity = "Searching…";
+        r.Add(news, now - 1000);
+        Scene s = NewScene();
+        Clock(s.face);
+        Complication c = r.model.Face(now);
+        Eyes(s.face, c.pose);
+        s.view->SetComplication(c, true, now);
+        g_ring = r.model.Ring(1000, 0);
+        Finish(s, out, "agent-idle-activity");
+    }
+    {  // management page 1 with activities
+        Rig r;
+        Item sunset = MakeItem("t_sun", State::kWorking, "Sunset lights");
+        sunset.has_progress = true;
+        sunset.progress_step = 2;
+        sunset.progress_total = 5;
+        sunset.activity = "Acting…";
+        r.Add(sunset, 0);
+        Item kitchen = MakeItem("t_kit", State::kWorking, "Kitchen check");
+        kitchen.activity = "Checking the house…";
+        r.Add(kitchen, 1000);
+        Item news = MakeItem("t_news", State::kWorking, "Irish news today");
+        news.activity = "Searching…";
+        r.Add(news, 2000);
+        Scene s = NewScene();
+        lv_obj_remove_flag(s.page, LV_OBJ_FLAG_HIDDEN);
+        s.view->SetHeader(r.model.CurrentTitle(), false);
+        int more = 0;
+        s.view->SetRows(r.model.Rows(3000, 3, &more), more);
+        Finish(s, out, "agent-management-activity");
+    }
     {  // idle, unread
         Rig r;
         r.Add(MakeItem("t_wr", State::kUnread, "Weekly report"), 0);

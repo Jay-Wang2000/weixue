@@ -104,6 +104,8 @@ private:
     int32_t width_, height_;
     Callbacks cb_;
     const lv_font_t* zh_font_ = nullptr;
+    // The 20 px Latin font with the CJK font as fallback, for the task state lines.
+    lv_font_t small_cjk_{};
     std::vector<Placement> placements_;
     std::vector<std::unique_ptr<GlyphSpec>> specs_;
     std::vector<lv_obj_t*> spin_glyphs_;

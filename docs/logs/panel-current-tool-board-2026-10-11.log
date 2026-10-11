@@ -1,0 +1,113 @@
+# feat-panel-current-tool board check, 2026-10-11 (UTC times)
+# Device: 1.75C on /dev/cu.usbmodem2101 under the device lock. Diag build of this branch with CONFIG_OTA_URL pointed at a scratch
+# stack of this branch on the Mac (sim xiaozhi server with this branch's overlay, scripted ASR, tone TTS, LAN ports 18410/18413;
+# this branch's agent-service image with the live Anthropic key, no HA). The live stack was not touched. Device volume 0.
+# Text turn through agent-service in a new chat created with switch=false; web search answered live (Sonnet quick mode).
+
+## run 1 (complication dump)
+### 16:38:50Z lock acquired owner=34110
+### 16:38:50Z flash branch diag build (OTA URL = scratch stack :18413)
+### 16:40:11Z CJK font loaded
+### 16:40:11Z device idle
+diag volume 0: ok volume 0
+diag bedside day: ok bedside day
+### 16:40:15Z polling
+### 16:40:20Z text turn in a new non-current chat
+{"chat": "cht_01M4NXCCJ9QR4W4EV2614DMKZJ", "current": null, "task": "tsk_01M4NXCCJCQ1TMAPNMHN3RH768", "routed": "new_task"}
+### 16:40:28Z device shows Searching
+diag swipe left: ok swipe left
+### 16:40:35Z result arrived
+diag swipe right: ok swipe right
+### 16:40:41Z flash main release build back
+### 16:40:44Z flash main refused: main had advanced (PR #24); main rebuilt and flashed at 16:45, see run 1b
+### 16:41:59Z lock released (board on the diag build); main 5b3fa49 release rebuilt
+## run 1b
+### 16:44:50Z lock acquired; flash main release (5b3fa49)
+### 16:47:26Z lock released
+### 16:47:25Z main 5b3fa49 release flashed: boot to idle (16:46:14), live poller :8003, 0 diag lines, 0 diag strings in xiaozhi.bin; lock released
+
+## run 1 serial (diag build)
+[    4.59 16:40:16Z] I (4468) Application: Proactive poller: http://<IP>:18413/weixue/proactive/poll
+[   15.83 16:40:27Z] I (15788) WeixueAgent: agent: chat=cht_01M4NXCCJ9QR4W4EV2614DMKZJ task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=working seq=1791736827514 tier=silent speaks=0 result=applied via=poll
+[   16.03 16:40:27Z] I (15828) FaceDisplay: agent ui: activity=Searching… task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768
+[   16.03 16:40:27Z] I (15828) FaceDisplay: agent ui: task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=working tier=silent flash=0 earcon=none
+[   16.03 16:40:27Z] I (15838) FaceDisplay: agent ui: pose=mini top=tsk_01M4NXCCJCQ1TMAPNMHN3RH768
+[   17.25 16:40:29Z] FACEDUMP 1 begin 466 466 mini neutral
+[   20.09 16:40:31Z] I (19888) WeixueAgent: agent: chat=cht_01M4NXCCJ9QR4W4EV2614DMKZJ task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=working seq=1791736831157 tier=silent speaks=0 result=applied via=poll
+[   23.12 16:40:34Z] I (22958) WeixueAgent: agent: chat=cht_01M4NXCCJ9QR4W4EV2614DMKZJ task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=unread seq=1791736834387 tier=when_idle speaks=1 result=applied via=pol
+[   23.32 16:40:35Z] FACEDUMP 2 begin 466 466 mini neutral
+[   23.32 16:40:35Z] I (23208) FaceDisplay: agent ui: task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=unread tier=when_idle flash=2 earcon=none
+[   23.32 16:40:35Z] I (23218) FaceDisplay: agent ui: pose=happy top=tsk_01M4NXCCJCQ1TMAPNMHN3RH768
+[   23.72 16:40:35Z] I (23638) WeixueAgent: agent: chat=cht_01M4NXCCJ9QR4W4EV2614DMKZJ task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=unread seq=1791736834387 tier=when_idle speaks=1 result=duplicate via=p
+[   23.93 16:40:35Z] I (23798) FaceDisplay: agent ui: pose=full top=tsk_01M4NXCCJCQ1TMAPNMHN3RH768
+[   29.60 16:40:41Z] FACEDUMP 3 begin 466 466 panel neutral
+
+## run 2 (panel dump), after rebasing onto main 7f76e37
+### 17:07:17Z lock acquired owner=99052
+### 17:07:17Z flash branch diag build (OTA URL = scratch stack :18413)
+### 17:08:40Z CJK font loaded
+### 17:08:43Z device idle
+diag volume 0: ok volume 0
+diag bedside day: ok bedside day
+### 17:08:46Z polling
+### 17:08:51Z text turn in a new non-current chat
+{"chat": "cht_01M4NZ0KWVMWEWH58RK9FPQ0TH", "current": null, "task": "tsk_01M4NZ0KWZB07TD9HPEBSTQRMV", "routed": "new_task"}
+### 17:08:59Z device shows Searching; open the panel
+diag swipe left: ok swipe left
+### 17:09:04Z panel dump started
+### 17:09:13Z result arrived
+### 17:09:22Z flash main release build back
+### 17:11:57Z main boot: idle=1 diag_lines=0 diag_strings=0
+### 17:11:57Z lock released
+
+## run 2 serial (diag build)
+[    2.16 17:08:39Z] I (2148) MonitorPanel: page=1
+[    4.83 17:08:42Z] I (4738) Application: Proactive poller: http://<IP>:18413/weixue/proactive/poll
+[    5.04 17:08:42Z] I (4968) WeixueAgent: agent: chat=cht_01M4NXCCJ9QR4W4EV2614DMKZJ task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=unread seq=1791736834387 tier=when_idle speaks=0 result=applied via=poll
+[    5.24 17:08:43Z] I (5058) FaceDisplay: agent ui: task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=unread tier=when_idle flash=2 earcon=done
+[    6.05 17:08:43Z] I (6018) WeixueAgent: agent: chat=cht_01M4NXCCJ9QR4W4EV2614DMKZJ task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=unread seq=1791736834387 tier=when_idle speaks=0 result=duplicate via=pu
+[    7.29 17:08:45Z] FACEDUMP 1 begin 466 466 listening neutral
+[   17.26 17:08:55Z] I (17248) WeixueAgent: agent: chat=cht_01M4NXCCJ9QR4W4EV2614DMKZJ task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=unread seq=1791736834387 tier=when_idle speaks=0 result=duplicate via=p
+[   17.88 17:08:55Z] FACEDUMP 2 begin 466 466 listening neutral
+[   21.32 17:08:59Z] I (21168) WeixueAgent: agent: chat=cht_01M4NZ0KWVMWEWH58RK9FPQ0TH task=tsk_01M4NZ0KWZB07TD9HPEBSTQRMV state=working seq=1791738538979 tier=silent speaks=0 result=applied via=push
+[   21.32 17:08:59Z] I (21208) FaceDisplay: agent ui: activity=Searching… task=tsk_01M4NZ0KWZB07TD9HPEBSTQRMV
+[   21.32 17:08:59Z] I (21218) FaceDisplay: agent ui: task=tsk_01M4NZ0KWZB07TD9HPEBSTQRMV state=working tier=silent flash=0 earcon=none
+[   22.53 17:09:00Z] I (22348) MonitorPanel: page=1
+[   22.53 17:09:00Z] I (22358) MonitorPanel: page=panel
+[   24.36 17:09:02Z] I (24248) WeixueAgent: agent: chat=cht_01M4NZ0KWVMWEWH58RK9FPQ0TH task=tsk_01M4NZ0KWZB07TD9HPEBSTQRMV state=unread seq=1791738542066 tier=when_idle speaks=1 result=applied via=pus
+[   24.36 17:09:02Z] I (24278) FaceDisplay: agent ui: task=tsk_01M4NZ0KWZB07TD9HPEBSTQRMV state=unread tier=when_idle flash=2 earcon=none
+[   25.58 17:09:03Z] FACEDUMP 3 begin 466 466 panel neutral
+[   26.18 17:09:03Z] I (26178) MonitorPanel: page=face
+[   32.26 17:09:10Z] I (32108) MonitorPanel: page=1
+[   32.26 17:09:10Z] I (32108) MonitorPanel: page=panel
+[   34.90 17:09:12Z] I (34708) MonitorPanel: page=face
+[   37.75 17:09:15Z] FACEDUMP 4 begin 466 466 panel neutral
+[   38.77 17:09:16Z] I (38658) FaceDisplay: agent ui: pose=mini top=tsk_01M4NZ0KWZB07TD9HPEBSTQRMV
+[   38.97 17:09:16Z] I (38828) WeixueAgent: agent: chat=cht_01M4NXCCJ9QR4W4EV2614DMKZJ task=tsk_01M4NXCCJCQ1TMAPNMHN3RH768 state=unread seq=1791736834387 tier=when_idle speaks=0 result=duplicate via=p
+[   38.97 17:09:16Z] I (38828) WeixueAgent: agent: chat=cht_01M4NZ0KWVMWEWH58RK9FPQ0TH task=tsk_01M4NZ0KWZB07TD9HPEBSTQRMV state=unread seq=1791738542066 tier=when_idle speaks=1 result=duplicate via=p
+[   38.97 17:09:16Z] I (38838) FaceDisplay: agent ui: pose=full top=tsk_01M4NZ0KWZB07TD9HPEBSTQRMV
+
+## run 2 agent-service (scratch, branch image)
+2026-10-11T17:08:51.752Z turn start  user  STQRMV
+2026-10-11T17:08:51.753Z activity  Thinking…  STQRMV
+2026-10-11T17:08:53.312Z activity  Searching…  STQRMV
+2026-10-11T17:08:54.189Z model request  req_011CfvpRpANodC9eBK1CfNJ8 tool_use STQRMV
+2026-10-11T17:08:54.191Z tool call start_task {"title":"Ireland news, weather, sport"} app STQRMV
+2026-10-11T17:08:54.192Z tool call code_execution {"code":"import asyncio\nqs=[\"top news Ireland today\",\"Dublin weather forecast today\", server STQRMV
+2026-10-11T17:09:02.049Z model request  req_011CfvpRzBdz5UcsoUeanEv3 end_turn STQRMV
+2026-10-11T17:09:02.055Z tool call web_search {"query":"Dublin weather forecast today"} server STQRMV
+2026-10-11T17:09:02.056Z tool call web_search {"query":"Irish sport results this week"} server STQRMV
+2026-10-11T17:09:02.058Z tool call web_search {"query":"top news Ireland today"} server STQRMV
+2026-10-11T17:09:02.059Z tool call code_execution {"code":"for q,r in zip(qs,rs):\n print(\"##\",q,type(r))\n print(str(r)[:1500])"} server STQRMV
+2026-10-11T17:09:02.060Z turn end   completed STQRMV
+2026-10-11T17:09:02.065Z task finished   done/ok STQRMV
+
+## main release boot after run 2
+[    0.31 17:10:42Z] I (106) app_init: App version:      2.5.1
+[    4.17 17:10:46Z] I (4168) Ota: Current version: 2.5.1
+[    4.58 17:10:46Z] I (4378) Ota: Current is the latest version
+[    4.58 17:10:46Z] I (4388) StateMachine: State: activating -> idle
+[    4.58 17:10:46Z] I (4398) Application: Proactive poller: http://<IP>:8003/weixue/proactive/poll
+diag lines: 0; diag strings in fw-work/weixue/build/xiaozhi.bin: 0
+
+## screen dumps: docs/logs/panel-current-tool-png/board-complication-searching.png (run 1, FACEDUMP 1), board-panel-searching.png (run 2, FACEDUMP 3)

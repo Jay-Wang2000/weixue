@@ -15,12 +15,12 @@ from zoneinfo import ZoneInfo
 
 import anthropic
 
-from . import app_tools, jsonlog, models, routing, timeutil
+from . import activity, app_tools, jsonlog, models, routing, timeutil
 from .actor import ChatActor, Outcome
 from .chats import ChatIndex
 from .config import (
-    ACK_AFTER_S, ACTOR_IDLE_S, BARGE_IN_RESUME_S, CANCEL_MAX_S, DEVICE_ACTION_WAIT_S, DEVICE_RESULT_MAX,
-    DONE_SPEECH_TTL_S, IDEMPOTENCY_TTL_S,
+    ACK_AFTER_S, ACTIVITY_MIN_INTERVAL_S, ACTOR_IDLE_S, BARGE_IN_RESUME_S, CANCEL_MAX_S, DEVICE_ACTION_WAIT_S,
+    DEVICE_RESULT_MAX, DONE_SPEECH_TTL_S, IDEMPOTENCY_TTL_S,
     MAX_OPEN_TASKS_PER_DEVICE, NOTIFY_TTL_S, PROGRESS_MIN_INTERVAL_S, QUEUE_WAIT_MS, REPLY_HOLD_S, STEER_WAIT_S,
     STREAMS_MAX, SUMMARY_MAX, TEXT_COALESCE_MS, TITLE_MAX, TURN_MAX_S, Settings,
 )
@@ -101,6 +101,7 @@ class TurnRun:
     rounds: int = 0
     last_progress: float = 0.0
     last_phase: Optional[str] = None
+    last_activity: Optional[str] = None
     futures: Dict[str, asyncio.Future] = field(default_factory=dict)
     stop_reason: Optional[str] = None
     stop_by: Optional[str] = None
@@ -110,6 +111,16 @@ class TurnRun:
     note_buffer: str = ""
     last_note: str = ""
     timers: List[asyncio.TimerHandle] = field(default_factory=list)
+
+
+@dataclass
+class Activity:
+    """A task's activity label: the one sent last, the one wanted next, and the turn that set it."""
+    run: TurnRun
+    label: Optional[str] = None
+    want: Optional[str] = None
+    at: float = float("-inf")
+    timer: Optional[asyncio.TimerHandle] = None
 
 
 class Engine:
@@ -133,6 +144,7 @@ class Engine:
         self.last_api_error_at: float = 0.0
         self.last_model_ok: Optional[float] = None
         self.device_actions: Dict[str, Tuple[asyncio.Future, str]] = {}
+        self.activities: Dict[str, Activity] = {}
         ha.listener = self.interactions
         chats.in_flight = lambda chat_id: self.turn_in_flight(chat_id)
 
@@ -420,6 +432,12 @@ class Engine:
             self.store.update("turns", "turn_id", turn_id, {"reply_end_at": timeutil.iso(), "reply_end_reason": reason})
         jsonlog.log("reply end", chat_id=chat_id, turn_id=turn_id, task_id=task_id, trace_id=trace, event="reply_end",
                     outcome=reason, latency_ms=latency)
+        actor = self.actors.get(chat_id)
+        run = actor.current if actor else None
+        if run is not None and run.task_id and run.turn_id == turn_id and run.last_phase is not None and \
+                reason != "turn_done":
+            last = loads((self.store.task(run.task_id) or {}).get("progress_json")) or {}
+            self.progress(run, run.last_phase, tool=last.get("tool"), label=last.get("label"), force=True)
 
     def gateway_closed(self, chat_id: str, reply_id: str) -> None:
         """The provider's message stream dropped before reply_end (barge-in or disconnect)."""
@@ -551,6 +569,7 @@ class Engine:
         self.emit(run.chat_id, "started", {"kind": run.kind, "title": title}, run.trace_id, task_id=run.task_id,
                   turn_id=run.turn_id)
         self.log("turn start", run, event="turn_start", detail=run.kind, epoch=chat["epoch"])
+        self.set_activity(run, activity.THINK)
 
     async def _run_turn(self, actor: ChatActor, turn: Dict[str, Any]) -> None:
         task = self.store.task(turn["task_id"])
@@ -597,6 +616,7 @@ class Engine:
                 if r.reply and r.reply.open:
                     self.end_reply(r.chat_id, r.turn_id, r.reply, "turn_done", r.trace_id, r.task_id,
                                    flush=r.stop_reason is None)
+                self.set_activity(r, None)
             actor.current = None
             actor.loop = None
             actor.finishing = False
@@ -779,9 +799,12 @@ class Engine:
                                                      run.task_id)))
         if reply is not None and reply.coalescer:
             reply.coalescer.flush()
+        kind = activity.kind_of(name, server, self.ha.is_read_only)
         if name in app_tools.NAMES:
+            self.set_activity(run, kind)
             return
         run.step += 1
+        self.set_activity(run, kind, emit=False)
         self.progress(run, "tool", tool=name, label=name)
 
     def on_progress_note(self, run: TurnRun, text: str) -> None:
@@ -947,16 +970,72 @@ class Engine:
             self.store.update("tool_calls", "tool_use_id", block["tool_use_id"], values)
             self.log("tool result", run, tool=row["tool"], event="tool_result", outcome=status)
 
-    def progress(self, run: TurnRun, phase: str, tool: Optional[str] = None, label: Optional[str] = None) -> None:
+    def set_activity(self, run: TurnRun, kind: Optional[str], emit: bool = True) -> None:
+        """The task's activity label for kind (None clears it, only from the turn that set it last); a change goes
+        out at most once per ACTIVITY_MIN_INTERVAL_S per task, the latest one when the interval ends."""
+        if run.task_id is None:
+            return
+        state = self.activities.get(run.task_id)
+        if state is None:
+            if kind is None:
+                return
+            state = self.activities[run.task_id] = Activity(run=run)
+        elif kind is None and state.run is not run:
+            return
+        state.run = run
+        state.want = activity.label(kind, run.lang) if kind else None
+        if state.timer is not None and kind is not None:
+            return
+        if state.timer is not None:
+            state.timer.cancel()
+            state.timer = None
+        wait = state.at + ACTIVITY_MIN_INTERVAL_S - time.monotonic()
+        if wait > 0 and state.want != state.label and not self._task_ended(run.task_id):
+            state.timer = asyncio.get_running_loop().call_later(wait, self._activity_due, run.task_id)
+            return
+        self._apply_activity(run.task_id, state, emit)
+
+    def _task_ended(self, task_id: str) -> bool:
+        task = self.store.task(task_id)
+        return task is None or task["state"] in TERMINAL_STATES
+
+    def _activity_due(self, task_id: str) -> None:
+        state = self.activities.get(task_id)
+        if state is not None:
+            state.timer = None
+            self._apply_activity(task_id, state, True)
+
+    def _apply_activity(self, task_id: str, state: Activity, emit: bool) -> None:
+        task = self.store.task(task_id)
+        if task is None or task["state"] in TERMINAL_STATES:
+            if state.timer is not None:
+                state.timer.cancel()
+            self.activities.pop(task_id, None)
+            return
+        if task["state"] != "progress" or state.want == state.label:
+            state.want = state.label
+            return
+        state.label, state.at = state.want, time.monotonic()
+        self.log("activity", state.run, event="activity", detail=state.label or "cleared")
+        if emit:
+            self.progress(state.run, state.run.last_phase or "thinking")
+
+    def progress(self, run: TurnRun, phase: str, tool: Optional[str] = None, label: Optional[str] = None,
+                 force: bool = False) -> None:
         if run.task_id is None:
             return
         now = time.monotonic()
-        if phase == run.last_phase and now - run.last_progress < PROGRESS_MIN_INTERVAL_S:
+        shown = self.activities.get(run.task_id)
+        current = shown.label if shown else None
+        if not force and phase == run.last_phase and current == run.last_activity and \
+                now - run.last_progress < PROGRESS_MIN_INTERVAL_S:
             return
-        run.last_progress, run.last_phase = now, phase
+        run.last_progress, run.last_phase, run.last_activity = now, phase, current
         progress: Dict[str, Any] = {"phase": phase, "step": run.step or None, "tool": tool}
         if label:
             progress["label"] = jsonlog.truncate(label, 40)
+        if current:
+            progress["activity"] = current
         self.store.update("tasks", "task_id", run.task_id, {"progress_json": progress})
         self.emit(run.chat_id, "progress", progress, run.trace_id, task_id=run.task_id, turn_id=run.turn_id)
         if not self.reply_open(run):

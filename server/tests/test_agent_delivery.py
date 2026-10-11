@@ -184,6 +184,23 @@ def snapshot_walk(gw, header="0", lose=()):
     raise AssertionError("snapshot never ended")
 
 
+async def test_working_items_with_activity_fit_the_poll_body():
+    _, gw = make()
+    gw.on_poll(DEVICE, "1")
+    for i in range(4):
+        gw.submit(DEVICE, card(f"t{i}", "working", summary="新" * 60, title="题" * 24,
+                               progress={"step": 9, "total": None, "activity": "查看家里状态…" * 4}))
+    seen = []
+    for _ in range(4):
+        items = gw.poll_items(DEVICE)
+        if not items:
+            break
+        assert len(items) <= wire.POLL_BODY_ENTRIES and body_bytes(items) <= wire.POLL_BODY_BYTES
+        seen += items
+        gw.on_poll(DEVICE, str(max(p["seq"] for p in items)))
+    assert len(seen) == 4 and all(len(p["progress"]["activity"]) == wire.MAX_ACTIVITY_CHARS for p in seen)
+
+
 async def test_poll_seq_zero_snapshot_pages_fit_one_segment():
     _, gw = make()
     for i in range(8):

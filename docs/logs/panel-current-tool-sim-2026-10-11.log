@@ -1,0 +1,37 @@
+17:54:25 info agent connection open device=7c:0c:5f:42:4b:fc session=s1
+17:54:25 info agent session device=7c:0c:5f:42:4b:fc session=s1: snapshot once the agent-service snapshot is restored
+17:54:25 info agent restore device=7c:0c:5f:42:4b:fc: 0 cards from the agent-service snapshot; mirror 0
+17:54:25 info agent chats queued device=7c:0c:5f:42:4b:fc current=None chats=0/0 seq=1791737665639 bytes=78 delivery=gw_08e9e7fdd6004a4ba7672bdb
+17:54:25 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791737665639
+17:54:25 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791737665640
+
+== decision 68 activity label ==
+17:54:26 info agent ack shown delivery=gw_08e9e7fdd6004a4ba7672bdb device=7c:0c:5f:42:4b:fc seq=1791737665639 via=shown
+17:54:26 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4NY665QZH03BX848JGQD89C chats=1/1 seq=1791737666222 bytes=223 delivery=dlv_01M4NY66NDHF6WNPDDVCQ2JPX9
+17:54:26 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791737666222
+17:54:26 info agent ack shown delivery=dlv_01M4NY66NDHF6WNPDDVCQ2JPX9 device=7c:0c:5f:42:4b:fc seq=1791737666222 via=shown
+17:54:28 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4NY665QZH03BX848JGQD89C task=tsk_01M4NY665R10KG07JZRZSBB7WA state=working seq=1791737668346 tier=silent speaks=False delivery=dlv_01M4NY68QS6KYQ4X7A09DXYE0N
+17:54:28 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4NY665R10KG07JZRZSBB7WA state=working seq=1791737668346
+17:54:28 info agent ack shown delivery=dlv_01M4NY68QS6KYQ4X7A09DXYE0N device=7c:0c:5f:42:4b:fc seq=1791737668346 via=shown
+17:54:28 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4NY665QZH03BX848JGQD89C task=tsk_01M4NY665R10KG07JZRZSBB7WA state=working seq=1791737668848 tier=silent speaks=False delivery=dlv_01M4NY697CP9635RFYBZHEYQSN
+17:54:28 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4NY665R10KG07JZRZSBB7WA state=working seq=1791737668848
+17:54:29 info agent ack shown delivery=dlv_01M4NY697CP9635RFYBZHEYQSN device=7c:0c:5f:42:4b:fc seq=1791737668848 via=shown
+17:54:30 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4NY665QZH03BX848JGQD89C task=tsk_01M4NY665R10KG07JZRZSBB7WA state=working seq=1791737670354 tier=silent speaks=False delivery=dlv_01M4NY6APG18ARJFDEKS9CK97P
+17:54:30 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4NY665R10KG07JZRZSBB7WA state=working seq=1791737670354
+17:54:30 info agent ack shown delivery=dlv_01M4NY6APG18ARJFDEKS9CK97P device=7c:0c:5f:42:4b:fc seq=1791737670354 via=shown
+17:54:31 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4NY665QZH03BX848JGQD89C task=tsk_01M4NY665R10KG07JZRZSBB7WA state=working seq=1791737671859 tier=silent speaks=False delivery=dlv_01M4NY6C5JZX2PY7VPR7ZPBSW8
+17:54:31 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4NY665R10KG07JZRZSBB7WA state=working seq=1791737671859
+17:54:32 info agent ack shown delivery=dlv_01M4NY6C5JZX2PY7VPR7ZPBSW8 device=7c:0c:5f:42:4b:fc seq=1791737671859 via=shown
+17:54:33 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4NY665QZH03BX848JGQD89C task=tsk_01M4NY665R10KG07JZRZSBB7WA state=unread seq=1791737673362 tier=when_idle speaks=True delivery=dlv_01M4NY6DMGSNQDNKFRN0JETX2J
+17:54:33 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4NY665R10KG07JZRZSBB7WA state=unread seq=1791737673362
+17:54:33 info agent ack accepted delivery=dlv_01M4NY6DMGSNQDNKFRN0JETX2J device=7c:0c:5f:42:4b:fc proactive_id=0e0af206bff54b70a372b46247b793c0 ttl_s=600
+17:54:33 info proactive 0e0af206bff54b70a372b46247b793c0 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+17:54:33 info agent speech 3b0fdb1b44494111 handed off: delivery=dlv_01M4NY6DMGSNQDNKFRN0JETX2J proactive=0e0af206bff54b70a372b46247b793c0 urgent=False attempt=1 reason=busy
+17:54:33 info proactive 0e0af206bff54b70a372b46247b793c0 delivering: attempt=1 session=s1 invoked=False urgent=False
+17:54:33 info device plays 'Done.' sentence=s-0e0af206
+working item labels: ['Searching…', 'Checking the house…', 'Acting…', 'Finding a tool…']
+PASS labels follow the tools in order: ['Searching…', 'Checking the house…', 'Acting…', 'Finding a tool…']
+PASS every item within the item budget
+PASS the result item has no activity
+
+ALL PASS

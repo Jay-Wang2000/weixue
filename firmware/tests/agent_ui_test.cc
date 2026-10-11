@@ -901,6 +901,70 @@ void TestWirePath() {
     Check(chats.size() == 2 && chats[0].current && chats[0].chip == "Waiting for you", "chats from the store");
 }
 
+// Activity label (decision 68): parsed from progress.activity, shown on the working state lines.
+void TestActivity() {
+    const char* text =
+        R"({"kind":"agent","v":1,"seq":21,"chat_id":"c_news","task_id":"t_news","state":"working",)"
+        R"("title":"Irish news","summary":"News","lang":"en","progress":{"activity":"Searching…"},"delivery":"silent"})";
+    cJSON* json = cJSON_Parse(text);
+    auto parsed = weixue_agent::Parse(json);
+    cJSON_Delete(json);
+    Check(parsed.message.has_value() && parsed.message->item.activity == "Searching…" &&
+              !parsed.message->item.has_progress,
+          "progress.activity parses without a step");
+    Rig r;
+    r.Apply(parsed.message->item, 0);
+    Check(Join(r.model.Face(1000).status) == "Searching...", "complication: activity, '...' without the CJK font");
+    int more = 0;
+    auto rows = r.model.Rows(1000, 3, &more);
+    Check(rows.size() == 1 && Join(rows[0].status) == "Searching..." && rows[0].status[0].color == color::kValue,
+          "task row: the activity replaces Working");
+    r.model.SetCjkFont(true);
+    Check(Join(r.model.Face(1000).status) == "Searching…", "with the CJK font the label is unchanged");
+    Check(Join(r.model.Face(3 * 60000).status) == "Searching… · 3 min · 3 min ago", "freshness after the label");
+
+    Item zh = MakeItem("z", State::kWorking);
+    zh.activity = "查看家里状态…";
+    zh.has_progress = true;
+    zh.progress_step = 2;
+    zh.progress_total = 5;
+    r.Apply(zh, 10);
+    Check(Join(r.model.Face(20).status) == "查看家里状态… · step 2 of 5", "CJK label, then the step");
+    rows = r.model.Rows(20, 3, &more);
+    Check(Join(rows[0].status) == "查看家里状态… · step 2 of 5", "row: CJK label and step");
+    r.model.SetCjkFont(false);
+    Check(Join(r.model.Face(20).status) == "Step 2 of 5", "no CJK font: the CJK label is dropped");
+    Check(Join(r.model.Rows(20, 3, &more)[0].status) == "Working · step 2 of 5", "row falls back to Working");
+    r.model.SetCjkFont(true);
+
+    Item cleared = zh;
+    cleared.seq = ++g_seq;
+    cleared.activity.clear();
+    r.Apply(cleared, 30);
+    Check(Join(r.model.Face(40).status) == "Step 2 of 5", "a cleared activity shows the step again");
+    Item inter = zh;
+    inter.seq = ++g_seq;
+    inter.state = State::kInterrupted;
+    r.Apply(inter, 50);
+    Check(Join(r.model.Face(60).status) == "Interrupted", "interrupted ignores the activity");
+    Item chip = MakeItem("chip", State::kWorking, Tier::kSilent, "c_chip");
+    chip.activity = "Acting…";
+    r.Apply(chip, 70);
+    bool working_chip = false;
+    for (const auto& c : r.model.Chats(80)) {
+        if (c.chat_id == "c_chip") working_chip = c.chip == "Working";
+    }
+    Check(working_chip, "the chat chip still says Working");
+
+    Check(ActivityText("Checking the house…", false) == "Checking the house...", "ellipsis to ASCII");
+    Check(ActivityText("Café…", false) == "Café...", "Latin-1 kept");
+    Check(ActivityText("搜索中…", false).empty(), "CJK dropped without the font");
+    Check(ActivityText("a#b", true) == "a b", "recolour marker stripped");
+    auto width = [](const std::string& t) { return static_cast<int32_t>(t.size()) * 10; };
+    Check(Join(FitLine(Line{{"查看家里状态…", color::kValue}}, 120, width)) == "查看家...",
+          "CJK label fitted to the row on code points");
+}
+
 // Server chat list (agent_chats): titles, chips, ages and the current chat come from it.
 void TestServerChats() {
     Rig r;
@@ -1008,6 +1072,7 @@ int main() {
     TestChatPillAfterSync();
     TestWirePath();
     TestServerChats();
+    TestActivity();
     std::printf("agent_ui_test: %d failure(s)\n", failures);
     return failures == 0 ? 0 : 1;
 }

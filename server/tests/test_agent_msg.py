@@ -56,6 +56,38 @@ def test_invalid_items_rejected(overrides, error):
     assert error in str(err.value)
 
 
+def test_progress_activity_is_carried_and_truncated():
+    out = wire.build_item(item(progress={"step": 2, "total": None, "activity": "Searching…"}), 1, 0)
+    assert out["progress"] == {"step": 2, "total": None, "activity": "Searching…"}
+    out = wire.build_item(item(progress={"activity": "查看家里状态…"}), 1, 0)
+    assert out["progress"] == {"activity": "查看家里状态…"}
+    out = wire.build_item(item(progress={"activity": "a" * 40}), 1, 0)
+    assert out["progress"]["activity"] == "a" * wire.MAX_ACTIVITY_CHARS
+    with pytest.raises(wire.WireError):
+        wire.build_item(item(progress={}), 1, 0)
+    with pytest.raises(wire.WireError):
+        wire.build_item(item(progress={"activity": 3}), 1, 0)
+
+
+def test_delivery_activity_reaches_the_working_item():
+    offer = {"kind": "agent", "tier": "SILENT", "chat_id": "cht_1", "task_id": "tsk_1",
+             "payload": {"state": "progress", "summary": "News", "lang": "zh",
+                         "progress": {"phase": "tool", "step": None, "tool": "web_search", "activity": "搜索中…"}}}
+    fields, _ = wire.from_delivery(offer, now=0)
+    assert fields["progress"] == {"activity": "搜索中…"}
+    out = wire.build_item(fields, 1, 0)
+    assert out["progress"] == {"activity": "搜索中…"} and wire.size(out) <= wire.MAX_ITEM_BYTES
+    offer["payload"]["progress"] = {"phase": "thinking", "step": None}
+    fields, _ = wire.from_delivery(offer, now=0)
+    assert "progress" not in fields
+    offer["payload"]["progress"] = {"phase": "tool", "step": 3, "activity": "Acting…" + "x" * 30}
+    fields, _ = wire.from_delivery(offer, now=0)
+    assert fields["progress"] == {"step": 3, "total": None, "activity": ("Acting…" + "x" * 30)[:24]}
+    offer["payload"]["state"] = "done"
+    fields, _ = wire.from_delivery(offer, now=0)
+    assert "progress" not in fields
+
+
 def test_texts_truncated_to_ui_limits():
     out = wire.build_item(
         item(state="needs_input", title="T" * 30, summary="灯" * 70, card_id="i1",

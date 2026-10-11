@@ -232,6 +232,15 @@ void AgentView::SetZhLabel(lv_obj_t* label, const char* text) {
 
 void AgentView::SetZhFont(const lv_font_t* font) {
     zh_font_ = font;
+    if (font != nullptr) {
+        small_cjk_ = *Small();
+        small_cjk_.fallback = font;
+    }
+    const lv_font_t* state_font = font != nullptr ? &small_cjk_ : Small();
+    lv_obj_set_style_text_font(cx_status_, state_font, 0);
+    for (auto& slot : task_slots_) {
+        lv_obj_set_style_text_font(slot.status, state_font, 0);
+    }
     for (lv_obj_t* label : zh_labels_) {
         if (font != nullptr) {
             lv_obj_set_style_text_font(label, font, 0);
