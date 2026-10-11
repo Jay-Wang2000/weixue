@@ -291,6 +291,24 @@ tasks:
     status: pending
     retries: 0
     model: sonnet
+  - id: feat-barge-in-flag
+    name: "Barge-in behind a feature flag (off for now)"
+    branch: feat/barge-in-flag
+    description: |
+      决定 58：服务端配置 VOICE_BARGE_IN=0|1（默认 0）。关闭时：TTS 播放期间不把 VAD/STT 结果当作打断（不 abort、不送 LLM），播放结束后恢复监听；唤醒词在播放中的处理按现有固件行为；物理打断（双击、BOOT）不受影响；claude_agent 与 anthropic 两条路径一致；回声护栏保留但在关闭时仅记日志。render_config/.env.example/docs/server.md；host 测试 + sim（播放中说话不打断、播放后正常对话）。
+    depends_on: [fix-m2-review-gateway]
+    status: in_progress
+    retries: 0
+    model: opus
+  - id: spike-whisper-voice
+    name: "Spike: whispered speech recognition on the device"
+    branch: spike/whisper-voice
+    description: |
+      决定 58：量化耳语识别——固件麦克风输入增益/AFE AGC 选项（ES7210、xiaozhi audio_codec input_gain、afe_config）、服务端 VAD 阈值、WakeNet 对耳语「Jarvis」的触发率、latest_short/chirp_3 对低电平音频的识别率；用 Google TTS 合成的低音量播放（afplay 音量 15–25）作为耳语代理，并请 Jay 用手机录 10 条真实耳语（放入 ~/Projects/weixue-vendor/session-clips/whisper/）作为真值；输出 docs/logs/spike-whisper-2026-10-11.md：各设置下的唤醒率/识别率表与推荐配置（哪些能在 release 构建里默认开）。实机需 device lock；无需 LLM。
+    depends_on: [tool-diag-injection]
+    status: in_progress
+    retries: 0
+    model: opus
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service

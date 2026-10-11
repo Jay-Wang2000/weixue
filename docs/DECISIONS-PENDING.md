@@ -98,6 +98,9 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 
 54. **Orchestrator rulings (our stack, FYI)**: creating or switching a chat closes another chat's open 20 s voice window (its question stays as a card); the agent service's per-turn iteration cap rises from 60 to 150 for long tasks while the token/cost guards stay. Implemented in the next small fix pass.
 
+58. **Whisper voice + interruption (Jay 2026-10-11)**: the device must understand whispered speech; robust barge-in and whisper detection conflict (a whisper is indistinguishable from residual echo while the device speaks). Decision: barge-in (speech interruption during playback) goes behind a feature flag and is OFF for now; physical interrupts (double-tap, BOOT, wake word if it fires) stay. A spike measures whisper recognition (mic gain/AGC, VAD threshold, WakeNet sensitivity, STT on low-level audio) and proposes settings. Jay also says the overall voice experience is not good yet — collect the concrete annoyances after the session RCA.
+59. **ha-mcp wait_seconds** set to 20 s (from 180) in the ha-agent policy and applied live (version 15), per Jay's "I can adjust the timeout of the gate"; device approval of a held call becomes possible ~20 s after the request.
+
 ## Morning report 2026-10-11 (for Jay)
 
 **Jay feedback during the audio session**: macOS `say` is poorly recognised by the device — the session driver must synthesise utterances with Google Cloud TTS and play them (task fix-session-tts). He did not see the chat history or the management view on the device: no agent chats exist for the real device yet because the voice path still runs the legacy provider (VOICE_LLM=anthropic); the management view is on swipe-left and shows the HA page when there are no tasks. To verify: flip VOICE_LLM after the session, create a chat by voice, swipe left.
