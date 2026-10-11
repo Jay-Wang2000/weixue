@@ -156,3 +156,6 @@ Items here are external-service or user-only decisions (CLAUDE.md). Work continu
 - Full audio session 09:52: 11/13 (table docs/logs/session-2026-10-11-0952.md). Voice items now pass on chirp_3 batch; the two failures are driver sequencing and the earcons fixture (task fix-session-sequencing).
 - Next, in order: streaming ASR 10x check (VOICE_ASR=GoogleSTTStream, keep only if one_breath >= 9/10), VOICE_LLM=claude_agent flip + chats/management view on the device, real approval gate (deny then approve on a held tool), Codex M2 E2E checklist, close M2.
 - Open for Jay: decisions 60-63, whisper recordings, voice-UX annoyances.
+
+57 (resolved 2026-10-11): the held tool for the approval test is `ha_call_service` input_boolean.toggle on `input_boolean.weixue_session_probe`, an entity that does not exist in Home Assistant, so approving it changes nothing; it runs in a separate non-current chat.
+64. **Finding (no decision needed): held actions could never be approved from the device on the live stack.** The agent service's ha-mcp HTTP client cuts the call at 15 s while ha-mcp holds for wait_seconds=20, so the approval token never arrives and the call ends "unknown". Fix in task fix-hamcp-client-timeout (timeout stays in our layer; wait_seconds untouched, per Jay). This means the real approval gate has not yet been exercised end to end; it runs right after the fix.

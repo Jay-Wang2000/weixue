@@ -1,0 +1,404 @@
+261011 13:06:58[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: <mac>
+261011 13:06:58[0.9.7_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: <uuid>
+261011 13:06:58[0.9.7_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 <mac> 下发WebSocket配置
+261011 13:06:58[0.9.7_00000000000000][core.api.ota_handler]-INFO-Firmware cache refreshed: 0 models
+261011 13:06:58[0.9.7_00000000000000][core.api.ota_handler]-INFO-查找型号 esp32-s3-touch-amoled-1.75 的固件，找到 0 个候选
+261011 13:06:58[0.9.7_00000000000000][core.api.ota_handler]-INFO-设备 <mac> 固件已是最新: 2.5.1
+261011 13:06:59[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll device=<mac> seq=0: snapshot due
+261011 13:06:59[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=<mac> items=2 seqs=[1791715286461, 1791715304348] snapshot=False
+261011 13:06:59[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=<mac> items=2 seqs=[1791715324056, 1791715365508] snapshot=False
+261011 13:07:00[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=<mac> items=2 seqs=[1791715389155, 1791715480532] snapshot=False
+261011 13:07:01[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=<mac> items=2 seqs=[1791717394103, 1791720061433] snapshot=False
+261011 13:07:01[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=<mac> items=1 seqs=[1791720421719] snapshot=True
+261011 13:07:05[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection open device=<mac> session=<uuid>
+261011 13:07:05[0.9.7_00000000000000][core.connection]-INFO-<IP> conn - Headers: {'host': '<IP>', 'client-id': '<uuid>', 'connection': 'Upgrade', 'device-id': '<mac>', 'protocol-version': '1', 'sec-websocket-key<key> 'Lc9GKQS0eNhop/8/K/H82Q==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261011 13:07:05[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261011 13:07:05[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261011 13:07:05[0.9.7_SiGoClGononoCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261011 13:07:05[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261011 13:07:05[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261011 13:07:05[0.9.7_SiGoClGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261011 13:07:05[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261011 13:07:06[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"agent":2,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261011 13:07:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=<mac> session=<uuid>: snapshot of 7
+261011 13:07:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8V651HAKEC5QCM3WSG7A9 state=unread seq=1791715286461
+261011 13:07:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8VQQPV5A29A6G50DX2Z2C state=unread seq=1791715304348
+261011 13:07:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8WAS5QM18BPX926E15RSM state=unread seq=1791715324056
+261011 13:07:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8WYB0ZTEEFGA7MB89APSW state=unread seq=1791715365508
+261011 13:07:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8YA9MMK5JZRW5A9KRPK1B state=unread seq=1791715389155
+261011 13:07:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8Z0Q2X84EW1652HS6726C state=working seq=1791715480532
+261011 13:07:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NAV02CKA9NSV3WFKGA1Y21 state=unread seq=1791717394103
+261011 13:07:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent_chats task=None state=None seq=1791720061433
+261011 13:07:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent_sync task=None state=None seq=1791720426086
+261011 13:07:06[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 13:07:06[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 13:07:06[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261011 13:07:07[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":4,"kind":"shown","ack_upto":1791720426086,"via":"tap"}}}
+261011 13:07:07[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720426086, "boot": 3313923618, "kind": "shown", "seq": 4, "v": 1, "via": "tap"}
+261011 13:07:07[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:07:07[0.9.7_00000000000000][weixue_patches]-INFO-stt_segment kind=wake_only frames=47 seconds=2.82 burst=11 peak_dbfs=-23.9 rms_dbfs=-45.4
+261011 13:07:07[0.9.7_00000000000000][weixue_patches]-INFO-wake-only segment dropped before STT
+261011 13:07:07[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Hmm?
+261011 13:07:07[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Hmm?
+261011 13:07:07[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Hmm?
+261011 13:07:07[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261011 13:07:07[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}}]}}}
+261011 13:07:07[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 6
+261011 13:07:12[0.9.7_00000000000000][weixue_patches]-INFO-stt_segment kind=follow frames=61 seconds=3.66 burst=1 peak_dbfs=-25.2 rms_dbfs=-39.4
+261011 13:07:14[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=61 bytes=117120 sent=61 responses=0 interims=0 finals=0 empty_finals=0 utterance_end_ms=- first_interim_ms=- half_close_ms=3094 end_ms=3256 service_end=0 cancelled=0
+261011 13:07:14[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1638 model=chirp_3 language=en-US confidence=- fallback=no_final streams=1 interims=0 no_final=no_response
+261011 13:07:14[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: story about a lighthouse keeper that takes about 1 minute to tell.
+261011 13:07:14[0.9.7_SiGoClGononoCh][core.connection]-INFO-大模型收到用户消息: story about a lighthouse keeper that takes about 1 minute to tell.
+261011 13:07:14[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent chats queued device=<mac> current=cht_01M4NDCJ7NH7M1S836ATM5A2QQ chats=4/4 seq=1791720434537 bytes=492 delivery=dlv_01M4NDRAV3NE9SQZW72F6GN1TC
+261011 13:07:14[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=<mac> kind=agent_chats task=None state=None seq=1791720434537
+261011 13:07:14[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":5,"kind":"shown","ack_upto":1791720434537,"via":"tap"}}}
+261011 13:07:14[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDRAV3NE9SQZW72F6GN1TC device=<mac> seq=1791720434537 via=shown
+261011 13:07:14[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720434537, "boot": 3313923618, "kind": "shown", "seq": 5, "v": 1, "via": "tap"}
+261011 13:07:14[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:07:15[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Here's one for you
+261011 13:07:15[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Here's one for you
+261011 13:07:15[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.283s: Here's one for you
+261011 13:07:15[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, On a rocky island lived Tom, a lighthouse keeper who had tended the lamp for forty years
+261011 13:07:15[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.224s: On a rocky island lived Tom, a lighthouse keeper who had tended the lamp for forty years
+261011 13:07:16[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Every night he climbed the one hundred and twelve steps, lit the flame, and talked to the sea as if it were an old friend
+261011 13:07:16[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.254s: Every night he climbed the one hundred and twelve steps, lit the flame, and talked to the sea as if it were an old friend
+261011 13:07:17[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, One stormy night, the wind howled so hard the tower shook
+261011 13:07:17[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.220s: One stormy night, the wind howled so hard the tower shook
+261011 13:07:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=<mac> chat=cht_01M4NDCJ7NH7M1S836ATM5A2QQ task=tsk_01M4NDRAB14BW8Y2QAG59Z9D6B state=unread seq=1791720438262 tier=silent speaks=False delivery=dlv_01M4NDREFMFVWS6KZVGE8PGVGB
+261011 13:07:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=<mac> kind=agent task=tsk_01M4NDRAB14BW8Y2QAG59Z9D6B state=unread seq=1791720438262
+261011 13:07:18[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Tom saw a tiny light far out on the waves, flickering like a lost star
+261011 13:07:18[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":6,"kind":"shown","ack_upto":1791720438262,"via":"tap"}}}
+261011 13:07:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDREFMFVWS6KZVGE8PGVGB device=<mac> seq=1791720438262 via=shown
+261011 13:07:18[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720438262, "boot": 3313923618, "kind": "shown", "seq": 6, "v": 1, "via": "tap"}
+261011 13:07:18[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:07:18[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.235s: Tom saw a tiny light far out on the waves, flickering like a lost star
+261011 13:07:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent chats queued device=<mac> current=cht_01M4NDCJ7NH7M1S836ATM5A2QQ chats=4/4 seq=1791720438768 bytes=491 delivery=dlv_01M4NDREZDQVK7X8G3RRVNSN99
+261011 13:07:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=<mac> kind=agent_chats task=None state=None seq=1791720438768
+261011 13:07:19[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":7,"kind":"shown","ack_upto":1791720438768,"via":"tap"}}}
+261011 13:07:19[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDREZDQVK7X8G3RRVNSN99 device=<mac> seq=1791720438768 via=shown
+261011 13:07:19[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720438768, "boot": 3313923618, "kind": "shown", "seq": 7, "v": 1, "via": "tap"}
+261011 13:07:19[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:07:19[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, A fishing boat was drifting toward the rocks
+261011 13:07:19[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.240s: A fishing boat was drifting toward the rocks
+261011 13:07:19[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, His lamp had always been steady, but now it wasn't enough through the thick fog. So Tom did something new
+261011 13:07:20[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.200s: His lamp had always been steady, but now it wasn't enough through the thick fog. So Tom did something new
+261011 13:07:20[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, He took a mirror from the wall, then another, and another, and set them around the lantern until the beam flared brighter than it had ever been.Hour after hour he turned the mirrors by hand, his arms aching
+261011 13:07:21[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.231s: He took a mirror from the wall, then another, and another, and set them around the lantern until the beam flared brighter than it had ever been.Hour after hour he turned the mirrors by hand, his arms aching
+261011 13:07:22[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Just before dawn, the little boat slipped safely past the rocks and into the harbor
+261011 13:07:22[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.223s: Just before dawn, the little boat slipped safely past the rocks and into the harbor
+261011 13:07:23[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, The next morning, a young fisherman climbed all one hundred and twelve steps to say thank you
+261011 13:07:23[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.227s: The next morning, a young fisherman climbed all one hundred and twelve steps to say thank you
+261011 13:07:24[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, He found Tom asleep in his chair, smiling, with the sunrise warming the mirrors.The fisherman left a fresh loaf of bread beside him, and quietly went home
+261011 13:07:24[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.226s: He found Tom asleep in his chair, smiling, with the sunrise warming the mirrors.The fisherman left a fresh loaf of bread beside him, and quietly went home
+261011 13:07:25[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, The end
+261011 13:07:25[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.222s: The end
+261011 13:07:25[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261011 13:08:21[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=125a5bf72dfa4c028a03f6acc879110f chat=cht_01M4NDCJ7NH7M1S836ATM5A2QQ routed=new_task reply_end=turn_done stt_final_latency_ms=1638 service_first_text_ms=1141 tts_first_audio_ms=284 total_ms=3141 answer_audio_ms=3141 reply_end_ms=4247 barge_in=0
+261011 13:08:29[0.9.7_SiGoClGononoCh][core.handle.receiveAudioHandle]-INFO-结束对话，无需发送结束提示语
+261011 13:08:29[0.9.7_SiGoClGononoCh][core.connection]-INFO-超时检查任务已退出
+261011 13:08:33[0.9.7_SiGoClGononoCh][core.connection]-INFO-客户端断开连接
+261011 13:08:33[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:08:33[0.9.7_00000000000000][weixue_patches]-INFO-audio session end packets=1426 frames=1424 bytes=2734080 segments=2 detects=1 listen_starts=1
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection close device=<mac> session=<uuid>
+261011 13:08:33[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:08:33[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session <uuid> of <mac> did not answer a ping; closed
+261011 13:08:33[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection open device=<mac> session=<uuid>
+261011 13:08:33[0.9.7_00000000000000][core.connection]-INFO-<IP> conn - Headers: {'host': '<IP>', 'client-id': '<uuid>', 'connection': 'Upgrade', 'device-id': '<mac>', 'protocol-version': '1', 'sec-websocket-key<key> 'p3B01+RUB4D/4pHkQyHT6w==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261011 13:08:33[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261011 13:08:33[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261011 13:08:33[0.9.7_SiGoClGononoCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261011 13:08:33[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261011 13:08:33[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261011 13:08:33[0.9.7_SiGoClGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261011 13:08:33[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261011 13:08:33[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"agent":2,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=<mac> session=<uuid>: snapshot of 8
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8V651HAKEC5QCM3WSG7A9 state=unread seq=1791715286461
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8VQQPV5A29A6G50DX2Z2C state=unread seq=1791715304348
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8WAS5QM18BPX926E15RSM state=unread seq=1791715324056
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8WYB0ZTEEFGA7MB89APSW state=unread seq=1791715365508
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8YA9MMK5JZRW5A9KRPK1B state=unread seq=1791715389155
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8Z0Q2X84EW1652HS6726C state=working seq=1791715480532
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NAV02CKA9NSV3WFKGA1Y21 state=unread seq=1791717394103
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NDRAB14BW8Y2QAG59Z9D6B state=unread seq=1791720438262
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent_chats task=None state=None seq=1791720438768
+261011 13:08:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent_sync task=None state=None seq=1791720513160
+261011 13:08:33[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 13:08:33[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 13:08:33[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261011 13:08:34[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":13,"kind":"shown","ack_upto":1791720513160,"via":"tap"}}}
+261011 13:08:34[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720513160, "boot": 3313923618, "kind": "shown", "seq": 13, "v": 1, "via": "tap"}
+261011 13:08:34[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:08:34[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Yes?
+261011 13:08:34[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Yes?
+261011 13:08:34[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Yes?
+261011 13:08:34[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261011 13:08:34[0.9.7_00000000000000][weixue_patches]-INFO-stt_segment kind=wake_only frames=41 seconds=2.46 burst=6 peak_dbfs=-22.6 rms_dbfs=-45.0
+261011 13:08:34[0.9.7_00000000000000][weixue_patches]-INFO-wake-only segment dropped before STT
+261011 13:08:34[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}}]}}}
+261011 13:08:34[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 6
+261011 13:08:36[0.9.7_00000000000000][weixue_patches]-INFO-stt_segment kind=follow frames=20 seconds=1.2 burst=2 peak_dbfs=-23.6 rms_dbfs=-43.5
+261011 13:08:37[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=20 bytes=38400 sent=20 responses=0 interims=0 finals=0 empty_finals=0 utterance_end_ms=- first_interim_ms=- half_close_ms=546 end_ms=963 service_end=0 cancelled=0
+261011 13:08:37[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1051 model=chirp_3 language=en-US confidence=- fallback=no_final streams=1 interims=0 no_final=no_response
+261011 13:08:37[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261011 13:08:37[0.9.7_SiGoClGononoCh][core.connection]-INFO-大模型收到用户消息: Yes.
+261011 13:08:37[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent chats queued device=<mac> current=cht_01M4NDCJ7NH7M1S836ATM5A2QQ chats=4/4 seq=1791720517935 bytes=492 delivery=dlv_01M4NDTW9A5FTTKKXVYHG3KFB3
+261011 13:08:37[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=<mac> kind=agent_chats task=None state=None seq=1791720517935
+261011 13:08:38[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":14,"kind":"shown","ack_upto":1791720517935,"via":"tap"}}}
+261011 13:08:38[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDTW9A5FTTKKXVYHG3KFB3 device=<mac> seq=1791720517935 via=shown
+261011 13:08:38[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720517935, "boot": 3313923618, "kind": "shown", "seq": 14, "v": 1, "via": "tap"}
+261011 13:08:38[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:08:38[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Glad you liked it
+261011 13:08:38[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Glad you liked it
+261011 13:08:38[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.265s: Glad you liked it
+261011 13:08:39[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Want another story, maybe a funnier one?
+261011 13:08:39[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.194s: Want another story, maybe a funnier one?
+261011 13:08:41[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Glad you liked it
+261011 13:08:41[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: tsk_01M4N8Z0Q2X84EW1652HS6726C no longer mirrored for device=<mac>
+261011 13:08:41[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=<mac> chat=cht_01M4NDCJ7NH7M1S836ATM5A2QQ task=tsk_01M4NDTVS5FW9KCY04N6DX4BVM state=needs_input seq=1791720521043 tier=silent speaks=False delivery=dlv_01M4NDTZAGWM89XR31R4WGJ7HY
+261011 13:08:41[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=<mac> kind=agent task=tsk_01M4NDTVS5FW9KCY04N6DX4BVM state=needs_input seq=1791720521043
+261011 13:08:41[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.182s: Glad you liked it
+261011 13:08:41[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":15,"kind":"shown","ack_upto":1791720521043,"via":"tap"}}}
+261011 13:08:41[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDTZAGWM89XR31R4WGJ7HY device=<mac> seq=1791720521043 via=shown
+261011 13:08:41[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720521043, "boot": 3313923618, "kind": "shown", "seq": 15, "v": 1, "via": "tap"}
+261011 13:08:41[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:08:41[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Would you like another story, maybe a funnier one?
+261011 13:08:41[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.195s: Would you like another story, maybe a funnier one?
+261011 13:08:42[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261011 13:08:48[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=06a64226c90d4d31a80588e6c12c9287 chat=cht_01M4NDCJ7NH7M1S836ATM5A2QQ routed=new_task reply_end=question stt_final_latency_ms=1051 service_first_text_ms=1244 tts_first_audio_ms=265 total_ms=2577 answer_audio_ms=2577 reply_end_ms=3631 barge_in=0
+261011 13:08:56[0.9.7_SiGoClGononoCh][core.handle.receiveAudioHandle]-INFO-结束对话，无需发送结束提示语
+261011 13:08:56[0.9.7_SiGoClGononoCh][core.connection]-INFO-超时检查任务已退出
+261011 13:09:06[0.9.7_SiGoClGononoCh][core.connection]-INFO-客户端断开连接
+261011 13:09:06[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:09:06[0.9.7_00000000000000][weixue_patches]-INFO-audio session end packets=418 frames=417 bytes=800640 segments=2 detects=1 listen_starts=1
+261011 13:09:06[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection close device=<mac> session=<uuid>
+261011 13:09:06[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:09:06[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session <uuid> of <mac> did not answer a ping; closed
+261011 13:09:06[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection open device=<mac> session=<uuid>
+261011 13:09:18[0.9.7_00000000000000][core.connection]-INFO-<IP> conn - Headers: {'host': '<IP>', 'client-id': '<uuid>', 'connection': 'Upgrade', 'device-id': '<mac>', 'protocol-version': '1', 'sec-websocket-key<key> 'BrANAkHPTV/hFl1dpGSZmg==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261011 13:09:18[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261011 13:09:18[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261011 13:09:18[0.9.7_SiGoClGononoCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261011 13:09:18[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261011 13:09:18[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261011 13:09:18[0.9.7_SiGoClGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261011 13:09:18[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261011 13:09:18[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"agent":2,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=<mac> session=<uuid>: snapshot of 8
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8V651HAKEC5QCM3WSG7A9 state=unread seq=1791715286461
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8VQQPV5A29A6G50DX2Z2C state=unread seq=1791715304348
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8WAS5QM18BPX926E15RSM state=unread seq=1791715324056
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8WYB0ZTEEFGA7MB89APSW state=unread seq=1791715365508
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8YA9MMK5JZRW5A9KRPK1B state=unread seq=1791715389155
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NAV02CKA9NSV3WFKGA1Y21 state=unread seq=1791717394103
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NDRAB14BW8Y2QAG59Z9D6B state=unread seq=1791720438262
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent_chats task=None state=None seq=1791720517935
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NDTVS5FW9KCY04N6DX4BVM state=needs_input seq=1791720521043
+261011 13:09:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent_sync task=None state=None seq=1791720558071
+261011 13:09:18[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 13:09:18[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 13:09:18[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261011 13:09:18[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":20,"kind":"shown","ack_upto":1791720558071,"via":"tap"}}}
+261011 13:09:18[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720558071, "boot": 3313923618, "kind": "shown", "seq": 20, "v": 1, "via": "tap"}
+261011 13:09:18[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:09:19[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Mm-hm?
+261011 13:09:19[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Mm-hm?
+261011 13:09:19[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Mm-hm?
+261011 13:09:19[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261011 13:09:19[0.9.7_00000000000000][weixue_patches]-INFO-stt_segment kind=wake_only frames=35 seconds=2.1 burst=4 peak_dbfs=-24.1 rms_dbfs=-44.1
+261011 13:09:19[0.9.7_00000000000000][weixue_patches]-INFO-wake-only segment dropped before STT
+261011 13:09:19[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}}]}}}
+261011 13:09:19[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 6
+261011 13:09:21[0.9.7_00000000000000][weixue_patches]-INFO-stt_segment kind=follow frames=20 seconds=1.2 burst=1 peak_dbfs=-22.9 rms_dbfs=-43.7
+261011 13:09:22[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=20 bytes=38400 sent=20 responses=0 interims=0 finals=0 empty_finals=0 utterance_end_ms=- first_interim_ms=- half_close_ms=620 end_ms=888 service_end=0 cancelled=0
+261011 13:09:22[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1573 model=chirp_3 language=en-US confidence=- fallback=no_final streams=1 interims=0 no_final=no_response
+261011 13:09:22[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261011 13:09:22[0.9.7_SiGoClGononoCh][core.connection]-INFO-大模型收到用户消息: Yes.
+261011 13:09:23[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDW8Q1Z6QGWF4PPFK6KCEJ device=<mac> detail=chat list unchanged
+261011 13:09:24[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Here's a funny one
+261011 13:09:24[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Here's a funny one
+261011 13:09:24[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.255s: Here's a funny one
+261011 13:09:24[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Gus was a lighthouse keeper whose only company was a seagull named Brenda. Brenda hated his singing
+261011 13:09:24[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.240s: Gus was a lighthouse keeper whose only company was a seagull named Brenda. Brenda hated his singing
+261011 13:09:25[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Every time Gus belted out a sea shanty, she'd swoop down and steal his hat.One day Gus got clever
+261011 13:09:25[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.206s: Every time Gus belted out a sea shanty, she'd swoop down and steal his hat.One day Gus got clever
+261011 13:09:26[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, He painted a hat on a rock, hoping Brenda would waste her time on it
+261011 13:09:26[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.235s: He painted a hat on a rock, hoping Brenda would waste her time on it
+261011 13:09:27[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, She stole the real one anyway, and then sat on the painted one, looking smug.Gus gave up singing
+261011 13:09:27[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.251s: She stole the real one anyway, and then sat on the painted one, looking smug.Gus gave up singing
+261011 13:09:28[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, But the very next night, a foggy one, ships began circling lost
+261011 13:09:28[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.222s: But the very next night, a foggy one, ships began circling lost
+261011 13:09:29[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Brenda flew to the lamp room and screeched at the top of her lungs, louder than any foghorn. The ships followed her voice right into the harbor
+261011 13:09:29[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.261s: Brenda flew to the lamp room and screeched at the top of her lungs, louder than any foghorn. The ships followed her voice right into the harbor
+261011 13:09:30[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Gus clapped
+261011 13:09:30[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.127s: Gus clapped
+261011 13:09:31[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Brenda, that was the worst noise I've ever heard, and the best
+261011 13:09:31[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.248s: Brenda, that was the worst noise I've ever heard, and the best
+261011 13:09:31[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, From then on, Gus sang, Brenda screeched, and the two of them performed every foggy night
+261011 13:09:31[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.218s: From then on, Gus sang, Brenda screeched, and the two of them performed every foggy night
+261011 13:09:32[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Ships said it was awful, but they never once got lost
+261011 13:09:32[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.199s: Ships said it was awful, but they never once got lost
+261011 13:09:33[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, The end
+261011 13:09:33[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.187s: The end
+261011 13:09:34[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261011 13:10:21[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=1348002032c0499d9a41f97fb3d08f97 chat=cht_01M4NDCJ7NH7M1S836ATM5A2QQ routed=continue reply_end=turn_done stt_final_latency_ms=1573 service_first_text_ms=1095 tts_first_audio_ms=257 total_ms=2927 answer_audio_ms=2927 reply_end_ms=4221 barge_in=0
+261011 13:10:29[0.9.7_SiGoClGononoCh][core.handle.receiveAudioHandle]-INFO-结束对话，无需发送结束提示语
+261011 13:10:29[0.9.7_SiGoClGononoCh][core.connection]-INFO-超时检查任务已退出
+261011 13:10:33[0.9.7_SiGoClGononoCh][core.connection]-INFO-客户端断开连接
+261011 13:10:33[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:10:33[0.9.7_00000000000000][weixue_patches]-INFO-audio session end packets=1225 frames=1224 bytes=2350080 segments=2 detects=1 listen_starts=1
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection close device=<mac> session=<uuid>
+261011 13:10:33[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:10:33[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session <uuid> of <mac> did not answer a ping; closed
+261011 13:10:33[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection open device=<mac> session=<uuid>
+261011 13:10:33[0.9.7_00000000000000][core.connection]-INFO-<IP> conn - Headers: {'host': '<IP>', 'client-id': '<uuid>', 'connection': 'Upgrade', 'device-id': '<mac>', 'protocol-version': '1', 'sec-websocket-key<key> '8j8rz/v7jXZov/EAl0Ke8w==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261011 13:10:33[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261011 13:10:33[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261011 13:10:33[0.9.7_SiGoClGononoCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261011 13:10:33[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261011 13:10:33[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261011 13:10:33[0.9.7_SiGoClGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261011 13:10:33[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261011 13:10:33[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"agent":2,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=<mac> session=<uuid>: snapshot of 8
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8V651HAKEC5QCM3WSG7A9 state=unread seq=1791715286461
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8VQQPV5A29A6G50DX2Z2C state=unread seq=1791715304348
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8WAS5QM18BPX926E15RSM state=unread seq=1791715324056
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8WYB0ZTEEFGA7MB89APSW state=unread seq=1791715365508
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8YA9MMK5JZRW5A9KRPK1B state=unread seq=1791715389155
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NAV02CKA9NSV3WFKGA1Y21 state=unread seq=1791717394103
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NDRAB14BW8Y2QAG59Z9D6B state=unread seq=1791720438262
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent_chats task=None state=None seq=1791720517935
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NDTVS5FW9KCY04N6DX4BVM state=needs_input seq=1791720521043
+261011 13:10:33[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent_sync task=None state=None seq=1791720633359
+261011 13:10:33[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 13:10:33[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 13:10:33[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261011 13:10:34[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":26,"kind":"shown","ack_upto":1791720633359,"via":"tap"}}}
+261011 13:10:34[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720633359, "boot": 3313923618, "kind": "shown", "seq": 26, "v": 1, "via": "tap"}
+261011 13:10:34[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:10:34[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Hmm?
+261011 13:10:34[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Hmm?
+261011 13:10:34[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Hmm?
+261011 13:10:34[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261011 13:10:34[0.9.7_00000000000000][weixue_patches]-INFO-stt_segment kind=wake_only frames=41 seconds=2.46 burst=5 peak_dbfs=-24.0 rms_dbfs=-45.1
+261011 13:10:34[0.9.7_00000000000000][weixue_patches]-INFO-wake-only segment dropped before STT
+261011 13:10:34[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}}]}}}
+261011 13:10:34[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 6
+261011 13:10:36[0.9.7_00000000000000][weixue_patches]-INFO-stt_segment kind=follow frames=23 seconds=1.38 burst=2 peak_dbfs=-24.8 rms_dbfs=-45.5
+261011 13:10:37[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=23 bytes=44160 sent=23 responses=0 interims=0 finals=0 empty_finals=0 utterance_end_ms=- first_interim_ms=- half_close_ms=723 end_ms=863 service_end=0 cancelled=0
+261011 13:10:37[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1324 model=chirp_3 language=en-US confidence=- fallback=no_final streams=1 interims=0 no_final=no_response
+261011 13:10:37[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261011 13:10:37[0.9.7_SiGoClGononoCh][core.connection]-INFO-大模型收到用户消息: Yes.
+261011 13:10:38[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDYHY37C93WFV61BA0EYWE device=<mac> detail=chat list unchanged
+261011 13:10:39[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: Happy to keep going
+261011 13:10:39[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Happy to keep going
+261011 13:10:39[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.231s: Happy to keep going
+261011 13:10:40[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Should the next story be spooky, sweet, or another silly one?
+261011 13:10:40[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.236s: Should the next story be spooky, sweet, or another silly one?
+261011 13:10:41[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Happy to keep going
+261011 13:10:41[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.128s: Happy to keep going
+261011 13:10:41[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, Should the next story be spooky, sweet, or another silly one?
+261011 13:10:41[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.223s: Should the next story be spooky, sweet, or another silly one?
+261011 13:10:42[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261011 13:10:51[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=f5c5fe2b18f54d5ca2f7ea284d33e353 chat=cht_01M4NDCJ7NH7M1S836ATM5A2QQ routed=continue reply_end=turn_done stt_final_latency_ms=1324 service_first_text_ms=1648 tts_first_audio_ms=231 total_ms=3317 answer_audio_ms=3317 reply_end_ms=3260 barge_in=0
+261011 13:10:59[0.9.7_SiGoClGononoCh][core.handle.receiveAudioHandle]-INFO-结束对话，无需发送结束提示语
+261011 13:10:59[0.9.7_SiGoClGononoCh][core.connection]-INFO-超时检查任务已退出
+261011 13:11:02[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent chats queued device=<mac> current=cht_01M4NDCJ7NH7M1S836ATM5A2QQ chats=5/5 seq=1791720662033 bytes=596 delivery=dlv_01M4NDZ909FWV9GJQVZJXYSZ1K
+261011 13:11:09[0.9.7_SiGoClGononoCh][core.connection]-INFO-客户端断开连接
+261011 13:11:09[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:11:09[0.9.7_00000000000000][weixue_patches]-INFO-audio session end packets=471 frames=470 bytes=902400 segments=2 detects=1 listen_starts=1
+261011 13:11:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection close device=<mac> session=<uuid>
+261011 13:11:09[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:11:09[0.9.7_00000000000000][weixue_proactive]-INFO-proactive: session <uuid> of <mac> did not answer a ping; closed
+261011 13:11:09[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=<mac> items=1 seqs=[1791720662033] snapshot=False
+261011 13:11:09[0.9.7_SiGoClGononoCh][core.connection]-INFO-连接资源已释放
+261011 13:11:11[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDZ909FWV9GJQVZJXYSZ1K device=<mac> seq=1791720662033 via=poll
+261011 13:11:11[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent mirror full: tsk_01M4N8V651HAKEC5QCM3WSG7A9 no longer mirrored for device=<mac>
+261011 13:11:11[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=<mac> chat=cht_01M4NDZ8DX0BCCDB0JMGSC1N05 task=tsk_01M4NDZ8GFZK4D2ED96GZYV3S7 state=needs_approval seq=1791720671213 tier=when_idle speaks=True delivery=dlv_01M4NDZHZ6AD1WX5FJHNJEY1BY
+261011 13:11:11[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent poll body device=<mac> items=1 seqs=[1791720671213] snapshot=False
+261011 13:11:11[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=dlv_01M4NDZHZ6AD1WX5FJHNJEY1BY device=<mac> proactive_id=3a536ca1d7fb4bbeab672eca5bb1e3e7 ttl_s=600
+261011 13:11:11[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3a536ca1d7fb4bbeab672eca5bb1e3e7 queued: mode=announce device=<mac> urgent=False ttl=600
+261011 13:11:11[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 3e920fe1e91d48a3 handed off: delivery=dlv_01M4NDZHZ6AD1WX5FJHNJEY1BY proactive=3a536ca1d7fb4bbeab672eca5bb1e3e7 urgent=False attempt=1 reason=-
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDZHZ6AD1WX5FJHNJEY1BY device=<mac> seq=1791720671213 via=poll
+261011 13:11:13[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3a536ca1d7fb4bbeab672eca5bb1e3e7 reserved for <mac> urgent=False
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent connection open device=<mac> session=<uuid>
+261011 13:11:13[0.9.7_00000000000000][core.connection]-INFO-<IP> conn - Headers: {'host': '<IP>', 'client-id': '<uuid>', 'connection': 'Upgrade', 'device-id': '<mac>', 'protocol-version': '1', 'sec-websocket-key<key> 'wTxba32N7WoZpWnohpMuGw==', 'sec-websocket-version': '13', 'upgrade': 'websocket'}
+261011 13:11:13[0.9.7_00000000000000][core.connection]-INFO-配置输出音频采样率为: 24000
+261011 13:11:13[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-使用快速提示词: You are Jarvis, the voice assistant of this househ...
+261011 13:11:13[0.9.7_SiGoClGononoCh][core.connection]-INFO-快速初始化组件: prompt成功 You are Jarvis, the voice assistant of this househ...
+261011 13:11:13[0.9.7_00000000000000][core.utils.modules_initialize]-INFO-ASR模块初始化完成
+261011 13:11:13[0.9.7_00000000000000][core.utils.voiceprint_provider]-WARNING-声纹识别URL未配置，声纹识别将被禁用
+261011 13:11:13[0.9.7_SiGoClGononoCh][core.connection]-WARNING-声纹识别功能启用但配置不完整
+261011 13:11:13[0.9.7_00000000000000][core.utils.prompt_manager]-INFO-构建增强提示词成功，长度: 3541
+261011 13:11:13[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到hello消息：{"type":"hello","version":1,"features":{"mcp":true,"agent":2,"glyph_push":true},"text_font":{"bundle":"noto-v1","charset":"common","size":30,"bpp":4},"transport":"websocket","audio_params":{"format":"opus","sample_rate":16000,"channels":1,"frame_duration":60}}
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent session device=<mac> session=<uuid>: snapshot of 8
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8VQQPV5A29A6G50DX2Z2C state=unread seq=1791715304348
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8WAS5QM18BPX926E15RSM state=unread seq=1791715324056
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8WYB0ZTEEFGA7MB89APSW state=unread seq=1791715365508
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4N8YA9MMK5JZRW5A9KRPK1B state=unread seq=1791715389155
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NAV02CKA9NSV3WFKGA1Y21 state=unread seq=1791717394103
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NDRAB14BW8Y2QAG59Z9D6B state=unread seq=1791720438262
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NDTVS5FW9KCY04N6DX4BVM state=needs_input seq=1791720521043
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent_chats task=None state=None seq=1791720662033
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent task=tsk_01M4NDZ8GFZK4D2ED96GZYV3S7 state=needs_approval seq=1791720671213
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent snapshot device=<mac> kind=agent_sync task=None state=None seq=1791720673553
+261011 13:11:13[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"weixue:proactive:3a536ca1d7fb4bbeab672eca5bb1e3e7:b8b2924b38674b57b250d7fad5d02e49"}
+261011 13:11:13[0.9.7_00000000000000][weixue_proactive]-INFO-proactive 3a536ca1d7fb4bbeab672eca5bb1e3e7 delivering: attempt=1 session=<uuid> invoked=True urgent=False
+261011 13:11:13[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 3e920fe1e91d48a3 tts start sentence=46e6e03518694e6a91518e97cbc60967 device=<mac>
+261011 13:11:13[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送第一段语音: To toggle inputboolean.weixuesession_probe
+261011 13:11:13[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, To toggle inputboolean.weixuesession_probe
+261011 13:11:13[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 13:11:13[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"esp32-s3-touch-amoled-1.75c-weixue","version":"2.5.1"}}}}
+261011 13:11:13[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.361s: To toggle inputboolean.weixuesession_probe
+261011 13:11:14[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":31,"kind":"shown","ack_upto":1791720673553,"via":"tap"}}}
+261011 13:11:14[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720673553, "boot": 3313923618, "kind": "shown", "seq": 31, "v": 1, "via": "tap"}
+261011 13:11:14[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:11:14[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.FIRST, approve it in the Home Assistant panel
+261011 13:11:14[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"self.get_device_status","description":"Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)","inputSchema":{"type":"object","properties":{}}},{"name":"self.audio_speaker.set_volume","description":"Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.","inputSchema":{"type":"object","properties":{"volume":{"type":"integer","minimum":0,"maximum":100}},"required":["volume"]}},{"name":"self.screen.set_brightness","description":"Set the brightness of the screen.","inputSchema":{"type":"object","properties":{"brightness":{"type":"integer","minimum":0,"maximum":100}},"required":["brightness"]}},{"name":"self.screen.set_theme","description":"Set the theme of the screen. The theme can be `light` or `dark`.","inputSchema":{"type":"object","properties":{"theme":{"type":"string"}},"required":["theme"]}},{"name":"self.screen.set_bedside","description":"Bedside (night) screen: a dim red clock shown while idle during the bedside hours. mode `night` turns it on until the end hour, `day` turns it off until the start hour, `auto` follows the bedside hours, `status` changes nothing. Optional `start` and `end` (local HH:MM, both together) change the bedside hours. Returns `night` (bedside mode is on), `showing` (the clock is on screen now; it appears 15 s after a conversation ends), the hint, the hours and the local time.","inputSchema":{"type":"object","properties":{"mode":{"type":"string","default":"status"},"start":{"type":"string","default":""},"end":{"type":"string","default":""}}}},{"name":"self.imu.get_state","description":"Motion sensor state of this device: whether it lies face-down (face-down mutes the microphone and announcements), gesture counts since boot, the last gesture (pick_up, face_down, face_up, double_tap) and its age in milliseconds.","inputSchema":{"type":"object","properties":{}}}]}}}
+261011 13:11:14[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端设备支持的工具数量: 6
+261011 13:11:14[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.271s: approve it in the Home Assistant panel
+261011 13:11:15[0.9.7_SiGoClGononoCh][core.handle.sendAudioHandle]-INFO-发送音频消息: SentenceType.LAST, None
+261011 13:11:15[0.9.7_00000000000000][weixue_patches]-INFO-stt_segment kind=follow frames=18 seconds=1.08 burst=1 peak_dbfs=-6.1 rms_dbfs=-25.5
+261011 13:11:15[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-chirp_3 fallback (no_final) skipped: utterance during playback is dropped
+261011 13:11:15[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=18 bytes=34560 sent=18 responses=0 interims=0 finals=0 empty_finals=0 utterance_end_ms=- first_interim_ms=- half_close_ms=428 end_ms=976 service_end=0 cancelled=0
+261011 13:11:15[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=549 model=latest_short language=None confidence=- fallback=no_final streams=1 interims=0 no_final=no_response
+261011 13:11:16[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/imu","params":{"gesture":"pick_up","face_down":false}}}
+261011 13:11:16[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/imu device=<mac> params={"face_down": false, "gesture": "pick_up"}
+261011 13:11:16[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/imu
+261011 13:11:18[0.9.7_00000000000000][weixue_patches]-INFO-stt_segment kind=follow frames=19 seconds=1.14 burst=1 peak_dbfs=-6.8 rms_dbfs=-31.9
+261011 13:11:18[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-chirp_3 fallback (no_final) skipped: utterance during playback is dropped
+261011 13:11:18[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_stream 0 burst=11 frames=19 bytes=36480 sent=19 responses=0 interims=0 finals=0 empty_finals=0 utterance_end_ms=- first_interim_ms=- half_close_ms=483 end_ms=991 service_end=0 cancelled=0
+261011 13:11:18[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=509 model=latest_short language=None confidence=- fallback=no_final streams=1 interims=0 no_final=no_response
+261011 13:11:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=<mac> chat=cht_01M4NDZ8DX0BCCDB0JMGSC1N05 task=tsk_01M4NDZ8GFZK4D2ED96GZYV3S7 state=working seq=1791720678928 tier=silent speaks=False delivery=dlv_01M4NDZSGDJY30VS9YBBSK1ZBQ
+261011 13:11:18[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=<mac> kind=agent task=tsk_01M4NDZ8GFZK4D2ED96GZYV3S7 state=working seq=1791720678928
+261011 13:11:19[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":32,"kind":"shown","ack_upto":1791720678928,"via":"tap"}}}
+261011 13:11:19[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDZSGDJY30VS9YBBSK1ZBQ device=<mac> seq=1791720678928 via=shown
+261011 13:11:19[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720678928, "boot": 3313923618, "kind": "shown", "seq": 32, "v": 1, "via": "tap"}
+261011 13:11:19[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:11:19[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent item queued device=<mac> chat=cht_01M4NDZ8DX0BCCDB0JMGSC1N05 task=tsk_01M4NDZ8GFZK4D2ED96GZYV3S7 state=unread seq=1791720679595 tier=when_idle speaks=True delivery=dlv_01M4NDZT587K1GJ87B22K8V0AE
+261011 13:11:19[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=<mac> kind=agent task=tsk_01M4NDZ8GFZK4D2ED96GZYV3S7 state=unread seq=1791720679595
+261011 13:11:19[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack accepted delivery=dlv_01M4NDZT587K1GJ87B22K8V0AE device=<mac> proactive_id=be7687c0162142f7871a88bb031abe3d ttl_s=600
+261011 13:11:19[0.9.7_00000000000000][weixue_proactive]-INFO-proactive be7687c0162142f7871a88bb031abe3d queued: mode=announce device=<mac> urgent=False ttl=600
+261011 13:11:19[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech f3babe9bdfc34f17 handed off: delivery=dlv_01M4NDZT587K1GJ87B22K8V0AE proactive=be7687c0162142f7871a88bb031abe3d urgent=False attempt=1 reason=busy
+261011 13:11:19[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":33,"kind":"shown","ack_upto":1791720679595,"via":"tap"}}}
+261011 13:11:19[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDZT587K1GJ87B22K8V0AE device=<mac> seq=1791720679595 via=shown
+261011 13:11:19[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720679595, "boot": 3313923618, "kind": "shown", "seq": 33, "v": 1, "via": "tap"}
+261011 13:11:19[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:11:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent chats queued device=<mac> current=cht_01M4NDCJ7NH7M1S836ATM5A2QQ chats=5/5 seq=1791720680098 bytes=595 delivery=dlv_01M4NDZTMX9RKCYVADEK8KG7NZ
+261011 13:11:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent push device=<mac> kind=agent_chats task=None state=None seq=1791720680098
+261011 13:11:20[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":3313923618,"seq":34,"kind":"shown","ack_upto":1791720680098,"via":"tap"}}}
+261011 13:11:20[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack shown delivery=dlv_01M4NDZTMX9RKCYVADEK8KG7NZ device=<mac> seq=1791720680098 via=shown
+261011 13:11:20[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/agent_response device=<mac> params={"ack_upto": 1791720680098, "boot": 3313923618, "kind": "shown", "seq": 34, "v": 1, "via": "tap"}
+261011 13:11:20[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/agent_response
+261011 13:11:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 3e920fe1e91d48a3 tts stop sentence=46e6e03518694e6a91518e97cbc60967
+261011 13:11:22[0.9.7_SiGoClGononoCh][core.handle.textMessageProcessor]-INFO-收到mcp消息：{"session_id":"<uuid>","type":"mcp","payload":{"jsonrpc":"2.0","method":"notifications/weixue/played","params":{"v":1,"boot":3313923618,"seq":35,"sentence_id":"46e6e03518694e6a91518e97cbc60967","complete":true}}}
+261011 13:11:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent speech 3e920fe1e91d48a3 played: sentence=46e6e03518694e6a91518e97cbc60967 cut_at_ms=None reason=None
+261011 13:11:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack spoken delivery=dlv_01M4NDZHZ6AD1WX5FJHNJEY1BY device=<mac> proactive_id=3a536ca1d7fb4bbeab672eca5bb1e3e7
+261011 13:11:22[0.9.7_00000000000000][weixue_agent_delivery]-INFO-agent ack played delivery=dlv_01M4NDZHZ6AD1WX5FJHNJEY1BY device=<mac> sentence_id=46e6e03518694e6a91518e97cbc60967 boot=3313923618 device_seq=35
+261011 13:11:22[0.9.7_00000000000000][weixue_patches]-INFO-device event notifications/weixue/played device=<mac> params={"boot": 3313923618, "complete": true, "sentence_id": "46e6e03518694e6a91518e97cbc60967", "seq": 35, "v": 1}
+261011 13:11:22[0.9.7_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-收到MCP客户端请求: notifications/weixue/played
+261011 13:11:22[0.9.7_SiGoClGononoCh][core.connection]-INFO-超时检查任务已退出
