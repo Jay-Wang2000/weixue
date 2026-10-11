@@ -1,0 +1,10 @@
+261011 10:21:42[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 10:21:42[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 10:21:43[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Yes?
+261011 10:21:44[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.482s | 语言: en-US | 结果: service
+261011 10:21:44[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: service
+261011 10:21:44[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: service
+261011 10:21:46[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.285s: Yes? What do you need?
+261011 10:21:46[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.337s | 语言: en-US | 结果: Yes.
+261011 10:21:46[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261011 10:21:46[0.9.7_00000000000000][weixue_patches]-INFO-barge-in disabled: dropped utterance during playback: 'Yes.'

@@ -1,0 +1,28 @@
+[  465.91 07:07:04Z] I (465767) StateMachine: State: listening -> idle
+[  465.91 07:07:04Z] I (465767) FaceDisplay: mode=idle mood=neutral
+[  465.91 07:07:04Z] I (465777) FaceDisplay: ring=off bedside=0
+[  472.65 07:07:11Z] ### result wake_cue: FAIL 0/3 Hmm? missing; Mm-hm? missing; Yes? missing (12 wakes)
+[  472.65 07:07:11Z] ### item long_reply
+[  472.65 07:07:11Z] ### say: Jarvis, tell me a story about a lighthouse keeper that takes about one minute to tell.
+[  474.48 07:07:13Z] I (474477) Application: Wake word detected: Jarvis (state: 3)
+[  474.48 07:07:13Z] I (474477) StateMachine: State: idle -> connecting
+[  474.68 07:07:13Z] I (474527) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  474.68 07:07:13Z] I (474587) WebSocket: WebSocket handshake done, cost=60 tcp=10 handshake=50
+[  474.68 07:07:13Z] I (474607) WS: Session ID: <uuid>
+[  474.68 07:07:13Z] W (474617) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  474.68 07:07:13Z] I (474627) Application: Wake word detected: Jarvis
+[  474.89 07:07:13Z] I (474717) FaceDisplay: mode=listening mood=neutral
+[  474.89 07:07:13Z] I (474717) FaceDisplay: ring=pulse bedside=0
+[  474.89 07:07:13Z] I (474877) AfeAudioEngine: Encoded wake word into 33 packets in 401 ms
+[  474.89 07:07:13Z] I (474877) Application: Sent 5 packets captured after the wake word
+[  474.89 07:07:13Z] I (474877) StateMachine: State: connecting -> listening
+[  475.09 07:07:13Z] I (474927) WeixueAgent: agent: chats seq=1791701873873 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  475.09 07:07:13Z] I (474927) WeixueAgent: agent: sync seq=1791702433329 listed=0 dropped=0 tasks=0 via=push
+[  475.29 07:07:14Z] I (475177) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":793372405,"seq":34,"kind":"shown","ack_upto":1791702433329,"via":"tap"}}
+[  475.29 07:07:14Z] I (475187) WeixueAgent: agent ack sent: shown upto 1791702433329 (attempt 1)
+[  486.93 07:07:25Z] I (486757) WS: Websocket disconnected
+[  486.93 07:07:25Z] I (486757) StateMachine: State: listening -> idle
+[  486.93 07:07:25Z] I (486797) FaceDisplay: mode=idle mood=neutral
+[  486.93 07:07:25Z] I (486797) FaceDisplay: ring=off bedside=0
+[  492.24 07:07:30Z] I (492067) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 4)
+[  493.77 07:07:32Z] ### result long_reply: FAIL 0/1 reply 0 s, device aborts 0, server aborts 0

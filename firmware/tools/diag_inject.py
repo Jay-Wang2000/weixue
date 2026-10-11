@@ -152,6 +152,11 @@ class DiagSerial:
                     return None
                 self.cond.wait(left)
 
+    def snapshot(self, since=0, until=None):
+        """[(monotonic, log line number, text)] of the console lines at index since..until."""
+        with self.cond:
+            return list(self.lines[since:until])
+
     def find_all(self, pattern, since=0, until=None):
         rx = re.compile(pattern) if isinstance(pattern, str) else pattern
         with self.cond:

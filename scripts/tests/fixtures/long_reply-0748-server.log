@@ -1,0 +1,10 @@
+261011 08:58:57[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.327s: I'm here
+261011 08:58:57[0.9.7_00000000000000][core.providers.asr.google_stt]-INFO-语音识别耗时: 1.278s | 语言: en-US | 结果: Yes.
+261011 08:58:57[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:58:57[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261011 08:58:57[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261011 08:58:57[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Yes.
+261011 08:58:57[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS stream cancelled (abort or newer turn): What do you need help with?
+261011 08:58:59[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.230s: Got it
+261011 08:58:59[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.265s: What would you like me to do?
+261011 08:58:59[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.241s: I can handle lights, climate, music, news, or a story

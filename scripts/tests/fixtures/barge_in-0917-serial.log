@@ -1,0 +1,41 @@
+[  328.91 09:27:02Z] I (328858) StateMachine: State: listening -> idle
+[  328.91 09:27:02Z] I (328888) FaceDisplay: mode=idle mood=neutral
+[  328.91 09:27:02Z] I (328888) FaceDisplay: ring=off bedside=0
+[  328.91 09:27:02Z] ### say: Jarvis, tell me a story about a lighthouse keeper that takes about one minute to tell.
+[  350.05 09:27:23Z] ### result long_reply: FAIL 0/1 no_transcript: no `Wake word detected`, no transcript
+[  350.05 09:27:23Z] ### item barge_in
+[  350.06 09:27:23Z] ### say: Jarvis, tell me a long story about a dragon.
+[  351.89 09:27:25Z] I (351718) Application: Wake word detected: Jarvis (state: 3)
+[  351.89 09:27:25Z] I (351718) StateMachine: State: idle -> connecting
+[  351.89 09:27:25Z] I (351728) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  351.89 09:27:25Z] I (351818) WebSocket: WebSocket handshake done, cost=80 tcp=50 handshake=30
+[  351.89 09:27:25Z] I (351838) WS: Session ID: <uuid>
+[  351.90 09:27:25Z] W (351838) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  351.90 09:27:25Z] I (351848) Application: Wake word detected: Jarvis
+[  352.10 09:27:25Z] I (351928) FaceDisplay: mode=listening mood=neutral
+[  352.10 09:27:25Z] I (351938) FaceDisplay: ring=pulse bedside=0
+[  352.31 09:27:25Z] I (352118) AfeAudioEngine: Encoded wake word into 33 packets in 400 ms
+[  352.31 09:27:25Z] I (352118) Application: Sent 5 packets captured after the wake word
+[  352.31 09:27:25Z] I (352118) StateMachine: State: connecting -> listening
+[  352.31 09:27:25Z] I (352158) WeixueAgent: agent: chats seq=1791709049523 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  352.31 09:27:25Z] I (352168) WeixueAgent: agent: sync seq=1791710845173 listed=0 dropped=0 tasks=0 via=push
+[  352.52 09:27:25Z] I (352438) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":272607383,"seq":23,"kind":"shown","ack_upto":1791710845173,"via":"tap"}}
+[  352.52 09:27:25Z] I (352448) WeixueAgent: agent ack sent: shown upto 1791710845173 (attempt 1)
+[  355.82 09:27:29Z] I (355698) Application: >> Jarvis, tell me a long story about a dragon
+[  355.82 09:27:29Z] I (355698) StateMachine: State: listening -> speaking
+[  355.82 09:27:29Z] I (355698) FaceDisplay: mode=thinking mood=neutral
+[  355.82 09:27:29Z] I (355718) FaceDisplay: ring=spin bedside=0
+[  356.64 09:27:30Z] I (356628) Application: << High on a mountain called Greywhistle lived a small
+[  356.85 09:27:30Z] I (356668) FaceDisplay: mode=speaking mood=neutral
+[  356.85 09:27:30Z] I (356678) FaceDisplay: ring=level bedside=0
+[  360.59 09:27:33Z] I (360448) Application: << dragon named Ember, who was embarrassed because she couldn't breathe fire
+[  361.65 09:27:35Z] ### say: Stop. What is two plus two?
+[  364.51 09:27:37Z] I (364348) Application: << All she could manage was a little puff of warm, smelly smoke, like burnt toast
+[  369.49 09:27:42Z] I (369458) Application: << The other dragons laughed, so one cold morning she packed a satchel and flew down into the valley to find a new life
+[  376.96 09:27:50Z] I (376768) Application: << In the village below, the winter had come early, and the baker's ovens had gone cold because the wood was wet
+[  382.54 09:27:55Z] I (382518) Application: << Ember landed in the square and everyone screamed
+[  385.66 09:27:59Z] I (385468) Application: << But the baker's daughter, a girl named Pip, just looked at her and asked, can you warm bread?
+[  390.83 09:28:04Z] I (390738) Application: << Ember puffed her gentle, toasty smoke over the dough, and the loaves rose golden and perfect
+[  398.28 09:28:11Z] I (398128) Application: << Shall I keep going?
+[  400.14 09:28:13Z] I (400118) StateMachine: State: speaking -> listening
+[  400.17 09:28:13Z] ### result barge_in: pass 1/1 pass: VOICE_BARGE_IN=0; heard 'Jarvis, tell me a long story about a dragon' L4673, reply L4679; phrase L4691; abort device none, server 0; played out: TTS stop L4750 38 s later; server dropped '100'

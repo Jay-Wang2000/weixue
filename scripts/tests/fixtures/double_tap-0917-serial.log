@@ -1,0 +1,65 @@
+[  274.02 09:26:07Z] I (274018) StateMachine: State: speaking -> listening
+[  274.02 09:26:07Z] I (274028) FaceDisplay: mode=listening mood=neutral
+[  274.22 09:26:07Z] I (274038) FaceDisplay: ring=pulse bedside=0
+[  281.55 09:26:14Z] ### wake_cue: preroll_turn: cue `Hmm?` L3897; pre-roll became a turn: 'service' L3905; 'Yes.' got no transcript
+[  281.55 09:26:14Z] ### result wake_cue: FAIL 0/3 preroll_turn 12; t1 preroll_turn: [Yes?] cue `Yes?` L273; pre-roll became a turn: 'service' L356; 'Yes.' got no transcript; t2 preroll_turn: [Yes?] cue `Yes?` L1445; pre-roll became a turn: 'cervix' L1476; 'Yes.' got no transcript; t3 preroll_turn: [Mm-hm?] cue `Mm-hm?` L2423; pre-roll became a turn: 'service' L2431; 'Yes.' got no transcript; t4 preroll_turn: [Mm-hm?] cue `Mm-hm?` L2510; pre-roll became a turn: 'Jervis' L2517; 'Yes.' got no transcript; t5 preroll_turn: [Yes?] cue `Yes?` L2683; pre-roll became a turn: 'Jervis' L2691; 'Yes.' got no transcript; t6 preroll_turn: [Yes?] cue `Yes?` L2767; pre-roll became a turn: 'Jervis' L2774; 'Yes.' got no transcript; t7 preroll_turn: [Mm-hm?] cue `Mm-hm?` L2849; pre-roll became a turn: 'Jervis' L2858; 'Yes.' got no transcript; t8 preroll_turn: [Hmm?] cue `Hmm?` L3021; pre-roll became a turn: 'service' L3028; 'Yes.' got no transcript; t9 preroll_turn: [Mm-hm?] cue `Mm-hm?` L3550; pre-roll became a turn: 'service' L3559; 'Yes.' got no transcript; t10 preroll_turn: [Hmm?] cue `Hmm?` L3635; pre-roll became a turn: 'Cervix' L3642; 'Yes.' got no transcript; t11 preroll_turn: [Hmm?] cue `Hmm?` L3726; pre-roll became a turn: 'service' L3736; 'Yes.' got no transcript; t12 preroll_turn: [Hmm?] cue `Hmm?` L3897; pre-roll became a turn: 'service' L3905; 'Yes.' got no transcript; Hmm? not answered; Mm-hm? not answered; Yes? not answered (12 wakes)
+[  281.55 09:26:14Z] ### item double_tap
+[  281.55 09:26:14Z] ### say: tell me a long story about a lighthouse keeper.
+[  282.05 09:26:15Z] I (282038) WS: Websocket disconnected
+[  282.05 09:26:15Z] I (282038) StateMachine: State: listening -> idle
+[  282.26 09:26:15Z] I (282068) FaceDisplay: mode=idle mood=neutral
+[  282.26 09:26:15Z] I (282068) FaceDisplay: ring=off bedside=0
+[  300.33 09:26:33Z] ### double_tap: no_transcript: no `Wake word detected`, no transcript; tap not sent
+[  301.34 09:26:34Z] ### say: Jarvis, tell me a long story about a lighthouse keeper.
+[  302.58 09:26:35Z] I (302528) Application: Wake word detected: Jarvis (state: 3)
+[  302.58 09:26:35Z] I (302528) StateMachine: State: idle -> connecting
+[  302.58 09:26:35Z] I (302538) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  302.79 09:26:36Z] I (302608) WebSocket: WebSocket handshake done, cost=60 tcp=10 handshake=50
+[  302.79 09:26:36Z] I (302638) FaceDisplay: mode=listening mood=neutral
+[  302.79 09:26:36Z] I (302638) FaceDisplay: ring=pulse bedside=0
+[  302.79 09:26:36Z] I (302668) WS: Session ID: <uuid>
+[  302.79 09:26:36Z] W (302678) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  302.79 09:26:36Z] I (302688) Application: Wake word detected: Jarvis
+[  302.99 09:26:36Z] I (302958) AfeAudioEngine: Encoded wake word into 33 packets in 428 ms
+[  302.99 09:26:36Z] I (302958) Application: Sent 6 packets captured after the wake word
+[  302.99 09:26:36Z] I (302958) StateMachine: State: connecting -> listening
+[  302.99 09:26:36Z] I (302968) WeixueAgent: agent: chats seq=1791709049523 current=cht_01M4MW1X6BH94BTK44DREH1MN1 n=2 result=duplicate via=push
+[  303.20 09:26:36Z] I (303058) WeixueAgent: agent: sync seq=1791710795966 listed=0 dropped=0 tasks=0 via=push
+[  303.41 09:26:36Z] I (303278) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":272607383,"seq":21,"kind":"shown","ack_upto":1791710795966,"via":"tap"}}
+[  303.41 09:26:36Z] I (303288) WeixueAgent: agent ack sent: shown upto 1791710795966 (attempt 1)
+[  306.71 09:26:40Z] I (306678) Application: >> Jarvis, tell me a long story about a light housekeeper
+[  306.71 09:26:40Z] I (306688) StateMachine: State: listening -> speaking
+[  306.71 09:26:40Z] I (306688) FaceDisplay: mode=thinking mood=neutral
+[  306.71 09:26:40Z] I (306708) FaceDisplay: ring=spin bedside=0
+[  307.95 09:26:41Z] I (307868) Application: << Once upon a time
+[  307.95 09:26:41Z] I (307868) FaceDisplay: mode=speaking mood=neutral
+[  307.95 09:26:41Z] I (307878) FaceDisplay: ring=level bedside=0
+[  309.41 09:26:42Z] I (309398) Application: << on a windy cliff above a quiet fishing village, there lived a lighthouse keeper named Odette
+[  310.45 09:26:43Z] ### send diag gesture double_tap
+[  310.65 09:26:44Z] I (310468) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: injected double_tap
+[  310.65 09:26:44Z] I (310468) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: double_tap (count 1)
+[  310.65 09:26:44Z] I (310468) Application: Abort speaking
+[  310.65 09:26:44Z] I (310468) DiagConsole: ok diag gesture double_tap: double_tap
+[  310.65 09:26:44Z] I (310488) StateMachine: State: speaking -> listening
+[  310.65 09:26:44Z] I (310498) FaceDisplay: mode=listening mood=neutral
+[  310.65 09:26:44Z] I (310498) FaceDisplay: ring=pulse bedside=0
+[  310.65 09:26:44Z] ### double_tap: pass: heard 'Jarvis, tell me a long story about a light house...' L4460, reply L4467; tap L4478, abort L4479, speaking -> listening L4481
+[  311.66 09:26:45Z] ### say: tell me a long story about a lighthouse keeper.
+[  316.26 09:26:49Z] I (316208) Application: >> Tell me a long story about a lighthouse keeper
+[  316.26 09:26:49Z] I (316208) StateMachine: State: listening -> speaking
+[  316.26 09:26:49Z] I (316218) FaceDisplay: mode=thinking mood=neutral
+[  316.26 09:26:49Z] I (316228) FaceDisplay: ring=spin bedside=0
+[  318.32 09:26:51Z] I (318308) Application: << Here we go
+[  318.53 09:26:51Z] I (318348) FaceDisplay: mode=speaking mood=neutral
+[  318.53 09:26:51Z] I (318348) FaceDisplay: ring=level bedside=0
+[  319.56 09:26:52Z] I (319378) Application: << On a windy cliff above a sleepy fishing village stood an old lighthouse, and in it lived a keeper named Odette
+[  320.83 09:26:54Z] ### send diag gesture double_tap
+[  321.02 09:26:54Z] I (320848) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: injected double_tap
+[  321.02 09:26:54Z] I (320848) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: double_tap (count 2)
+[  321.02 09:26:54Z] I (320848) Application: Abort speaking
+[  321.02 09:26:54Z] I (320848) DiagConsole: ok diag gesture double_tap: double_tap
+[  321.02 09:26:54Z] I (320858) StateMachine: State: speaking -> listening
+[  321.02 09:26:54Z] I (320878) FaceDisplay: mode=listening mood=neutral
+[  321.02 09:26:54Z] I (320888) FaceDisplay: ring=pulse bedside=0
+[  321.02 09:26:54Z] ### double_tap: pass: heard 'Tell me a long story about a lighthouse keeper' L4491, reply L4501; tap L4513, abort L4514, speaking -> listening L4516
+[  322.03 09:26:55Z] ### result double_tap: FAIL 2/3 no_transcript 1, pass 2; t1 no_transcript: no `Wake word detected`, no transcript; tap not sent; t2 pass: heard 'Jarvis, tell me a long story about a light house...' L4460, reply L4467; tap L4478, abort L4479, speaking -> listening L4481; t3 pass: heard 'Tell me a long story about a lighthouse keeper' L4491, reply L4501; tap L4513, abort L4514, speaking -> listening L4516

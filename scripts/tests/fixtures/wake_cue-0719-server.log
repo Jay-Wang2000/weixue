@@ -1,0 +1,73 @@
+261011 08:33:10[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 08:33:10[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 08:33:11[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Hmm?
+261011 08:33:11[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=172 model=latest_short language=en-US confidence=0.797 fallback=- streams=1 interims=0
+261011 08:33:11[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:33:11[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261011 08:33:11[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261011 08:33:11[0.9.7_00000000000000][weixue_patches]-INFO-wake word transcript ignored: Jarvis
+261011 08:33:14[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=251 model=latest_short language=None confidence=- fallback=- streams=1 interims=1
+261011 08:33:33[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 08:33:33[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 08:33:34[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Mm-hm?
+261011 08:33:35[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=311 model=latest_short language=en-US confidence=0.799 fallback=- streams=1 interims=1
+261011 08:33:35[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:33:35[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261011 08:33:35[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261011 08:33:35[0.9.7_00000000000000][weixue_patches]-INFO-wake word transcript ignored: Jarvis
+261011 08:33:37[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=330 model=latest_short language=en-US confidence=0.662 fallback=- streams=1 interims=1
+261011 08:33:37[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:33:37[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Yes.
+261011 08:33:39[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.258s: I'm here
+261011 08:33:39[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.220s: Want me to tell you a story, or is there something else you need?
+261011 08:33:56[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 08:33:56[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 08:33:57[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Hmm?
+261011 08:33:57[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=228 model=latest_short language=en-US confidence=0.801 fallback=- streams=1 interims=1
+261011 08:33:57[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:33:57[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261011 08:33:57[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261011 08:33:57[0.9.7_00000000000000][weixue_patches]-INFO-wake word transcript ignored: Jarvis
+261011 08:33:59[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=276 model=latest_short language=en-US confidence=0.615 fallback=- streams=1 interims=1
+261011 08:33:59[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:33:59[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Yes.
+261011 08:34:01[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.316s: I'm here
+261011 08:34:01[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.231s: What can I do for you?
+261011 08:34:16[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 08:34:16[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 08:34:17[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Hmm?
+261011 08:34:17[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=164 model=latest_short language=en-US confidence=0.809 fallback=- streams=1 interims=1
+261011 08:34:17[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:34:17[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261011 08:34:17[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261011 08:34:17[0.9.7_00000000000000][weixue_patches]-INFO-wake word transcript ignored: Jarvis
+261011 08:34:20[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=263 model=latest_short language=None confidence=- fallback=- streams=1 interims=0
+261011 08:34:39[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 08:34:39[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 08:34:40[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Mm-hm?
+261011 08:34:42[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=1358 model=latest_short language=en-US confidence=0.796 fallback=- streams=1 interims=1
+261011 08:34:42[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:34:42[0.9.7_00000000000000][weixue_patches]-INFO-wake word transcript ignored: Jarvis
+261011 08:34:43[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=283 model=latest_short language=None confidence=- fallback=- streams=1 interims=0
+261011 08:35:03[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 08:35:03[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 08:35:03[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Yes?
+261011 08:35:04[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=171 model=latest_short language=en-US confidence=0.785 fallback=- streams=1 interims=1
+261011 08:35:04[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:35:04[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261011 08:35:04[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261011 08:35:04[0.9.7_00000000000000][weixue_patches]-INFO-wake word transcript ignored: Jarvis
+261011 08:35:06[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=407 model=latest_short language=None confidence=- fallback=- streams=1 interims=0
+261011 08:35:26[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 08:35:26[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 08:35:26[0.9.7_00000000000000][weixue_patches]-INFO-wake cue: Yes?
+261011 08:35:27[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=171 model=latest_short language=en-US confidence=0.769 fallback=- streams=1 interims=3
+261011 08:35:27[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Jarvis.
+261011 08:35:27[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received
+261011 08:35:27[0.9.7_SiGoAnGonocaCh][core.handle.abortHandle]-INFO-Abort message received-end
+261011 08:35:27[0.9.7_00000000000000][weixue_patches]-INFO-wake word transcript ignored: Jarvis
+261011 08:35:29[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=289 model=latest_short language=en-US confidence=0.628 fallback=- streams=1 interims=1
+261011 08:35:29[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Yes.
+261011 08:35:29[0.9.7_SiGoAnGonocaCh][core.connection]-INFO-大模型收到用户消息: Yes.
+261011 08:35:31[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.290s: I'm here
+261011 08:35:31[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.260s: What can I do for you?

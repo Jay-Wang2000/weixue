@@ -1,0 +1,31 @@
+[  796.73 07:12:35Z] I (796617) StateMachine: State: listening -> idle
+[  796.73 07:12:35Z] I (796617) FaceDisplay: mode=idle mood=neutral
+[  796.73 07:12:35Z] I (796627) FaceDisplay: ring=off bedside=0
+[  818.46 07:12:57Z] ### result bedside_voice: FAIL 0/1 voice night hint -> page 15 s after idle, tap leaves it, voice auto hint
+[  818.46 07:12:57Z] ### item pick_up_dim
+[  818.46 07:12:57Z] ### send diag dump
+[  818.56 07:12:57Z] I (818497) DiagConsole: ok diag dump: {"device_state":"idle","panel_off":false,"brightness":75,"display":{"mode":"idle","mood":"neutral","ring":"off","bedside":false,"panel":false,"page":2,"card":false,"chats":false},"imu":{"face_down":false,"mic_muted":false,"last_gesture":"face_up","last_gesture_age_ms":115869,"counts":{"pick_up":9,"face_down":10,"face_up":10,"double_tap":3},"accel_g":[0.23,-0.55,0.81],"sampling":{"overruns":252,"resyncs":47,"skipped":2557,"read_errors":18,"torn_timestamps":12}}}
+[  856.53 07:13:35Z] I (856367) PowerSaveTimer: Enabling power save mode
+[  856.53 07:13:35Z] I (856367) Backlight: Set brightness to 20
+[  856.53 07:13:35Z] I (856447) FaceDisplay: mode=idle mood=sleepy
+[  857.53 07:13:36Z] ### send diag gesture pick_up
+[  857.55 07:13:36Z] I (857567) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: injected pick_up
+[  857.55 07:13:36Z] I (857567) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 10)
+[  857.55 07:13:36Z] I (857567) PowerSaveTimer: Exiting power save mode
+[  857.75 07:13:36Z] I (857567) DiagConsole: ok diag gesture pick_up: pick_up
+[  857.75 07:13:36Z] I (857647) Backlight: Set brightness to 75
+[  857.75 07:13:36Z] I (857657) FaceDisplay: mode=idle mood=neutral
+[  857.75 07:13:36Z] ### send diag dump
+[  857.96 07:13:36Z] I (857797) DiagConsole: ok diag dump: {"device_state":"idle","panel_off":false,"brightness":47,"display":{"mode":"idle","mood":"neutral","ring":"off","bedside":false,"panel":false,"page":2,"card":false,"chats":false},"imu":{"face_down":false,"mic_muted":false,"last_gesture":"pick_up","last_gesture_age_ms":236,"counts":{"pick_up":10,"face_down":10,"face_up":10,"double_tap":3},"accel_g":[0.24,-0.55,0.81],"sampling":{"overruns":254,"resyncs":49,"skipped":2568,"read_errors":19,"torn_timestamps":12}}}
+[  917.34 07:14:36Z] I (917367) PowerSaveTimer: Enabling power save mode
+[  917.34 07:14:36Z] I (917367) Backlight: Set brightness to 20
+[  917.54 07:14:36Z] I (917437) FaceDisplay: mode=idle mood=sleepy
+[  918.34 07:14:37Z] ### send diag gesture pick_up
+[  918.36 07:14:37Z] I (918387) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: injected pick_up
+[  918.56 07:14:37Z] I (918387) WaveshareEsp32s3TouchAMOLED1inch75: IMU gesture: pick_up (count 11)
+[  918.56 07:14:37Z] I (918387) PowerSaveTimer: Exiting power save mode
+[  918.56 07:14:37Z] I (918387) DiagConsole: ok diag gesture pick_up: pick_up
+[  918.56 07:14:37Z] I (918387) Backlight: Set brightness to 75
+[  918.56 07:14:37Z] I (918397) FaceDisplay: mode=idle mood=neutral
+[  918.56 07:14:37Z] ### send diag dump
+[  918.77 07:14:37Z] I (918597) DiagConsole: ok diag dump: {"device_state":"idle","panel_off":false,"brightness":57,"display":{"mode":"idle","mood":"neutral","ring":"off","bedside":false,"panel":false,"page":2,"card":false,"chats":false},"imu":{"face_down":false,"mic_muted":false,"last_gesture":"pick_up","last_gesture_age_ms":214,"counts":{"pick_up":11,"face_down":10,"face_up":10,"double_tap":3},"accel_g":[0.24,-0.55,0.81],"sampling":{"overruns":256,"resyncs":52,"skipped":2585,"read_errors":20,"torn_timestamps":13}}}

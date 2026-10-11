@@ -1,0 +1,4 @@
+261011 08:07:13[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"detect","text":"Jarvis"}
+261011 08:07:13[0.9.7_SiGoAnGonocaCh][core.handle.textMessageProcessor]-INFO-收到listen消息：{"session_id":"<uuid>","type":"listen","state":"start","mode":"realtime"}
+261011 08:07:14[0.9.7_00000000000000][weixue_patches]-INFO-wake cue skipped: user speaking, abort or newer turn
+261011 08:07:17[0.9.7_00000000000000][core.providers.asr.google_stt_stream]-INFO-stt_final_latency_ms=211 model=latest_short language=None confidence=- fallback=- streams=1 interims=2

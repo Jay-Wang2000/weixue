@@ -114,7 +114,7 @@ class PlaybackTest(unittest.TestCase):
     def test_say_plays_the_cached_clip_with_afplay(self):
         notes = []
         session = audio_session.Session(
-            SimpleNamespace(voice="Fenrir", no_audio=False), SimpleNamespace(note=notes.append))
+            SimpleNamespace(voice="Fenrir", no_audio=False), SimpleNamespace(note=notes.append, mark=lambda: 7))
         with tempfile.TemporaryDirectory() as d, \
                 mock.patch.object(st, "CACHE_DIR", d), \
                 mock.patch.object(st, "synthesize", lambda text, name, code: make_wav()), \
@@ -125,6 +125,7 @@ class PlaybackTest(unittest.TestCase):
             self.assertEqual(len(os.listdir(d)), 1)
         self.assertEqual(run.call_args_list, [mock.call(["afplay", want], check=True)] * 2)
         self.assertEqual(notes, ["say: Jarvis, what time is it?"] * 2)
+        self.assertEqual([(i, p.text) for i, p in session.plays], [(7, "Jarvis, what time is it?")] * 2)
 
     @unittest.skipIf(audio_session is None, "pyserial missing")
     def test_no_audio_session_skips_voice_items_without_synthesis(self):
