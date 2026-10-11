@@ -219,6 +219,47 @@ async def test_lost_final_sync_page_is_sent_again():
     assert len(syncs) == 2 and syncs[1]["task_ids"] == ["keep"] and syncs[1]["seq"] > syncs[0]["seq"]
 
 
+async def test_boot_snapshot_ranks_approval_cards_first():
+    _, gw = make()
+    gw.submit(DEVICE, card("old_q", "needs_input", card_id="q1", options=[{"id": "x", "label": "X"}]))
+    gw.submit(DEVICE, card("a1", "needs_approval", card_id="i1", options=APPROVAL))
+    gw.submit(DEVICE, card("w1"))
+    gw.submit(DEVICE, card("a2", "needs_approval", card_id="i2", options=APPROVAL))
+    before = {t: e.seq for t, e in gw.devices[DEVICE].mirror.items()}
+    applied, _, _ = snapshot_walk(gw)
+    order = [p["task_id"] for p in applied if p["kind"] == "agent"]
+    assert order == ["a1", "a2", "old_q", "w1"], "approvals, then questions, then the rest, each in queue order"
+    seqs = [p["seq"] for p in applied if p["kind"] == "agent"]
+    assert seqs == sorted(seqs) and min(seqs) > max(before.values()), "new seqs in the ranked order"
+    assert applied[-1]["kind"] == "agent_sync" and sorted(applied[-1]["task_ids"]) == sorted(before)
+
+    again, _, _ = snapshot_walk(gw, header="0")
+    assert [p["task_id"] for p in again if p["kind"] == "agent"] == order
+    assert [p["seq"] for p in again if p["kind"] == "agent"] == seqs, "an already ranked mirror keeps its seqs"
+
+
+async def test_snapshot_without_a_boot_poll_keeps_seq_order():
+    _, gw = make()
+    gw.on_poll(DEVICE, "1")
+    q = gw.submit(DEVICE, card("q", "needs_input", card_id="q1", options=[{"id": "x", "label": "X"}]))
+    a = gw.submit(DEVICE, card("a", "needs_approval", card_id="i1", options=APPROVAL))
+    gw.drop(DEVICE, ["none"])
+    gw.devices[DEVICE].snapshot_due = True
+    items = gw.poll_items(DEVICE)
+    assert [p["seq"] for p in items if p["kind"] == "agent"] == [q["seq"], a["seq"]]
+
+
+async def test_boot_session_snapshot_ranks_approval_cards_first():
+    _, gw = make()
+    gw.submit(DEVICE, card("q", "needs_input", card_id="q1", options=[{"id": "x", "label": "X"}]))
+    gw.submit(DEVICE, card("a", "needs_approval", card_id="i1", options=APPROVAL))
+    gw.on_poll(DEVICE, "0")
+    conn = Conn()
+    gw.on_agent_session(DEVICE, conn)
+    await settle()
+    assert [p["task_id"] for p in conn.websocket.payloads() if p["kind"] == "agent"] == ["a", "q"]
+
+
 async def test_snapshot_page_resends_are_bounded():
     _, gw = make()
     for i in range(3):

@@ -207,7 +207,7 @@ private:
     void RenderAgent(int64_t now_ms);
     bool AgentRing(int64_t now_ms, RingState& s, const char** kind);
     void AgentPose(EyeShape out[2]) const;
-    void OpenAgentCard(const std::string& task_id);
+    bool OpenAgentCard(const std::string& task_id);
     void CloseAgentCard();
     void AgentCardTap(int index);
     void AgentTapTask(const std::string& task_id);

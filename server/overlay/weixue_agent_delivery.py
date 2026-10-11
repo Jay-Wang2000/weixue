@@ -82,6 +82,11 @@ class Entry:
     raw: bool = False
     sends: int = 0
     last_sent: float = 0.0
+    # The seq the entry was queued with: its age when a boot snapshot gives it a new seq.
+    born: int = 0
+
+    def __post_init__(self):
+        self.born = self.born or self.seq
 
     @property
     def seq(self):
@@ -109,6 +114,8 @@ class Device:
     chats_key: Optional[tuple] = None
     # The agent-service device snapshot was restored into the mirror (fixture mode: always).
     restored: bool = True
+    # A seq-0 poll asked for a snapshot whose cards have not been ranked yet.
+    boot_snapshot: bool = False
 
 
 @dataclass
@@ -647,7 +654,7 @@ class AgentGateway:
     def _dispatch(self, device_id, dev, entries):
         sessions = self.live_sessions(dev)
         if sessions:
-            payloads = self._snapshot_payloads(dev) if dev.snapshot_due and dev.restored else None
+            payloads = self._snapshot_payloads(device_id, dev) if dev.snapshot_due and dev.restored else None
             if payloads is not None:
                 dev.snapshot_due = False
                 asyncio.get_running_loop().create_task(self._send(device_id, sessions[-1], payloads, "snapshot"))
@@ -682,7 +689,9 @@ class AgentGateway:
             entries.append(dev.chats)
         return sorted(entries, key=lambda e: e.seq)
 
-    def _snapshot_payloads(self, dev, after=0):
+    def _snapshot_payloads(self, device_id, dev, after=0):
+        if after == 0:
+            self._rank_boot_snapshot(device_id, dev)
         entries = self._snapshot_entries(dev, after)
         for e in entries:
             self._mark_sent(e)
@@ -702,7 +711,7 @@ class AgentGateway:
             dev.sessions.append(conn)
         self._set_level(device_id, dev, level, dispatch=False)
         if dev.restored:
-            payloads = self._snapshot_payloads(dev)
+            payloads = self._snapshot_payloads(device_id, dev)
             dev.snapshot_due = False
             self._log(f"agent session device={device_id} session={getattr(conn, 'session_id', None)}: "
                       f"snapshot of {len(dev.mirror)}")
@@ -745,6 +754,7 @@ class AgentGateway:
             dev.snapshot_due = True
             dev.snapshot_from = 0
             dev.page_retries = 0
+            dev.boot_snapshot = True
         elif page is not None and seq < page.upto and dev.page_retries < PAGE_RETRIES:
             dev.page_retries += 1
             dev.snapshot_due = True
@@ -762,6 +772,29 @@ class AgentGateway:
         if stuck and not dev.snapshot_due:
             dev.snapshot_due = True
             dev.snapshot_from = 0
+
+    def _rank_boot_snapshot(self, device_id, dev):
+        """Once per seq-0 poll, before its snapshot: gives the mirrored tasks new seqs with open
+        approval cards first, then question cards, then the rest, each in the order they were queued."""
+        if not dev.boot_snapshot:
+            return
+        dev.boot_snapshot = False
+
+        def rank(e):
+            state = e.payload.get("state")
+            kind = OPEN_CARD_STATES.index(state) if state in OPEN_CARD_STATES else len(OPEN_CARD_STATES)
+            return kind, e.born
+
+        entries = sorted(dev.mirror.values(), key=rank)
+        if [e.seq for e in entries] == sorted(e.seq for e in entries):
+            return
+        for e in entries:
+            e.payload["seq"] = self._next_seq(dev)
+            if e.delivery_id and not e.delivery_id.startswith("fx_"):
+                self.wire_seqs[e.delivery_id] = e.seq
+        self._save()
+        self._log(f"agent boot snapshot device={device_id}: cards first, "
+                  f"order {[(e.payload.get('task_id'), e.seq) for e in entries]}")
 
     def _poll_entries(self, dev):
         return [e for e in dev.outgoing if (e.raw and e.sends == 0) or (not e.raw and e.seq > dev.acked_upto and e.sends < MAX_SENDS)]
@@ -782,6 +815,8 @@ class AgentGateway:
             return []
         snapshot = dev.snapshot_due and dev.restored
         start = dev.snapshot_from
+        if snapshot and start == 0:
+            self._rank_boot_snapshot(device_id, dev)
         if snapshot:
             candidates = self._snapshot_entries(dev, start)
         else:

@@ -147,6 +147,23 @@ def test_from_delivery_maps_states_tiers_and_cards():
     assert fields["state"] == "unread" and fields["playback"] == "uncertain" and fields["seen"] is False
 
 
+def test_from_delivery_never_leaves_an_approval_card_silent():
+    def offer(state, tier, speak=None):
+        interaction = {"interaction_id": "int_1", "expires_at": "2026-10-07T12:05:00Z",
+                       "action": {"text": "x", "reversible": True}, "question": {"text": "Which?", "options": []}}
+        return {"kind": "agent", "tier": tier, "speak": speak, "chat_id": "cht_1", "task_id": "tsk_1",
+                "payload": {"state": state, "summary": "s", "interaction": interaction}}
+
+    now = 1791374400.0
+    fields, speech = wire.from_delivery(offer("needs_approval", "SILENT"), now=now)
+    assert fields["delivery"] == "when_idle" and fields["speaks"] is False and speech is None, \
+        "an approval spoken inline arrives silent; its card still opens when idle"
+    assert wire.from_delivery(offer("needs_approval", "INTERRUPT", "OK?"), now=now)[0]["delivery"] == "interrupt"
+    assert wire.from_delivery(offer("needs_approval", "WHEN_IDLE", "OK?"), now=now)[0]["delivery"] == "when_idle"
+    assert wire.from_delivery(offer("needs_input", "SILENT"), now=now)[0]["delivery"] == "silent"
+    assert wire.from_delivery(offer("progress", "SILENT"), now=now)[0]["delivery"] == "silent"
+
+
 def test_response_routes():
     base = {"boot": 1, "seq": 2, "chat_id": "cht_1", "card_id": "int_1"}
     method, path, body = wire.response_route("dev", dict(base, kind="approve"))
