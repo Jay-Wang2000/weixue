@@ -319,3 +319,7 @@ Not covered: inbound traffic from the home LAN to the Mac, such as the proactive
 ## Timezone
 
 The server is configured for `Europe/Dublin` (`TZ` in `server/.env`, required by `setup.sh`). The device follows daylight saving time from `server_time.tz` (see the OTA response above). `TZ_OFFSET` (whole hours) only sets `server_time.timezone_offset`, which the firmware applies when `tz` is absent; with `tz` present it needs no change at DST transitions.
+
+## ASR selection
+
+`VOICE_ASR` in `server/.env` selects the recognizer: `GoogleSTT` (chirp_3 batch, default) or `GoogleSTTStream` (latest_short streaming). Streaming is off by default since 2026-10-11 until the dropout fix lands (`docs/logs/session-2026-10-11-0655-rca.md`).
