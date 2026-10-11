@@ -222,8 +222,9 @@ class Sim:
                      f"acks={[a['outcome'] for a in r['acks']]})")
         return r
 
-    def receipts(self, conn):
-        return [p for p in conn.websocket.payloads() if p.get("kind") == "agent_ack"]
+    def receipts(self, conn, card=None):
+        return [p for p in conn.websocket.payloads()
+                if p.get("kind") == "agent_ack" and card in (None, p.get("card_id"))]
 
     def open_session(self, name):
         conn = DeviceSession(name)
@@ -246,6 +247,32 @@ class Sim:
                                                                     "kind": "shown", "ack_upto": upto, "via": "tap"})
 
 
+async def round_questions(sim, conn):
+    print("\n== question cards (decision 67) ==", flush=True)
+    asked = await sim.ctl("POST", "/sim/ask", {"device_id": DEVICE, "question": "What would you like me to do next?",
+                                               "options": ["Lights", "Music"]})
+    await asyncio.sleep(1)
+    cards = [e for e in sim.gw.devices[DEVICE].mirror.values() if e.payload.get("state") == "needs_input"]
+    check(asked["interaction_id"] is None and not cards,
+          f"open-ended question: no interaction ({asked['interaction_id']}), {len(cards)} question card mirrored")
+    asked = await sim.ctl("POST", "/sim/ask", {"device_id": DEVICE, "question": "Which light?",
+                                               "options": ["Living room", "Bedroom"]})
+    entry = await sim.wait(lambda: next((e for e in sim.gw.devices[DEVICE].mirror.values()
+                                         if e.payload.get("card_id") == asked["interaction_id"]), None),
+                           10, "real choice mirrored")
+    item = entry.payload if entry else {}
+    check(item.get("state") == "needs_input" and item.get("summary") == "Which light?" and
+          [o["label"] for o in item.get("options") or []] == ["Living room", "Bedroom"],
+          f"real choice: one card, question as summary, options {[o['label'] for o in item.get('options') or []]}")
+    params = {"v": 1, "boot": conn.boot, "seq": conn.next_seq(), "kind": "answer", "chat_id": item.get("chat_id"),
+              "task_id": item.get("task_id"), "card_id": asked["interaction_id"], "option_id": "opt1", "via": "tap"}
+    sim.gw.on_device_event(conn, wad.RESPONSE_METHOD, params)
+    got = await sim.wait(lambda: sim.receipts(conn, asked["interaction_id"]), 20, "receipt of the option tap")
+    rows = await sim.ctl("GET", "/sim/rows", params={"interaction_id": asked["interaction_id"]})
+    check(got and got[-1]["result"] == "accepted" and rows["interaction"]["state"] == "answered",
+          f"option tap: receipt {got and got[-1]['result']}, interaction {rows['interaction']['state']}")
+
+
 async def round_decisions(sim, conn):
     print("\n== F04 decision receipts ==", flush=True)
     asked = await sim.ctl("POST", "/sim/ask", {"device_id": DEVICE, "question": "Which day are the bins?",
@@ -259,7 +286,7 @@ async def round_decisions(sim, conn):
               "card_id": card, "option_id": "opt2", "via": "tap"}
     first = sim.gw.on_device_event(conn, wad.RESPONSE_METHOD, params)
     check(first is None, "no receipt while the service is answering 503")
-    got = await sim.wait(lambda: sim.receipts(conn), 20, "receipt after the 503 window")
+    got = await sim.wait(lambda: sim.receipts(conn, card), 20, "receipt after the 503 window")
     check(got and got[-1]["result"] == "stale", f"503 for the whole window: receipt {got and got[-1]['result']} (never accepted)")
     row = (await sim.ctl("GET", "/sim/rows", params={"interaction_id": card}))["interaction"]
     check(row["state"] == "pending", f"service interaction still {row['state']}")
@@ -267,7 +294,8 @@ async def round_decisions(sim, conn):
     await sim.fault(r"/answer$", 503, count=1, after=True)
     params = dict(params, seq=conn.next_seq())
     sim.gw.on_device_event(conn, wad.RESPONSE_METHOD, params)
-    got = await sim.wait(lambda: len(sim.receipts(conn)) == 2 and sim.receipts(conn), 20, "receipt of the second tap")
+    got = await sim.wait(lambda: len(sim.receipts(conn, card)) == 2 and sim.receipts(conn, card), 20,
+                         "receipt of the second tap")
     check(got and got[-1]["result"] == "accepted",
           f"answer handled but its reply lost, retried with the same decision id: receipt {got and got[-1]['result']}")
     rows = await sim.ctl("GET", "/sim/rows", params={"interaction_id": card})
@@ -379,6 +407,7 @@ async def main():
     sim.start()
     conn = sim.open_session("s1")
     await sim.wait(lambda: sim.gw.devices[DEVICE].restored, 10, "first restore")
+    await round_questions(sim, conn)
     await round_decisions(sim, conn)
     await round_speech(sim, conn)
     await round_attempts(sim, conn)

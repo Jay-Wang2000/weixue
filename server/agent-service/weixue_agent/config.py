@@ -58,7 +58,10 @@ MEMORY_FILE_MAX_BYTES = 64 * 1024
 
 TITLE_MAX = 32
 SUMMARY_MAX = 60
-OPTION_MAX = 24
+OPTIONS_MIN = 2
+OPTIONS_MAX = 4
+# Option label display width as the device wire keeps it: code points from U+1100 count 3, others 1.
+OPTION_WIDTH_MAX = 12
 QUESTION_MAX = 120
 ACTION_MAX = 60
 DEVICE_RESULT_MAX = 2000

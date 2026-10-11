@@ -359,7 +359,9 @@ async def test_every_ha_mcp_tool_is_declared_and_only_the_hot_set_is_loaded(make
     assert "defer_loading" not in tools["ha_call_service"] and "defer_loading" not in tools["ha_search"]
     assert tools["tool_search_tool_bm25"]["type"] == "tool_search_tool_bm25_20251119"
     assert "memory" not in tools
-    assert {"ask_user", "start_task", "set_chat_title", "notify_user", "set_result_tier", "awaiting_answer"} <= set(tools)
+    assert {"ask_user", "start_task", "set_chat_title", "notify_user", "set_result_tier"} <= set(tools)
+    assert "awaiting_answer" not in tools
+    assert tools["ask_user"]["input_schema"]["required"] == ["question", "options"]
 
 
 async def test_a_token_arriving_after_cancel_is_denied_not_offered(make):

@@ -2,11 +2,11 @@
 import asyncio
 import time
 from datetime import timedelta
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from . import jsonlog, routing, timeutil
 from .config import (
-    INPUT_TTL_S, OPTION_MAX, QUESTION_MAX, SUMMARY_MAX, VOICE_WINDOW_S,
+    INPUT_TTL_S, OPTION_WIDTH_MAX, OPTIONS_MAX, OPTIONS_MIN, QUESTION_MAX, SUMMARY_MAX, VOICE_WINDOW_S,
 )
 from .deliveries import agent_payload
 from .ha_adapter import AlreadyDecided, NotOwner, Uncorrelated, describe_call, reversible
@@ -21,6 +21,8 @@ STEER_ANSWER = "No answer; the user's new message follows."
 OPEN_STATES = ("pending", "uncorrelated")
 UNCORRELATED_TEXT = {"en": "This may still be waiting in the Home Assistant panel.",
                      "zh": "这个可能还在 Home Assistant 面板里等待确认。"}
+NOT_ASKED = ("Not asked: {why}. ask_user is only for a real choice: one short question and 2-4 distinct short "
+             "options. Answer directly in your reply, ask there if you must, and end the turn.")
 PANEL_CUE = {"en": "That needs approval in the Home Assistant panel.", "zh": "这个需要在 Home Assistant 面板里确认。"}
 
 
@@ -28,6 +30,39 @@ def panel_cue(lang: str, action_text: str) -> str:
     if lang == "zh":
         return f"要{action_text}，需要在 Home Assistant 面板里确认。"
     return f"To {action_text}, approve it in the Home Assistant panel."
+
+
+def label_width(text: str) -> int:
+    return sum(3 if ord(ch) >= 0x1100 else 1 for ch in text)
+
+
+def check_question(args: Dict[str, Any]) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """(question, None) for a valid ask_user call, else (None, why it was not asked)."""
+    text = " ".join(str(args.get("question") or "").split())
+    if not text:
+        return None, "no question given"
+    if len(text) > QUESTION_MAX:
+        return None, f"the question is longer than {QUESTION_MAX} characters"
+    if routing.is_open_ended(text):
+        return None, "an open-ended question is not a choice"
+    raw = args.get("options")
+    if not isinstance(raw, list):
+        return None, "no options given"
+    labels = [" ".join(str(o).split()) if isinstance(o, (str, int, float)) else "" for o in raw]
+    if not OPTIONS_MIN <= len(labels) <= OPTIONS_MAX:
+        return None, f"{len(labels)} options given"
+    if not all(labels):
+        return None, "an option is empty"
+    if any(label_width(label) > OPTION_WIDTH_MAX for label in labels):
+        return None, f"an option is longer than {OPTION_WIDTH_MAX} letters (4 Chinese characters)"
+    if len({label.casefold() for label in labels}) != len(labels):
+        return None, "two options are the same"
+    options = [{"id": f"opt{i + 1}", "label": label} for i, label in enumerate(labels)]
+    return {"text": text, "options": options, "multi_select": bool(args.get("multi_select"))}, None
+
+
+def has_choice(question: Optional[Dict[str, Any]]) -> bool:
+    return OPTIONS_MIN <= len((question or {}).get("options") or []) <= OPTIONS_MAX
 
 
 class Interactions:
@@ -59,6 +94,8 @@ class Interactions:
     def _new(self, run_or_task: Any, kind: str, source: str, ttl_s: Optional[float], question=None, action=None,
              external_ref: Optional[str] = None, tool_use_id: Optional[str] = None, voice_can_approve: bool = False,
              expires_at: Optional[str] = None, turn_id: Optional[str] = None, state: str = "pending") -> Dict[str, Any]:
+        if kind == "input" and not has_choice(question):
+            raise ValueError("a question interaction needs 2-4 options")
         task = self.store.task(run_or_task if isinstance(run_or_task, str) else run_or_task.task_id)
         now = timeutil.now()
         interaction_id = new_id("int")
@@ -145,13 +182,11 @@ class Interactions:
     async def ask(self, run: "TurnRun", args: Dict[str, Any]) -> str:
         """The `ask_user` app tool: the question is spoken inline while the reply is open and the call waits up
         to VOICE_WINDOW_S for the answer; otherwise it returns at once and the answer becomes a new turn."""
-        text = str(args.get("question") or "").strip()
-        if not text:
-            return "No question given."
-        options = [{"id": f"opt{i + 1}", "label": jsonlog.truncate(str(label), OPTION_MAX)}
-                   for i, label in enumerate((args.get("options") or [])[:4]) if str(label).strip()]
-        question = {"text": jsonlog.truncate(text, QUESTION_MAX), "options": options,
-                    "multi_select": bool(args.get("multi_select"))}
+        question, why = check_question(args)
+        if question is None:
+            jsonlog.log("ask_user rejected", task_id=run.task_id, chat_id=run.chat_id, turn_id=run.turn_id,
+                        event="interaction", outcome="rejected", detail=why)
+            return NOT_ASKED.format(why=why)
         row = self._new(run, "input", "sdk", INPUT_TTL_S, question=question, turn_id=run.turn_id)
         reply_open = self.engine.reply_open(run) and run.stop_reason is None
         self.announce(row, run if reply_open else None, question["text"])
@@ -184,22 +219,6 @@ class Interactions:
                 self.store.update("interactions", "interaction_id", interaction_id,
                                   {"state": "cancelled", "decided_at": timeutil.iso()})
                 self.resolved(row, "cancelled", None)
-
-    def text_question(self, run: "TurnRun", text: str, spoken_inline: bool) -> None:
-        """The turn's final text asks the user something: the task waits for an answer."""
-        question = {"text": jsonlog.truncate(text, QUESTION_MAX), "options": [], "multi_select": False}
-        row = self._new(run, "input", "text", INPUT_TTL_S, question=question, turn_id=run.turn_id)
-        task = self.store.task(run.task_id)
-        self.engine.set_task_state(run.task_id, "needs_input", "text question", turn_id=run.turn_id)
-        self.engine.emit(run.chat_id, "needs_input", {"interaction": self.public(row), "speak": None if spoken_inline else text},
-                         run.trace_id, task_id=run.task_id, turn_id=run.turn_id)
-        if spoken_inline and run.reply is not None:
-            self.engine.end_reply(run.chat_id, run.turn_id, run.reply, "question", run.trace_id, run.task_id)
-            self.store.update("interactions", "interaction_id", row["interaction_id"], {"spoken_at": timeutil.iso()})
-            self.open_voice_window(task["device_id"], row["interaction_id"])
-            self.card(row)
-        else:
-            self.card(row, speak=text)
 
     # ------------------------------------------------------------------ routing of spoken answers and decisions
 
@@ -249,6 +268,16 @@ class Interactions:
         return {"chat_id": task["chat_id"], "task_id": task["task_id"], "turn_id": None, "routed": "approval",
                 "reply_id": reply_id, "after": accepted["seq"] - 1, "duplicate": False, "trace_id": trace,
                 "task_state": self.store.task(task["task_id"])["state"]}
+
+    async def answer_by_message(self, task: Dict[str, Any], text: str, lang: str, trace: str,
+                                reply_id: str) -> Optional[Dict[str, Any]]:
+        """A message to a task waiting on its question, outside the voice window: the answer in the user's
+        own words."""
+        rows = [r for r in self.open_for_task(task["task_id"]) if r["kind"] == "input"]
+        if not rows:
+            return None
+        self.store.update("devices", "device_id", task["device_id"], {"voice_window_until": None})
+        return await self._voice_answer(rows[-1], task, text, lang, trace, reply_id)
 
     async def _voice_answer(self, row: Dict[str, Any], task: Dict[str, Any], text: str, lang: str, trace: str,
                             reply_id: str) -> Dict[str, Any]:

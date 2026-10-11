@@ -153,3 +153,37 @@ def test_a_v2_database_gains_the_home_tables_and_keeps_its_rows(tmp_path):
     assert store.scalar("PRAGMA user_version") == 3
     assert store.scalar("SELECT code FROM errors") == "kept"
     store.close()
+
+
+async def test_restart_retires_option_less_questions_and_their_tasks_end_done(make, capsys):
+    async def script(turn):
+        await turn.text("Glad you liked it! Would you like another story?")
+    h = await make(script)
+    _, first = await h.send("Tell me a story")
+    _, second = await h.send("Another one")
+    waiting, progress = first[0]["task_id"], second[0]["task_id"]
+    for task_id, state in ((waiting, "needs_input"), (progress, "progress")):
+        await h.wait_task(task_id, "done")
+        task = h.store.task(task_id)
+        h.store.update("tasks", "task_id", task_id, {"state": state, "finished_at": None})
+        h.store.insert("interactions", {
+            "interaction_id": f"int_old_{state}", "task_id": task_id, "chat_id": task["chat_id"], "turn_id": None,
+            "device_id": task["device_id"], "kind": "input", "source": "text", "state": "pending",
+            "question_json": json.dumps({"text": "Would you like another story?", "options": [], "multi_select": False}),
+            "created_at": "2026-10-11T12:00:00.000Z"})
+    capsys.readouterr()
+    await h.restart()
+    for task_id, state in ((waiting, "needs_input"), (progress, "progress")):
+        row = h.store.interaction(f"int_old_{state}")
+        assert row["state"] == "cancelled"
+        assert json.loads(row["decision_json"]) == {"reason": "option-less question retired"}
+        assert h.store.task(task_id)["state"] == "done"
+        transition = h.store.one("SELECT reason FROM task_transitions WHERE task_id = ? ORDER BY rowid DESC LIMIT 1",
+                                 (task_id,))
+        assert transition["reason"] == "option-less question retired"
+        card = h.deliveries(slot=f"task:{task_id}")[-1]
+        assert card["speak"] is None and json.loads(card["payload_json"])["unread"] is False
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line.startswith("{")]
+    retired = [line for line in lines if line["msg"] == "questions retired"]
+    assert len(retired) == 1 and retired[0]["detail"] == "interactions=2 tasks_done=2"
+    assert h.service.recovery_summary["retired"] == 2

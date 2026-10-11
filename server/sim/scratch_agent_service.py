@@ -140,7 +140,8 @@ def main():
         q = request.query_params
         if "interaction_id" in q:
             return JSONResponse({"interaction": service.store.interaction(q["interaction_id"]),
-                                 "decisions": service.store.all("SELECT decision_id, kind FROM decisions")})
+                                 "decisions": service.store.all("SELECT decision_id, kind FROM decisions WHERE target_id = ?",
+                                                               (q["interaction_id"],))})
         did = q["delivery_id"]
         acks = service.store.all("SELECT outcome, reason, sentence_id, detail FROM delivery_acks WHERE delivery_id = ? "
                                  "ORDER BY id", (did,))

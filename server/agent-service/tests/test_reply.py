@@ -102,22 +102,22 @@ async def test_barge_in_during_task_work_resumes_the_task(make):
     assert h.events(chat_id, "done")[-1]["data"]["speak"] == "Back to it: the plan is ready."
 
 
-async def test_text_question_ends_reply_with_question_and_answer_routes_back(make):
+async def test_a_spoken_question_at_the_end_of_an_answer_is_speech_and_the_task_ends_done(make):
     async def script(turn):
         if "Thursday" in turn.prompt:
             await turn.text("Okay, I'll remind you on Thursday.")
             return
-        await turn.text("Which day are the bins?")
+        await turn.text("Sure. Which day are the bins?")
     h = await make(script)
     _, events = await h.send("Remind me about the bins")
-    assert events[-1]["data"]["reason"] == "question"
+    assert events[-1]["data"]["reason"] == "turn_done"
     task_id = events[0]["task_id"]
-    await h.wait_task(task_id, "needs_input")
-    _, events2 = await h.send("Thursday")
-    assert events2[0]["data"]["routed"] == "answer"
-    assert events2[0]["task_id"] == task_id
     await h.wait_task(task_id, "done")
-    assert any('[answer to your earlier question "Which day are the bins?"]: Thursday' in p for p in h.factory.prompts)
+    assert h.store.scalar("SELECT COUNT(*) FROM interactions") == 0
+    assert not h.events_of_type("needs_input")
+    _, events2 = await h.send("Thursday")
+    assert events2[0]["data"]["routed"] == "new_task" and events2[0]["chat_id"] == events[0]["chat_id"]
+    await h.wait_task(events2[0]["task_id"], "done")
 
 
 async def test_context_line_prefixes_user_text(make):
@@ -140,10 +140,12 @@ async def test_a_turn_that_only_wrote_a_progress_note_speaks_it(make):
     assert events[-1]["data"]["reason"] == "turn_done"
 
 
-async def test_a_progress_note_that_asks_ends_the_reply_with_question(make):
+async def test_a_progress_note_that_asks_is_spoken_and_the_task_ends_done(make):
     async def script(turn):
-        turn.thinking("The draft is ready. Shall I apply it?")
-        await turn.tool("awaiting_answer", {})
+        turn.thinking("The draft is ready. What would you like me to do next?")
+        await turn.tool("ha_search", {"query": "lights"})
     h = await make(script)
     _, events = await h.send("How is it going?")
-    assert events[-1]["data"]["reason"] == "question"
+    assert events[-1]["data"]["reason"] == "turn_done"
+    await h.wait_task(events[0]["task_id"], "done")
+    assert not h.events_of_type("needs_input")
