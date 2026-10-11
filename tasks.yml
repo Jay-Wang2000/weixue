@@ -426,9 +426,18 @@ tasks:
     description: |
       Finding 76 (2026-10-11 17:40): the device restores tsk_01M4NVTP5D41EQX8RP3V1BT5MS as needs_approval at every boot although the agent service cancelled it at 16:13 and its interaction is approved/closed — the gateway mirror never received or applied the terminal state, so the boot snapshot keeps re-sending a dead approval card. Fix: on gateway start and on every boot snapshot the mirror reconciles its open-card items against the service (GET task state) and drops or terminalises any task the service reports as terminal; the service's terminal transitions must be delivered to the mirror even when the originating delivery was never acked; test with a cancelled probe task; board check: the dead card is gone after reboot.
     depends_on: [fix-input-window-routing]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
+  - id: fix-terminal-items-polish
+    name: "Terminal items reappear unseen after reboot; handed-off approval speech plays after close"
+    branch: fix/terminal-items-polish
+    description: |
+      From fix-mirror-reconcile (2026-10-11): (1) terminal items (done/failed/cancelled) never carry seen:true, so after any reboot they show as unseen again until tapped (up to 24 h) — persist seen on the service and send it in snapshots; (2) WHEN_IDLE approval speech that was handed off still plays after its interaction closed (observed 2 min after approval) — the gateway cancels handed-off speech for a closed card. Tests + sim; board check of both after a reboot.
+    depends_on: [fix-mirror-reconcile]
+    status: pending
+    retries: 0
+    model: sonnet
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
