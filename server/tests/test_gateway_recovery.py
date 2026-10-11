@@ -1,7 +1,8 @@
 """weixue_agent_delivery against a fake agent-service: decision receipts after the service
 answered (F04), speech handed off only after the service recorded it and never again after a
 restart (F09), ordered and retried acks with one retry owner (F10), the device snapshot restored
-before any pruning sync (F11), and INTERRUPT stopping the current playback (F13)."""
+before any pruning sync (F11), INTERRUPT stopping the current playback (F13), and open cards
+reconciled against the service's task state (finding 76)."""
 import asyncio
 import json
 import time
@@ -27,6 +28,7 @@ def quick(monkeypatch):
     monkeypatch.setattr(wad, "ACK_RETRY_SECONDS", 0.3)
     monkeypatch.setattr(wad, "ACK_BACKOFF_MAX_SECONDS", 0.05)
     monkeypatch.setattr(wad, "REQUEST_SECONDS", 0.1)
+    monkeypatch.setattr(wad, "RECONCILE_SECONDS", 0.1)
 
 
 HANG = None
@@ -35,8 +37,9 @@ HANG = None
 class Service:
     """aiohttp-session stand-in for agent-service: answer(path, body) gives each POST's status
     (default 200, optionally after a delay; delay HANG never answers), GET snapshot returns
-    `snapshot` after `snapshot_delay`. A request ends early only when the caller's timeout
-    cancels it (counted in `cancelled`)."""
+    `snapshot` after `snapshot_delay`, GET /v1/tasks/{id} answers tasks[id] = (status, body[, delay])
+    (default 200 without a body). A request ends early only when the caller's timeout cancels it
+    (counted in `cancelled`)."""
 
     def __init__(self, answer=None):
         self.answer = answer or (lambda path, body: 200)
@@ -46,6 +49,7 @@ class Service:
         self.snapshot_delay = 0.0
         self.gets = []
         self.cancelled = 0
+        self.tasks = {}
 
     def session(self, headers=None):
         return self
@@ -87,6 +91,8 @@ class Service:
         self.gets.append(path)
         if path.endswith("/snapshot"):
             return self._resp(self.snapshot_status, self.snapshot, self.snapshot_delay)
+        if path.startswith("/v1/tasks/"):
+            return self._resp(*self.tasks.get(path.rsplit("/", 1)[1], (200, None)))
         return self._resp(200, None)
 
     def acks(self, delivery_id=None):
@@ -710,3 +716,165 @@ async def test_a_hung_snapshot_get_is_bounded_and_retried_by_the_stream(monkeypa
     assert await wait_for(lambda: opened, 3), "retried with the stream's backoff"
     assert gw.devices[DEVICE].restored and opened[0] == 3
     stream.cancel()
+
+
+# Finding 76: open cards reconciled against the service
+
+
+class Lines:
+    """Gateway logger stand-in that keeps every line."""
+
+    def __init__(self):
+        self.lines = []
+
+    def bind(self, **_):
+        return self
+
+    def __getattr__(self, level):
+        return lambda message, *a, **k: self.lines.append((level, message))
+
+    def having(self, text):
+        return [m for _, m in self.lines if text in m]
+
+
+def approval_snapshot_card(delivery="dlv_b", task="tsk_b", gseq=7, card="int_b"):
+    return snapshot_card(delivery, task, "needs_approval", gseq=gseq, interaction={"interaction_id": card, "action": {}},
+                         options=APPROVAL)
+
+
+def task_body(state, pending=(), summary=None):
+    return 200, {"task_id": "tsk_b", "state": state, "summary": summary,
+                 "pending": [{"interaction_id": i} for i in pending]}
+
+
+def card_offer(delivery, gseq, state="needs_approval", lease=LEASE, task="tsk_b", card="int_b"):
+    payload = {"state": state, "summary": f"{task} {state}", "unread": True}
+    if state == "needs_approval":
+        payload["interaction"] = {"interaction_id": card, "action": {}}
+    return {"delivery_id": delivery, "lease_id": lease, "gseq": gseq, "attempt": 1, "kind": "agent", "tier": "SILENT",
+            "chat_id": "cht_1", "task_id": task, "payload": payload}
+
+
+async def test_a_card_the_service_cancelled_is_terminalised_at_restore():
+    service = Service()
+    service.snapshot["cards"] = [snapshot_card("dlv_a", "tsk_a"), approval_snapshot_card()]
+    service.tasks["tsk_b"] = task_body("cancelled")
+    _, gw = gateway(service, url="http://agent:8010")
+    gw.logger = Lines()
+    assert await gw.restore(DEVICE)
+    item = gw.devices[DEVICE].mirror["tsk_b"].payload
+    assert item["state"] == "cancelled" and "card_id" not in item and "options" not in item
+    assert gw.logger.having("mirror reconcile dropped task=tsk_b reason=cancelled")
+    assert service.gets.count("/v1/tasks/tsk_a") == 0, "only open cards are checked"
+    conn = Conn()
+    gw.on_agent_session(DEVICE, conn, 2)
+    await settle()
+    payloads = conn.websocket.payloads()
+    assert [(p["task_id"], p["state"]) for p in payloads if p["kind"] == "agent"] == \
+        [("tsk_a", "unread"), ("tsk_b", "cancelled")]
+    assert payloads[-1]["task_ids"] == ["tsk_a", "tsk_b"]
+
+
+async def test_a_task_the_service_does_not_know_is_dropped():
+    service = Service()
+    service.snapshot["cards"] = [approval_snapshot_card()]
+    service.tasks["tsk_b"] = (404, {"error": {"code": "not_found"}})
+    _, gw = gateway(service, url="http://agent:8010")
+    gw.logger = Lines()
+    assert await gw.restore(DEVICE)
+    assert "tsk_b" not in gw.devices[DEVICE].mirror
+    assert gw.logger.having("mirror reconcile dropped task=tsk_b reason=unknown")
+    gw.offer(DEVICE, card_offer("dlv_b2", 9))
+    assert await gw.reconcile(DEVICE) == ["tsk_b"]
+    assert await wait_for(lambda: service.acks("dlv_b2") == [("dlv_b2", "dropped")], 1), "not offered again"
+    conn = Conn()
+    gw.on_agent_session(DEVICE, conn, 2)
+    await settle()
+    assert [p for p in conn.websocket.payloads() if p["kind"] == "agent_sync"][-1]["task_ids"] == []
+
+
+async def test_an_unreachable_service_leaves_the_mirror_and_is_logged_once():
+    service = Service()
+    service.snapshot["cards"] = [approval_snapshot_card()]
+    service.tasks["tsk_b"] = (200, None, HANG)
+    _, gw = gateway(service, url="http://agent:8010")
+    gw.logger = Lines()
+    start = time.monotonic()
+    assert await gw.restore(DEVICE)
+    assert time.monotonic() - start < wad.RECONCILE_SECONDS + 0.5
+    assert await gw.reconcile(DEVICE) == []
+    assert gw.devices[DEVICE].mirror["tsk_b"].payload["state"] == "needs_approval"
+    assert len(gw.logger.having("mirror reconcile device=")) == 1 and not gw.logger.having("reconcile dropped")
+    service.tasks["tsk_b"] = (503, None)
+    assert await gw.reconcile(DEVICE) == [] and len(gw.logger.having("mirror reconcile device=")) == 1
+    service.tasks["tsk_b"] = task_body("needs_approval", pending=["int_b"])
+    assert await gw.reconcile(DEVICE) == []
+    service.tasks["tsk_b"] = (503, None)
+    await gw.reconcile(DEVICE)
+    assert len(gw.logger.having("mirror reconcile device=")) == 2, "logged again after an answered reconcile"
+    assert gw.devices[DEVICE].mirror["tsk_b"].payload["state"] == "needs_approval"
+
+
+async def test_the_boot_snapshot_waits_for_the_reconcile():
+    service = Service()
+    service.tasks["tsk_b"] = (*task_body("cancelled"), 0.05)
+    _, gw = gateway(service, url="http://agent:8010")
+    assert await gw.restore(DEVICE)
+    gw.offer(DEVICE, card_offer("dlv_b", 9))
+    gw.on_poll(DEVICE, "0", "2")
+    assert not gw.poll_ready(DEVICE) and gw.poll_items(DEVICE) == [], "nothing while the reconcile runs"
+    assert await wait_for(lambda: gw.poll_ready(DEVICE), 1)
+    body = gw.poll_items(DEVICE)
+    assert [(p["kind"], p.get("state")) for p in body] == [("agent", "cancelled"), ("agent_sync", None)]
+    assert await wait_for(lambda: service.acks("dlv_b") == [("dlv_b", "dropped")], 1), "the card's unsent offer"
+
+
+async def test_the_session_snapshot_waits_for_the_reconcile():
+    service = Service()
+    service.tasks["tsk_b"] = (*task_body("done", summary="Plug on"), 0.05)
+    _, gw = gateway(service, url="http://agent:8010")
+    assert await gw.restore(DEVICE)
+    gw.offer(DEVICE, card_offer("dlv_b", 9))
+    gw.on_device_event(Conn(), wad.RESPONSE_METHOD, response(1, "shown", ack_upto=gw.devices[DEVICE].seq))
+    conn = Conn()
+    gw.on_agent_session(DEVICE, conn, 2)
+    await settle()
+    assert conn.websocket.payloads() == []
+    assert await wait_for(lambda: any(p["kind"] == "agent_sync" for p in conn.websocket.payloads()), 1)
+    agent = [p for p in conn.websocket.payloads() if p["kind"] == "agent"]
+    assert agent and all(p["state"] == "done" for p in agent) and agent[-1]["summary"] == "Plug on"
+
+
+async def test_a_closed_card_of_a_running_task_becomes_working():
+    service = Service()
+    service.snapshot["cards"] = [approval_snapshot_card()]
+    service.tasks["tsk_b"] = task_body("progress", pending=["int_other"])
+    _, gw = gateway(service, url="http://agent:8010")
+    assert await gw.restore(DEVICE)
+    assert gw.devices[DEVICE].mirror["tsk_b"].payload["state"] == "working"
+
+
+async def test_a_terminal_offer_without_an_ack_ends_the_card_and_no_later_open_card_reopens_it():
+    service = Service()
+    _, gw = gateway(service, url="http://agent:8010")
+    assert await gw.restore(DEVICE)
+    gw.offer(DEVICE, card_offer("dlv_card", 578))
+    gw.offer(DEVICE, card_offer("dlv_end", 580, state="cancelled", lease=LEASE2))
+    dev = gw.devices[DEVICE]
+    assert dev.mirror["tsk_b"].payload["state"] == "cancelled", "applied although the card was never acked"
+    late = gw.offer(DEVICE, card_offer("dlv_recard", 582, lease=LEASE3))
+    assert late["ended"] and dev.mirror["tsk_b"].delivery_id == "dlv_end"
+    assert await wait_for(lambda: service.acks("dlv_recard") == [("dlv_recard", "dropped")], 1)
+    gw.on_poll(DEVICE, "0", "2")
+    assert dev.reconciling is None, "no open card left to reconcile"
+    assert [(p["kind"], p.get("state")) for p in gw.poll_items(DEVICE)] == [("agent", "cancelled"), ("agent_sync", None)]
+
+
+async def test_the_restore_never_reopens_a_task_that_ended():
+    service = Service()
+    service.snapshot["cards"] = [snapshot_card("dlv_end", "tsk_b", "cancelled", gseq=580),
+                                 approval_snapshot_card("dlv_recard", gseq=582)]
+    _, gw = gateway(service, url="http://agent:8010")
+    assert await gw.restore(DEVICE)
+    assert gw.devices[DEVICE].mirror["tsk_b"].delivery_id == "dlv_end"
+    assert not [g for g in service.gets if g.startswith("/v1/tasks/")]

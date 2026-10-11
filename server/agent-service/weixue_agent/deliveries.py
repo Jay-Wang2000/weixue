@@ -4,7 +4,9 @@ One consumer per device: a new stream revokes the previous one. Offers are order
 WHEN_IDLE, SILENT, then gseq; every ack echoes the offer's lease_id (and attempt). The service is the only
 retry owner: a deferred delivery is offered again with a new attempt and lease. Acks only move a delivery
 forward (ACK_FROM); one that does not fits its state changes nothing. Speech that may have started
-without a played/cut_off ack is never offered again (its card is marked "may not have played").
+without a played/cut_off ack is never offered again (its card is marked "may not have played"). An
+open card whose task ended or whose interaction closed is never queued again by a playback update
+and is left out of the device snapshot.
 """
 import asyncio
 import uuid
@@ -14,11 +16,13 @@ from typing import Any, Dict, List, Optional
 from . import jsonlog, timeutil
 from .config import DELIVERY_LEASE_S, DONE_SPEECH_TTL_S
 from .ids import new_id
-from .store import Store, loads_or
+from .store import TERMINAL_STATES, Store, loads_or
 
 TIERS = {"INTERRUPT": 0, "WHEN_IDLE": 1, "SILENT": 2}
 OPEN_STATES = ("pending", "offered", "handed_off")
 SNAPSHOT_HIDDEN = ("superseded", "dropped", "expired")
+OPEN_CARD_STATES = ("needs_input", "needs_approval")
+OPEN_INTERACTIONS = ("pending", "uncorrelated")
 ACK_FROM = {
     "accepted": ("offered",),
     "spoken": ("offered", "handed_off"),
@@ -100,10 +104,25 @@ class Outbox:
                     event="delivery_ack", outcome="uncertain", detail=f"{row['delivery_id']} {reason}")
         self._card_update(row, "uncertain")
 
+    def card_closed(self, payload: Dict[str, Any]) -> bool:
+        """An open-card payload whose task is gone or ended, or whose interaction is no longer open."""
+        if payload.get("state") not in OPEN_CARD_STATES:
+            return False
+        task = self.store.task(payload.get("task_id"))
+        if task is None or task["state"] in TERMINAL_STATES:
+            return True
+        card = payload.get("card_id") or (payload.get("interaction") or {}).get("interaction_id")
+        row = self.store.interaction(card) if card else None
+        return row is not None and row["state"] not in OPEN_INTERACTIONS
+
     def _card_update(self, row: Dict[str, Any], playback: str) -> None:
         if row["kind"] != "agent":
             return
         payload = dict(loads_or(row["payload_json"], {}), playback=playback, unread=True)
+        if self.card_closed(payload):
+            jsonlog.log("delivery card update skipped", device_id=row["device_id"], task_id=row["task_id"],
+                        event="delivery_ack", outcome=playback, detail=f"{row['delivery_id']} card closed")
+            return
         payload.pop("tier", None)
         payload.pop("speaks", None)
         self.enqueue(row["device_id"], "agent", "SILENT", row["slot"], payload, task_id=row["task_id"],
@@ -258,7 +277,7 @@ class Outbox:
         event.clear()
 
     def snapshot(self, device_id: str) -> List[Dict[str, Any]]:
-        """Latest card per slot from the last 24 h (pending or already shown)."""
+        """Latest card per slot from the last 24 h (pending or already shown); a closed open card is left out."""
         self.sweep()
         since = timeutil.iso(timeutil.now() - timedelta(seconds=DONE_SPEECH_TTL_S))
         rows = self.store.all(
@@ -267,4 +286,5 @@ class Outbox:
         latest: Dict[str, Dict[str, Any]] = {}
         for row in rows:
             latest[row["slot"]] = row
-        return [{**self.public(r), "speak": None} for r in latest.values()]
+        return [{**self.public(r), "speak": None} for r in latest.values()
+                if r["kind"] != "agent" or not self.card_closed(loads_or(r["payload_json"], {}))]
