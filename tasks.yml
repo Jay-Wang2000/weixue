@@ -414,9 +414,10 @@ tasks:
     name: "Answer window must not capture unrelated or API messages; silent question cards"
     branch: fix/input-window-routing
     description: |
+      Also (question-round 17:08, docs/logs/question-round-2026-10-11.md): an ask_user card is sent SILENT and upgraded to WHEN_IDLE at +20 s, and the device never auto-opens it because AgentUi::SetTasks (agent_ui.h ~L368-372) treats only a new state or card id as an arrival — a silent-to-when_idle upgrade of an open-card item must count as an arrival (no second earcon/flash); a question card must never be sent silent in the first place (when_idle at once, speech per tier). Reproduced on 6/6 question cards; the answer path (option tap -> accepted -> task continues) works.
       Finding 70 (approval-card-queue board run 16:02): after the agent asks a question, for 20 s the service treats ANY message to the device as the answer — an API probe landed in a household chat as the "answer" and the early driver cancelled that chat's task. Fix: the answer window applies only to messages from the same origin/session (voice follow-up on the device, or an explicit answer API with the interaction id); API messages with a chat_id never join another chat; also an ask_user card from an API-originated message is tiered silent and after the window a working item replaces it while the task stays needs_input — a question card is never silent and the working item must not hide an open question. Tests + sim; no device change expected.
     depends_on: [fix-question-card-discipline]
-    status: pending
+    status: in_progress
     retries: 0
     model: opus
   - id: feat-agent-service
