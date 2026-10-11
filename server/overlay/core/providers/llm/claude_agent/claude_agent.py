@@ -130,12 +130,13 @@ class TurnMetrics:
     """Timings of one turn for its `turn_latency` line. The playback hooks of weixue_patches append each
     captioned segment of the turn's sentence (text, handed_at, first written frame) to `segments`."""
 
-    def __init__(self, sid, trace, speech_end=None, stt_ms=None, clock=time.monotonic):
+    def __init__(self, sid, trace, speech_end=None, stt_ms=None, barge_in=None, clock=time.monotonic):
         self.sid = sid
         self.trace = trace
         self.clock = clock
         self.speech_end = speech_end
         self.stt_ms = stt_ms
+        self.barge_in = barge_in
         self.chat = None
         self.routed = None
         self.reply_end = None
@@ -173,7 +174,8 @@ class TurnMetrics:
             f"tts_first_audio_ms={_ms(first.get('handed_at') if first else None, first_frame)} "
             f"total_ms={_ms(self.speech_end, first_frame)} "
             f"answer_audio_ms={_ms(self.speech_end, answer_frame)} "
-            f"reply_end_ms={_ms(self.post_at, self.reply_end_at)}"
+            f"reply_end_ms={_ms(self.post_at, self.reply_end_at)} "
+            f"barge_in={'-' if self.barge_in is None else int(self.barge_in)}"
         )
 
     def report(self):
@@ -596,13 +598,16 @@ class LLMProvider(LLMProviderBase):
 
     @staticmethod
     def _metrics(conn, sid):
+        import weixue_patches
+
         now = time.monotonic()
         speech_end = getattr(conn, "weixue_speech_end", None)
         if speech_end is not None and now - speech_end > SPEECH_END_MAX_AGE_S:
             speech_end = None
         stt = getattr(conn, "weixue_stt", None) or {}
         stt_ms = stt.get("latency_ms") if speech_end is not None and stt.get("at", 0) >= speech_end else None
-        return TurnMetrics(sid, uuid.uuid4().hex, speech_end=speech_end, stt_ms=stt_ms)
+        return TurnMetrics(sid, uuid.uuid4().hex, speech_end=speech_end, stt_ms=stt_ms,
+                           barge_in=weixue_patches.barge_in_enabled(conn))
 
 
 def _speak(conn, sid, text):

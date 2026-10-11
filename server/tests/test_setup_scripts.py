@@ -106,6 +106,28 @@ def test_unknown_voice_llm_is_refused():
     assert result.returncode == 1 and "VOICE_LLM must be one of claude_agent, anthropic" in result.stderr
 
 
+@pytest.mark.parametrize("value, barge_in", [(None, False), ("", False), ("0", False), ("1", True)])
+def test_voice_barge_in_renders_the_flag(tmp_path, monkeypatch, value, barge_in):
+    monkeypatch.delenv("VOICE_BARGE_IN", raising=False)
+    text = _render() if value is None else _render(VOICE_BARGE_IN=value)
+    assert yaml.safe_load(text)["barge_in"] is barge_in
+    assert _validate(tmp_path, text).returncode == 0
+
+
+@pytest.mark.parametrize("value", ["2", "yes", "true"])
+def test_invalid_voice_barge_in_is_refused(value):
+    env = {**os.environ, **ENV, "VOICE_BARGE_IN": value}
+    result = subprocess.run(
+        [sys.executable, str(SCRIPTS / "render_config.py"), str(SERVER_DIR / "config" / "config.template.yaml")],
+        env=env, capture_output=True, text=True,
+    )
+    assert result.returncode == 1 and "VOICE_BARGE_IN must be 0 or 1" in result.stderr
+
+
+def test_voice_barge_in_default_is_documented():
+    assert "VOICE_BARGE_IN=0" in (SERVER_DIR / ".env.example").read_text().splitlines()
+
+
 def test_claude_agent_with_function_call_is_reported(tmp_path):
     config = yaml.safe_load(_render(VOICE_LLM="claude_agent"))
     config["selected_module"]["Intent"] = "function_call"

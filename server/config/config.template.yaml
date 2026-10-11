@@ -11,6 +11,7 @@ prompt: |
 prompt_template: weixue-agent-prompt.txt
 
 close_connection_no_voice_time: 8
+barge_in: @@BARGE_IN@@
 enable_greeting: false
 wake_cues:
   - {file: config/assets/wake_cues/hmm.wav, text: "Hmm?"}

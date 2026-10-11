@@ -1,0 +1,23 @@
+# Barge-in sim stack (barge_scenarios.sh): scripted ASR and LLM, tone TTS; no credentials, no live containers or ports.
+name: weixue-barge-sim
+services:
+  sim-server:
+    image: weixue/xiaozhi-esp32-server:local
+    container_name: weixue-barge-sim-server
+    command: ["python", "sim_main.py"]
+    environment:
+      - TZ=UTC
+    ports:
+      - "127.0.0.1:18300:8000"
+      - "127.0.0.1:18303:8003"
+    volumes:
+      - ./data/barge:/opt/xiaozhi-esp32-server/data
+      - ./sim_main.py:/opt/xiaozhi-esp32-server/sim_main.py:ro
+      - ./sim_asr.py:/opt/xiaozhi-esp32-server/core/providers/asr/sim_asr.py:ro
+      - ./sim_llm:/opt/xiaozhi-esp32-server/core/providers/llm/sim_llm:ro
+      - ../overlay/weixue_patches.py:/opt/xiaozhi-esp32-server/weixue_patches.py:ro
+      - ../overlay/weixue_proactive.py:/opt/xiaozhi-esp32-server/weixue_proactive.py:ro
+      - ../overlay/weixue_main.py:/opt/xiaozhi-esp32-server/weixue_main.py:ro
+      - ../overlay/weixue_device_tools.py:/opt/xiaozhi-esp32-server/weixue_device_tools.py:ro
+      - ../overlay/weixue_clock.py:/opt/xiaozhi-esp32-server/weixue_clock.py:ro
+      - ../overlay/core/providers/tts/google_tts.py:/opt/xiaozhi-esp32-server/core/providers/tts/google_tts.py:ro

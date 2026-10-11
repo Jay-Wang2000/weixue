@@ -5,7 +5,8 @@ escaped value (for use inside a double-quoted YAML scalar) of environment variab
 comma-separated items of NAME as a YAML flow sequence of strings.
 
 VOICE_LLM (claude_agent | anthropic, default anthropic) selects the voice LLM path and defines
-VOICE_LLM_MODULE and VOICE_INTENT for the template."""
+VOICE_LLM_MODULE and VOICE_INTENT for the template. VOICE_BARGE_IN (0 | 1, default 0) defines
+BARGE_IN (false | true)."""
 import json
 import os
 import re
@@ -23,6 +24,10 @@ os.environ["VOICE_ASR"] = asr
 if voice not in VOICE_LLM:
     sys.exit(f"render_config: VOICE_LLM must be one of {', '.join(VOICE_LLM)}")
 DERIVED = dict(zip(("VOICE_LLM_MODULE", "VOICE_INTENT"), VOICE_LLM[voice]))
+barge_in = os.environ.get("VOICE_BARGE_IN", "").strip() or "0"
+if barge_in not in ("0", "1"):
+    sys.exit("render_config: VOICE_BARGE_IN must be 0 or 1")
+DERIVED["BARGE_IN"] = "true" if barge_in == "1" else "false"
 
 
 def value(match):

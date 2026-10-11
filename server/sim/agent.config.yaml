@@ -8,6 +8,7 @@ server:
 prompt: "Simulated-device run."
 prompt_template: weixue-agent-prompt.txt
 close_connection_no_voice_time: 8
+barge_in: @@BARGE_IN@@
 enable_greeting: false
 wake_cues:
   - {file: config/assets/wake_cues/hmm.wav, text: "Hmm?"}
@@ -16,7 +17,7 @@ wake_cues:
 end_prompt:
   enable: false
 wakeup_words: ["Jarvis"]
-# Rendered by agent_scenarios.sh with scripts/render_config.py (VOICE_LLM).
+# Rendered by agent_scenarios.sh with scripts/render_config.py (VOICE_LLM, VOICE_BARGE_IN).
 selected_module:
   VAD: SileroVAD
   ASR: SimASR

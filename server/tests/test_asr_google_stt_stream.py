@@ -446,6 +446,19 @@ async def test_repeat_reply_is_configurable(tmp_path, monkeypatch, started):
     assert started == [] and spoken_text(conn) == "Once more?"
 
 
+@pytest.mark.parametrize("barge_in, said", [(False, ""), (True, "Once more?")])
+async def test_no_repeat_reply_to_an_utterance_during_playback_with_barge_in_off(
+        tmp_path, monkeypatch, started, barge_in, said):
+    client = FakeClient(fails_after(1, gexc.ServiceUnavailable("stream broke")), recognize=[gexc.DeadlineExceeded("slow")])
+    provider = make_provider(tmp_path, monkeypatch, client, repeat_reply="Once more?")
+    conn = make_listening_conn(provider)
+    conn.config = {"barge_in": barge_in}
+    await speak(provider, conn)
+    conn.weixue_onset_playback = 0
+    await stop(provider, conn)
+    assert started == [] and spoken_text(conn) == said
+
+
 async def test_final_timeout_cancels_the_stream_and_falls_back(tmp_path, monkeypatch, started, log_records):
     client = FakeClient(hangs(), recognize=[_response(("Will it rain tomorrow?", "en-US"))])
     provider = make_provider(tmp_path, monkeypatch, client, final_timeout=0.2)

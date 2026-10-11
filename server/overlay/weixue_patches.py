@@ -217,8 +217,9 @@ def hold_wake_utterance(is_vad):
     """Wraps the VAD provider's is_vad(conn, pcm_frame) for the WAKE_HOLD_S after a wake's
     `listen start` (conn.weixue_live_since): an end of utterance is withheld, and voice
     heard after VAD_FLUSH_S sets conn.weixue_live_voice. The start of every utterance is kept
-    as conn.weixue_voice_onset (monotonic time). A session the proactive gate rejected
-    (conn._weixue_rejected) hears no voice."""
+    as conn.weixue_voice_onset (monotonic time), and as conn.weixue_onset_playback the event
+    generation at that start when a reply was playing (reply_playing), else None. A session the
+    proactive gate rejected (conn._weixue_rejected) hears no voice."""
 
     def wrapper(self, conn, pcm_frame):
         if getattr(conn, "_weixue_rejected", False):
@@ -227,6 +228,7 @@ def hold_wake_utterance(is_vad):
         have_voice = is_vad(self, conn, pcm_frame)
         if not before and getattr(conn, "client_have_voice", False):
             conn.weixue_voice_onset = time.monotonic()
+            conn.weixue_onset_playback = event_generation(conn) if reply_playing(conn) else None
         since = getattr(conn, "weixue_live_since", None)
         if since is not None:
             elapsed = time.time() - since
@@ -238,6 +240,29 @@ def hold_wake_utterance(is_vad):
 
     wrapper.weixue_wrapped = is_vad
     return wrapper
+
+
+def barge_in_enabled(conn):
+    """Config `barge_in` (VOICE_BARGE_IN); off when absent."""
+    return bool((getattr(conn, "config", None) or {}).get("barge_in", False))
+
+
+def reply_playing(conn):
+    """The server holds a turn other than a wake cue: from a reply's or announcement's `tts start`
+    (a reply's is sent with the transcript) until its `tts stop` or an abort."""
+    return bool(getattr(conn, "client_is_speaking", False)) and getattr(conn, "weixue_cue_speaking", None) is None
+
+
+def heard_during_playback(conn):
+    """The current utterance started while a reply played (reply_playing) and no connection event
+    (abort, wake detect) happened since."""
+    generation = getattr(conn, "weixue_onset_playback", None)
+    return generation is not None and generation == event_generation(conn)
+
+
+def drops_utterance(conn):
+    """With barge-in off, the current utterance is dropped: no abort, no turn, no spoken reply."""
+    return not barge_in_enabled(conn) and heard_during_playback(conn)
 
 
 _SCHEDULED = object()
@@ -637,13 +662,22 @@ def echo_of_playback(conn, text):
 
 
 def guard_playback_echo(start_to_chat, logger):
-    """Wraps the ASR path's startToChat: a transcript echo_of_playback matches is dropped
-    before upstream can treat it as barge-in; any other transcript is a connection event
-    (event_generation), cancels a pending wake cue and starts the turn."""
+    """Wraps the ASR path's startToChat. With barge-in on, a transcript echo_of_playback matches is
+    dropped before upstream can treat it as barge-in. With barge-in off, a transcript of an
+    utterance that drops_utterance is dropped, and an echo match is only logged. Any other
+    transcript is a connection event (event_generation), cancels a pending wake cue and starts
+    the turn."""
 
     async def wrapper(conn, text):
         played = echo_of_playback(conn, text)
-        if played is not None:
+        echo = "" if played is None else f" (echo of {played!r})"
+        if not barge_in_enabled(conn):
+            if heard_during_playback(conn):
+                logger.bind(tag=__name__).info(f"barge-in disabled: dropped utterance during playback: {text!r}{echo}")
+                return None
+            if played is not None:
+                logger.bind(tag=__name__).info(f"playback echo kept (barge-in disabled): {text!r} matches {played!r}")
+        elif played is not None:
             logger.bind(tag=__name__).info(f"playback echo ignored: {text!r} matches {played!r}")
             return None
         note_event(conn)
