@@ -1,7 +1,7 @@
-"""Agent wire contract v1.1 (docs/agent-protocol.md): builders and validators of the server → device
-`agent` / `agent_sync` / `agent_ack` payloads and of the device → server `agent_response` /
-`played` notifications, the limits, and the agent-service delivery → wire mapping (the only
-mapper)."""
+"""Agent wire contract v1.2 (docs/agent-protocol.md): builders and validators of the server → device
+`agent` / `agent_sync` / `agent_ack` / `agent_chats` payloads and of the device → server
+`agent_response` / `played` notifications, the limits, and the agent-service delivery and chat
+index → wire mapping (the only mapper)."""
 import json
 import re
 import uuid
@@ -12,6 +12,9 @@ VERSION = 1
 KIND_ITEM = "agent"
 KIND_SYNC = "agent_sync"
 KIND_ACK = "agent_ack"
+KIND_CHATS = "agent_chats"
+# features.agent in hello / X-Weixue-Agent-Feature on polls: the device applies agent_chats.
+FEATURE_CHATS = 2
 STATES = (
     "working", "needs_input", "needs_approval", "unread", "done",
     "failed", "cancelled", "interrupted", "stopped",
@@ -26,6 +29,8 @@ CARD_KINDS = ("approve", "deny", "answer")
 VIA = ("tap", "loopback")
 RECEIPT_RESULTS = ("accepted", "duplicate", "stale")
 CUT_REASONS = ("wake", "tap", "imu", "mute", "closed", "superseded")
+CHAT_STATES = ("idle", "working", "needs_you", "unread", "failed")
+SWITCH_KINDS = ("switch_chat", "new_chat")
 
 MAX_ITEM_BYTES = 1024
 DEVICE_DROP_BYTES = 2048
@@ -44,6 +49,8 @@ MAX_OPTIONS = 4
 MAX_LABEL_WIDTH = 12
 MAX_ANSWER_CHARS = 120
 MAX_SYNC_IDS = 32
+MAX_CHATS = 12
+MAX_AGE_S = 10 * 365 * 86400
 MAX_TIMEOUT_S = 7 * 86400
 MAX_SEQ = 2 ** 53 - 1
 
@@ -198,6 +205,33 @@ def build_sync(seq, task_ids):
     return {"kind": KIND_SYNC, "v": VERSION, "seq": _int(seq, "seq", 1, MAX_SEQ), "task_ids": ids}
 
 
+def build_chats(seq, ts, current, chats):
+    """`agent_chats` (v1.2): the device's chat list in display order, entries
+    {chat_id, title|None, state, age_s}. Entries that would take the payload past MAX_ITEM_BYTES
+    are left out, the current chat never. Raises WireError."""
+    if current is not None and not is_id(current):
+        raise WireError("bad current chat_id")
+    out = {"kind": KIND_CHATS, "v": VERSION, "seq": _int(seq, "seq", 1, MAX_SEQ), "ts": int(ts)}
+    if current is not None:
+        out["current"] = current
+    out["chats"] = []
+    for chat in chats[:MAX_CHATS]:
+        if not is_id(chat.get("chat_id")):
+            raise WireError("bad chat_id")
+        state = chat.get("state")
+        entry = {"id": chat["chat_id"]}
+        if chat.get("title"):
+            entry["title"] = truncate_chars(_str(chat["title"], "title"), MAX_TITLE_CHARS)
+        entry["state"] = state if state in CHAT_STATES else "idle"
+        entry["age_s"] = _int(min(max(0, int(chat.get("age_s") or 0)), MAX_AGE_S), "age_s", 0, MAX_AGE_S)
+        out["chats"].append(entry)
+        if size(out) > MAX_ITEM_BYTES:
+            out["chats"].pop()
+            if chat["chat_id"] == current:
+                raise WireError(f"agent_chats exceeds {MAX_ITEM_BYTES} bytes")
+    return out
+
+
 def build_receipt(boot, seq, response, result, card_id=None, decided=None):
     """`agent_ack`: the gateway's receipt of the device's response (boot, seq). result is
     accepted, duplicate (the card already has a decision: decided) or stale (not the task's
@@ -343,6 +377,33 @@ def from_delivery(offer, now=None):
     if state in TERMINAL or state == "unread":
         fields["seen"] = bool(payload.get("seen", False))
     return fields, offer.get("speak") if fields["speaks"] else None
+
+
+def _epoch_s(stamp):
+    try:
+        return datetime.fromisoformat(str(stamp).replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
+
+
+def chats_from_listing(listing, now, task_titles=None):
+    """(current chat id or None, build_chats entries) of an agent-service `GET /v1/chats` body:
+    the current chat first, then the service's order. A chat titled by its placeholder takes the
+    title of its newest task in task_titles (chat id → title), else none."""
+    task_titles = task_titles or {}
+    current = listing.get("current_chat_id") if is_id(listing.get("current_chat_id")) else None
+    items = [c for c in listing.get("items") or [] if isinstance(c, dict) and is_id(c.get("chat_id"))]
+    items.sort(key=lambda c: c["chat_id"] != current)
+    if current is not None and not any(c["chat_id"] == current for c in items):
+        current = None
+    out = []
+    for chat in items:
+        title = chat.get("title") if chat.get("title_source") != "placeholder" else None
+        title = title or task_titles.get(chat["chat_id"])
+        last = _epoch_s(chat.get("last_activity_at"))
+        out.append({"chat_id": chat["chat_id"], "title": title, "state": chat.get("state"),
+                    "age_s": int(now - last) if last is not None else 0})
+    return current, out
 
 
 def response_route(device, response, lang="en"):

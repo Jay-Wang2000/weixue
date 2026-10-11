@@ -169,3 +169,47 @@ def test_ids_exclude_url_delimiters_and_routes_quote_the_chat():
     assert wire.parse_response(dict(params, chat_id="c_7f3a-:@.~"))["chat_id"] == "c_7f3a-:@.~"
     route = wire.response_route("dev", {"boot": 1, "seq": 2, "kind": "cancel", "chat_id": "a%2Fb&c=d"})
     assert route[1] == "/v1/chats/a%252Fb%26c%3Dd/interrupt"
+
+
+# agent_chats (v1.2)
+
+def chat(cid, title="Living room", state="idle", age_s=60):
+    return {"chat_id": cid, "title": title, "state": state, "age_s": age_s}
+
+
+def test_chats_payload_shape_and_normalisation():
+    out = wire.build_chats(1746, 1791380000123, "cht_a",
+                           [chat("cht_a", "A very long chat title that goes on", "needs_you"),
+                            chat("cht_b", None, "sleeping", -5)])
+    assert out == {"kind": "agent_chats", "v": 1, "seq": 1746, "ts": 1791380000123, "current": "cht_a", "chats": [
+        {"id": "cht_a", "title": "A very long chat title t", "state": "needs_you", "age_s": 60},
+        {"id": "cht_b", "state": "idle", "age_s": 0}]}
+    assert "current" not in wire.build_chats(1, 0, None, [])
+    with pytest.raises(wire.WireError):
+        wire.build_chats(1, 0, None, [chat("bad id")])
+
+
+def test_chats_payload_fits_the_item_limit_and_keeps_the_current_chat():
+    chats = [chat(f"cht_01JXXXXXXXXXXXXXXXXXXXXXX{i}", "客厅灯光和窗帘的晚间场景设置以及其他一些长长的说明", "working", 864000)
+             for i in range(12)]
+    out = wire.build_chats(2 ** 40, 2 ** 40, chats[0]["chat_id"], chats)
+    assert wire.size(out) <= wire.MAX_ITEM_BYTES and 4 <= len(out["chats"]) < 12
+    assert out["chats"][0]["id"] == chats[0]["chat_id"]
+    ascii_chats = [chat(f"cht_01JXXXXXXXXXXXXXXXXXXXXXX{i}", "x" * 24, "needs_you", 864000) for i in range(12)]
+    assert len(wire.build_chats(2 ** 40, 2 ** 40, None, ascii_chats)["chats"]) >= 7
+
+
+def test_chats_from_listing_orders_current_first_and_falls_back_to_task_titles():
+    body = {"current_chat_id": "cht_b", "items": [
+        {"chat_id": "cht_a", "title": "New chat", "title_source": "placeholder", "state": "idle",
+         "last_activity_at": "2026-09-21T12:00:00Z"},
+        {"chat_id": "cht_b", "title": "Lights", "title_source": "agent", "state": "needs_you",
+         "last_activity_at": "2026-09-21T12:59:00+00:00"},
+        {"chat_id": "bad id", "title": "x"},
+    ]}
+    now = 1790000000 - 5060 + 3600  # 2026-09-21T13:49:00Z
+    current, chats = wire.chats_from_listing(body, now, {"cht_a": "Desk lamp"})
+    assert current == "cht_b"
+    assert chats == [{"chat_id": "cht_b", "title": "Lights", "state": "needs_you", "age_s": 3000},
+                     {"chat_id": "cht_a", "title": "Desk lamp", "state": "idle", "age_s": 6540}]
+    assert wire.chats_from_listing({"current_chat_id": "cht_gone", "items": []}, now) == (None, [])

@@ -110,6 +110,10 @@ void FaceDisplay::OnAgentStore(const weixue_agent::Store& store) {
     DisplayLockGuard lock(this);
     agent_pending_ = store.tasks();
     agent_pending_seq_ = store.max_seq();
+    if (store.has_chats() && store.chats().seq != agent_pending_chats_.seq) {
+        agent_pending_chats_ = store.chats();
+        agent_pending_chats_ms_ = store.chats_ms();
+    }
     if (store.syncs() != agent_syncs_) {
         agent_syncs_ = store.syncs();
         agent_synced_out_.insert(agent_synced_out_.end(), store.synced_out().begin(), store.synced_out().end());
@@ -360,7 +364,7 @@ void FaceDisplay::AgentChatTap(const std::string& chat_id) {
         }
         std::string summary = "Ready. What's up?";
         if (target.empty()) {
-            agent_.StartNewChat();
+            if (!agent_.server_chats()) agent_.StartNewChat();
         } else {
             agent_.SetCurrentChat(target);
             const weixue_agent::Task* last = nullptr;
@@ -389,6 +393,12 @@ void FaceDisplay::UpdateAgent(int64_t now_us, DeviceState state) {
         agent_dirty_ = false;
         auto arrivals = agent_.SetTasks(agent_pending_, now, LocalHhmm(), agent_synced_out_);
         agent_synced_out_.clear();
+        if (agent_pending_chats_.seq > agent_chats_seq_) {
+            agent_chats_seq_ = agent_pending_chats_.seq;
+            agent_.SetServerChats(agent_pending_chats_, agent_pending_chats_ms_);
+            ESP_LOGI(TAG, "agent ui: chats=%u current=%s header=%s", static_cast<unsigned>(agent_.Chats(now).size()),
+                     agent_.current_chat().c_str(), agent_.CurrentTitle().c_str());
+        }
         ApplyArrivals(arrivals, now);
         int64_t upto = agent_pending_seq_;
         Application::GetInstance().Schedule([upto]() { WeixueAgent::GetInstance().OnRendered(upto); });

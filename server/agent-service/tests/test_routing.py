@@ -107,3 +107,14 @@ async def test_second_chat_runs_in_parallel_without_interrupting_the_first(make)
     assert status["live_clients"] == 2 and status["turns_in_flight"] == 1
     gate.set()
     await h.wait_task(first[0]["task_id"], "done")
+
+
+async def test_a_chat_switch_closes_the_spoken_window_of_another_chat(make):
+    h = await make(holding(PLUG), fake_ha=FakeHaMcp(wait_seconds=30))
+    _, first = await h.send("turn on the desk plug")
+    task_id = first[0]["task_id"]
+    await h.wait_task(task_id, "needs_approval")
+    other = await h.http.post("/v1/chats", json={"device_id": "sim-device-01"}, headers={"Idempotency-Key": "k"})
+    _, said = await h.send("approve")
+    assert said[0]["data"]["routed"] == "new_task" and said[0]["chat_id"] == other.json()["chat_id"]
+    assert h.fake_ha.decisions == [], "the other chat's card is not approved by voice"

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Simulated agent device (docs/agent-protocol.md): the firmware's agent side without hardware.
-Long-polls with X-Weixue-Agent-Seq, applies `agent` / `agent_sync` items by seq per task (the
-weixue_agent_store rules), acks `shown` in session and implicitly through the poll, opens a
-session on `speak:true` (hello with features.agent), sends `played` complete when the audio of an
+Long-polls with X-Weixue-Agent-Seq (and X-Weixue-Agent-Feature at --level 2), applies `agent` /
+`agent_sync` items by seq per task (the weixue_agent_store rules) and the newest `agent_chats`
+list, acks `shown` in session and implicitly through the poll, opens a session on `speak:true`
+(hello with features.agent = --level), sends `played` complete when the audio of an
 `ack:true` sentence has played out (60 ms per frame from its first frame) or cut with
 --cut-after-ms, and answers `debug_reply` after 2 s (loopback) over its session or a short
 session of its own. --busy N first holds a user session open for N seconds.
@@ -57,6 +58,10 @@ class SimDevice:
         self.awaiting = {}
         self.ws_url = args.ws
         self.stats = {"bodies": 0, "unreadable": 0, "max_body": 0, "receipts": 0, "dropped": 0}
+        self.level = getattr(args, "level", 2)
+        self.chats = None
+        self.chats_seq = 0
+        self.receipts = {}
 
     async def start_relay(self):
         """Local relay for --ws-delay / --ws-up-delay: each direction's bytes arrive that late, in
@@ -129,6 +134,14 @@ class SimDevice:
             self.max_seq = max(self.max_seq, seq)
             log(f"agent: sync seq={seq} listed={len(keep)} dropped={len(dropped)} tasks={len(self.tasks)} via={via}")
             return
+        if kind == "agent_chats" and self.level >= 2:
+            result = "applied" if seq > self.chats_seq else ("duplicate" if seq == self.chats_seq else "stale")
+            if result == "applied":
+                self.chats, self.chats_seq = payload, seq
+                self.max_seq = max(self.max_seq, seq)
+            log(f"agent: chats seq={seq} current={payload.get('current')} n={len(payload.get('chats') or [])} "
+                f"bytes={size} result={result} via={via}")
+            return
         if kind != "agent":
             log(f"agent: dropped frame (unknown kind) via={via}")
             return
@@ -161,6 +174,7 @@ class SimDevice:
                 "params": {"v": 1, "boot": self.boot, "seq": self.next_seq(), **params}}
 
     def send_event(self, method, params):
+        """Sends one notification; returns its seq."""
         payload = self.notification(method, params)
         log(f"agent {method}: {json.dumps(payload['params'], ensure_ascii=False)}")
         if self.a.receipts and method == "agent_response" and params.get("kind") != "shown":
@@ -169,6 +183,7 @@ class SimDevice:
             asyncio.get_running_loop().create_task(self._deliver(payload, seq))
         else:
             asyncio.get_running_loop().create_task(self._transmit(payload, receipt=False))
+        return payload["params"]["seq"]
 
     async def _transmit(self, payload, receipt):
         if self.ws is not None and self.session_id:
@@ -206,6 +221,7 @@ class SimDevice:
         log(f"agent receipt: {p.get('response')} seq={p.get('seq')} card={p.get('card_id')} result={p.get('result')}"
             + ("" if known else " (no response waits for it)"))
         if known:
+            self.receipts[p["seq"]] = p
             self.awaiting[p["seq"]].set()
 
     async def _send_mcp(self, ws, session_id, payload):
@@ -241,7 +257,7 @@ class SimDevice:
     async def session(self, invoke, hold=None):
         headers = {**self.ident, "Protocol-Version": "1"}
         async with websockets.connect(self.ws_url, additional_headers=headers, open_timeout=60, close_timeout=30) as ws:
-            await ws.send(json.dumps({"type": "hello", "version": 1, "features": {"mcp": True, "agent": 1},
+            await ws.send(json.dumps({"type": "hello", "version": 1, "features": {"mcp": True, "agent": self.level},
                                       "transport": "websocket",
                                       "audio_params": {"format": "opus", "sample_rate": 16000, "channels": 1,
                                                        "frame_duration": 60}}))
@@ -366,6 +382,8 @@ class SimDevice:
     async def poll_loop(self, until):
         while time.time() < until:
             headers = {**self.ident, "X-Weixue-Agent-Seq": str(self.max_seq)}
+            if self.level >= 2:
+                headers["X-Weixue-Agent-Feature"] = str(self.level)
             try:
                 status, length, raw, cut, total = await self.http_get("/weixue/proactive/poll", headers)
             except (OSError, asyncio.TimeoutError, ValueError, IndexError) as e:
@@ -420,6 +438,7 @@ async def main():
     ap.add_argument("--no-receipts", dest="receipts", action="store_false", help="send responses once (v1 firmware)")
     ap.add_argument("--weak-link", type=int, default=0, help="poll responses larger than this many bytes are cut there")
     ap.add_argument("--old-firmware", action="store_true", help="an unreadable 200 poll body opens a session")
+    ap.add_argument("--level", type=int, default=2, help="agent feature level: 1 = v1.1 firmware (no agent_chats)")
     ap.add_argument("--invoke-at", type=float, default=0, help="open one bare-invocation session this many seconds in")
     ap.add_argument("--ws-delay", type=float, default=0, help="delay server -> device WebSocket bytes this many seconds")
     ap.add_argument("--ws-up-delay", type=float, default=0, help="delay device -> server WebSocket bytes this many seconds")

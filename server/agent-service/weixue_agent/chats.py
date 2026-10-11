@@ -43,11 +43,16 @@ class ChatIndex:
         return self.create(device_id)
 
     def switch(self, device_id: str, chat_id: str) -> Dict[str, Any]:
+        """Makes chat_id current; a spoken interaction window of another chat closes."""
         device = self.store.device(device_id)
         previous = device["current_chat_id"]
         values = {"current_chat_id": chat_id, "updated_at": timeutil.iso()}
         if previous and previous != chat_id:
             values["previous_chat_id"] = previous
+        if previous != chat_id and device["voice_window_until"]:
+            row = self.store.interaction(device["voice_interaction_id"]) if device["voice_interaction_id"] else None
+            if row is None or row["chat_id"] != chat_id:
+                values["voice_window_until"] = None
         self.store.update("devices", "device_id", device_id, values)
         self._changed(device_id)
         return self.store.device(device_id)

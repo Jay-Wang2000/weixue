@@ -582,7 +582,7 @@ async def test_offer_maps_agent_deliveries_and_drops_other_kinds():
                             "chat_id": "cht_1", "task_id": "tsk_1",
                             "payload": {"state": "progress", "summary": "Working"}})
     assert rec["delivery_id"] == "dlv_1" and gw.devices[DEVICE].mirror["tsk_1"].lease_id == "l1"
-    assert gw.offer(DEVICE, {"delivery_id": "dlv_2", "lease_id": "l2", "kind": "chats", "tier": "SILENT"}) is None
+    assert gw.offer(DEVICE, {"delivery_id": "dlv_2", "lease_id": "l2", "kind": "spoken", "tier": "SILENT"}) is None
     assert gw.sink.acks[-1]["outcome"] == "dropped"
 
 
@@ -879,3 +879,240 @@ async def test_replaced_poll_takes_no_agent_items(client, monkeypatch):
     assert (await old).status == 204
     body = await new.json()
     assert [p["task_id"] for p in body["agent"]] == ["t0", "t1"], "the reboot's first page goes to the new poll"
+
+
+# Chats (protocol v1.2)
+
+NOW = 1_790_000_000.0
+
+
+def listing(current="cht_b", **titles):
+    """A GET /v1/chats body: chats a..e, cht_<x> titled titles[x] (None: placeholder)."""
+    items = []
+    for i, name in enumerate("abcde"):
+        title = titles.get(name, f"Chat {name}")
+        items.append({"chat_id": f"cht_{name}", "title": title or "New chat",
+                      "title_source": "first_utterance" if title else "placeholder",
+                      "state": "working" if name == "c" else "idle", "unread": False,
+                      "last_activity_at": f"2026-09-21T12:{50 - i:02d}:00Z", "created_at": "2026-09-21T10:00:00Z"})
+    return {"device_id": DEVICE, "current_chat_id": current, "previous_chat_id": None, "items": items}
+
+
+def chats_offer(delivery="dlv_c1", lease="lc1", **kw):
+    return {"delivery_id": delivery, "lease_id": lease, "kind": "chats", "tier": "SILENT", "payload": listing(**kw)}
+
+
+async def test_v11_poll_gets_no_chats_and_the_delivery_is_dropped():
+    _, gw = make()
+    gw.on_poll(DEVICE, "0")
+    assert gw.offer(DEVICE, chats_offer()) is None
+    assert gw.sink.acks[-1]["outcome"] == "dropped" and "v1.1" in gw.sink.acks[-1]["detail"]
+    kinds = [p["kind"] for p in gw.poll_items(DEVICE)]
+    assert kinds == ["agent_sync"], "a seq-0 snapshot for a v1.1 device carries no agent_chats"
+
+
+async def test_level_two_poll_carries_agent_chats_and_the_header_acks_it():
+    _, gw = make()
+    gw.on_poll(DEVICE, "0", "2")
+    assert [p["kind"] for p in gw.poll_items(DEVICE)] == ["agent_sync"]
+    rec = gw.offer(DEVICE, chats_offer())
+    assert rec["delivery_id"] == "dlv_c1" and rec["chats"] == 5
+    sync_seq = gw.devices[DEVICE].seq - 1
+    gw.on_poll(DEVICE, str(sync_seq), "2")
+    body = gw.poll_items(DEVICE)
+    assert [p["kind"] for p in body] == ["agent_chats"]
+    chats = body[0]
+    assert chats["current"] == "cht_b" and [c["id"] for c in chats["chats"]] == ["cht_b", "cht_a", "cht_c", "cht_d", "cht_e"]
+    assert chats["chats"][0] == {"id": "cht_b", "title": "Chat b", "state": "idle", "age_s": 5060}
+    assert chats["chats"][2]["state"] == "working" and wire.size(chats) <= wire.MAX_ITEM_BYTES
+    gw.on_poll(DEVICE, str(chats["seq"]), "2")
+    assert gw.sink.acks[-1]["outcome"] == "shown" and gw.sink.acks[-1]["delivery_id"] == "dlv_c1"
+
+
+async def test_unchanged_chat_list_is_not_sent_again():
+    _, gw = make()
+    gw.on_poll(DEVICE, "1", "2")
+    gw.offer(DEVICE, chats_offer("dlv_c1"))
+    assert gw.offer(DEVICE, chats_offer("dlv_c2", "lc2")) is None
+    assert gw.sink.acks[-1]["outcome"] == "shown" and gw.sink.acks[-1]["delivery_id"] == "dlv_c2"
+    rec = gw.offer(DEVICE, chats_offer("dlv_c3", "lc3", current="cht_d"))
+    dev = gw.devices[DEVICE]
+    assert rec["delivery_id"] == "dlv_c3" and [e.delivery_id for e in dev.outgoing] == ["dlv_c3"], \
+        "a newer list replaces the unsent one"
+
+
+async def test_chat_list_waits_for_the_device_level_then_goes_in_the_snapshot():
+    _, gw = make()
+    assert gw.offer(DEVICE, chats_offer()) is None and gw.devices[DEVICE].chats is None
+    gw.submit(DEVICE, card("t1"))
+    gw.on_poll(DEVICE, "0", "2")
+    body = gw.poll_items(DEVICE)
+    kinds = [p["kind"] for p in body]
+    assert kinds[:2] == ["agent", "agent_chats"], kinds
+    gw.on_poll(DEVICE, str(body[-1]["seq"]), "2")
+    assert [p["kind"] for p in gw.poll_items(DEVICE)] == ["agent_sync"]
+
+
+async def test_agent_session_snapshot_includes_chats_for_level_two_only():
+    _, gw = make()
+    gw.offer(DEVICE, chats_offer())
+    old = Conn()
+    gw.on_agent_session(DEVICE, old, 1)
+    await settle()
+    assert [p["kind"] for p in old.websocket.payloads()] == ["agent_sync"]
+    assert gw.sink.acks[-1]["outcome"] == "dropped" and gw.sink.acks[-1]["delivery_id"] == "dlv_c1"
+    gw.set_chats(DEVICE, listing(current="cht_a"))
+    new = Conn()
+    gw.on_agent_session(DEVICE, new, 2)
+    await settle()
+    payloads = new.websocket.payloads()
+    assert [p["kind"] for p in payloads] == ["agent_chats", "agent_sync"], "one copy, then the sync"
+    assert payloads[0]["current"] == "cht_a"
+
+
+async def test_placeholder_titles_fall_back_to_the_newest_task_title():
+    _, gw = make()
+    gw.on_poll(DEVICE, "1", "2")
+    gw.submit(DEVICE, card("t1", chat_id="cht_a", title="Old lamp"))
+    gw.submit(DEVICE, card("t2", chat_id="cht_a", title="Desk lamp"))
+    gw.submit(DEVICE, card("t3", chat_id="cht_b", summary="Weather tomorrow"))
+    gw.set_chats(DEVICE, listing(a=None, b=None, c=None))
+    entries = {c["id"]: c for c in gw.devices[DEVICE].chats.payload["chats"]}
+    assert entries["cht_a"]["title"] == "Desk lamp" and entries["cht_b"]["title"] == "Weather tomorrow"
+    assert "title" not in entries["cht_c"], "no task, placeholder: the device shows its own New chat"
+    assert entries["cht_d"]["title"] == "Chat d", "the service title wins"
+
+
+class FakeService:
+    """aiohttp-session stand-in: POST answers status_for(path), GET /v1/chats the listing."""
+
+    def __init__(self, status_for=lambda path: 200):
+        self.status_for = status_for
+        self.posts, self.gets = [], []
+        self.listing = listing()
+
+    def session(self, headers=None):
+        return self
+
+    def _resp(self, status, body=None):
+        class Resp:
+            async def __aenter__(self_inner):
+                return self_inner
+
+            async def __aexit__(self_inner, *exc):
+                return False
+
+            async def json(self_inner):
+                return body
+
+        r = Resp()
+        r.status = status
+        return r
+
+    def post(self, url, json=None, headers=None):
+        path = url.split("8010", 1)[1]
+        self.posts.append((path, json))
+        status = self.status_for(path)
+        if status == 200 and path.endswith("/switch"):
+            self.listing = dict(self.listing, current_chat_id=path.split("/")[3])
+        return self._resp(status)
+
+    def get(self, url, params=None):
+        self.gets.append((url.split("8010", 1)[1], params))
+        return self._resp(200, self.listing)
+
+
+def live(fake):
+    _, gw = make()
+    gw.sink = wad.ServiceSink(wad.setup_logging(), "http://agent:8010", "tok", session_factory=fake.session)
+    return gw
+
+
+async def wait_for(pred, seconds=1.0):
+    deadline = time.monotonic() + seconds
+    while not pred() and time.monotonic() < deadline:
+        await asyncio.sleep(0.01)
+    return pred()
+
+
+async def test_switch_chat_receipt_follows_the_service_then_the_list_is_resent():
+    fake = FakeService()
+    gw = live(fake)
+    conn = Conn()
+    gw.on_agent_session(DEVICE, conn, 2)
+    gw.set_chats(DEVICE, fake.listing)
+    await settle()
+    params = response(3, "switch_chat", chat_id="cht_d")
+    assert gw.on_device_event(conn, wad.RESPONSE_METHOD, params) is None, "no receipt before the service answered"
+    assert await wait_for(lambda: any(p["kind"] == "agent_ack" for p in conn.websocket.payloads()))
+    assert fake.posts == [("/v1/chats/cht_d/switch", {"device_id": DEVICE})]
+    assert await wait_for(lambda: conn.websocket.payloads()[-1]["kind"] == "agent_chats")
+    payloads = conn.websocket.payloads()
+    ack = next(p for p in payloads if p["kind"] == "agent_ack")
+    assert ack["result"] == "accepted" and ack["response"] == "switch_chat"
+    assert payloads[-1]["current"] == "cht_d" and payloads.index(ack) < len(payloads) - 1, "receipt, then the list"
+    assert fake.gets == [("/v1/chats", {"device_id": DEVICE})]
+    assert gw.on_device_event(conn, wad.RESPONSE_METHOD, params) == ack, "a resend gets the stored receipt"
+
+
+async def test_failed_switch_is_receipted_stale():
+    fake = FakeService(status_for=lambda path: 404)
+    gw = live(fake)
+    conn = Conn()
+    gw.on_agent_session(DEVICE, conn, 2)
+    gw.on_device_event(conn, wad.RESPONSE_METHOD, response(3, "switch_chat", chat_id="cht_zz"))
+    assert await wait_for(lambda: any(p["kind"] == "agent_ack" for p in conn.websocket.payloads()))
+    ack = next(p for p in conn.websocket.payloads() if p["kind"] == "agent_ack")
+    assert ack["result"] == "stale"
+
+
+async def test_new_chat_posts_the_create_route_and_resyncs():
+    fake = FakeService()
+    gw = live(fake)
+    conn = Conn()
+    gw.on_agent_session(DEVICE, conn, 2)
+
+    def created(path):
+        fake.listing = listing(current="cht_e", e=None)
+        return 200
+
+    fake.status_for = created
+    gw.on_device_event(conn, wad.RESPONSE_METHOD, response(4, "new_chat"))
+    assert await wait_for(lambda: any(p["kind"] == "agent_chats" for p in conn.websocket.payloads()))
+    assert fake.posts == [("/v1/chats", {"device_id": DEVICE})]
+    chats = [p for p in conn.websocket.payloads() if p["kind"] == "agent_chats"][-1]
+    assert chats["current"] == "cht_e" and chats["chats"][0]["id"] == "cht_e" and "title" not in chats["chats"][0]
+
+
+async def test_fixture_mode_switch_is_receipted_at_once():
+    _, gw = make()
+    ack = gw.on_device_event(Conn(), wad.RESPONSE_METHOD, response(3, "switch_chat", chat_id="c2"))
+    assert ack["result"] == "accepted" and gw.sink.responses[-1]["kind"] == "switch_chat"
+
+
+async def test_http_poll_feature_header_reaches_the_gateway(client):
+    client.gateway.set_chats(DEVICE, listing())
+    headers = {"Device-Id": DEVICE, "X-Weixue-Agent-Seq": "0", "X-Weixue-Agent-Feature": "2"}
+    body = await (await client.get("/weixue/proactive/poll", headers=headers)).json()
+    assert [p["kind"] for p in body["agent"]] == ["agent_chats", "agent_sync"]
+    assert client.gateway.devices[DEVICE].level == 2
+
+
+async def test_a_fetch_overtaken_by_a_newer_list_is_discarded():
+    release = asyncio.Event()
+
+    class Sink(wad.FixtureSink):
+        async def get_chats(self, device):
+            await release.wait()
+            return listing(current="cht_a")
+
+    _, gw = make()
+    gw.sink = Sink(wad.setup_logging())
+    gw.on_poll(DEVICE, "1", "2")
+    task = gw.refresh_chats(DEVICE)
+    gw.set_chats(DEVICE, listing(current="cht_c"))
+    release.set()
+    await task
+    assert gw.devices[DEVICE].chats.payload["current"] == "cht_c"
+    await gw.refresh_chats(DEVICE)
+    assert gw.devices[DEVICE].chats.payload["current"] == "cht_a"

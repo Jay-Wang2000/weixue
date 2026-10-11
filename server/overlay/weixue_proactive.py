@@ -906,7 +906,8 @@ def add_routes(app, proactive):
         if device is None:
             return web.json_response({"error": "unauthorized device"}, status=401)
         if proactive.agent is not None:
-            proactive.agent.on_poll(device, request.headers.get("X-Weixue-Agent-Seq"))
+            proactive.agent.on_poll(device, request.headers.get("X-Weixue-Agent-Seq"),
+                                    request.headers.get("X-Weixue-Agent-Feature"))
         try:
             item = await proactive.poll(device)
         except RequestError as e:

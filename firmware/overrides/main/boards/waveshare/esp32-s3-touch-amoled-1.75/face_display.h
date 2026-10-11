@@ -146,6 +146,9 @@ private:
     int64_t agent_pending_seq_ = 0;
     uint32_t agent_syncs_ = 0;
     std::vector<std::string> agent_synced_out_;
+    weixue_agent::Chats agent_pending_chats_;
+    int64_t agent_pending_chats_ms_ = 0;
+    int64_t agent_chats_seq_ = 0;
     bool agent_dirty_ = false;
     int64_t agent_drawn_ms_ = 0;
     int64_t idle_since_us_ = 0;

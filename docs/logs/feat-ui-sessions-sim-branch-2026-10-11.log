@@ -1,0 +1,464 @@
+# feat-ui-sessions acceptance, sim stack (server/sim/docker-compose.agent.yml services under a separate compose project, ports 18300/18303), this branch's gateway overlay and agent-service image, sim device aa:bb:cc:dd:ee:01 at feature level 2; 2026-10-11 UTC. agent_chats_e2e.py --chats 5 --switches 10 --restart <sim agent-service>
+PASS initial agent_chats list reaches the device
+PASS new_chat 1: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M6Z637YEBWG0CTNA6HNYG9 208 ms
+PASS chat 1: first turn landed in it: turn chat=cht_01M4M6Z637YEBWG0CTNA6HNYG9
+PASS new_chat 2: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M6ZYCESWAXB5QWEB17XAMF 52 ms
+PASS chat 2: first turn landed in it: turn chat=cht_01M4M6ZYCESWAXB5QWEB17XAMF
+PASS new_chat 3: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M70PFW1DMB2F2WQT86XEDX 52 ms
+PASS chat 3: first turn landed in it: turn chat=cht_01M4M70PFW1DMB2F2WQT86XEDX
+PASS new_chat 4: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M71EC7AMGRW6GVR4F6JX4N 50 ms
+PASS chat 4: first turn landed in it: turn chat=cht_01M4M71EC7AMGRW6GVR4F6JX4N
+PASS new_chat 5: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M726NMVFYJG08KRB4YG9NN 51 ms
+PASS chat 5: first turn landed in it: turn chat=cht_01M4M726NMVFYJG08KRB4YG9NN
+PASS titles from the service's first-prompt title: {"6HNYG9": "Apples", "17XAMF": "Bicycles", "86XEDX": "Castles", "F6JX4N": "Dolphins", "4YG9NN": "Engines"}
+PASS switch 1: receipt accepted, list current = target: target=cht_01M4M6ZYCESWAXB5QWEB17XAMF result=accepted 52 ms
+PASS switch 1: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M6ZYCESWAXB5QWEB17XAMF accepted in ['cht_01M4M6ZYCESWAXB5QWEB17XAMF']
+PASS switch 2: receipt accepted, list current = target: target=cht_01M4M71EC7AMGRW6GVR4F6JX4N result=accepted 1049 ms
+PASS switch 2: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M71EC7AMGRW6GVR4F6JX4N accepted in ['cht_01M4M71EC7AMGRW6GVR4F6JX4N']
+PASS switch 3: receipt accepted, list current = target: target=cht_01M4M6Z637YEBWG0CTNA6HNYG9 result=accepted 1045 ms
+PASS switch 3: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M6Z637YEBWG0CTNA6HNYG9 accepted in ['cht_01M4M6Z637YEBWG0CTNA6HNYG9']
+PASS switch 4: receipt accepted, list current = target: target=cht_01M4M726NMVFYJG08KRB4YG9NN result=accepted 51 ms
+PASS switch 4: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M726NMVFYJG08KRB4YG9NN accepted in ['cht_01M4M726NMVFYJG08KRB4YG9NN']
+PASS switch 5: receipt accepted, list current = target: target=cht_01M4M70PFW1DMB2F2WQT86XEDX result=accepted 52 ms
+PASS switch 5: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M70PFW1DMB2F2WQT86XEDX accepted in ['cht_01M4M70PFW1DMB2F2WQT86XEDX']
+PASS switch 6: receipt accepted, list current = target: target=cht_01M4M6ZYCESWAXB5QWEB17XAMF result=accepted 1046 ms
+PASS switch 6: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M6ZYCESWAXB5QWEB17XAMF accepted in ['cht_01M4M6ZYCESWAXB5QWEB17XAMF']
+PASS switch 7: receipt accepted, list current = target: target=cht_01M4M726NMVFYJG08KRB4YG9NN result=accepted 1051 ms
+PASS switch 7: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M726NMVFYJG08KRB4YG9NN accepted in ['cht_01M4M726NMVFYJG08KRB4YG9NN']
+PASS switch 8: receipt accepted, list current = target: target=cht_01M4M6Z637YEBWG0CTNA6HNYG9 result=accepted 1046 ms
+PASS switch 8: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M6Z637YEBWG0CTNA6HNYG9 accepted in ['cht_01M4M6Z637YEBWG0CTNA6HNYG9']
+PASS switch 9: receipt accepted, list current = target: target=cht_01M4M71EC7AMGRW6GVR4F6JX4N result=accepted 1055 ms
+PASS switch 9: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M71EC7AMGRW6GVR4F6JX4N accepted in ['cht_01M4M71EC7AMGRW6GVR4F6JX4N']
+PASS switch 10: receipt accepted, list current = target: target=cht_01M4M70PFW1DMB2F2WQT86XEDX result=accepted 1044 ms
+PASS switch 10: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M70PFW1DMB2F2WQT86XEDX accepted in ['cht_01M4M70PFW1DMB2F2WQT86XEDX']
+PASS 10 switches, every follow-up in the right chat: 10/10
+PASS agent-service back after the restart
+PASS chat index unchanged after the restart
+PASS current chat unchanged after the restart: current=cht_01M4M70PFW1DMB2F2WQT86XEDX
+PASS device list after the restart: same chats, same current: current=cht_01M4M70PFW1DMB2F2WQT86XEDX seq 1791680161767->1791680161767
+PASS follow-up after the restart lands in the current chat: turn chat=cht_01M4M70PFW1DMB2F2WQT86XEDX accepted in ['cht_01M4M70PFW1DMB2F2WQT86XEDX']
+
+## transcript
+1791679764.204 poll 200 speak=False urgent=False items=1 bytes=337 header=0
+1791679764.204 agent: sync seq=1791679764258 listed=0 dropped=0 tasks=0 via=poll
+1791679764.420 poll 200 speak=False urgent=False items=1 bytes=356 header=1791679764258
+1791679764.420 agent: chats seq=1791679764270 current=None n=0 bytes=78 result=applied via=poll
+PASS initial agent_chats list reaches the device
+1791679764.459 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 1, "kind": "new_chat", "via": "tap"}
+1791679764.531 agent receipt: new_chat seq=1 card=None result=accepted
+1791679764.532 device event sent (own session)
+1791679764.532 agent ack received: new_chat seq 1 (attempt 1)
+1791679764.623 poll 200 speak=False urgent=False items=1 bytes=470 header=1791679764270
+1791679764.623 agent: chats seq=1791679764587 current=cht_01M4M6Z637YEBWG0CTNA6HNYG9 n=1 bytes=185 result=applied via=poll
+PASS new_chat 1: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M6Z637YEBWG0CTNA6HNYG9 208 ms
+1791679769.115 poll 200 speak=False urgent=False items=1 bytes=510 header=1791679764587
+1791679769.116 agent: chats seq=1791679769158 current=cht_01M4M6Z637YEBWG0CTNA6HNYG9 n=1 bytes=223 result=applied via=poll
+1791679770.770 poll 200 speak=False urgent=False items=1 bytes=492 header=1791679769158
+1791679770.770 agent: chats seq=1791679770824 current=cht_01M4M6Z637YEBWG0CTNA6HNYG9 n=1 bytes=205 result=applied via=poll
+1791679772.307 poll 200 speak=False urgent=False items=1 bytes=685 header=1791679770824
+1791679772.307 agent: chat=cht_01M4M6Z637YEBWG0CTNA6HNYG9 task=tsk_01M4M6ZA25AT42J392YTD44978 state=needs_input seq=1791679772357 tier=silent speaks=0 result=applied via=poll
+## round 1: Chat 1: let's talk about apples.
+01:49:24 hello 73111cd3-ef8d-4b3a-b274-7ee14d9b8f3a
+01:49:25 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:49:25 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+01:49:26 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:49:26 sending reply clip 26 frames
+01:49:28 << {"type": "stt", "text": "Chat 1: let's talk about apples"} (audio frames so far 8)
+01:49:28 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:49:31 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:49:31 << {"type": "tts", "state": "sentence_start", "text": "Apples, lovely"} (audio frames so far 8)
+01:49:31 << {"type": "tts", "state": "sentence_start", "text": "Are you thinking about eating them, growing them, or baking with them?"} (audio frames so far 22)
+01:49:35 << {"type": "tts", "state": "sentence_start", "text": "Apples, lovely. Are you thinking about eating them, growing them, or baking with them?"} (audio frames so far 89)
+01:49:40 << {"type": "tts", "state": "stop"} (audio frames so far 156)
+01:49:48 session ended: server closed audio frames 156
+
+261011 00:49:40[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=2fee7eed35654cfebd9949e4bf19061f chat=cht_01M4M6Z637YEBWG0CTNA6HNYG9 routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=2807 tts_first_audio_ms=10 total_ms=2831 answer_audio_ms=2831 reply_end_ms=3712
+PASS chat 1: first turn landed in it: turn chat=cht_01M4M6Z637YEBWG0CTNA6HNYG9
+1791679789.379 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 2, "kind": "new_chat", "via": "tap"}
+1791679789.401 agent receipt: new_chat seq=2 card=None result=accepted
+1791679789.402 poll 200 speak=False urgent=False items=1 bytes=566 header=1791679772357
+1791679789.402 agent: chats seq=1791679789457 current=cht_01M4M6ZYCESWAXB5QWEB17XAMF n=2 bytes=273 result=applied via=poll
+1791679789.403 device event sent (own session)
+1791679789.403 agent ack received: new_chat seq 2 (attempt 1)
+PASS new_chat 2: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M6ZYCESWAXB5QWEB17XAMF 52 ms
+1791679793.894 poll 200 speak=False urgent=False items=1 bytes=606 header=1791679789457
+1791679793.894 agent: chats seq=1791679793945 current=cht_01M4M6ZYCESWAXB5QWEB17XAMF n=2 bytes=311 result=applied via=poll
+1791679795.585 poll 200 speak=False urgent=False items=1 bytes=590 header=1791679793945
+1791679795.585 agent: chats seq=1791679795638 current=cht_01M4M6ZYCESWAXB5QWEB17XAMF n=2 bytes=295 result=applied via=poll
+1791679797.544 poll 200 speak=False urgent=False items=1 bytes=685 header=1791679795638
+1791679797.544 agent: chat=cht_01M4M6ZYCESWAXB5QWEB17XAMF task=tsk_01M4M7028TJPX3YTGPSBP8ZRZN state=needs_input seq=1791679797597 tier=silent speaks=0 result=applied via=poll
+## round 2: Chat 2: let's talk about bicycles.
+01:49:49 hello 2c1c6393-595b-419f-ac02-ca92dec07c65
+01:49:50 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:49:50 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+01:49:51 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:49:51 sending reply clip 26 frames
+01:49:53 << {"type": "stt", "text": "Chat 2: let's talk about bicycles"} (audio frames so far 8)
+01:49:53 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:49:56 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:49:56 << {"type": "tts", "state": "sentence_start", "text": "Bicycles, great topic"} (audio frames so far 8)
+01:49:57 << {"type": "tts", "state": "sentence_start", "text": "Are you thinking about riding, buying, or fixing one?"} (audio frames so far 29)
+01:50:00 << {"type": "tts", "state": "sentence_start", "text": "Bicycles, great topic. Are you thinking about riding, buying, or fixing one?"} (audio frames so far 82)
+01:50:04 << {"type": "tts", "state": "stop"} (audio frames so far 149)
+01:50:12 session ended: server closed audio frames 149
+
+261011 00:50:05[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=518a9ef9f3184e999d1ee0d77cbfad85 chat=cht_01M4M6ZYCESWAXB5QWEB17XAMF routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=3035 tts_first_audio_ms=10 total_ms=3065 answer_audio_ms=3065 reply_end_ms=4166
+PASS chat 2: first turn landed in it: turn chat=cht_01M4M6ZYCESWAXB5QWEB17XAMF
+1791679814.047 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 3, "kind": "new_chat", "via": "tap"}
+1791679814.087 agent receipt: new_chat seq=3 card=None result=accepted
+1791679814.089 poll 200 speak=False urgent=False items=1 bytes=664 header=1791679797597
+1791679814.089 agent: chats seq=1791679814144 current=cht_01M4M70PFW1DMB2F2WQT86XEDX n=3 bytes=363 result=applied via=poll
+1791679814.090 device event sent (own session)
+1791679814.090 agent ack received: new_chat seq 3 (attempt 1)
+PASS new_chat 3: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M70PFW1DMB2F2WQT86XEDX 52 ms
+1791679818.664 poll 200 speak=False urgent=False items=1 bytes=704 header=1791679814144
+1791679818.664 agent: chats seq=1791679818706 current=cht_01M4M70PFW1DMB2F2WQT86XEDX n=3 bytes=401 result=applied via=poll
+1791679819.776 poll 200 speak=False urgent=False items=1 bytes=687 header=1791679818706
+1791679819.777 agent: chats seq=1791679819829 current=cht_01M4M70PFW1DMB2F2WQT86XEDX n=3 bytes=384 result=applied via=poll
+1791679821.023 poll 200 speak=False urgent=False items=1 bytes=685 header=1791679819829
+1791679821.024 agent: chat=cht_01M4M70PFW1DMB2F2WQT86XEDX task=tsk_01M4M70TEF1FKYZNP6EVSFSDVE state=needs_input seq=1791679821077 tier=silent speaks=0 result=applied via=poll
+## round 3: Chat 3: let's talk about castles.
+01:50:14 hello 7a830d75-38a2-4676-aed4-a13f4c18abc8
+01:50:15 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:50:15 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+01:50:15 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:50:16 sending reply clip 26 frames
+01:50:18 << {"type": "stt", "text": "Chat 3: let's talk about castles"} (audio frames so far 8)
+01:50:18 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:50:20 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:50:20 << {"type": "tts", "state": "sentence_start", "text": "Castles, lovely"} (audio frames so far 8)
+01:50:20 << {"type": "tts", "state": "sentence_start", "text": "Are you after medieval history, famous ones to visit, or how they were built?"} (audio frames so far 23)
+01:50:24 << {"type": "tts", "state": "sentence_start", "text": "Castles, lovely. Are you after medieval history, famous ones to visit, or how they were built?"} (audio frames so far 90)
+01:50:29 << {"type": "tts", "state": "stop"} (audio frames so far 157)
+01:50:37 session ended: server closed audio frames 157
+
+261011 00:50:29[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=1e46dc2559814cec822ce14c49f6b10a chat=cht_01M4M70PFW1DMB2F2WQT86XEDX routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=2122 tts_first_audio_ms=4 total_ms=2148 answer_audio_ms=2148 reply_end_ms=2888
+PASS chat 3: first turn landed in it: turn chat=cht_01M4M70PFW1DMB2F2WQT86XEDX
+1791679838.510 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 4, "kind": "new_chat", "via": "tap"}
+1791679838.546 agent receipt: new_chat seq=4 card=None result=accepted
+1791679838.548 poll 200 speak=False urgent=False items=1 bytes=761 header=1791679821077
+1791679838.548 agent: chats seq=1791679838603 current=cht_01M4M71EC7AMGRW6GVR4F6JX4N n=4 bytes=452 result=applied via=poll
+1791679838.548 device event sent (own session)
+1791679838.548 agent ack received: new_chat seq 4 (attempt 1)
+PASS new_chat 4: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M71EC7AMGRW6GVR4F6JX4N 50 ms
+1791679843.019 poll 200 speak=False urgent=False items=1 bytes=801 header=1791679838603
+1791679843.019 agent: chats seq=1791679843072 current=cht_01M4M71EC7AMGRW6GVR4F6JX4N n=4 bytes=490 result=applied via=poll
+1791679844.221 poll 200 speak=False urgent=False items=1 bytes=785 header=1791679843072
+1791679844.222 agent: chats seq=1791679844275 current=cht_01M4M71EC7AMGRW6GVR4F6JX4N n=4 bytes=474 result=applied via=poll
+1791679846.026 poll 200 speak=False urgent=False items=1 bytes=685 header=1791679844275
+1791679846.026 agent: chat=cht_01M4M71EC7AMGRW6GVR4F6JX4N task=tsk_01M4M71J73XES3WWSQ12GXDJMY state=needs_input seq=1791679846074 tier=silent speaks=0 result=applied via=poll
+## round 4: Chat 4: let's talk about dolphins.
+01:50:38 hello c8594bd9-884d-40c0-8f64-d0545f22b604
+01:50:39 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:50:39 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+01:50:40 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:50:40 sending reply clip 26 frames
+01:50:42 << {"type": "stt", "text": "Chat 4: let's talk about dolphins"} (audio frames so far 8)
+01:50:42 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:50:45 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:50:45 << {"type": "tts", "state": "sentence_start", "text": "Dolphins are great"} (audio frames so far 8)
+01:50:45 << {"type": "tts", "state": "sentence_start", "text": "They're clever, social, and they call each other by signature whistles, which work a bit like names. Is there something specific you'd like to know, or shall I pick a fun fact?"} (audio frames so far 26)
+01:50:49 << {"type": "tts", "state": "sentence_start", "text": "Dolphins are great. They're clever, social, and they call each other by signature whistles, which work a bit like names. Is there something specific you'd like to know, or shall I pick a fun fact?"} (audio frames so far 93)
+01:50:54 << {"type": "tts", "state": "stop"} (audio frames so far 160)
+01:51:02 session ended: server closed audio frames 160
+
+261011 00:50:54[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=ca6355bdf82140fab1f391c48713770b chat=cht_01M4M71EC7AMGRW6GVR4F6JX4N routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=2592 tts_first_audio_ms=5 total_ms=2626 answer_audio_ms=2626 reply_end_ms=3543
+PASS chat 4: first turn landed in it: turn chat=cht_01M4M71EC7AMGRW6GVR4F6JX4N
+1791679863.388 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 5, "kind": "new_chat", "via": "tap"}
+1791679863.425 agent receipt: new_chat seq=5 card=None result=accepted
+1791679863.427 device event sent (own session)
+1791679863.427 agent ack received: new_chat seq 5 (attempt 1)
+1791679863.428 poll 200 speak=False urgent=False items=1 bytes=859 header=1791679846074
+1791679863.428 agent: chats seq=1791679863483 current=cht_01M4M726NMVFYJG08KRB4YG9NN n=5 bytes=542 result=applied via=poll
+PASS new_chat 5: receipt accepted and the list's current is the new chat: result=accepted current=cht_01M4M726NMVFYJG08KRB4YG9NN 51 ms
+1791679867.899 poll 200 speak=False urgent=False items=1 bytes=899 header=1791679863483
+1791679867.899 agent: chats seq=1791679867950 current=cht_01M4M726NMVFYJG08KRB4YG9NN n=5 bytes=580 result=applied via=poll
+1791679869.031 poll 200 speak=False urgent=False items=1 bytes=883 header=1791679867950
+1791679869.031 agent: chats seq=1791679869085 current=cht_01M4M726NMVFYJG08KRB4YG9NN n=5 bytes=564 result=applied via=poll
+1791679870.645 poll 200 speak=False urgent=False items=1 bytes=685 header=1791679869085
+1791679870.645 agent: chat=cht_01M4M726NMVFYJG08KRB4YG9NN task=tsk_01M4M72AH31D8WM87DAK9R3B2K state=needs_input seq=1791679870692 tier=silent speaks=0 result=applied via=poll
+## round 5: Chat 5: let's talk about engines.
+01:51:03 hello aca04609-b5ba-4dd2-accd-7c29d332188c
+01:51:04 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:51:04 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+01:51:05 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:51:05 sending reply clip 26 frames
+01:51:07 << {"type": "stt", "text": "Chat 5: let's talk about engines"} (audio frames so far 8)
+01:51:07 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:51:09 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:51:09 << {"type": "tts", "state": "sentence_start", "text": "Happy to talk engines"} (audio frames so far 8)
+01:51:10 << {"type": "tts", "state": "sentence_start", "text": "Are you more into car engines, jets, steam, or electric motors?Which kind of engine do you want to dig into: car, jet, steam, or electric?"} (audio frames so far 29)
+01:51:15 << {"type": "tts", "state": "stop"} (audio frames so far 96)
+01:51:23 session ended: server closed audio frames 96
+
+261011 00:51:15[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=d32bd957f1c04262b78351cf698c1780 chat=cht_01M4M726NMVFYJG08KRB4YG9NN routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=2340 tts_first_audio_ms=8 total_ms=2364 answer_audio_ms=2364 reply_end_ms=3268
+PASS chat 5: first turn landed in it: turn chat=cht_01M4M726NMVFYJG08KRB4YG9NN
+PASS titles from the service's first-prompt title: {"6HNYG9": "Apples", "17XAMF": "Bicycles", "86XEDX": "Castles", "F6JX4N": "Dolphins", "4YG9NN": "Engines"}
+1791679884.152 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 6, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M6ZYCESWAXB5QWEB17XAMF"}
+1791679884.183 agent receipt: switch_chat seq=6 card=None result=accepted
+1791679884.185 device event sent (own session)
+1791679884.185 agent ack received: switch_chat seq 6 (attempt 1)
+1791679884.185 poll 200 speak=False urgent=False items=1 bytes=886 header=1791679870692
+1791679884.185 agent: chats seq=1791679884239 current=cht_01M4M6ZYCESWAXB5QWEB17XAMF n=5 bytes=567 result=applied via=poll
+PASS switch 1: receipt accepted, list current = target: target=cht_01M4M6ZYCESWAXB5QWEB17XAMF result=accepted 52 ms
+1791679888.687 poll 200 speak=False urgent=False items=1 bytes=883 header=1791679884239
+1791679888.687 agent: chats seq=1791679888740 current=cht_01M4M6ZYCESWAXB5QWEB17XAMF n=5 bytes=564 result=applied via=poll
+## round 6: Follow-up 1: what were we talking about?
+01:51:24 hello f50429a1-0ec7-4048-8ad4-5dc2dea2cc0d
+01:51:25 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:51:25 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+01:51:25 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:51:26 sending reply clip 26 frames
+01:51:28 << {"type": "stt", "text": "Follow-up 1: what were we talking about?"} (audio frames so far 8)
+01:51:28 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:51:29 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:51:30 << {"type": "tts", "state": "sentence_start", "text": "We're talking about bicycles"} (audio frames so far 8)
+01:51:31 << {"type": "tts", "state": "sentence_start", "text": "I just asked whether you're thinking about riding, buying, or fixing one.We're talking about bicycles"} (audio frames so far 36)
+01:51:35 << {"type": "tts", "state": "sentence_start", "text": "I just asked whether you're thinking about riding, buying, or fixing one"} (audio frames so far 103)
+01:51:40 << {"type": "tts", "state": "stop"} (audio frames so far 170)
+01:51:48 session ended: server closed audio frames 170
+
+261011 00:51:40[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=786bd328eb62470aacfb917241ab1cea chat=cht_01M4M6ZYCESWAXB5QWEB17XAMF routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=1334 tts_first_audio_ms=5 total_ms=2309 answer_audio_ms=2309 reply_end_ms=3563
+PASS switch 1: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M6ZYCESWAXB5QWEB17XAMF accepted in ['cht_01M4M6ZYCESWAXB5QWEB17XAMF']
+1791679917.596 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 7, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M71EC7AMGRW6GVR4F6JX4N"}
+1791679917.628 agent receipt: switch_chat seq=7 card=None result=accepted
+1791679917.630 device event sent (own session)
+1791679917.630 agent ack received: switch_chat seq 7 (attempt 1)
+1791679918.619 poll 200 speak=False urgent=False items=1 bytes=884 header=1791679888740
+1791679918.619 agent: chats seq=1791679917684 current=cht_01M4M71EC7AMGRW6GVR4F6JX4N n=5 bytes=565 result=applied via=poll
+PASS switch 2: receipt accepted, list current = target: target=cht_01M4M71EC7AMGRW6GVR4F6JX4N result=accepted 1049 ms
+1791679923.317 poll 200 speak=False urgent=False items=1 bytes=882 header=1791679917684
+1791679923.317 agent: chats seq=1791679923371 current=cht_01M4M71EC7AMGRW6GVR4F6JX4N n=5 bytes=563 result=applied via=poll
+## round 7: Follow-up 2: what were we talking about?
+01:51:58 hello 854103f7-c86c-436a-a62f-021e3726c7cf
+01:51:59 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:51:59 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+01:52:00 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+01:52:00 sending reply clip 26 frames
+01:52:02 << {"type": "stt", "text": "Follow-up 2: what were we talking about?"} (audio frames so far 10)
+01:52:02 << {"type": "tts", "state": "start"} (audio frames so far 10)
+01:52:03 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+01:52:04 << {"type": "tts", "state": "sentence_start", "text": "We were talking about dolphins"} (audio frames so far 10)
+01:52:05 << {"type": "tts", "state": "sentence_start", "text": "and how they use signature whistles a bit like names. Want to hear more about that?"} (audio frames so far 40)
+01:52:09 << {"type": "tts", "state": "sentence_start", "text": "We were talking about dolphins, and how they use signature whistles a bit like names. Want to hear more about that?"} (audio frames so far 107)
+01:52:13 << {"type": "tts", "state": "stop"} (audio frames so far 174)
+01:52:21 session ended: server closed audio frames 174
+
+261011 00:52:14[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=356485ce9bcc4a66a9bc6aa63eb99893 chat=cht_01M4M71EC7AMGRW6GVR4F6JX4N routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=613 tts_first_audio_ms=16 total_ms=1247 answer_audio_ms=1247 reply_end_ms=2255
+PASS switch 2: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M71EC7AMGRW6GVR4F6JX4N accepted in ['cht_01M4M71EC7AMGRW6GVR4F6JX4N']
+1791679951.030 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 8, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M6Z637YEBWG0CTNA6HNYG9"}
+1791679951.056 agent receipt: switch_chat seq=8 card=None result=accepted
+1791679951.057 device event sent (own session)
+1791679951.057 agent ack received: switch_chat seq 8 (attempt 1)
+1791679952.041 poll 200 speak=False urgent=False items=1 bytes=883 header=1791679923371
+1791679952.042 agent: chats seq=1791679951113 current=cht_01M4M6Z637YEBWG0CTNA6HNYG9 n=5 bytes=564 result=applied via=poll
+PASS switch 3: receipt accepted, list current = target: target=cht_01M4M6Z637YEBWG0CTNA6HNYG9 result=accepted 1045 ms
+1791679956.533 poll 200 speak=False urgent=False items=1 bytes=879 header=1791679951113
+1791679956.534 agent: chats seq=1791679956587 current=cht_01M4M6Z637YEBWG0CTNA6HNYG9 n=5 bytes=560 result=applied via=poll
+## round 8: Follow-up 3: what were we talking about?
+01:52:32 hello 36187e0f-a536-4739-aa01-4fc3eedd4f7f
+01:52:32 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:52:33 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+01:52:33 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:52:34 sending reply clip 26 frames
+01:52:36 << {"type": "stt", "text": "Follow-up 3: what were we talking about?"} (audio frames so far 8)
+01:52:36 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:52:36 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:52:36 << {"type": "tts", "state": "sentence_start", "text": "We were talking about apples"} (audio frames so far 8)
+01:52:38 << {"type": "tts", "state": "sentence_start", "text": "I'd just asked whether you're eating, growing or baking with them"} (audio frames so far 36)
+01:52:42 << {"type": "tts", "state": "stop"} (audio frames so far 101)
+01:52:50 session ended: server closed audio frames 101
+
+261011 00:52:42[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=885e646e8e264314a6f3b894033e56c9 chat=cht_01M4M6Z637YEBWG0CTNA6HNYG9 routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=806 tts_first_audio_ms=17 total_ms=834 answer_audio_ms=834 reply_end_ms=1390
+PASS switch 3: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M6Z637YEBWG0CTNA6HNYG9 accepted in ['cht_01M4M6Z637YEBWG0CTNA6HNYG9']
+1791679979.673 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 9, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M726NMVFYJG08KRB4YG9NN"}
+1791679979.703 agent receipt: switch_chat seq=9 card=None result=accepted
+1791679979.704 poll 200 speak=False urgent=False items=1 bytes=881 header=1791679956587
+1791679979.704 agent: chats seq=1791679979752 current=cht_01M4M726NMVFYJG08KRB4YG9NN n=5 bytes=562 result=applied via=poll
+1791679979.705 device event sent (own session)
+1791679979.705 agent ack received: switch_chat seq 9 (attempt 1)
+PASS switch 4: receipt accepted, list current = target: target=cht_01M4M726NMVFYJG08KRB4YG9NN result=accepted 51 ms
+1791679984.269 poll 200 speak=False urgent=False items=1 bytes=877 header=1791679979752
+1791679984.269 agent: chats seq=1791679984323 current=cht_01M4M726NMVFYJG08KRB4YG9NN n=5 bytes=558 result=applied via=poll
+## round 9: Follow-up 4: what were we talking about?
+01:53:00 hello 90af1ae3-3fa0-4dd0-ba93-7137633e6e3b
+01:53:00 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:53:00 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+01:53:01 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+01:53:01 sending reply clip 26 frames
+01:53:03 << {"type": "stt", "text": "Follow-up 4: what were we talking about?"} (audio frames so far 10)
+01:53:03 << {"type": "tts", "state": "start"} (audio frames so far 10)
+01:53:04 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+01:53:04 << {"type": "tts", "state": "sentence_start", "text": "We've just started on engines"} (audio frames so far 10)
+01:53:06 << {"type": "tts", "state": "sentence_start", "text": "I asked whether you wanted car, jet, steam, or electric, and I'm still waiting for your pick"} (audio frames so far 39)
+01:53:10 << {"type": "tts", "state": "stop"} (audio frames so far 106)
+01:53:18 session ended: server closed audio frames 106
+
+261011 00:53:10[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=964389e46215475b9c1e26e751c1c164 chat=cht_01M4M726NMVFYJG08KRB4YG9NN routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=661 tts_first_audio_ms=24 total_ms=1242 answer_audio_ms=1242 reply_end_ms=1233
+PASS switch 4: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M726NMVFYJG08KRB4YG9NN accepted in ['cht_01M4M726NMVFYJG08KRB4YG9NN']
+1791680007.947 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 10, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M70PFW1DMB2F2WQT86XEDX"}
+1791680007.976 agent receipt: switch_chat seq=10 card=None result=accepted
+1791680007.980 poll 200 speak=False urgent=False items=1 bytes=879 header=1791679984323
+1791680007.980 agent: chats seq=1791680008033 current=cht_01M4M70PFW1DMB2F2WQT86XEDX n=5 bytes=560 result=applied via=poll
+1791680007.980 device event sent (own session)
+1791680007.980 agent ack received: switch_chat seq 10 (attempt 1)
+PASS switch 5: receipt accepted, list current = target: target=cht_01M4M70PFW1DMB2F2WQT86XEDX result=accepted 52 ms
+1791680012.552 poll 200 speak=False urgent=False items=1 bytes=875 header=1791680008033
+1791680012.552 agent: chats seq=1791680012605 current=cht_01M4M70PFW1DMB2F2WQT86XEDX n=5 bytes=556 result=applied via=poll
+## round 10: Follow-up 5: what were we talking about?
+01:53:28 hello eba4b848-d2b4-4f1c-a56a-54d45b1b2535
+01:53:28 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:53:29 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+01:53:29 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+01:53:30 sending reply clip 26 frames
+01:53:32 << {"type": "stt", "text": "Follow-up 5: what were we talking about?"} (audio frames so far 10)
+01:53:32 << {"type": "tts", "state": "start"} (audio frames so far 10)
+01:53:32 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+01:53:33 << {"type": "tts", "state": "sentence_start", "text": "We were just getting started on castles"} (audio frames so far 10)
+01:53:35 << {"type": "tts", "state": "sentence_start", "text": "I'd asked whether you wanted history, famous ones to visit, or how they were built. Which sounds best?"} (audio frames so far 49)
+01:53:39 << {"type": "tts", "state": "sentence_start", "text": "I've nothing more to add yet"} (audio frames so far 116)
+01:53:41 << {"type": "tts", "state": "sentence_start", "text": "We were on castles, and I'm waiting to hear if you'd like history, places to visit, or how they were built"} (audio frames so far 144)
+01:53:45 << {"type": "tts", "state": "stop"} (audio frames so far 211)
+01:53:53 session ended: server closed audio frames 211
+
+261011 00:53:45[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=9471fb560e05404e929eb15af9d601ab chat=cht_01M4M70PFW1DMB2F2WQT86XEDX routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=689 tts_first_audio_ms=17 total_ms=1388 answer_audio_ms=1388 reply_end_ms=2507
+PASS switch 5: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M70PFW1DMB2F2WQT86XEDX accepted in ['cht_01M4M70PFW1DMB2F2WQT86XEDX']
+1791680042.759 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 11, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M6ZYCESWAXB5QWEB17XAMF"}
+1791680042.792 agent receipt: switch_chat seq=11 card=None result=accepted
+1791680042.794 device event sent (own session)
+1791680042.794 agent ack received: switch_chat seq 11 (attempt 1)
+1791680043.770 poll 200 speak=False urgent=False items=1 bytes=877 header=1791680012605
+1791680043.770 agent: chats seq=1791680042850 current=cht_01M4M6ZYCESWAXB5QWEB17XAMF n=5 bytes=558 result=applied via=poll
+PASS switch 6: receipt accepted, list current = target: target=cht_01M4M6ZYCESWAXB5QWEB17XAMF result=accepted 1046 ms
+## round 11: Follow-up 6: what were we talking about?
+01:54:04 hello 7f0c75e0-3037-4ad4-8fca-a0ed60c33ea5
+01:54:04 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:54:04 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+01:54:05 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+01:54:05 sending reply clip 26 frames
+01:54:07 << {"type": "stt", "text": "Follow-up 6: what were we talking about?"} (audio frames so far 10)
+01:54:07 << {"type": "tts", "state": "start"} (audio frames so far 10)
+01:54:08 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+01:54:08 << {"type": "tts", "state": "sentence_start", "text": "Still bicycles"} (audio frames so far 10)
+01:54:10 << {"type": "tts", "state": "sentence_start", "text": "You haven't told me yet whether it's riding, buying, or fixing, so just pick one and we'll dive in.Still bicycles"} (audio frames so far 24)
+01:54:14 << {"type": "tts", "state": "sentence_start", "text": "You haven't told me yet whether it's riding, buying, or fixing, so just pick one and we'll dive in"} (audio frames so far 91)
+01:54:18 << {"type": "tts", "state": "stop"} (audio frames so far 158)
+01:54:26 session ended: server closed audio frames 158
+
+261011 00:54:18[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=104360ccf01c4e05a692363c0a0ddca1 chat=cht_01M4M6ZYCESWAXB5QWEB17XAMF routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=712 tts_first_audio_ms=17 total_ms=740 answer_audio_ms=740 reply_end_ms=2267
+PASS switch 6: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M6ZYCESWAXB5QWEB17XAMF accepted in ['cht_01M4M6ZYCESWAXB5QWEB17XAMF']
+1791680075.563 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 12, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M726NMVFYJG08KRB4YG9NN"}
+1791680075.601 agent receipt: switch_chat seq=12 card=None result=accepted
+1791680075.603 device event sent (own session)
+1791680075.603 agent ack received: switch_chat seq 12 (attempt 1)
+1791680076.573 poll 200 speak=False urgent=False items=1 bytes=877 header=1791680042850
+1791680076.574 agent: chats seq=1791680075660 current=cht_01M4M726NMVFYJG08KRB4YG9NN n=5 bytes=558 result=applied via=poll
+PASS switch 7: receipt accepted, list current = target: target=cht_01M4M726NMVFYJG08KRB4YG9NN result=accepted 1051 ms
+## round 12: Follow-up 7: what were we talking about?
+01:54:36 hello 3700dda2-ea96-4c43-bb3d-a50f80e00348
+01:54:37 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:54:37 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+01:54:38 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+01:54:38 sending reply clip 26 frames
+01:54:40 << {"type": "stt", "text": "Follow-up 7: what were we talking about?"} (audio frames so far 10)
+01:54:40 << {"type": "tts", "state": "start"} (audio frames so far 10)
+01:54:41 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+01:54:41 << {"type": "tts", "state": "sentence_start", "text": "Still engines"} (audio frames so far 10)
+01:54:41 << {"type": "tts", "state": "sentence_start", "text": "You haven't picked a type yet, so tell me car, jet, steam or electric, and we'll dive in"} (audio frames so far 23)
+01:54:46 << {"type": "tts", "state": "stop"} (audio frames so far 90)
+01:54:54 session ended: server closed audio frames 90
+
+261011 00:54:46[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=877b1249ea434483b8b6ec4bcf7a0024 chat=cht_01M4M726NMVFYJG08KRB4YG9NN routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=819 tts_first_audio_ms=1 total_ms=839 answer_audio_ms=839 reply_end_ms=1265
+PASS switch 7: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M726NMVFYJG08KRB4YG9NN accepted in ['cht_01M4M726NMVFYJG08KRB4YG9NN']
+1791680103.491 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 13, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M6Z637YEBWG0CTNA6HNYG9"}
+1791680103.526 agent receipt: switch_chat seq=13 card=None result=accepted
+1791680103.529 device event sent (own session)
+1791680103.530 agent ack received: switch_chat seq 13 (attempt 1)
+1791680104.501 poll 200 speak=False urgent=False items=1 bytes=877 header=1791680075660
+1791680104.502 agent: chats seq=1791680103586 current=cht_01M4M6Z637YEBWG0CTNA6HNYG9 n=5 bytes=558 result=applied via=poll
+PASS switch 8: receipt accepted, list current = target: target=cht_01M4M6Z637YEBWG0CTNA6HNYG9 result=accepted 1046 ms
+## round 13: Follow-up 8: what were we talking about?
+01:55:04 hello 58fd6936-6f72-4c53-ab55-f93ffe4146f9
+01:55:05 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:55:05 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+01:55:06 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:55:06 sending reply clip 26 frames
+01:55:08 << {"type": "stt", "text": "Follow-up 8: what were we talking about?"} (audio frames so far 8)
+01:55:08 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:55:10 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:55:11 << {"type": "tts", "state": "sentence_start", "text": "Still apples"} (audio frames so far 8)
+01:55:11 << {"type": "tts", "state": "sentence_start", "text": "You haven't told me yet whether it's eating, growing or baking, so pick one and we'll dive in"} (audio frames so far 20)
+01:55:15 << {"type": "tts", "state": "stop"} (audio frames so far 87)
+01:55:23 session ended: server closed audio frames 87
+
+261011 00:55:16[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=9cea744dda0747c3a6c2a7042dc2ca68 chat=cht_01M4M6Z637YEBWG0CTNA6HNYG9 routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=1993 tts_first_audio_ms=3 total_ms=2712 answer_audio_ms=2712 reply_end_ms=2721
+PASS switch 8: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M6Z637YEBWG0CTNA6HNYG9 accepted in ['cht_01M4M6Z637YEBWG0CTNA6HNYG9']
+1791680132.984 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 14, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M71EC7AMGRW6GVR4F6JX4N"}
+1791680133.019 agent receipt: switch_chat seq=14 card=None result=accepted
+1791680133.021 device event sent (own session)
+1791680133.021 agent ack received: switch_chat seq 14 (attempt 1)
+1791680133.994 poll 200 speak=False urgent=False items=1 bytes=877 header=1791680103586
+1791680133.994 agent: chats seq=1791680133077 current=cht_01M4M71EC7AMGRW6GVR4F6JX4N n=5 bytes=558 result=applied via=poll
+PASS switch 9: receipt accepted, list current = target: target=cht_01M4M71EC7AMGRW6GVR4F6JX4N result=accepted 1055 ms
+## round 14: Follow-up 9: what were we talking about?
+01:55:34 hello 1472a017-cea8-4019-a2f2-d336fdeee309
+01:55:34 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:55:35 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+01:55:35 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:55:35 sending reply clip 26 frames
+01:55:37 << {"type": "stt", "text": "Follow-up 9: what were we talking about?"} (audio frames so far 8)
+01:55:37 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:55:38 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:55:39 << {"type": "tts", "state": "sentence_start", "text": "Still dolphins"} (audio frames so far 8)
+01:55:40 << {"type": "tts", "state": "sentence_start", "text": "and their signature whistles that work like names. Shall I share another dolphin fact?Still dolphins, and their signature whistles that work like names. Shall I share another dolphin fact?"} (audio frames so far 22)
+01:55:44 << {"type": "tts", "state": "stop"} (audio frames so far 89)
+01:55:52 session ended: server closed audio frames 89
+
+261011 00:55:44[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=18f13fac50a445fbba39aa8c3b3249cb chat=cht_01M4M71EC7AMGRW6GVR4F6JX4N routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=640 tts_first_audio_ms=3 total_ms=1335 answer_audio_ms=1335 reply_end_ms=2296
+PASS switch 9: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M71EC7AMGRW6GVR4F6JX4N accepted in ['cht_01M4M71EC7AMGRW6GVR4F6JX4N']
+1791680161.685 agent agent_response: {"v": 1, "boot": 1375487776, "seq": 15, "kind": "switch_chat", "via": "tap", "chat_id": "cht_01M4M70PFW1DMB2F2WQT86XEDX"}
+1791680161.710 agent receipt: switch_chat seq=15 card=None result=accepted
+1791680161.711 device event sent (own session)
+1791680161.712 agent ack received: switch_chat seq 15 (attempt 1)
+1791680162.692 poll 200 speak=False urgent=False items=1 bytes=877 header=1791680133077
+1791680162.692 agent: chats seq=1791680161767 current=cht_01M4M70PFW1DMB2F2WQT86XEDX n=5 bytes=558 result=applied via=poll
+PASS switch 10: receipt accepted, list current = target: target=cht_01M4M70PFW1DMB2F2WQT86XEDX result=accepted 1044 ms
+## round 15: Follow-up 10: what were we talking about?
+01:56:03 hello d0e64664-0439-4dcb-88fb-a63f640cc681
+01:56:03 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:56:03 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+01:56:04 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:56:04 sending reply clip 26 frames
+01:56:06 << {"type": "stt", "text": "Follow-up 10: what were we talking about?"} (audio frames so far 8)
+01:56:06 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:56:07 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:56:08 << {"type": "tts", "state": "sentence_start", "text": "Still castles"} (audio frames so far 8)
+01:56:08 << {"type": "tts", "state": "sentence_start", "text": "Pick one: history, famous ones to visit, or how they were built, and I'll dive in.Still castles"} (audio frames so far 21)
+01:56:12 << {"type": "tts", "state": "sentence_start", "text": "Pick one: history, famous ones to visit, or how they were built, and I'll dive in"} (audio frames so far 88)
+01:56:17 << {"type": "tts", "state": "stop"} (audio frames so far 155)
+01:56:25 session ended: server closed audio frames 155
+
+261011 00:56:17[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=8f3dc420ba0544008d60164401516efb chat=cht_01M4M70PFW1DMB2F2WQT86XEDX routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=669 tts_first_audio_ms=5 total_ms=1371 answer_audio_ms=1371 reply_end_ms=2156
+PASS switch 10: follow-up landed in the selected chat (turn_latency + chat_events): turn chat=cht_01M4M70PFW1DMB2F2WQT86XEDX accepted in ['cht_01M4M70PFW1DMB2F2WQT86XEDX']
+PASS 10 switches, every follow-up in the right chat: 10/10
+PASS agent-service back after the restart
+PASS chat index unchanged after the restart
+PASS current chat unchanged after the restart: current=cht_01M4M70PFW1DMB2F2WQT86XEDX
+PASS device list after the restart: same chats, same current: current=cht_01M4M70PFW1DMB2F2WQT86XEDX seq 1791680161767->1791680161767
+## round 16: After the restart: are you still there?
+01:56:41 hello 16021ea2-775c-4704-a0d5-38f7b7a63b74
+01:56:42 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:56:42 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+01:56:43 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+01:56:43 sending reply clip 26 frames
+01:56:45 << {"type": "stt", "text": "After the restart: are you still there?"} (audio frames so far 10)
+01:56:45 << {"type": "tts", "state": "start"} (audio frames so far 10)
+01:56:46 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+01:56:46 << {"type": "tts", "state": "sentence_start", "text": "Yes, I'm still here"} (audio frames so far 10)
+01:56:47 << {"type": "tts", "state": "sentence_start", "text": "We were chatting about castles, so tell me whether you'd like history, places to visit, or how they were built.Yes, I'm still here"} (audio frames so far 29)
+01:56:51 << {"type": "tts", "state": "sentence_start", "text": "We were chatting about castles, so tell me whether you'd like history, places to visit, or how they were built"} (audio frames so far 96)
+01:56:56 << {"type": "tts", "state": "stop"} (audio frames so far 163)
+01:57:04 session ended: server closed audio frames 163
+
+261011 00:56:56[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=6ffe6c8cbadb4c439c0b4d84a67c7af7 chat=cht_01M4M70PFW1DMB2F2WQT86XEDX routed=continue reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=1017 tts_first_audio_ms=8 total_ms=1222 answer_audio_ms=1222 reply_end_ms=2441
+PASS follow-up after the restart lands in the current chat: turn chat=cht_01M4M70PFW1DMB2F2WQT86XEDX accepted in ['cht_01M4M70PFW1DMB2F2WQT86XEDX']

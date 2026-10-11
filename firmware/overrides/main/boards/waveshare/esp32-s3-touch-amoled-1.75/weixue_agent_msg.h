@@ -10,12 +10,14 @@
 #include <string>
 #include <vector>
 
-// Agent wire contract v1.1 (docs/agent-protocol.md): parsing of server `agent` / `agent_sync` /
-// `agent_ack` payloads and building of device `agent_response` / `played` notifications. No
-// ESP-IDF types.
+// Agent wire contract v1.2 (docs/agent-protocol.md): parsing of server `agent` / `agent_sync` /
+// `agent_ack` / `agent_chats` payloads and building of device `agent_response` / `played`
+// notifications. No ESP-IDF types.
 namespace weixue_agent {
 
 constexpr int kVersion = 1;
+// features.agent in hello and X-Weixue-Agent-Feature on polls: this firmware applies agent_chats.
+constexpr int kFeatureLevel = 2;
 constexpr size_t kMaxFrameBytes = 2048;
 constexpr size_t kMaxNotificationBytes = 512;
 constexpr size_t kMaxIdChars = 36;
@@ -27,6 +29,7 @@ constexpr size_t kMaxOptions = 4;
 constexpr size_t kMaxLabelWidth = 12;
 constexpr size_t kMaxAnswerChars = 120;
 constexpr size_t kMaxSyncIds = 32;
+constexpr size_t kMaxChatEntries = 12;
 
 enum class State : uint8_t {
     kWorking,
@@ -98,6 +101,23 @@ struct Sync {
     std::vector<std::string> task_ids;
 };
 
+// Chat state in the agent service's chat index.
+enum class ChatState : uint8_t { kIdle, kWorking, kNeedsYou, kUnread, kFailed };
+
+struct ChatEntry {
+    std::string chat_id;
+    std::string title;  // "" = untitled
+    ChatState state = ChatState::kIdle;
+    int64_t age_s = 0;  // seconds since its last activity, at send time
+};
+
+// `agent_chats`: the chat list in display order and the current chat ("" = none).
+struct Chats {
+    int64_t seq = 0;
+    std::string current;
+    std::vector<ChatEntry> chats;
+};
+
 // The server's receipt of the device response (boot, seq).
 struct Receipt {
     uint32_t boot = 0;
@@ -111,10 +131,11 @@ struct Receipt {
 };
 
 struct Message {
-    enum class Kind : uint8_t { kItem, kSync, kReceipt } kind = Kind::kItem;
+    enum class Kind : uint8_t { kItem, kSync, kReceipt, kChats } kind = Kind::kItem;
     Item item;
     Sync sync;
     Receipt receipt;
+    Chats chats;
 };
 
 struct ParseResult {
@@ -197,6 +218,16 @@ inline bool ParseState(const char* s, State* out) {
     return false;
 }
 
+// Unknown states read as idle.
+inline ChatState ParseChatState(const char* s) {
+    if (s == nullptr) return ChatState::kIdle;
+    if (std::strcmp(s, "working") == 0) return ChatState::kWorking;
+    if (std::strcmp(s, "needs_you") == 0) return ChatState::kNeedsYou;
+    if (std::strcmp(s, "unread") == 0) return ChatState::kUnread;
+    if (std::strcmp(s, "failed") == 0) return ChatState::kFailed;
+    return ChatState::kIdle;
+}
+
 inline bool ParseTier(const char* s, Tier* out) {
     for (int i = 0; i <= static_cast<int>(Tier::kSilent); ++i) {
         if (std::strcmp(s, TierName(static_cast<Tier>(i))) == 0) {
@@ -222,11 +253,11 @@ inline std::string TruncateLabel(const std::string& s, size_t max_width = kMaxLa
                               [](uint32_t cp) { return cp >= 0x1100 ? size_t{3} : size_t{1}; });
 }
 
-// The payload is an agent message (kind `agent`, `agent_sync` or `agent_ack`).
+// The payload is an agent message (kind `agent`, `agent_sync`, `agent_ack` or `agent_chats`).
 inline bool IsAgentPayload(const cJSON* payload) {
     const char* kind = cJSON_IsObject(payload) ? detail::String(payload, "kind") : nullptr;
     return kind != nullptr && (std::strcmp(kind, "agent") == 0 || std::strcmp(kind, "agent_sync") == 0 ||
-                               std::strcmp(kind, "agent_ack") == 0);
+                               std::strcmp(kind, "agent_ack") == 0 || std::strcmp(kind, "agent_chats") == 0);
 }
 
 // Validates and normalises one payload. Unknown fields are ignored; an unknown kind or state,
@@ -302,6 +333,41 @@ inline ParseResult Parse(const cJSON* payload) {
                 return r;
             }
             m.sync.task_ids.emplace_back(id->valuestring);
+        }
+        r.message = std::move(m);
+        return r;
+    }
+    if (std::strcmp(kind, "agent_chats") == 0) {
+        m.kind = Message::Kind::kChats;
+        Chats& c = m.chats;
+        c.seq = seq;
+        if (const char* current = String(payload, "current")) {
+            if (!IsAsciiId(current, kMaxIdChars)) {
+                r.error = "bad current";
+                return r;
+            }
+            c.current = current;
+        }
+        const cJSON* chats = cJSON_GetObjectItemCaseSensitive(payload, "chats");
+        if (!cJSON_IsArray(chats)) {
+            r.error = "bad chats";
+            return r;
+        }
+        const cJSON* entry = nullptr;
+        cJSON_ArrayForEach(entry, chats) {
+            if (c.chats.size() >= kMaxChatEntries) break;
+            const char* id = cJSON_IsObject(entry) ? String(entry, "id") : nullptr;
+            if (id == nullptr || !IsAsciiId(id, kMaxIdChars)) {
+                r.error = "bad chat id";
+                return r;
+            }
+            ChatEntry e;
+            e.chat_id = id;
+            if (const char* title = String(entry, "title")) e.title = TruncateChars(title, kMaxTitleChars);
+            e.state = ParseChatState(String(entry, "state"));
+            int64_t age = 0;
+            if (Integer(cJSON_GetObjectItemCaseSensitive(entry, "age_s"), 0, kMaxSeq, &age)) e.age_s = age;
+            c.chats.push_back(std::move(e));
         }
         r.message = std::move(m);
         return r;

@@ -11,8 +11,9 @@ view (the gateway's deliveries view), ui (the device UI tour: three chats with t
 a countdown approval, a 3-option question, an irreversible approval, unread, failed and stopped
 results, --gap seconds apart; card-only), eight (8 full-size tasks at once, for the paged poll
 and the snapshot after a board reset), closing (an announcement and an approval with a loopback
-approve, so the approve meets the session the server closes after the announcement). Output is
-JSON lines; --log appends them to a file."""
+approve, so the approve meets the session the server closes after the announcement), chats (a raw
+v1.2 `agent_chats` list of five chats of the ui tour's prefix, current `home`; a v1.1 device drops
+it). Output is JSON lines; --log appends them to a file."""
 import argparse
 import json
 import os
@@ -264,6 +265,24 @@ def closing(fx, args):
     fx.report(records, args.wait, responses=1)
 
 
+def chats(fx, _args):
+    """Raw agent_chats for a v1.2 device: five chats, the ui tour's chat ids with the same --prefix."""
+    names = [("home", "Home lights", "needs_you", 40), ("kids", "Kids' homework", "unread", 900),
+             ("report", "Weekly report", "failed", 3 * 3600), ("trip", "周末去海边", "working", 86400),
+             ("new", None, "idle", 2 * 86400)]
+    entries = []
+    for name, title, state, age in names:
+        entry = {"id": f"c_{fx.prefix}_{name}", "state": state, "age_s": age}
+        if title:
+            entry["title"] = title
+        entries.append(entry)
+    payload = {"kind": "agent_chats", "v": 1, "seq": int(time.time() * 1000), "ts": int(time.time() * 1000),
+               "current": f"c_{fx.prefix}_home", "chats": entries}
+    fx.emit("expect", seq=payload["seq"], current=payload["current"], chats=len(entries),
+            bytes=len(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()))
+    fx.send([{"raw": payload}])
+
+
 def view(fx, _args):
     out = fx.view()
     fx.emit("view", device=out["devices"].get(fx.device), acks=out["acks"][-20:], responses=out["responses"][-10:],
@@ -271,7 +290,7 @@ def view(fx, _args):
 
 
 SCENARIOS = {f.__name__: f for f in (states, approval, clarify, unread, burst, seed, drop, busy, spoken, ui, eight,
-                                     closing, view)}
+                                     closing, chats, view)}
 
 
 def main(argv=None):

@@ -10,7 +10,8 @@
 #include "weixue_agent_msg.h"
 
 // Device-side agent task state (docs/agent-protocol.md): the latest item per task, at most
-// kMaxTasks, and the current task per chat. Main task only; no ESP-IDF types.
+// kMaxTasks, the current task per chat and the newest `agent_chats` list. Main task only; no
+// ESP-IDF types.
 namespace weixue_agent {
 
 // kFull: a new task while every slot holds an open card; the item is not applied.
@@ -107,6 +108,18 @@ public:
         return before - tasks_.size();
     }
 
+    // The newest chat list replaces the stored one; an equal seq is a duplicate, a lower one stale.
+    ApplyResult ApplyChats(const Chats& chats, int64_t now_ms) {
+        if (chats.seq <= 0) return ApplyResult::kInvalid;
+        if (has_chats_ && chats.seq == chats_.seq) return ApplyResult::kDuplicate;
+        if (has_chats_ && chats.seq < chats_.seq) return ApplyResult::kStale;
+        chats_ = chats;
+        chats_ms_ = now_ms;
+        has_chats_ = true;
+        max_seq_ = std::max(max_seq_, chats.seq);
+        return ApplyResult::kApplied;
+    }
+
     bool MarkSeen(const std::string& task_id) {
         Task* t = FindMutable(task_id);
         if (t == nullptr) return false;
@@ -150,6 +163,10 @@ public:
     // Syncs applied since boot, and the tasks the last one dropped.
     uint32_t syncs() const { return syncs_; }
     const std::vector<std::string>& synced_out() const { return synced_out_; }
+    // The chat list (has_chats: one arrived since boot) and the device time it was applied.
+    bool has_chats() const { return has_chats_; }
+    const Chats& chats() const { return chats_; }
+    int64_t chats_ms() const { return chats_ms_; }
 
 private:
     std::vector<Task> tasks_;
@@ -157,6 +174,9 @@ private:
     uint32_t syncs_ = 0;
     std::vector<std::pair<std::string, std::string>> current_;  // chat_id -> task_id
     int64_t max_seq_ = 0;
+    Chats chats_;
+    int64_t chats_ms_ = 0;
+    bool has_chats_ = false;
 
     Task* FindMutable(const std::string& task_id) {
         return const_cast<Task*>(static_cast<const Store*>(this)->Find(task_id));

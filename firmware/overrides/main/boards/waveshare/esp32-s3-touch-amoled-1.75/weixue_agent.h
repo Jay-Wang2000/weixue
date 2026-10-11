@@ -35,8 +35,8 @@ public:
     // Main task, once, after the audio service started.
     void Start();
 
-    // Network task: a `custom` payload of kind agent/agent_sync/agent_ack; frame_bytes is its JSON
-    // size.
+    // Network task: a `custom` payload of kind agent/agent_sync/agent_ack/agent_chats; frame_bytes
+    // is its JSON size.
     void OnFrame(const cJSON* payload, size_t frame_bytes);
     // Poll task: the `agent` array of a 200 poll body; returns once the main task applied it (at
     // most kPollApplyWaitMs). Returns the body's `speak` (true when absent).
