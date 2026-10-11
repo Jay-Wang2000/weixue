@@ -261,7 +261,7 @@ tasks:
     description: |
       按同一评审：F03(P1) 流式 STT 在部分终稿后出错且 chirp_3 回退也失败时，不得把半句当命令——要求完整缓冲回退成功，否则拒绝并请求重复；F04 决定回执——approve/deny/answer 的转发要持久化并重试，或等服务端确认后再回 accepted（503 不得变成 Approved）；F09 语音交接：durable handoff 先于播放，网关重启不丢 proactive 去重状态；F10 网关侧 ack 单调与单一重试归属；F11 网关重启后先从 /devices/{id}/snapshot 恢复镜像再发修剪 sync（不得清空设备上的卡片/未读）；F13 INTERRUPT 档位要真正打断当前播放并正确记账；F14 setup.sh 事务覆盖 endpoint 凭据/启动、render/build/validate 失败、DB 迁移路径的回滚；F15 固件在 poll→ProactiveInvoke 携带确切 message id + lease（feature level 2 强制），服务端不再接受裸 marker 的回退绑定。host + sim + 实机（静音）验证；release 构建回刷。
     depends_on: [feat-ui-sessions]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: feat-agent-service
