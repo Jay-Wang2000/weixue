@@ -252,7 +252,7 @@ tasks:
     description: |
       按 docs/reviews/codex-gpt6-astra-high-m2-review-2026-10-11.md：F01(P1) ha-mcp pending 归属不得凭「唯一匹配」认领——需要本次调用的证据（原请求返回的 token / 请求 id），否则只读、不可裁决、不参与启动对账；F02(P1) 8 s 前传输失败的 unknown 执行必须以结构化 disposition 进入 tool_calls 与任务结果（unknown 不是 failed/ok，不得被去重放行再次写入）；F05 wait 超时响应与批准竞态：无论哪个后到都要正确调度 replay；F06 device_action 等 setter 归为副作用，派发/结果持久化，取消/重启后的 transcript 修复不得写成 not run；F07 混合 client/server 工具轮不得删除有效的 server-tool 调用，取消 resumed pause_turn 的修复要处理 server tool；F08 数据路径脱敏——用户文本与工具结果在首次持久化/进模型前脱敏（注册密钥 + API-key 形态），monitor trace 端点不得返回原始事件；F12 notify_user 投递实现（kind notify 或映射到支持的表示，带 tier/TTL/ack）；F09/F10 服务侧：ack 状态机单调（played 后不可退回 handed_off），lease/attempt 贯穿，重试归属单一。host + sim 验证。
     depends_on: [feat-ui-sessions]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: fix-m2-review-gateway
