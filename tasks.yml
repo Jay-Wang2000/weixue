@@ -354,6 +354,24 @@ tasks:
     status: pending
     retries: 0
     model: sonnet
+  - id: spike-wake-molly
+    name: "Spike: can a stock WakeNet model wake on 'Hi Molly' until Espressif trains one?"
+    branch: spike/wake-molly
+    description: |
+      Jay 2026-10-11: the wake word changes from Jarvis to Molly. ESP-SR 2.4.7 has no Molly model; the closest stock English models are wn9_hijolly_tts2 ("Hi Jolly") and wn9_hijoy_tts / wn9_heyily_tts2. Measure on the board (diag build, device volume 0, Google TTS clips at Mac volume 35/55, Fenrir + one female voice): wake rate for "Hi Molly", "Hey Molly", "Molly" and the control phrase "Hi Jolly" (10 each per model) with wn9_hijolly_tts2 (and one more candidate if cheap), plus 10 min of silence/false wakes. Report table + recommendation; restore the Jarvis release build of main and release the lock. No wake-word change is merged by this spike.
+    depends_on: [feat-firmware-base]
+    status: in_progress
+    retries: 0
+    model: opus
+  - id: feat-persona-molly
+    name: "Rename the assistant to Molly (persona, server wake-word text, session clips, docs)"
+    branch: feat/persona-molly
+    description: |
+      Jay 2026-10-11: the assistant is Molly. Server side: system prompts (agent-service prompts/system.md, config.template.yaml), the gateway wake-word text list and the R2 wake-only / bare-wake-word matching (weixue_patches, google_stt_stream) must accept both the device's current model phrase and the new one from one WAKE_WORDS setting (default "Jarvis,Molly,Hi Molly,Hey Molly" until the firmware model changes), session driver clips say the wake phrase from one WAKE_PHRASE setting (default still "Jarvis" until the model changes), tests, docs/server.md, DESIGN.md ADR-6 note (model pending Espressif request, decision 65). No firmware change.
+    depends_on: [feat-llm-claude-agent]
+    status: in_progress
+    retries: 0
+    model: opus
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
