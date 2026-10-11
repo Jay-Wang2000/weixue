@@ -327,6 +327,15 @@ tasks:
     status: done
     retries: 0
     model: sonnet
+  - id: fix-session-sequencing
+    name: "Session driver: wait for idle before wake clips; earcons item on a real held action"
+    branch: fix/session-sequencing
+    description: |
+      Session 2026-10-11 09:52 (docs/logs/session-2026-10-11-0952.md): long_reply 0/1 because the wake clip played at the exact moment the previous follow-up window closed (listening -> idle at 10:02:35Z, `### say` same second), so WakeNet missed it; the driver must wait for the device to be idle (serial state or dump) plus a settle delay before any wake clip, for every voice item. earcons 0/1: the fixture's fake task is rejected by the agent service (`service=rejected result=stale`) so the `approved` earcon never fires; the item must use a real task — when VOICE_LLM=claude_agent is live, drive a held HA action through the agent (decision 57 tool) and approve it by tap; otherwise report the item as `skipped: needs claude_agent` with the reason instead of FAIL. Unit tests with fixtures; board run --count 3 on long_reply and wake_cue.
+    depends_on: [fix-session-driver-judging]
+    status: in_progress
+    retries: 0
+    model: opus
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
