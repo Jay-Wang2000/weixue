@@ -279,7 +279,7 @@ tasks:
     description: |
       决定 53：删除 loopback 构建中服务端脚本化的 debug_reply 自动应答（固件 weixue_agent.cc、服务端 fixture 的 debug_reply 字段与网关 replied 标记），fixture 的 card 场景改为由 scripts/audio_session.py 经 diag 串口 `diag tap` 点击卡片；文档与协议说明同步；release 与 diag 构建都不含服务端→卡片应答路径（host 测试断言）。
     depends_on: [fix-device-tool-exposure]
-    status: pending
+    status: done
     retries: 0
     model: opus
   - id: feat-monitor-home-snapshot
