@@ -18,6 +18,7 @@ TOOLS_LIST_TIMEOUT_S = 20
 PING_TIMEOUT_S = 10
 TERMINATE_TIMEOUT_S = 5
 POLICY_TIMEOUT_S = 15
+DEFAULT_TIMEOUT_S = 120
 PROTOCOL_VERSION = "2025-06-18"
 CLIENT_INFO = {"name": "weixue-agent", "version": "1"}
 # Whole-exchange bounds, headers through the last body byte; a tool call passes its own.
@@ -74,9 +75,10 @@ def session_label(session_id: Optional[str]) -> str:
 
 
 class HaMcpClient:
-    def __init__(self, url: str, transport: Optional[httpx.AsyncBaseTransport] = None, timeout_s: float = 120):
+    def __init__(self, url: str, transport: Optional[httpx.AsyncBaseTransport] = None):
         self._url = url.rstrip("/")
-        self._client = httpx.AsyncClient(timeout=httpx.Timeout(timeout_s, connect=CONNECT_TIMEOUT_S), transport=transport)
+        self._client = httpx.AsyncClient(timeout=httpx.Timeout(DEFAULT_TIMEOUT_S, connect=CONNECT_TIMEOUT_S),
+                                         transport=transport)
         self._ids = itertools.count(1)
         self._protocol_version: Optional[str] = None
         self._session_id: Optional[str] = None
@@ -134,12 +136,13 @@ class HaMcpClient:
             pass
 
     async def send(self, message: Dict[str, Any], read_timeout_s: Optional[float] = None) -> Optional[Dict[str, Any]]:
-        """POST one message; the matching response for a request, None for a notification. The whole exchange
-        is bounded by read_timeout_s, else by METHOD_TIMEOUT_S for its method."""
+        """POST one message; the matching response for a request, None for a notification. The read timeout
+        and the whole exchange are bounded by read_timeout_s, else by METHOD_TIMEOUT_S for its method; connecting
+        by CONNECT_TIMEOUT_S."""
         method = message.get("method") if isinstance(message.get("method"), str) else ""
-        bound = read_timeout_s if read_timeout_s is not None else METHOD_TIMEOUT_S.get(method, 120)
+        bound = read_timeout_s if read_timeout_s is not None else METHOD_TIMEOUT_S.get(method, DEFAULT_TIMEOUT_S)
         try:
-            status, headers, body = await asyncio.wait_for(self._post(method, message), bound)
+            status, headers, body = await asyncio.wait_for(self._post(method, message, bound), bound)
         except asyncio.TimeoutError:
             raise HaMcpError("ReadTimeout") from None
         if status == 404 and self._session_id:
@@ -172,7 +175,7 @@ class HaMcpClient:
                 return candidate
         raise HaMcpError("no response for request id")
 
-    async def _post(self, method: str, message: Dict[str, Any]):
+    async def _post(self, method: str, message: Dict[str, Any], bound: float):
         headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
         if self._protocol_version:
             headers["MCP-Protocol-Version"] = self._protocol_version
@@ -182,7 +185,8 @@ class HaMcpClient:
         first: Optional[float] = None
         chunks: List[bytes] = []
         try:
-            request = self._client.build_request("POST", self._url, content=json.dumps(message), headers=headers)
+            request = self._client.build_request("POST", self._url, content=json.dumps(message), headers=headers,
+                                                 timeout=httpx.Timeout(bound, connect=CONNECT_TIMEOUT_S))
             resp = await self._client.send(request, stream=True)
             try:
                 async for chunk in resp.aiter_bytes():

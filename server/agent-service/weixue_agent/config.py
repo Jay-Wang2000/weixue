@@ -35,6 +35,8 @@ HA_TOOLS_RETRY_MIN_S = 5
 HA_TOOLS_RETRY_MAX_S = 300
 HA_UNKNOWN_FALLBACK_TTL_S = 3600
 HA_MCP_FALLBACK_WAIT_S = 180
+# ha-mcp tool-call read timeout; it must exceed the ha-mcp policy wait_seconds for a hold's token to arrive.
+HA_MCP_READ_TIMEOUT_S = 35
 HA_PING_MAX_AGE_S = 60
 EVENT_RETENTION_DAYS = 30
 IDEMPOTENCY_TTL_S = 24 * 3600
@@ -90,6 +92,7 @@ class Settings:
     probe_timeout_s: float = HEALTH_PROBE_TIMEOUT_S
     home_snapshot_s: float = HOME_SNAPSHOT_S
     home_entities: Tuple[str, ...] = ()
+    ha_mcp_read_timeout_s: float = HA_MCP_READ_TIMEOUT_S
 
     @property
     def e2e_guard(self) -> bool:
@@ -144,6 +147,12 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
         home_entities = parse_entity_list(env.get("AGENT_HOME_ENTITIES", ""))
     except ValueError as e:
         raise ConfigError(str(e)) from None
+    try:
+        read_timeout_s = float(env.get("HA_MCP_READ_TIMEOUT_S", "") or HA_MCP_READ_TIMEOUT_S)
+    except ValueError:
+        raise ConfigError("HA_MCP_READ_TIMEOUT_S must be a number") from None
+    if read_timeout_s <= HA_CALL_BUDGET_S:
+        raise ConfigError(f"HA_MCP_READ_TIMEOUT_S must exceed the {HA_CALL_BUDGET_S} s call budget")
     data_dir = Path(env.get("AGENT_DATA_DIR", "/data"))
     return Settings(
         token=token,
@@ -161,6 +170,7 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
         probe_timeout_s=probe_timeout_s,
         home_snapshot_s=home_snapshot_s,
         home_entities=home_entities,
+        ha_mcp_read_timeout_s=read_timeout_s,
     )
 
 

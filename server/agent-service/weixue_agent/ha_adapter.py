@@ -226,6 +226,10 @@ class HaGateway:
             if changed and self.on_tools_changed:
                 self.on_tools_changed()
         self.last_ok = time.time()
+        if self.wait_seconds >= self.settings.ha_mcp_read_timeout_s:
+            jsonlog.log("ha-mcp read timeout does not outlast the policy wait", level="warning",
+                        event="ha_timeout_config", detail=(f"read_timeout_s={self.settings.ha_mcp_read_timeout_s:g} "
+                                                           f"wait_seconds={self.wait_seconds:g}"))
         timing = self.client.timings.get("tools/list")
         jsonlog.log("ha-mcp tools refreshed", event="ha_tools", outcome=str(len(self.tools)),
                     detail=(f"tools={len(self.tools)} bytes={timing.size if timing else -1} "
@@ -425,7 +429,7 @@ class HaGateway:
 
     async def _send(self, approval_id: str, tool: str, args: Dict[str, Any], started: float) -> CallToolResult:
         try:
-            result = await self.client.call_tool(tool, args, read_timeout_s=self.wait_seconds + 20)
+            result = await self.client.call_tool(tool, args, self.settings.ha_mcp_read_timeout_s)
         except HaMcpError as e:
             name = str(e)
             state = "not_sent" if name in NOT_SENT_ERRORS or name == SESSION_EXPIRED else "unknown"
@@ -581,7 +585,7 @@ class HaGateway:
         started = time.monotonic()
         args = loads(row["args_json"], {})
         try:
-            result = await self.client.call_tool(row["tool"], args, read_timeout_s=self.wait_seconds + 20)
+            result = await self.client.call_tool(row["tool"], args, self.settings.ha_mcp_read_timeout_s)
         except HaMcpError as e:
             self._finish(approval_id, "unknown", f"replay result unknown ({e})", started)
             return

@@ -232,6 +232,8 @@ Barge-in rounds (no credentials): `server/sim/barge_scenarios.sh [TRANSCRIPT]` r
 
 Gateway recovery rounds (no Docker): `server/sim/scratch_agent_service.py` runs agent-service on a temporary database with the scripted model and fake ha-mcp of `server/agent-service/tests`, a 3 s offer lease and fault injection (`POST /sim/faults`: the next n requests to a path answer a status, optionally after being handled), started with the agent-service test venv; `server/sim/gateway_recovery_sim.py` (server test venv) runs the real gateway and proactive queue against it over HTTP with simulated device sessions: card answers under 503 and a lost reply, speech hand-off with failed `accepted` posts, a delivery that fails before audio and is offered again, a gateway restart restoring the device snapshot, and INTERRUPT during a voice turn and over a WHEN_IDLE announcement. Both take `SIM_TOKEN`; usage in their docstrings.
 
+Held-call round (no Docker): `server/sim/held_call_sim.py` runs agent-service as `service.py` builds it against the fake ha-mcp over real TCP holding `wait_seconds=20`, and prints when the held call answers pending, when its card becomes approvable and the replay outcome (`docs/logs/fix-hamcp-client-timeout-sim-2026-10-11.log`).
+
 ## LLM: Anthropic Claude (`LLM.AnthropicLLM`, `type: anthropic`)
 
 `server/overlay/core/providers/llm/anthropic/anthropic.py` streams with `client.messages.stream`, maps the server's OpenAI-style function list to `tools`/`input_schema`, and converts the dialogue history to `tool_use`/`tool_result` blocks (results are placed directly after their call; dangling calls get an `is_error` result; results with no matching call are dropped). Thinking blocks are never replayed.
@@ -285,7 +287,7 @@ Optional web console (MySQL + Redis + manager-web, port 8002): set `MYSQL_ROOT_P
 
 ## Agent service
 
-Compose service `agent-service` (`docs/agent-service.md`): no host port; the server container reaches it at `AGENT_SERVICE_URL` (`http://agent-service:8010`, or `http://wg:8010` while `WG_TUNNEL=1`, where it shares the tunnel namespace like `mcp-bridge`) with the bearer `AGENT_SERVICE_TOKEN`, and the agent gateway (`docs/agent-protocol.md`) consumes its outbox for every device with an agent session. Its environment holds `ANTHROPIC_API_KEY`, `HA_MCP_URL`, `AGENT_SERVICE_TOKEN`, `MONITOR_TOKEN`, `AGENT_DB`, the ha-mcp probe cadence and `TZ`; data lives in `data/agent-service/` (database in `db/`).
+Compose service `agent-service` (`docs/agent-service.md`): no host port; the server container reaches it at `AGENT_SERVICE_URL` (`http://agent-service:8010`, or `http://wg:8010` while `WG_TUNNEL=1`, where it shares the tunnel namespace like `mcp-bridge`) with the bearer `AGENT_SERVICE_TOKEN`, and the agent gateway (`docs/agent-protocol.md`) consumes its outbox for every device with an agent session. Its environment holds `ANTHROPIC_API_KEY`, `HA_MCP_URL`, `AGENT_SERVICE_TOKEN`, `MONITOR_TOKEN`, `AGENT_DB`, the ha-mcp probe cadence, the ha-mcp tool-call read timeout `HA_MCP_READ_TIMEOUT_S` (default 35 s; it must outlast the ha-mcp policy `wait_seconds`, see `docs/agent-service.md`) and `TZ`; data lives in `data/agent-service/` (database in `db/`).
 
 ## Agent monitor
 

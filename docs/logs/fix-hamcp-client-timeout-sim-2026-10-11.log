@@ -1,0 +1,31 @@
+# fix-hamcp-client-timeout sim proof, 2026-10-11
+# server/sim/held_call_sim.py: agent-service built as service.py builds it (HaMcpClient from settings), scripted model, fake ha-mcp (tests/fake_hamcp.py) over real TCP on 127.0.0.1 with wait_seconds=20; the held ha_call_service is approved through POST /v1/chats/{id}/approve once its card is actionable. No live service or Home Assistant involved.
+
+## main 1af430f (HaMcpClient timeout_s=15)
+t=  0.05s service up wait_seconds=20.0 read_timeout_s=n/a (main)
+t=  6.10s reply stream closed status=200
+t=  6.10s approval state=in_flight token_source=None card=None voice_can_approve=None
+{"ts": "2026-10-11T12:33:55.431Z", "level": "info", "msg": "ha call pending", "task_id": "tsk_01M4NF8YA6T9XKPXKNPA5ECQZH", "chat_id": "cht_01M4NF8YA6MMS34GY4KG9BC37V", "tool": "ha_call_service", "event": "approval_pending", "detail": "apr_01M4NF8YD55FPTHJHT0JH9CPKK", "latency_ms": 8002}
+t=  8.10s model got tool result text="PENDING_APPROVAL id=apr_01M4NF8YD55FPTHJHT0JH9CPKK: Home Ass"
+t=  8.14s approval state=pending token_source=None card=uncorrelated voice_can_approve=0
+{"ts": "2026-10-11T12:34:02.433Z", "level": "info", "msg": "ha call finished", "tool": "ha_call_service", "outcome": "unknown", "task_id": "tsk_01M4NF8YA6T9XKPXKNPA5ECQZH", "chat_id": "cht_01M4NF8YA6MMS34GY4KG9BC37V", "latency_ms": 15003, "detail": "apr_01M4NF8YD55FPTHJHT0JH9CPKK", "event": "ha_call"}
+t= 15.10s model got follow-up text="[event approval apr_01M4NF8YD55FPTHJHT0JH9CPKK] ha_call_service switch.turn_on switch.work"
+t= 15.18s approval state=unknown token_source=None card=expired voice_can_approve=0
+t= 15.18s terminal state=unknown result="result unknown (ReadTimeout)"
+t= 16.18s fake ha-mcp calls=1 executed=0 decisions=[]
+
+## fix/hamcp-client-timeout (HA_MCP_READ_TIMEOUT_S default 35)
+t=  0.05s service up wait_seconds=20.0 read_timeout_s=35.0
+t=  6.10s reply stream closed status=200
+t=  6.10s approval state=in_flight token_source=None card=None voice_can_approve=None
+{"ts": "2026-10-11T12:34:12.813Z", "level": "info", "msg": "ha call pending", "task_id": "tsk_01M4NF9F9AKTPHJN3TAAGY0QBJ", "chat_id": "cht_01M4NF9F9A0BY6RWCVPCEMNY0E", "tool": "ha_call_service", "event": "approval_pending", "detail": "apr_01M4NF9FCCB7J27TRMSJHA5V7D", "latency_ms": 8001}
+t=  8.10s model got tool result text="PENDING_APPROVAL id=apr_01M4NF9FCCB7J27TRMSJHA5V7D: Home Ass"
+t=  8.15s approval state=pending token_source=None card=uncorrelated voice_can_approve=0
+t= 20.19s approval state=awaiting_decision_after_wait token_source=response card=pending voice_can_approve=1
+{"ts": "2026-10-11T12:34:24.906Z", "level": "info", "msg": "ha hold decided", "event": "approval_decision", "outcome": "approve", "detail": "apr_01M4NF9FCCB7J27TRMSJHA5V7D", "code": "panel"}
+t= 20.19s approve posted status=200
+{"ts": "2026-10-11T12:34:24.908Z", "level": "info", "msg": "ha call finished", "tool": "ha_call_service", "outcome": "executed", "task_id": "tsk_01M4NF9F9AKTPHJN3TAAGY0QBJ", "chat_id": "cht_01M4NF9F9A0BY6RWCVPCEMNY0E", "latency_ms": 1, "detail": "apr_01M4NF9FCCB7J27TRMSJHA5V7D", "event": "ha_call"}
+t= 20.20s model got follow-up text="[event approval apr_01M4NF9FCCB7J27TRMSJHA5V7D] ha_call_service switch.turn_on switch.work"
+t= 20.29s approval state=executed token_source=response card=approved voice_can_approve=1
+t= 20.29s terminal state=executed result="{\"success\": true, \"tool\": \"ha_call_service\"}"
+t= 21.30s fake ha-mcp calls=2 executed=1 decisions=["approved"]

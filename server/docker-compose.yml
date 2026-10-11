@@ -90,6 +90,7 @@ services:
       - AGENT_HA_PROBE_TIMEOUT_S=${AGENT_HA_PROBE_TIMEOUT_S:-5}
       - AGENT_HOME_SNAPSHOT_S=${AGENT_HOME_SNAPSHOT_S:-300}
       - AGENT_HOME_ENTITIES=${AGENT_HOME_ENTITIES:-}
+      - HA_MCP_READ_TIMEOUT_S=${HA_MCP_READ_TIMEOUT_S:-}
       - TZ=${TZ:-UTC}
     volumes:
       - ./data/agent-service:/data
