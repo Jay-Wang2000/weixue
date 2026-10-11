@@ -62,7 +62,8 @@
         "resolved",
         "done",
         "failed",
-        "cancelled"
+        "cancelled",
+        "device_action"
       ]
     },
     "data": {

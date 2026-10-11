@@ -150,7 +150,8 @@ class FixtureSink:
 
 
 class ServiceSink(FixtureSink):
-    """FixtureSink plus the agent-service routes: POST /v1/deliveries/{id}/ack and the chat routes."""
+    """FixtureSink plus the agent-service routes: POST /v1/deliveries/{id}/ack and the chat routes.
+    A device's switch_chat / new_chat post in flight is pending_switch(device) until it returns."""
 
     def __init__(self, logger, base_url, token, session_factory=None, wall=time.time):
         super().__init__(logger, wall)
@@ -158,6 +159,19 @@ class ServiceSink(FixtureSink):
         self.token = token
         self._session_factory = session_factory
         self._session = None
+        self.switches = {}
+
+    def pending_switch(self, device):
+        return self.switches.get(device)
+
+    async def _switch(self, device, done, post):
+        try:
+            return await post
+        finally:
+            if not done.done():
+                done.set_result(None)
+            if self.switches.get(device) is done:
+                del self.switches[device]
 
     def _http(self):
         if self._session is None:
@@ -211,7 +225,16 @@ class ServiceSink(FixtureSink):
         if route is not None:
             _method, path, body = route
             headers = {"Idempotency-Key": wire.decision_id(device, response["boot"], response["seq"])}
-            self._spawn(self._post(path, body, headers))
+            post = self._post(path, body, headers)
+            if response["kind"] in ("switch_chat", "new_chat"):
+                try:
+                    done = asyncio.get_running_loop().create_future()
+                except RuntimeError:
+                    done = None
+                if done is not None:
+                    self.switches[device] = done
+                    post = self._switch(device, done, post)
+            self._spawn(post)
 
 
 class AgentGateway:

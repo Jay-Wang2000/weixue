@@ -225,7 +225,12 @@ def stub_playback_modules(monkeypatch, http_server):
     async def start_to_chat(_conn, _text):
         return "upstream"
 
+    class ASRProviderBase:
+        async def handle_voice_stop(self, conn, asr_audio_task):
+            return None
+
     asr_base.startToChat = start_to_chat
+    asr_base.ASRProviderBase = ASRProviderBase
     for module in (tts_base, asr_base):
         monkeypatch.setitem(sys.modules, module.__name__, module)
     return tts_base, asr_base, SimpleHttpServer

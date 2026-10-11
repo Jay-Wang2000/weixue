@@ -1,0 +1,111 @@
+# feat-llm-claude-agent sim rounds, 2026-10-11, after the rebase onto main bf52178 (server/sim/agent_scenarios.sh; scripted ASR, tone TTS, no audio played)
+# live = the deployed agent-service (main); branch = this branch's agent-service (no HA URL); chats persist across runs
+
+===== ./agent_scenarios.sh live
+## time: What time is it?
+-- sim device
+01:07:54 hello 4984eb3e-e94a-4424-b1dc-8dae3c301460
+01:07:55 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:07:55 << {"type": "tts", "state": "sentence_start", "text": "Hmm?"} (audio frames so far 0)
+01:07:55 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:07:56 sending reply clip 26 frames
+01:07:58 << {"type": "stt", "text": "What time is it?"} (audio frames so far 8)
+01:07:58 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:07:58 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:07:59 << {"type": "tts", "state": "sentence_start", "text": "It's 1:07 AM on Sunday"} (audio frames so far 8)
+01:08:00 << {"type": "tts", "state": "stop"} (audio frames so far 30)
+01:08:08 session ended: server closed audio frames 30
+-- server log
+261011 00:07:58[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: What time is it?
+261011 00:07:58[0.9.7_SiSiClGononoCh][core.connection]-INFO-大模型收到用户消息: What time is it?
+261011 00:07:59[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.022s: It's 1:07 AM on Sunday
+261011 00:08:00[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=8d6c5a147e6444afbef902b927a80cbe chat=cht_01M4M3R0AJDHF2X73KNNJP77M9 routed=new_task reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=757 tts_first_audio_ms=6 total_ms=1246 answer_audio_ms=1246 reply_end_ms=1241
+
+===== ./agent_scenarios.sh branch
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## time: What time is it?
+-- sim device
+01:06:49 hello f1e489d3-8bb3-4017-9c73-7f8709046bed
+01:06:50 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:06:50 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+01:06:50 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:06:51 sending reply clip 26 frames
+01:06:53 << {"type": "stt", "text": "What time is it?"} (audio frames so far 8)
+01:06:53 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:06:54 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 8)
+01:06:54 << {"type": "tts", "state": "sentence_start", "text": "It's 1:06 AM"} (audio frames so far 8)
+01:06:55 << {"type": "tts", "state": "stop"} (audio frames so far 20)
+01:07:03 session ended: server closed audio frames 20
+-- server log
+261011 00:06:53[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: What time is it?
+261011 00:06:53[0.9.7_SiSiClGononoCh][core.connection]-INFO-大模型收到用户消息: What time is it?
+261011 00:06:54[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.012s: It's 1:06 AM
+261011 00:06:55[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=2b05f836e5fb4e229584d7f2e0110402 chat=cht_01M4M3V9M19T9B9KAFZ932NPC6 routed=new_task reply_end=turn_done stt_final_latency_ms=- service_first_text_ms=1316 tts_first_audio_ms=8 total_ms=1354 answer_audio_ms=1354 reply_end_ms=1332
+## bedside: Set bedside mode.
+-- sim device
+01:07:04 hello d48ce12b-28fd-4078-885f-eb5ce89a1d0a
+01:07:05 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:07:05 << {"type": "tts", "state": "sentence_start", "text": "Yes?"} (audio frames so far 0)
+01:07:06 << {"type": "tts", "state": "stop"} (audio frames so far 10)
+01:07:06 sending reply clip 26 frames
+01:07:08 << {"type": "stt", "text": "Set bedside mode"} (audio frames so far 10)
+01:07:08 << {"type": "tts", "state": "start"} (audio frames so far 10)
+01:07:11 mcp call self.screen.set_bedside {"mode": "night"}
+01:07:11 mcp call self.get_device_status {}
+01:07:12 << {"type": "llm", "text": "🙂", "emotion": "happy"} (audio frames so far 10)
+01:07:12 << {"type": "tts", "state": "sentence_start", "text": "Bedside mode is set again"} (audio frames so far 10)
+01:07:15 << {"type": "tts", "state": "sentence_start", "text": "but the device says the clock isn't showing on screen yet. Is it still not appearing for you?"} (audio frames so far 35)
+01:07:19 << {"type": "tts", "state": "sentence_start", "text": "Bedside mode is set again, but the device reports the clock isn't showing on screen yet. Is it still not appearing for you?"} (audio frames so far 102)
+01:07:24 << {"type": "tts", "state": "stop"} (audio frames so far 169)
+01:07:32 session ended: server closed audio frames 169
+-- server log
+261011 00:07:08[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Set bedside mode.
+261011 00:07:08[0.9.7_SiSiClGononoCh][core.connection]-INFO-大模型收到用户消息: Set bedside mode.
+261011 00:07:11[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-device_action self.screen.set_bedside ok=True action=dac_01M4M4HW2QYBKWXF98D79RAPE8 trace=e557f4d2af9846f6be5640a216a67aa7
+261011 00:07:11[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-device_action self.get_device_status ok=True action=dac_01M4M4HW3D2ZAMT2ECNTZ122PP trace=e557f4d2af9846f6be5640a216a67aa7
+261011 00:07:12[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.023s: Bedside mode is set again
+261011 00:07:15[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.049s: but the device says the clock isn't showing on screen yet. Is it still not appearing for you?
+261011 00:07:15[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.029s: Bedside mode is set again, but the device reports the clock isn't showing on screen yet. Is it still not appearing for you?
+261011 00:07:24[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=e557f4d2af9846f6be5640a216a67aa7 chat=cht_01M4M3V9M19T9B9KAFZ932NPC6 routed=new_task reply_end=question stt_final_latency_ms=- service_first_text_ms=3997 tts_first_audio_ms=11 total_ms=4030 answer_audio_ms=4030 reply_end_ms=7212
+weixue-agent-sim-service
+## down: Are you there?
+-- sim device
+01:07:34 hello d550b16f-01f6-4c5e-97be-931e6a5fd92f
+01:07:35 << {"type": "tts", "state": "start"} (audio frames so far 0)
+01:07:35 << {"type": "tts", "state": "sentence_start", "text": "Mm-hm?"} (audio frames so far 0)
+01:07:35 << {"type": "tts", "state": "stop"} (audio frames so far 8)
+01:07:36 sending reply clip 26 frames
+01:07:38 << {"type": "stt", "text": "Are you there?"} (audio frames so far 8)
+01:07:38 << {"type": "tts", "state": "start"} (audio frames so far 8)
+01:07:38 << {"type": "tts", "state": "sentence_start", "text": "I can't reach my assistant right now"} (audio frames so far 8)
+01:07:40 << {"type": "tts", "state": "stop"} (audio frames so far 44)
+01:07:48 session ended: server closed audio frames 44
+-- server log
+261011 00:07:38[0.9.7_00000000000000][core.providers.asr.base]-INFO-识别文本: Are you there?
+261011 00:07:38[0.9.7_SiSiClGononoCh][core.connection]-INFO-大模型收到用户消息: Are you there?
+261011 00:07:38[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-WARNING-claude_agent retry (connect ClientConnectorDNSError) trace=dbe9f53eca9b41db88fb81efabb1b921
+261011 00:07:38[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-WARNING-claude_agent turn failed (connect ClientConnectorDNSError) trace=dbe9f53eca9b41db88fb81efabb1b921 spoken=False
+261011 00:07:38[0.9.7_00000000000000][core.providers.tts.google_tts]-INFO-Google TTS first audio after 0.018s: I can't reach my assistant right now
+261011 00:07:40[0.9.7_00000000000000][core.providers.llm.claude_agent.claude_agent]-INFO-turn_latency trace=dbe9f53eca9b41db88fb81efabb1b921 chat=- routed=- reply_end=fallback stt_final_latency_ms=- service_first_text_ms=- tts_first_audio_ms=2 total_ms=383 answer_audio_ms=383 reply_end_ms=-
+
+===== gate output
+live:   5 passed, 0 failed (provider reached, turn_latency at turn_done, service/TTS/total timings, captioned reply, no fallback)
+branch: 11 passed, 0 failed (time x5; bedside: device_action -> sim device MCP tools/call self.screen.set_bedside {"mode": "night"},
+        gateway ack ok=True, no operator-only tool called, turn_latency; down: fallback line spoken, reply_end=fallback)

@@ -3,7 +3,11 @@ from typing import Any, Awaitable, Callable, Dict, List
 
 from anthropic.lib.tools import BetaAsyncFunctionTool, beta_async_tool
 
-NAMES = ("ask_user", "start_task", "set_chat_title", "notify_user", "set_result_tier", "awaiting_answer")
+NAMES = ("ask_user", "start_task", "set_chat_title", "notify_user", "set_result_tier", "awaiting_answer",
+         "device_action")
+# Agent-visible device MCP tools (DESIGN.md ADR-13); the gateway enforces the same list.
+DEVICE_TOOLS = ("self.get_device_status", "self.audio_speaker.set_volume", "self.screen.set_brightness",
+                "self.screen.set_theme", "self.screen.set_bedside", "self.imu.get_state")
 
 _SPECS: Dict[str, Dict[str, Any]] = {
     "ask_user": {
@@ -51,6 +55,20 @@ _SPECS: Dict[str, Dict[str, Any]] = {
         "input_schema": {
             "type": "object", "additionalProperties": False, "required": ["tier"],
             "properties": {"tier": {"enum": ["interrupt", "silent", "when_idle"]}},
+        },
+    },
+    "device_action": {
+        "description": ("Operate or read this voice device itself (not Home Assistant), only while the user is "
+                        "talking to you. Tools and args: self.get_device_status {} (volume, screen, battery, "
+                        "network); self.audio_speaker.set_volume {volume: 0-100}; self.screen.set_brightness "
+                        "{brightness: 0-100}; self.screen.set_theme {theme: light|dark}; self.screen.set_bedside "
+                        "{mode: night|day|auto|status, start?: HH:MM, end?: HH:MM} (night turns the bedside clock "
+                        "on, day turns it off); self.imu.get_state {} (face-down and gestures). The result is the "
+                        "device's answer."),
+        "input_schema": {
+            "type": "object", "additionalProperties": False, "required": ["tool"],
+            "properties": {"tool": {"enum": list(DEVICE_TOOLS)},
+                           "args": {"type": "object", "description": "Arguments of the device tool."}},
         },
     },
     "awaiting_answer": {

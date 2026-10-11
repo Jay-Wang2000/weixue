@@ -642,6 +642,42 @@ def test_gateway_forwards_session_events_to_the_sink():
     assert seen == [(DEVICE, "open", "s1"), (DEVICE, "close", "s1")]
 
 
+async def test_service_sink_keeps_a_switch_pending_until_its_post_returns():
+    release = asyncio.Event()
+    posts = []
+
+    class Resp:
+        status = 200
+
+        async def __aenter__(self):
+            await release.wait()
+            return self
+
+        async def __aexit__(self, *exc):
+            return False
+
+    class Session:
+        def __init__(self, headers=None):
+            self.headers = headers
+
+        def post(self, url, json=None, headers=None):
+            posts.append(url)
+            return Resp()
+
+    sink = wad.ServiceSink(wad.setup_logging(), "http://agent:8010", "tok", session_factory=Session)
+    assert sink.pending_switch(DEVICE) is None
+    sink.response(DEVICE, {"kind": "switch_chat", "boot": 1, "seq": 3, "chat_id": "cht_2", "via": "tap"})
+    pending = sink.pending_switch(DEVICE)
+    assert pending is not None and not pending.done()
+    await settle()
+    assert posts == ["http://agent:8010/v1/chats/cht_2/switch"] and not pending.done()
+    release.set()
+    await asyncio.wait_for(pending, 1)
+    assert sink.pending_switch(DEVICE) is None
+    sink.response(DEVICE, {"kind": "approve", "boot": 1, "seq": 4, "chat_id": "cht_2", "card_id": "int_1", "via": "tap"})
+    assert sink.pending_switch(DEVICE) is None
+
+
 def test_apply_installs_hooks_once(monkeypatch):
     import importlib
     import sys

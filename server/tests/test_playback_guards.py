@@ -450,6 +450,7 @@ async def test_apply_wraps_playback_hooks_once(monkeypatch):
     asr_base = sys.modules["core.providers.asr.base"]
     server = sys.modules["core.http_server"].SimpleHttpServer
     upstream_start, upstream_init = asr_base.startToChat, server.__init__
+    upstream_voice_stop = asr_base.ASRProviderBase.handle_voice_stop
     upstream_send, upstream_abort = send_audio._do_send_audio, sys.modules["core.handle.abortHandle"].handleAbortMessage
     proactive = wp.Proactive("t")
     monkeypatch.setattr(wp, "INSTANCE", proactive)
@@ -460,6 +461,7 @@ async def test_apply_wraps_playback_hooks_once(monkeypatch):
     assert send_audio.sendAudioMessage.weixue_playback and send_audio.sendAudioMessage.weixue_wrapped is None
     assert tts_base.sendAudioMessage.weixue_playback and tts_base.sendAudioMessage.weixue_wrapped is None
     assert asr_base.startToChat.weixue_wrapped is upstream_start
+    assert asr_base.ASRProviderBase.handle_voice_stop.weixue_wrapped is upstream_voice_stop
     assert server.__init__.weixue_wrapped is upstream_init
     assert send_audio._do_send_audio.weixue_wrapped is upstream_send
     for name in weixue_patches.ABORT_MODULES:

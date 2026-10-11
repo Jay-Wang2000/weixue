@@ -66,6 +66,12 @@ class Ack(Strict):
     device_seq: Optional[int] = Field(None, ge=0)
 
 
+class DeviceActionResult(Strict):
+    ok: bool
+    result: Optional[str] = Field(None, max_length=4000)
+    error: Optional[str] = Field(None, max_length=300)
+
+
 class DeviceRef(Strict):
     device_id: str = Field(min_length=1, max_length=64)
 
@@ -155,7 +161,7 @@ EVENT: Dict[str, Any] = {
         "turn_id": {"anyOf": [{"$ref": "defs.schema.json#/$defs/TurnId"}, {"type": "null"}]},
         "trace_id": {"$ref": "defs.schema.json#/$defs/TraceId"}, "ts": {"$ref": "defs.schema.json#/$defs/Time"},
         "type": {"enum": ["accepted", "started", "text", "reply_end", "progress", "interrupted", "needs_input",
-                          "needs_approval", "resolved", "done", "failed", "cancelled"]},
+                          "needs_approval", "resolved", "done", "failed", "cancelled", "device_action"]},
         "data": {"type": "object"},
     },
 }
@@ -203,7 +209,7 @@ REQUEST_MODELS = {
     "message.schema.json": MessageBody, "answer.schema.json": Answer, "approve.schema.json": Decide,
     "deny.schema.json": Decide, "interrupt.schema.json": Interrupt, "ack.schema.json": Ack,
     "chat-create.schema.json": ChatCreate, "device-ref.schema.json": DeviceRef,
-    "connection.schema.json": ConnectionEvent,
+    "connection.schema.json": ConnectionEvent, "device-action-result.schema.json": DeviceActionResult,
 }
 
 

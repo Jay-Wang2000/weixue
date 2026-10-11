@@ -248,6 +248,8 @@ class ASRProvider(google_stt.ASRProvider):
                 text, language = recognized
                 model = self.fallback_model
         latency_ms = round((time.monotonic() - stopped_at) * 1000)
+        if self._conn is not None:
+            self._conn.weixue_stt = {"at": time.monotonic(), "latency_ms": latency_ms, "language": language}
         shown = "-" if confidence is None else f"{confidence:.3f}"
         logger.bind(tag=TAG).info(
             f"stt_final_latency_ms={latency_ms} model={model} language={language} "

@@ -4,7 +4,7 @@ One asyncio process (`python -m weixue_agent`, uvicorn, one worker) that keeps o
 
 ## API
 
-Base `http://agent-service:8010/v1` (office mode `http://wg:8010`), bearer `AGENT_SERVICE_TOKEN` on every route but `GET /healthz`; `MONITOR_TOKEN` (agent-monitor) is accepted on `GET /v1/status` and `GET /v1/tasks/{id}/trace` only. Routes, bodies and events as in brief §5; the JSON Schemas are `server/agent-service/schemas/*.schema.json` (written by `python -m tools.export_schemas`, drift fails `test_schemas`). `POST /chats/{id}/messages` with `Accept: text/event-stream` streams the chat's events from `accepted` to this message's `reply_end`; only `text` events of this message's turn are on it. `GET /chats/{id}` adds `epoch`, `mode`, `task_model` and the roles and states of the current epoch's transcript rows (no content).
+Base `http://agent-service:8010/v1` (office mode `http://wg:8010`), bearer `AGENT_SERVICE_TOKEN` on every route but `GET /healthz`; `MONITOR_TOKEN` (agent-monitor) is accepted on `GET /v1/status` and `GET /v1/tasks/{id}/trace` only. Routes, bodies and events as in brief §5; the JSON Schemas are `server/agent-service/schemas/*.schema.json` (written by `python -m tools.export_schemas`, drift fails `test_schemas`). `POST /chats/{id}/messages` with `Accept: text/event-stream` streams the chat's events from `accepted` to this message's `reply_end`; only `text` events of this message's turn are on it. `GET /chats/{id}` adds `epoch`, `mode`, `task_model` and the roles and states of the current epoch's transcript rows (no content). A reply's first text delta is emitted at once; later deltas are coalesced per 150 ms or sentence end.
 
 ## Turn loop
 
@@ -18,6 +18,10 @@ Base `http://agent-service:8010/v1` (office mode `http://wg:8010`), bearer `AGEN
 | Memory | each turn's context note lists `path: first line` of each memory file; a quick turn that must save or read more calls `start_task` (finding A in the S1 log) |
 
 The transcript (`transcript` table, `transcript.py`) is append-only per epoch. Rows a request sent stay `tail` until its response completes; only that tail is rewritten, by merging the next turn's user content into it (cancel, barge-in, refused or failed requests). Every unanswered `tool_use` gets a `tool_result` in the next user message (`result unknown: …; do not repeat it` for a non-read-only HA call that was sent, else `not run: …`). Service notes go in one system message after the user's words. A compaction (`compact-2026-09-04`, scheduled when a turn's input exceeds 150k tokens) starts a new epoch with a fresh `chat_prompts` row; `system` and the ha-mcp tool list are frozen per epoch.
+
+## Device actions
+
+App tool `device_action {tool, args}` operates or reads the voice device itself. `tool` is one of the agent-visible device MCP tools (DESIGN.md ADR-13, `app_tools.DEVICE_TOOLS`): `self.get_device_status`, `self.audio_speaker.set_volume`, `self.screen.set_brightness`, `self.screen.set_theme`, `self.screen.set_bedside`, `self.imu.get_state`; any other name is answered "Unknown device tool" and nothing is emitted. With the turn's reply open, the call emits a `device_action` event `{action_id, tool, args}` on the message stream and waits up to 8 s (`DEVICE_ACTION_WAIT_S`) for the gateway's `POST /chats/{id}/device_actions/{action_id}` `{ok, result?, error?}` (404 for an unknown or answered action); the model gets the device's result, its error, or "outcome unknown" after the wait. Without an open reply (the user is not in a conversation) the call is refused. The gateway (`claude_agent` provider, `docs/server.md`) enforces the same list before the device MCP channel.
 
 ## Steer, cancel, barge-in
 

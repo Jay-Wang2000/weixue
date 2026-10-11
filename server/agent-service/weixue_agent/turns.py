@@ -19,7 +19,8 @@ from . import app_tools, jsonlog, models, routing, timeutil
 from .actor import ChatActor, Outcome
 from .chats import ChatIndex
 from .config import (
-    ACK_AFTER_S, ACTOR_IDLE_S, BARGE_IN_RESUME_S, CANCEL_MAX_S, DONE_SPEECH_TTL_S, IDEMPOTENCY_TTL_S,
+    ACK_AFTER_S, ACTOR_IDLE_S, BARGE_IN_RESUME_S, CANCEL_MAX_S, DEVICE_ACTION_WAIT_S, DEVICE_RESULT_MAX,
+    DONE_SPEECH_TTL_S, IDEMPOTENCY_TTL_S,
     MAX_OPEN_TASKS_PER_DEVICE, NOTIFY_TTL_S, PROGRESS_MIN_INTERVAL_S, QUEUE_WAIT_MS, REPLY_HOLD_S, STEER_WAIT_S,
     STREAMS_MAX, SUMMARY_MAX, TEXT_COALESCE_MS, TITLE_MAX, TURN_MAX_S, Settings,
 )
@@ -128,6 +129,7 @@ class Engine:
         self.last_api_error: Optional[str] = None
         self.last_api_error_at: float = 0.0
         self.last_model_ok: Optional[float] = None
+        self.device_actions: Dict[str, Tuple[asyncio.Future, str]] = {}
         ha.listener = self.interactions
         chats.in_flight = lambda chat_id: self.turn_in_flight(chat_id)
 
@@ -939,6 +941,8 @@ class Engine:
             if args.get("title"):
                 self.chats.set_title(chat_id, str(args["title"]))
             return "Title set."
+        if name == "device_action":
+            return await self._device_action(run, args)
         if name == "awaiting_answer":
             if run is not None:
                 run.awaiting_answer = True
@@ -961,6 +965,50 @@ class Engine:
                                 turn_id=run.turn_id if run else None, speak=text, lang=lang, ttl_s=NOTIFY_TTL_S)
             return "Queued for the device."
         return "Unknown tool."
+
+    async def _device_action(self, run: Optional[TurnRun], args: Dict[str, Any]) -> str:
+        """A device tool call: a `device_action` event on the turn's open reply stream; the gateway runs it on the
+        device and posts the result (device_action_result)."""
+        tool = str(args.get("tool") or "")
+        params = args.get("args") or {}
+        if tool not in app_tools.DEVICE_TOOLS:
+            return "Unknown device tool. Available: " + ", ".join(app_tools.DEVICE_TOOLS) + "."
+        if not isinstance(params, dict):
+            return "args must be an object."
+        if run is None or not self.reply_open(run):
+            return ("The device is not in a conversation right now, so device actions cannot run. "
+                    "Tell the user to ask again while talking to you.")
+        action_id = new_id("dac")
+        future = asyncio.get_running_loop().create_future()
+        self.device_actions[action_id] = (future, run.chat_id)
+        self.emit(run.chat_id, "device_action", {"action_id": action_id, "tool": tool, "args": params},
+                  run.trace_id, task_id=run.task_id, turn_id=run.turn_id)
+        self.log("device action", run, tool=tool, event="device_action", detail=action_id)
+        try:
+            result = await asyncio.wait_for(future, DEVICE_ACTION_WAIT_S)
+        except asyncio.TimeoutError:
+            self.log("device action timeout", run, level="warning", tool=tool, event="device_action",
+                     outcome="timeout", detail=action_id)
+            return "The device did not answer in time; the outcome is unknown. Do not repeat it."
+        finally:
+            self.device_actions.pop(action_id, None)
+        self.log("device action result", run, tool=tool, event="device_action",
+                 outcome="ok" if result["ok"] else "error", detail=action_id)
+        if result["ok"]:
+            return "Device result: " + (result.get("result") or "done")
+        return "The device reported an error: " + (result.get("error") or "unknown error")
+
+    def device_action_result(self, chat_id: str, action_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+        entry = self.device_actions.get(action_id)
+        if entry is None or entry[1] != chat_id:
+            raise ApiError(404, "not_found", "no device action is waiting for this result")
+        future = entry[0]
+        if future.done():
+            raise ApiError(409, "invalid_state", "this device action already has a result")
+        future.set_result({"ok": bool(body["ok"]),
+                           "result": jsonlog.truncate(body.get("result") or "", DEVICE_RESULT_MAX) or None,
+                           "error": body.get("error")})
+        return {"action_id": action_id, "chat_id": chat_id, "accepted": True}
 
     # ------------------------------------------------------------------ stopping a turn (steer, barge-in, cancel, timeout)
 

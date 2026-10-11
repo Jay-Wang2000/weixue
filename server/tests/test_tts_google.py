@@ -277,8 +277,8 @@ def test_split_request_short_text():
     assert _provider()._split_request("") == []
 
 
-def _segments(chunks):
-    p = _provider()
+def _segments(chunks, first_clause=False):
+    p = _provider(first_clause=first_clause)
     out = []
     for chunk in chunks:
         p.tts_text_buff.append(chunk)
@@ -315,6 +315,41 @@ def test_unpunctuated_stream_is_cut_at_a_word_within_the_bound():
     assert len(rest) < 250 and rest.endswith("tail")
     segments, rest = _segments(["长" * 251])
     assert segments == ["长" * 250] and rest == "长"
+
+
+@pytest.mark.parametrize(
+    "chunks, segments, rest",
+    [
+        (["On it."], ["On it"], ""),
+        (["On", " it", "."], ["On it"], ""),
+        (["Let me check", ". The kitchen", " light is on. Ok"], ["Let me check", "The kitchen light is on"], " Ok"),
+        (["Sure, it is ten past nine. And"], ["Sure, it is ten past nine"], " And"),
+        (["Yes, the light is on, and"], ["Yes, the light is on"], " and"),
+        (["Okay — done"], [], "Okay — done"),
+        (["Okay, I'll — done"], ["Okay, I'll —"], " done"),
+        (["Dr.", " Smith is in. Ok"], ["Dr. Smith is in"], " Ok"),
+        (["It is 3.", "5 degrees now, sir"], ["It is 3.5 degrees now"], " sir"),
+        (["It is 3. Then"], ["It is 3"], " Then"),
+        (["Meet at 9 a.m. tomorrow"], [], "Meet at 9 a.m. tomorrow"),
+        (["one two three four five six seven", " eight nine"], ["one two three four five six seven eight"], "nine"),
+        (["好的，", "我来处理。然后"], ["好的，我来处理"], "然后"),
+        (["我来帮你看看，客厅的灯"], ["我来帮你看看"], "客厅的灯"),
+        (["今天天气很好我们一起", "去公园散步"], ["今天天气很好我们一起去公园散步"], ""),
+        (["The 客厅灯 is on, 好的"], ["The 客厅灯 is on"], " 好的"),
+    ],
+)
+def test_first_clause_cuts_the_first_segment_early(chunks, segments, rest):
+    assert _segments(chunks, first_clause=True) == (segments, rest)
+
+
+def test_first_clause_is_on_by_default_and_only_for_the_first_segment():
+    p = _provider()
+    assert p.first_clause is True
+    p.tts_text_buff.append("Sure thing, I will check the kitchen, the hall")
+    assert p._get_segment_text() == "Sure thing"
+    p.tts_text_buff.append(", and the garage. Done")
+    assert p._get_segment_text() == "I will check the kitchen, the hall, and the garage"
+    assert _provider(first_clause=False).first_clause is False
 
 
 # --------------------------------------------------------------------------- sync path
@@ -389,14 +424,14 @@ pytestmark_opus = pytest.mark.skipif(not HAVE_OPUS, reason="libopus not availabl
 @pytestmark_opus
 def test_stream_turn_emits_first_middle_last_with_sentence_id(running):
     provider, conn = running
-    _run_turn(provider, conn, ["你好，", "今天天气不错。", "The light ", "is on."])
+    _run_turn(provider, conn, ["你好呀朋友，", "今天天气不错。", "The light ", "is on."])
     items = _collect_until_last(provider, conn)
     kinds = [i[0] for i in items]
     assert kinds[0] == SentenceType.FIRST
     assert kinds[-1] == SentenceType.LAST
     assert all(len(i) == 4 and i[3] == conn.sentence_id for i in items)
     firsts = [i for i in items if i[0] == SentenceType.FIRST]
-    assert [f[2] for f in firsts] == ["你好", "今天天气不错", "The light is on"]
+    assert [f[2] for f in firsts] == ["你好呀朋友", "今天天气不错", "The light is on"]
     middles = [i for i in items if i[0] == SentenceType.MIDDLE]
     assert middles and all(isinstance(m[1], bytes) and m[1] for m in middles)
     pcm_total = sum(len(c) for c in FakeClient.chunks) - 1  # odd byte dropped

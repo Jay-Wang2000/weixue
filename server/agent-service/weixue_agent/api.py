@@ -14,7 +14,8 @@ from . import jsonlog, timeutil
 from .config import HEARTBEAT_REPLY_S, HEARTBEAT_S
 from .deliveries import StaleLease
 from .ids import trace_id as new_trace_id
-from .schemas import Ack, Answer, ChatCreate, ConnectionEvent, Decide, DeviceRef, Interrupt, MessageBody
+from .schemas import (Ack, Answer, ChatCreate, ConnectionEvent, Decide, DeviceActionResult, DeviceRef, Interrupt,
+                      MessageBody)
 from .sse import HEARTBEAT_FRAME, sse_frame
 from .store import loads
 from .turns import ApiError, body_hash
@@ -99,6 +100,7 @@ class Api:
             Route("/v1/chats/{chat_id}/approve", r(self.approve), methods=["POST"]),
             Route("/v1/chats/{chat_id}/deny", r(self.deny), methods=["POST"]),
             Route("/v1/chats/{chat_id}/answer", r(self.answer), methods=["POST"]),
+            Route("/v1/chats/{chat_id}/device_actions/{action_id}", r(self.device_action), methods=["POST"]),
             Route("/v1/chats/{chat_id}/switch", r(self.chats_switch), methods=["POST"]),
             Route("/v1/chats/{chat_id}/read", r(self.chats_read), methods=["POST"]),
             Route("/v1/tasks/{task_id}", r(self.task_get), methods=["GET"]),
@@ -245,6 +247,11 @@ class Api:
         chat = self._chat(request.path_params["chat_id"])
         body = (await self._body(request, Answer)).model_dump(exclude_none=True)
         return JSONResponse(await self.engine.interactions.answer(chat["chat_id"], body))
+
+    async def device_action(self, request: Request) -> Response:
+        chat = self._chat(request.path_params["chat_id"])
+        body = (await self._body(request, DeviceActionResult)).model_dump(exclude_none=True)
+        return JSONResponse(self.engine.device_action_result(chat["chat_id"], request.path_params["action_id"], body))
 
     # ------------------------------------------------------------------ chats
 

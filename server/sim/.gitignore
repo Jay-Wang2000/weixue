@@ -1,2 +1,3 @@
 data/sim_transcripts.txt
 *.out
+data/agent-service/
