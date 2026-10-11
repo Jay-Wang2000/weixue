@@ -342,7 +342,7 @@ tasks:
     description: |
       Session 2026-10-11 1107/1203: a held ha-mcp call from the agent service ends `result unknown (ReadTimeout)` at 15 s — `HaMcpClient(settings.ha_mcp_url, timeout_s=15)` in server/agent-service/weixue_agent/service.py — before ha-mcp's wait_seconds=20 hold returns the approval token, so no held action can ever be approved from the device on the live stack. Fix: the ha-mcp HTTP read timeout is a per-request value that outlasts the hold (wait_seconds + margin, configurable, default 35 s); the ADR-9 8 s pending budget stays at the adapter layer (the model gets `pending` at 8 s while the HTTP call keeps waiting for the token); unknown-outcome handling unchanged. Also raise the session driver's wait_ready per-state limit for `speaking` to 90 s (long replies). Host tests for both; sim proof that a held call yields a token after >15 s. The orchestrator deploys main and runs the earcons item (approve) plus a deny round.
     depends_on: [fix-session-sequencing]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: fix-ui-chat-list-polish
