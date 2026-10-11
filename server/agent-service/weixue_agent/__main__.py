@@ -33,7 +33,8 @@ def main() -> int:
     except ConfigError as e:
         jsonlog.log("configuration error", level="error", detail=str(e))
         return 2
-    jsonlog.register_secrets([settings.token, settings.ha_mcp_url, os.environ.get("ANTHROPIC_API_KEY")])
+    jsonlog.register_secrets([settings.token, settings.monitor_token, settings.ha_mcp_url,
+                             os.environ.get("ANTHROPIC_API_KEY")])
     if settings.ha_mcp_url:
         jsonlog.register_secret(settings.ha_mcp_url.rsplit("/", 1)[-1])
     dropped = scrub_environment()

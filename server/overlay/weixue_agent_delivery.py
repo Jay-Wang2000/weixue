@@ -15,6 +15,7 @@ import uuid
 from collections import OrderedDict, deque
 from dataclasses import dataclass, field
 from typing import Optional
+from urllib.parse import quote
 
 import weixue_agent_msg as wire
 from config.logger import setup_logging
@@ -136,6 +137,9 @@ class FixtureSink:
         extra = " ".join(f"{k}={v}" for k, v in detail.items() if v is not None)
         self.logger.bind(tag=TAG).info(f"agent ack {outcome} delivery={delivery_id} device={device} {extra}".rstrip())
 
+    def connection(self, device, kind, session_id=None):
+        self.logger.bind(tag=TAG).info(f"agent connection {kind} device={device} session={session_id}")
+
     def response(self, device, response):
         self.responses.append({"device": device, "received_at": round(self.wall(), 3), **response})
         self.logger.bind(tag=TAG).info(
@@ -189,6 +193,13 @@ class ServiceSink(FixtureSink):
             if detail.get("info"):
                 body["detail"] = json.dumps(detail["info"], separators=(",", ":"))[:200]
             self._spawn(self._post(f"/v1/deliveries/{delivery_id}/ack", body))
+
+    def connection(self, device, kind, session_id=None):
+        super().connection(device, kind, session_id)
+        body = {"kind": kind}
+        if session_id:
+            body["gateway_session_id"] = str(session_id)[:128]
+        self._spawn(self._post(f"/v1/devices/{quote(device, safe='')}/connection", body))
 
     def response(self, device, response):
         super().response(device, response)
@@ -348,6 +359,12 @@ class AgentGateway:
         for e in entries:
             self._mark_sent(e)
         return [self._replay(e) for e in entries] + [wire.build_sync(self._next_seq(dev), list(dev.mirror))]
+
+    def on_connection(self, device_id, kind, conn):
+        """A verified WebSocket session of the device opened or closed."""
+        connection = getattr(self.sink, "connection", None)
+        if connection is not None:
+            connection(device_id, kind, getattr(conn, "session_id", None))
 
     def on_agent_session(self, device_id, conn):
         """A verified session that advertised features.agent: it gets every mirrored item, then

@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from . import jsonlog
-from .config import ACTOR_IDLE_S, EVENT_RETENTION_DAYS, HA_PING_MAX_AGE_S, HEALTH_PROBE_S
+from .config import (ACTOR_IDLE_S, EVENT_RETENTION_DAYS, HA_PING_MAX_AGE_S, HEALTH_PROBE_S, HEALTH_PROBE_TIMEOUT_S,
+                     PROBE_ROW_EVERY_S)
 from .deliveries import Outbox
 from .ha_adapter import HaGateway
 from .store import Store
@@ -40,13 +41,19 @@ def interface_counters(name: str = "wg0") -> Optional[Dict[str, Any]]:
 
 
 class Monitor:
-    def __init__(self, store: Store, ha: HaGateway, engine: Any, outbox: Outbox, mcp_endpoint: Optional[str]):
+    def __init__(self, store: Store, ha: HaGateway, engine: Any, outbox: Outbox, mcp_endpoint: Optional[str],
+                 probe_s: float = HEALTH_PROBE_S, probe_timeout_s: float = HEALTH_PROBE_TIMEOUT_S,
+                 clock=time.monotonic):
         self.store = store
         self.ha = ha
         self.engine = engine
         self.outbox = outbox
         self.mcp_endpoint = mcp_endpoint
+        self.probe_s = probe_s
+        self.probe_timeout_s = probe_timeout_s
+        self.clock = clock
         self.latest: Dict[str, Dict[str, Any]] = {}
+        self._row_written: Dict[str, tuple] = {}
         self._task: Optional[asyncio.Task] = None
         self._last_prune = 0.0
 
@@ -61,6 +68,7 @@ class Monitor:
 
     async def _loop(self) -> None:
         while True:
+            started = time.monotonic()
             with contextlib.suppress(Exception):
                 await self.probe_all()
             with contextlib.suppress(Exception):
@@ -72,16 +80,21 @@ class Monitor:
                 with contextlib.suppress(Exception):
                     removed = self.store.prune(EVENT_RETENTION_DAYS)
                     jsonlog.log("retention prune", event="prune", detail=str(removed))
-            await asyncio.sleep(HEALTH_PROBE_S)
+            await asyncio.sleep(max(0.0, self.probe_s - (time.monotonic() - started)))
 
     def _record(self, probe: str, ok: bool, latency_ms: Optional[int], detail: Dict[str, Any]) -> None:
+        """Every result goes to `latest`; a health_probes row only when ok flips or PROBE_ROW_EVERY_S passed."""
         self.latest[probe] = {"ok": ok, "latency_ms": latency_ms, "ts": time.time(), **detail}
-        self.store.record_probe(probe, ok, latency_ms, detail)
+        now = self.clock()
+        last = self._row_written.get(probe)
+        if last is None or last[0] != ok or now - last[1] >= PROBE_ROW_EVERY_S:
+            self.store.record_probe(probe, ok, latency_ms, detail)
+            self._row_written[probe] = (ok, now)
 
     async def probe_all(self) -> None:
         if self.ha.client is not None:
             started = time.monotonic()
-            ok = await self.ha.ping()
+            ok = await self.ha.ping(timeout_s=self.probe_timeout_s)
             latency = int((time.monotonic() - started) * 1000) if ok else None
             detail: Dict[str, Any] = {"tool_count": len(self.ha.tools), "policy_version": self.ha.policy.get("version"),
                                       "wait_seconds": self.ha.policy.get("wait_seconds")}

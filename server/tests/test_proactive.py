@@ -1056,3 +1056,52 @@ async def test_speak_marks_the_sentence_of_an_agent_item(monkeypatch):
     assert await wp.speak(conn, item, close_after=False) == "spoken"
     assert seen == [("start", item.agent["sentence_id"], item.agent["sentence_id"])]
     assert conn._weixue_ack_sentence is None
+
+
+# Monitor read scope and summary fields
+
+MONITOR = "m" * 40
+
+
+async def test_monitor_token_reads_status_only(client):
+    client.proactive.monitor_token = MONITOR
+    monitor = {"Authorization": f"Bearer {MONITOR}"}
+    status = await client.get("/weixue/proactive", headers=monitor)
+    assert status.status == 200 and "devices" in await status.json()
+    assert (await client.post("/weixue/proactive/messages", json={"message": "hi"}, headers=monitor)).status == 401
+    assert (await client.get("/weixue/proactive/messages/x", headers=monitor)).status == 401
+    assert (await client.put("/weixue/proactive/mute", json={"minutes": 1}, headers=monitor)).status == 401
+    client.proactive.token = ""
+    assert (await client.get("/weixue/proactive", headers=monitor)).status == 200
+    assert (await client.post("/weixue/proactive/messages", json={"message": "hi"}, headers=monitor)).status == 503
+
+
+async def test_monitor_token_unset_is_refused(client):
+    assert (await client.get("/weixue/proactive", headers={"Authorization": "Bearer "})).status == 401
+
+
+async def test_summary_reports_held_poll_and_last_poll_end(monkeypatch):
+    monkeypatch.setattr(wp, "POLL_HOLD_SECONDS", 0.3)
+    clock = Clock()
+    p = make(clock=clock)
+    assert p.summary()["devices"] == {}
+    waiter = asyncio.create_task(p.poll(DEVICE))
+    await asyncio.sleep(0.05)
+    device = p.summary()["devices"][DEVICE]
+    assert device["poll_held"] is True and device["last_poll_end_seconds_ago"] is None
+    clock.t += 1
+    assert await asyncio.wait_for(waiter, 2) is None
+    clock.t += 2.5
+    device = p.summary()["devices"][DEVICE]
+    assert device["poll_held"] is False and device["last_poll_end_seconds_ago"] == 2.5
+
+
+def test_session_open_and_close_reach_the_agent_gateway():
+    events = []
+    p = make()
+    p.agent = types.SimpleNamespace(on_connection=lambda device, kind, conn: events.append((device, kind, conn.session_id)))
+    conn = Conn()
+    p.on_session_open(DEVICE, conn)
+    p.on_session_close(DEVICE, conn)
+    p.on_session_close(DEVICE, conn)
+    assert events == [(DEVICE, "open", "session-1"), (DEVICE, "close", "session-1")]

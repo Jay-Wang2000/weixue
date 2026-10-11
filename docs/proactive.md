@@ -42,7 +42,7 @@ All routes except `/poll` need `Authorization: Bearer <WEIXUE_PROACTIVE_TOKEN>`;
 |---|---|
 | `POST /weixue/proactive/messages` | Queue a message. `202` new, `200` duplicate (`"duplicate": true`), `400` invalid, `401`, `409` key reused with a different body, `429` rate limited or queue full (`Retry-After`), `503` token unset |
 | `GET /weixue/proactive/messages/{id}` | Status of one message |
-| `GET /weixue/proactive` | Devices (session open, last poll, reachable), mute state, queued messages |
+| `GET /weixue/proactive` | Devices (session open, last poll, poll held, seconds since the last poll ended, reachable), mute state, queued messages; also accepts `MONITOR_TOKEN` (read scope, no other route) |
 | `PUT /weixue/proactive/mute` | `{"minutes": 0-1440}`; `0` unmutes |
 | `GET /weixue/proactive/poll` | Device long-poll (Device identity): `200` with `speak`, the leased message's `id`, `urgent` and `lease`, and agent items (`docs/agent-protocol.md`), `204`, `401` unverified, `429` too many polls, `503` `server.auth` disabled |
 

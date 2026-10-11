@@ -38,7 +38,10 @@ EVENT_RETENTION_DAYS = 30
 IDEMPOTENCY_TTL_S = 24 * 3600
 DONE_SPEECH_TTL_S = 24 * 3600
 NOTIFY_TTL_S = 3600
-HEALTH_PROBE_S = 30
+HEALTH_PROBE_S = 10
+HEALTH_PROBE_TIMEOUT_S = 5
+# A health_probes row is written when a probe's ok flips, else at most this often.
+PROBE_ROW_EVERY_S = 300
 DELIVERY_LEASE_S = 30
 TEXT_COALESCE_MS = 150
 PROGRESS_MIN_INTERVAL_S = 2
@@ -75,6 +78,9 @@ class Settings:
     tz: str
     anthropic_key_present: bool
     mcp_endpoint_host: Optional[str]
+    monitor_token: Optional[str] = None
+    probe_s: float = HEALTH_PROBE_S
+    probe_timeout_s: float = HEALTH_PROBE_TIMEOUT_S
 
     @property
     def e2e_guard(self) -> bool:
@@ -95,11 +101,21 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
         port = int(env.get("AGENT_PORT", "8010"))
     except ValueError:
         raise ConfigError("AGENT_PORT must be an integer") from None
+    monitor_token = env.get("MONITOR_TOKEN", "").strip() or None
+    if monitor_token is not None and (len(monitor_token) < 32 or monitor_token == token):
+        raise ConfigError("MONITOR_TOKEN must be at least 32 characters and differ from AGENT_SERVICE_TOKEN")
+    try:
+        probe_s = float(env.get("AGENT_HA_PROBE_S", HEALTH_PROBE_S))
+        probe_timeout_s = float(env.get("AGENT_HA_PROBE_TIMEOUT_S", HEALTH_PROBE_TIMEOUT_S))
+    except ValueError:
+        raise ConfigError("AGENT_HA_PROBE_S and AGENT_HA_PROBE_TIMEOUT_S must be numbers") from None
+    if not 0 < probe_timeout_s < probe_s:
+        raise ConfigError("AGENT_HA_PROBE_TIMEOUT_S must be positive and below AGENT_HA_PROBE_S")
     data_dir = Path(env.get("AGENT_DATA_DIR", "/data"))
     return Settings(
         token=token,
         ha_mcp_url=ha_url,
-        db_path=Path(env.get("AGENT_DB", str(data_dir / "agent.db"))),
+        db_path=Path(env.get("AGENT_DB", str(data_dir / "db" / "agent.db"))),
         data_dir=data_dir,
         memory_dir=Path(env.get("AGENT_MEMORY_DIR", str(data_dir / "memory"))),
         host=env.get("AGENT_HOST", "0.0.0.0"),
@@ -107,6 +123,9 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
         tz=env.get("TZ", "Europe/Dublin") or "Europe/Dublin",
         anthropic_key_present=bool(env.get("ANTHROPIC_API_KEY", "").strip()),
         mcp_endpoint_host=env.get("AGENT_MCP_ENDPOINT_HOST", "mcp-endpoint-server:8004") or None,
+        monitor_token=monitor_token,
+        probe_s=probe_s,
+        probe_timeout_s=probe_timeout_s,
     )
 
 

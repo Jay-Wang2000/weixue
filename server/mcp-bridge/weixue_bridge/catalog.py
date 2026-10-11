@@ -26,6 +26,8 @@ class ToolCatalog:
         self.init_result: Optional[Dict[str, Any]] = None
         self.tools: Optional[List[Dict[str, Any]]] = None
         self.fetched_at = 0.0
+        # "cache" while the list comes from the cache file, "live" after a fetch in this process.
+        self.source: Optional[str] = None
         self.ready = asyncio.Event()
         self._inflight: Optional[asyncio.Task] = None
 
@@ -52,6 +54,7 @@ class ToolCatalog:
         self.init_result = data["initialize"]
         self.tools = data["tools"]
         self.fetched_at = float(data["fetched_at"])
+        self.source = "cache"
         self.ready.set()
         log.info("tool cache loaded: %d tools, age_s=%d", len(self.tools), max(0, time.time() - self.fetched_at))
         return True
@@ -102,6 +105,7 @@ class ToolCatalog:
         self.init_result = init["result"]
         self.tools = tools
         self.fetched_at = time.time()
+        self.source = "live"
         self._save()
         self.ready.set()
         log.info(

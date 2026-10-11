@@ -9,6 +9,7 @@ DEFAULT_ENDPOINT_FILE = "/run/secrets/mcp-endpoint-url"
 DEFAULT_FILTER_FILE = "/app/policy/voice_bridge.json"
 DEFAULT_HEALTH_FILE = "/tmp/mcp-bridge.healthy"
 DEFAULT_TOOLS_CACHE = "/app/cache/ha-mcp-tools.json"
+DEFAULT_STATUS_FILE = "/app/status/bridge.json"
 HEARTBEAT_S = 30
 HEALTH_MAX_AGE_S = 3 * HEARTBEAT_S
 # Consecutive failed endpoint connects before the bridge exits.
@@ -36,6 +37,7 @@ class BridgeConfig:
     health_file: str
     tunnel_iface: str = ""
     tools_cache: str = ""
+    status_file: str = ""
 
 
 def redact(url: str) -> str:
@@ -110,4 +112,5 @@ def load_config(env: Mapping[str, str] = os.environ) -> BridgeConfig:
         health_file=env.get("BRIDGE_HEALTH_FILE", DEFAULT_HEALTH_FILE),
         tunnel_iface=env.get("TUNNEL_IFACE", "").strip(),
         tools_cache=env.get("BRIDGE_TOOLS_CACHE", DEFAULT_TOOLS_CACHE).strip(),
+        status_file=env.get("BRIDGE_STATUS_FILE", DEFAULT_STATUS_FILE).strip(),
     )
