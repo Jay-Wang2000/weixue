@@ -55,6 +55,8 @@ public:
     bool CardCovering() const { return card_shown_ && lv_obj_get_y(card_root_) == 0; }
     lv_obj_t* card_root() const { return card_root_; }
     void SetCard(const agent_ui::CardView& v);
+    // Screen centre of a visible card control (card_tap index) while the card covers the screen.
+    bool CardControlCenter(int control, int32_t* x, int32_t* y);
     // Small eyes of the card and the management page: blink 0 (open) to 1 (closed).
     void SetBlink(float blink);
 

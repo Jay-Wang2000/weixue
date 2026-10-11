@@ -16,12 +16,12 @@ def test_contract_example_round_trips():
     out = wire.build_item(
         item(state="needs_approval", title="Living room", summary="Turn on living room lights", card_id="i_44c0",
              options=[{"id": "approve", "label": "Approve"}, {"id": "deny", "label": "Deny"}], risk="reversible",
-             timeout_s=300, delivery="when_idle", speaks=True, debug_reply={"kind": "approve", "option_id": "approve"}),
+             timeout_s=300, delivery="when_idle", speaks=True),
         1739, 1791380000123,
     )
     assert out["kind"] == "agent" and out["v"] == 1 and out["seq"] == 1739 and out["ts"] == 1791380000123
     assert out["lang"] == "en" and out["speaks"] is True and out["timeout_s"] == 300
-    assert out["debug_reply"] == {"kind": "approve", "option_id": "approve"}
+    assert "debug_reply" not in out
     frame = json.loads(wire.frame(out))
     assert frame == {"type": "custom", "payload": out}
 
@@ -44,7 +44,7 @@ def test_every_state_builds(state):
         ({"state": "working", "risk": "money"}, "risk"),
         ({"state": "done", "progress": {"step": 1}}, "progress"),
         ({"playback": "played"}, "playback"),
-        ({"debug_reply": {"kind": "maybe"}}, "debug_reply"),
+        ({"debug_reply": {"kind": "approve", "option_id": "approve"}}, "debug_reply"),
         ({"surprise": 1}, "unknown"),
         ({"timeout_s": -1}, "timeout_s"),
         ({"speaks": "yes"}, "speaks"),
@@ -66,12 +66,15 @@ def test_texts_truncated_to_ui_limits():
     assert out["options"][0]["label"] == "Approve all " and out["options"][1]["label"] == "批准所有"
 
 
-def test_silent_items_never_speak_and_size_limit():
+def test_silent_items_never_speak_and_size_limit(monkeypatch):
     assert wire.build_item(item(delivery="silent", speaks=True), 1, 0)["speaks"] is False
-    with pytest.raises(wire.WireError, match="1024"):
-        wire.build_item(item(state="needs_input", card_id="i" * 36, title="标" * 24, summary="题" * 60,
-                             options=[{"id": "o" * 32, "label": "选" * 4} for _ in range(4)],
-                             debug_reply={"kind": "answer", "text": "答" * 200}), 2 ** 52, 0)
+    largest = item(state="needs_approval", chat_id="c" * 36, task_id="t" * 36, card_id="i" * 36, title="标" * 24,
+                   summary="题" * 60, options=[{"id": "o" * 31 + str(i), "label": "选" * 20} for i in range(4)],
+                   risk="money", timeout_s=86400, speaks=True)
+    assert wire.size(wire.build_item(largest, 2 ** 52, 0)) <= wire.MAX_ITEM_BYTES
+    monkeypatch.setattr(wire, "MAX_ITEM_BYTES", 512)
+    with pytest.raises(wire.WireError, match="512"):
+        wire.build_item(largest, 2 ** 52, 0)
 
 
 def test_sync():
@@ -82,15 +85,16 @@ def test_sync():
 
 def test_parse_response():
     params = {"v": 1, "boot": 2918841203, "seq": 12, "kind": "approve", "chat_id": "c_7f3a", "task_id": "t_91b2",
-              "card_id": "i_44c0", "option_id": "approve", "via": "loopback"}
+              "card_id": "i_44c0", "option_id": "approve", "via": "tap"}
     out = wire.parse_response(params)
-    assert out["kind"] == "approve" and out["via"] == "loopback" and out["boot"] == 2918841203
+    assert out["kind"] == "approve" and out["via"] == "tap" and out["boot"] == 2918841203
     assert wire.parse_response({"v": 1, "boot": 1, "seq": 2, "kind": "shown", "ack_upto": 1745})["ack_upto"] == 1745
     for bad in (
         dict(params, v=2),
         dict(params, kind="maybe"),
         {k: v for k, v in params.items() if k != "card_id"},
         dict(params, via="voice"),
+        dict(params, via="loopback"),
         {"v": 1, "boot": 1, "seq": 2, "kind": "answer", "card_id": "i1"},
         {"v": 1, "boot": 1, "seq": 2, "kind": "answer", "card_id": "i1", "text": "x" * 121},
         {"v": 1, "boot": 1, "seq": 2, "kind": "shown"},

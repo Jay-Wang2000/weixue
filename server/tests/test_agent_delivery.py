@@ -312,12 +312,11 @@ async def test_http_fixture_route_and_cards_only_poll(client):
     seq = body["agent"][-1]["seq"]
     assert (await client.post("/weixue/agent/messages", json={"device": DEVICE, "items": [card()]})).status == 401
     resp = await client.post("/weixue/agent/messages", headers=AUTH, json={
-        "device": DEVICE, "items": [card("t1", "needs_approval", card_id="i1", options=[{"id": "approve", "label": "Approve"}],
-                                         debug_reply={"kind": "approve", "option_id": "approve"})]})
+        "device": DEVICE, "items": [card("t1", "needs_approval", card_id="i1", options=[{"id": "approve", "label": "Approve"}])]})
     assert resp.status == 202
     resp = await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE, "X-Weixue-Agent-Seq": str(seq)})
     body = await resp.json()
-    assert body["speak"] is False and body["id"] is None and body["agent"][0]["debug_reply"]["kind"] == "approve"
+    assert body["speak"] is False and body["id"] is None and body["agent"][0]["card_id"] == "i1"
     resp = await client.get("/weixue/proactive/poll", headers={"Device-Id": DEVICE})
     assert resp.status == 204, "a device without the header gets no cards"
     bad = await client.post("/weixue/agent/messages", headers=AUTH, json={"device": DEVICE, "items": [card(state="nope")]})
@@ -340,10 +339,10 @@ async def test_device_events_dedup_validation_and_user_ack():
     _, gw = make()
     gw.submit(DEVICE, card("t1", "needs_approval", card_id="i1", options=APPROVAL))
     conn = Conn()
-    params = response(4, "approve", chat_id="c1", task_id="t1", card_id="i1", via="loopback")
+    params = response(4, "approve", chat_id="c1", task_id="t1", card_id="i1")
     gw.on_device_event(conn, wad.RESPONSE_METHOD, params)
     gw.on_device_event(conn, wad.RESPONSE_METHOD, params)
-    assert len(gw.sink.responses) == 1 and gw.sink.responses[0]["via"] == "loopback"
+    assert len(gw.sink.responses) == 1 and gw.sink.responses[0]["via"] == "tap"
     gw.on_device_event(conn, wad.RESPONSE_METHOD, dict(params, boot=8))
     assert len(gw.sink.responses) == 1, "a new boot is a new event, but the card is already decided"
     gw.on_device_event(conn, wad.RESPONSE_METHOD, response(10, "cancel", boot=8, chat_id="c1", task_id="t1"))
@@ -789,22 +788,17 @@ async def test_one_decision_per_card_first_wins():
     assert len(gw.sink.responses) == 2, "an unverified device is ignored before dedupe"
 
 
-async def test_answered_debug_reply_is_not_replayed_in_a_snapshot():
-    _, gw = make()
-    reply = {"kind": "approve", "option_id": "approve"}
-    gw.submit(DEVICE, card("t1", "needs_approval", card_id="i1", options=APPROVAL, debug_reply=reply))
-    gw.submit(DEVICE, card("t2", "needs_approval", card_id="i2", options=APPROVAL, debug_reply=reply))
-    conn = Conn()
-    gw.on_device_event(conn, wad.RESPONSE_METHOD,
-                       response(1, "approve", chat_id="c1", task_id="t1", card_id="i1", via="loopback"))
-    gw.on_poll(DEVICE, "0")
-    items = {p["task_id"]: p for p in gw.poll_items(DEVICE) if p["kind"] == "agent"}
-    assert "debug_reply" not in items["t1"] and items["t2"]["debug_reply"] == reply
-    assert "debug_reply" in gw.devices[DEVICE].mirror["t1"].payload, "the mirror keeps the item as sent"
-    gw.on_device_event(conn, wad.RESPONSE_METHOD, response(2, "ack_seen", chat_id="c1", task_id="t2"))
-    gw.on_agent_session(DEVICE, conn)
-    await settle()
-    assert all("debug_reply" not in p for p in conn.websocket.payloads())
+async def test_no_server_scripted_card_answer(client):
+    scripted = card("t1", "needs_approval", card_id="i1", options=APPROVAL, debug_reply={"kind": "approve"})
+    resp = await client.post("/weixue/agent/messages", headers=AUTH, json={"device": DEVICE, "items": [scripted]})
+    assert resp.status == 400 and "debug_reply" in json.dumps(await resp.json())
+    view = await (await client.get("/weixue/agent/deliveries", headers=AUTH)).json()
+    assert not (view["devices"].get(DEVICE) or {}).get("mirror"), "nothing queued"
+    gw = client.gateway
+    gw.submit(DEVICE, card("t2", "needs_approval", card_id="i2", options=APPROVAL))
+    gw.on_device_event(Conn(), wad.RESPONSE_METHOD,
+                       response(1, "approve", chat_id="c1", task_id="t2", card_id="i2", via="loopback"))
+    assert not gw.sink.responses, "only a tap answers a card"
 
 
 # Closing window

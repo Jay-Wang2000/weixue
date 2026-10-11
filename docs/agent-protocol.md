@@ -34,8 +34,7 @@ Server → device, on the WebSocket `custom` channel (`CONFIG_RECEIVE_CUSTOM_MES
   "delivery":"when_idle",  // interrupt|when_idle|silent
   "speaks":true,           // an ack:true tts turn for this item follows
   "playback":"uncertain",  // unread|failed only: played|cut_off|uncertain
-  "seen":false,            // terminal and unread states
-  "debug_reply":{"kind":"approve","option_id":"approve"}   // fixture only; loopback builds only
+  "seen":false             // terminal and unread states
 }}
 {"type":"custom","payload":{"kind":"agent_sync","v":1,"seq":1745,"task_ids":["t_91b2","t_0c11"]}}
 {"type":"custom","payload":{"kind":"agent_chats","v":1,"seq":1746,"ts":1791380000456,   // v1.2, level-2 devices only
@@ -80,13 +79,15 @@ Device → server, as MCP notifications (`SendDeviceEvent`):
   "option_id":"approve",                // answer; optional on approve|deny
   "text":"…",                           // answer only, ≤ 120 chars
   "ack_upto":1745,                      // shown only
-  "via":"tap"}}                         // tap|loopback
+  "via":"tap"}}                         // tap (the only value)
 {"jsonrpc":"2.0","method":"notifications/weixue/played","params":{
   "v":1,"boot":2918841203,"seq":13,"sentence_id":"9f2c…",
   "complete":false,"cut_at_ms":1840,"reason":"wake"}}   // wake|tap|imu|mute|closed|superseded
 ```
 
 Limits: agent item ≤ 1024 B (the device drops > 2048 B and logs it); the device accepts poll bodies up to 4096 B and 8 items; device → server ≤ 512 B. Unknown fields are ignored; an unknown kind or state, or `v` > 1, is dropped and logged, never acked.
+
+No server message answers a card: approve, deny, answer and ack_seen leave the device only from a tap on its card or complication (ADR-13). The gateway refuses items with fields outside this schema (`debug_reply` included) and responses with a `via` other than `tap`.
 
 ## Versioning
 
@@ -153,4 +154,4 @@ The device enforces the classes (`docs/firmware.md`, Device MCP tools). The serv
 WEIXUE_PROACTIVE_TOKEN=... server/scripts/agent_msg_fixture.py --base http://<host>:8003 --device <mac> <scenario>
 ```
 
-Scenarios: `states`, `approval`, `clarify`, `unread`, `burst`, `seed` + `drop`, `busy`, `spoken`, `ui` (the device UI tour across three chats), `chats` (a raw `agent_chats` of five chats with the `ui` prefix's chat ids), `eight` (8 full-size tasks: paged poll bodies, the snapshot after a board reset), `closing` (an announcement plus an approval answered by loopback while the server closes the session), `view`. `agent_sim_device.py --weak-link 1440` cuts poll responses after one TCP segment of the device, `--old-firmware` treats such a body as pending as v1 firmware did, `--invoke-at S` opens a session without a current lease. A `WEIXUE_AGENT_LOOPBACK=1 firmware/build.sh` build answers `debug_reply` 2 s after an item applies (`via:"loopback"`), plays at output volume 0 and keeps the bedside page off (RAM `day` hint) for that boot; release builds ignore `debug_reply`. Once the device answered an item, snapshots, polls and resends carry it without `debug_reply`, so a rebooted loopback build does not answer twice. `server/scripts/agent_sim_device.py` plays the device side without hardware (`--level 1` as v1.1 firmware). `server/scripts/agent_chats_e2e.py` runs the chat-switching acceptance on the sim stack (`server/sim/docker-compose.agent.yml`): `new_chat` until five chats exist, ten `switch_chat`s each followed by a voice turn that must land in the selected chat (provider `turn_latency chat=` and an `accepted` event with the turn's trace id in that chat's events), and with `--restart <container>` the chat index, current chat and device list unchanged after an agent-service restart.
+Scenarios: `states`, `approval`, `clarify`, `unread`, `burst`, `seed` + `drop`, `busy`, `spoken`, `ui` (the device UI tour across three chats), `chats` (a raw `agent_chats` of five chats with the `ui` prefix's chat ids), `eight` (8 full-size tasks: paged poll bodies, the snapshot after a board reset), `closing` (an announcement plus an approval, answered on the device while the server closes the session), `view`. `agent_sim_device.py --weak-link 1440` cuts poll responses after one TCP segment of the device, `--old-firmware` treats such a body as pending as v1 firmware did, `--invoke-at S` opens a session without a current lease. On the board, the cards of `approval`, `clarify` and `closing` are answered on a diag build (`WEIXUE_FACE_DIAG=1`) over USB with `diag card approve|deny|option <n>`, `unread` with a `diag tap` on its complication; `diag volume 0` and `diag bedside day` keep that boot silent and off the bedside page (docs/firmware.md, Diag injection). `server/scripts/agent_sim_device.py` plays the device side without hardware (`--level 1` as v1.1 firmware; `--tap approve|deny` answers cards and unread items 2 s after they apply, as a finger). `server/scripts/agent_chats_e2e.py` runs the chat-switching acceptance on the sim stack (`server/sim/docker-compose.agent.yml`): `new_chat` until five chats exist, ten `switch_chat`s each followed by a voice turn that must land in the selected chat (provider `turn_latency chat=` and an `accepted` event with the turn's trace id in that chat's events), and with `--restart <container>` the chat index, current chat and device list unchanged after an agent-service restart.

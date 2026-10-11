@@ -7,10 +7,7 @@
 #include <cstring>
 #include <utility>
 
-#include "agent_loopback.h"
 #include "application.h"
-#include "board.h"
-#include "settings.h"
 
 #define TAG "WeixueAgent"
 
@@ -19,7 +16,6 @@ namespace {
 using namespace weixue_agent;
 
 constexpr int64_t kShownDelayUs = 200000;
-constexpr int64_t kLoopbackDelayUs = 2000000;
 constexpr int64_t kTickUs = 100000;
 constexpr int kPollApplyWaitMs = 1000;
 
@@ -76,15 +72,6 @@ void WeixueAgent::Start() {
                 break;
         }
     });
-#if WEIXUE_AGENT_LOOPBACK
-    // Loopback test build: speaker silent for this boot; the stored volume is kept for the next.
-    auto* codec = Board::GetInstance().GetAudioCodec();
-    int stored = codec->output_volume();
-    codec->SetOutputVolume(0);
-    Settings("audio", true).SetInt("output_volume", stored);
-    ESP_LOGW(TAG, "agent: loopback build, answers debug_reply after 2 s; output volume 0 (stored %d kept)",
-             stored);
-#endif
     ESP_LOGI(TAG, "agent: protocol v%d level %d, boot %lu", kVersion, kFeatureLevel,
              static_cast<unsigned long>(boot_));
 }
@@ -172,22 +159,6 @@ void WeixueAgent::Apply(const Message& message, const char* via) {
         if (result != ApplyResult::kApplied && result != ApplyResult::kDuplicate) {
             return;
         }
-#if WEIXUE_AGENT_LOOPBACK
-        if (result == ApplyResult::kApplied && item.debug_reply) {
-            Response r;
-            r.kind = item.debug_reply->kind;
-            r.chat_id = item.chat_id;
-            r.task_id = item.task_id;
-            if (NeedsCard(r.kind)) {
-                r.card_id = item.card_id;
-            }
-            r.option_id = item.debug_reply->option_id;
-            r.text = item.debug_reply->text;
-            r.via = "loopback";
-            loopback_.push_back({NowUs() + kLoopbackDelayUs, std::move(r)});
-            EnsureTicking();
-        }
-#endif
     }
     int64_t seen = applied_seq_.load();
     int64_t seq = store_.max_seq();
@@ -385,23 +356,9 @@ void WeixueAgent::Tick() {
         Application::GetInstance().GetAudioService().IsPlaybackIdle()) {
         FinishPlayback(true, nullptr);
     }
-    int64_t now = NowUs();
-    for (size_t i = 0; i < loopback_.size();) {
-        if (now < loopback_[i].due_us) {
-            ++i;
-            continue;
-        }
-        Response r = std::move(loopback_[i].response);
-        loopback_.erase(loopback_.begin() + i);
-        if (r.kind == "ack_seen") {
-            store_.MarkSeen(r.task_id);
-            Notify();
-        }
-        SendResponse(std::move(r));
-    }
-    outbox_.Tick(now);
+    outbox_.Tick(NowUs());
     SendNext();
-    bool busy = !outbox_.Empty() || !loopback_.empty() || (!sentence_.empty() && sentence_stop_);
+    bool busy = !outbox_.Empty() || (!sentence_.empty() && sentence_stop_);
     if (!busy && ticking_) {
         ticking_ = false;
         esp_timer_stop(tick_timer_);

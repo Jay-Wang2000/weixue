@@ -1,6 +1,7 @@
-// Host test for agent_ui.h (store -> face, ring, cards, management rows, chats) and the
-// RingState arcs style: firmware/tests/run.sh
+// Host test for agent_ui.h (store -> face, ring, cards, management rows, chats), the diag_card.h
+// command resolver and the RingState arcs style: firmware/tests/run.sh
 #include "agent_ui.h"
+#include "diag_card.h"
 #include "voice_ring.h"
 
 #include <cstdio>
@@ -449,6 +450,46 @@ void TestQuestion() {
     Check(r.model.Card(800).outcome == "Got it", "Got it");
 }
 
+// `diag card ...` resolves to the control index a finger's tap hands to Model::Tap.
+void TestDiagCard() {
+    using diag_card::Resolve;
+    Rig r;
+    Check(!Resolve({"approve"}, r.model.Card(0)).ok && Resolve({"approve"}, r.model.Card(0)).error == "no card open",
+          "diag card: no card open");
+    r.Apply(Approval("a"), 0);
+    r.model.OpenCard("a", 100);
+    CardView v = r.model.Card(100);
+    auto approve = Resolve({"approve"}, v);
+    auto deny = Resolve({"deny"}, v);
+    Check(approve.ok && approve.control == 0 && deny.ok && deny.control == 1, "diag card approve/deny: buttons 0/1");
+    Check(!Resolve({"option", "1"}, v).ok && !Resolve({"later"}, v).ok, "diag card: no options or Later on an approval");
+    Check(!Resolve({"approve", "now"}, v).ok && !Resolve({"maybe"}, v).ok && !Resolve({}, v).ok,
+          "diag card: malformed arguments refused");
+    Model::Decision d = r.model.Tap(approve.control, 700);
+    Check(d.send && d.kind == "approve" && d.card_id == "i_a", "diag card approve: the tap sends approve");
+    r.model.OnDecisionSent(d.card_id, d.token, true, 800);
+    Check(!Resolve({"approve"}, r.model.Card(800)).ok, "diag card: refused on the outcome");
+
+    Rig q;
+    q.Apply(Question("q", 3), 0);
+    q.model.OpenCard("q", 100);
+    CardView qv = q.model.Card(100);
+    auto third = Resolve({"option", "3"}, qv);
+    Check(third.ok && third.control == 2, "diag card option 3: option index 2");
+    Check(!Resolve({"option", "4"}, qv).ok && !Resolve({"option", "0"}, qv).ok && !Resolve({"option", "x"}, qv).ok,
+          "diag card option: out of range refused");
+    Check(!Resolve({"approve"}, qv).ok && !Resolve({"later"}, qv).ok, "diag card: no approve or Later with options");
+    Model::Decision a = q.model.Tap(third.control, 700);
+    Check(a.send && a.kind == "answer" && a.option_id == "o3", "diag card option 3: the tap answers o3");
+
+    Rig open;
+    open.Apply(Question("o", 0), 0);
+    open.model.OpenCard("o", 100);
+    auto later = Resolve({"later"}, open.model.Card(100));
+    Check(later.ok && later.control == -1 && !Resolve({"option", "1"}, open.model.Card(100)).ok,
+          "diag card later: -1 on a question without options");
+}
+
 void TestResults() {
     Rig r;
     auto a = r.Apply(MakeItem("u", State::kUnread), 0);
@@ -788,6 +829,7 @@ int main() {
     TestExternalAndExpiry();
     TestTiers();
     TestQuestion();
+    TestDiagCard();
     TestResults();
     TestPriority();
     TestChats();

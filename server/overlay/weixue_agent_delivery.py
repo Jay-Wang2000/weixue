@@ -80,7 +80,6 @@ class Entry:
     # agent-service gseq of the delivery (live mode), the order of restored and offered cards.
     gseq: Optional[int] = None
     raw: bool = False
-    replied: bool = False
     sends: int = 0
     last_sent: float = 0.0
 
@@ -676,14 +675,6 @@ class AgentGateway:
                 return
 
     @staticmethod
-    def _replay(entry):
-        """The entry's payload without debug_reply once the device answered it, so a rebooted
-        loopback build does not answer again."""
-        if entry.replied and "debug_reply" in entry.payload:
-            return {k: v for k, v in entry.payload.items() if k != "debug_reply"}
-        return entry.payload
-
-    @staticmethod
     def _snapshot_entries(dev, after=0):
         """Mirrored tasks and the chat list above seq after, oldest first."""
         entries = [e for e in dev.mirror.values() if e.seq > after]
@@ -695,7 +686,7 @@ class AgentGateway:
         entries = self._snapshot_entries(dev, after)
         for e in entries:
             self._mark_sent(e)
-        return [self._replay(e) for e in entries] + [wire.build_sync(self._next_seq(dev), list(dev.mirror))]
+        return [e.payload for e in entries] + [wire.build_sync(self._next_seq(dev), list(dev.mirror))]
 
     def on_connection(self, device_id, kind, conn):
         """A verified WebSocket session of the device opened or closed."""
@@ -802,7 +793,7 @@ class AgentGateway:
                 break
             out.append(e)
             used += n
-        payloads = [self._replay(e) for e in out]
+        payloads = [e.payload for e in out]
         for e in out:
             self._mark_sent(e)
         if snapshot:
@@ -900,7 +891,6 @@ class AgentGateway:
                 self._record_decision(device_id, card, event)
         forward = self.sink.response(device_id, event)
         if event["kind"] == "ack_seen" and latest is not None:
-            latest.replied = True
             self.sink.ack(latest.delivery_id, latest.lease_id, "user_ack", device_id, seq=latest.seq)
         if forward is not None and event["kind"] in wire.CARD_KINDS:
             self.decisions_in_flight[card] = (event["kind"], event["boot"], event["seq"])
@@ -917,9 +907,6 @@ class AgentGateway:
         self.card_decisions[card] = (event["kind"], event["boot"], event["seq"])
         while len(self.card_decisions) > DEDUP_KEEP:
             self.card_decisions.popitem(last=False)
-        latest = self.device(device_id).mirror.get(event.get("task_id"))
-        if latest is not None and latest.payload.get("card_id") == event["card_id"]:
-            latest.replied = True
         self._save()
 
     async def _finish_decision(self, conn, device_id, event, card, forward, receipt):
@@ -1187,7 +1174,7 @@ class AgentGateway:
                     self._log(f"agent seq={e.seq} unacked after {e.sends} sends device={device_id}: snapshot due")
                 else:
                     self._mark_sent(e)
-                    resend.append(self._replay(e))
+                    resend.append(e.payload)
             if resend:
                 asyncio.get_running_loop().create_task(self._send(device_id, sessions[-1], resend, "resend"))
 

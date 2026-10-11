@@ -59,6 +59,9 @@ public:
     std::string DiagStateJson();
     // Screen dump (FACEDUMP) at the next face tick, at most one per 2 s; any task.
     void DiagRequestDump();
+    // `diag card ...` arguments: the screen centre of the open card's control to tap; any task.
+    // False with *error when the card or the control is not on screen.
+    bool DiagCardPoint(const std::vector<std::string>& args, int32_t* x, int32_t* y, std::string* error);
 #endif
 
     enum class Mode : uint8_t { kIdle, kListening, kThinking, kSpeaking };

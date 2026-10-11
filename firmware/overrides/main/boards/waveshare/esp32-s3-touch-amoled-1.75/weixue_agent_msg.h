@@ -66,13 +66,6 @@ struct Option {
     std::string label;
 };
 
-// Fixture-only scripted answer; honoured only by WEIXUE_AGENT_LOOPBACK builds.
-struct DebugReply {
-    std::string kind;
-    std::string option_id;
-    std::string text;
-};
-
 struct Item {
     int64_t seq = 0;
     int64_t ts = 0;
@@ -93,7 +86,6 @@ struct Item {
     bool speaks = false;
     Playback playback = Playback::kNone;
     bool seen = false;
-    std::optional<DebugReply> debug_reply;
 };
 
 struct Sync {
@@ -482,17 +474,6 @@ inline ParseResult Parse(const cJSON* payload) {
             it.playback = Playback::kCutOff;
         } else if (std::strcmp(playback, "uncertain") == 0) {
             it.playback = Playback::kUncertain;
-        }
-    }
-    const cJSON* debug = cJSON_GetObjectItemCaseSensitive(payload, "debug_reply");
-    if (cJSON_IsObject(debug)) {
-        const char* dkind = String(debug, "kind");
-        if (dkind != nullptr) {
-            DebugReply d;
-            d.kind = dkind;
-            if (const char* o = String(debug, "option_id")) d.option_id = o;
-            if (const char* t = String(debug, "text")) d.text = TruncateChars(t, kMaxAnswerChars);
-            it.debug_reply = std::move(d);
         }
     }
     r.message = std::move(m);

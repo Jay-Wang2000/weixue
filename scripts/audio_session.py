@@ -241,7 +241,7 @@ class Session:
         card = self.wait(r"agent ui: card open task=", 30, since)
         if card:
             time.sleep(1.0)
-            self.inject("diag tap 151 302")
+            self.inject("diag card approve")
         sent = self.wait(r"Device event sent|agent ui: card closed", 15, since)
         try:
             fixture.wait(75)

@@ -90,7 +90,7 @@ class Run:
     def __init__(self, a, log):
         self.a = a
         self.log = log
-        args = types.SimpleNamespace(device=a.device, ws=a.ws, base=a.base, loopback=False, receipts=True,
+        args = types.SimpleNamespace(device=a.device, ws=a.ws, base=a.base, tap=None, receipts=True,
                                      weak_link=0, old_firmware=False, cut_after_ms=0, ws_delay=0, ws_up_delay=0,
                                      level=2)
         self.dev = agent_sim_device.SimDevice(args)

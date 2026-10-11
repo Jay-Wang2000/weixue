@@ -7,8 +7,9 @@ list, acks `shown` in session and implicitly through the poll, opens a session o
 `weixue:proactive:<id>:<lease>` of the poll answer; level 1: the bare marker), sends `played`
 complete when the audio of an
 `ack:true` sentence has played out (60 ms per frame from its first frame) or cut with
---cut-after-ms, and answers `debug_reply` after 2 s (loopback) over its session or a short
-session of its own. --busy N first holds a user session open for N seconds.
+--cut-after-ms. --tap approve|deny plays a finger 2 s after an item applies, over its session or a
+short session of its own: approval cards get that decision, questions their first option, unread
+items ack_seen. --busy N first holds a user session open for N seconds.
 
 Responses other than `shown` stay in the outbox until their `agent_ack` receipt arrives (2 s
 wait, resends of the same seq after 1, 3 and 9 s; --no-receipts sends once, as v1 firmware).
@@ -34,7 +35,7 @@ import websockets
 
 FRAME_MS = 60
 DROP_BYTES = 2048
-LOOPBACK_S = 2.0
+TAP_S = 2.0
 RECEIPT_WAIT_S = 2.0
 RETRY_S = (1, 3, 9)
 POLL_TIMEOUT_S = 40
@@ -159,15 +160,21 @@ class SimDevice:
             self.max_seq = max(self.max_seq, seq)
         log(f"agent: chat={payload.get('chat_id')} task={task} state={payload.get('state')} seq={seq} "
             f"tier={payload.get('delivery')} speaks={int(bool(payload.get('speaks')))} result={result} via={via}")
-        debug = payload.get("debug_reply")
-        if result == "applied" and debug and self.a.loopback:
-            response = {"kind": debug["kind"], "chat_id": payload.get("chat_id"), "task_id": task, "via": "loopback"}
-            if debug["kind"] in ("approve", "deny", "answer"):
-                response["card_id"] = payload.get("card_id")
-            for k in ("option_id", "text"):
-                if debug.get(k):
-                    response[k] = debug[k]
-            asyncio.get_running_loop().call_later(LOOPBACK_S, lambda: self.send_event("agent_response", response))
+        response = self.tap(payload) if result == "applied" and self.a.tap else None
+        if response is not None:
+            asyncio.get_running_loop().call_later(TAP_S, lambda: self.send_event("agent_response", response))
+
+    def tap(self, payload):
+        """The response of a finger on the item's card or result (--tap), or None."""
+        state, options = payload.get("state"), payload.get("options") or []
+        response = {"chat_id": payload.get("chat_id"), "task_id": payload.get("task_id"), "via": "tap"}
+        if state == "needs_approval" and payload.get("card_id"):
+            return {**response, "kind": self.a.tap, "card_id": payload["card_id"], "option_id": self.a.tap}
+        if state == "needs_input" and payload.get("card_id") and options:
+            return {**response, "kind": "answer", "card_id": payload["card_id"], "option_id": options[0]["id"]}
+        if state == "unread":
+            return {**response, "kind": "ack_seen"}
+        return None
 
     # Device → server
 
@@ -438,7 +445,7 @@ async def main():
     ap.add_argument("--seconds", type=float, default=120)
     ap.add_argument("--busy", type=float, default=0, help="hold a user session open this many seconds first")
     ap.add_argument("--cut-after-ms", type=int, default=0, help="abort ack sentences after this much playback")
-    ap.add_argument("--no-loopback", dest="loopback", action="store_false")
+    ap.add_argument("--tap", choices=("approve", "deny"), help="answer cards and unread items as a finger would")
     ap.add_argument("--no-receipts", dest="receipts", action="store_false", help="send responses once (v1 firmware)")
     ap.add_argument("--weak-link", type=int, default=0, help="poll responses larger than this many bytes are cut there")
     ap.add_argument("--old-firmware", action="store_true", help="an unreadable 200 poll body opens a session")
