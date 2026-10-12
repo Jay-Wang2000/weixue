@@ -1,0 +1,42 @@
+feat-monitor-ui-v2 build check, 2026-10-12 (Mac, scratch stack; nothing deployed)
+
+Setup: scratch database built with weixue_agent.store (20 tasks over two days incl. Chinese turns, 4x and 6x repeats,
+one approved garage-door hold, one max_turns failure, 240 model/transcript notices, 2 home_snapshot ha_unreachable rows,
+25 h of probe rows with a 10 min ha-mcp outage, 10 home entities); the monitor app from the branch with a fake agent,
+gateway and bridge; MONITOR_TOKEN set, MONITOR_FRAME_ANCESTORS=http://192.168.8.142:8123. Held state: one pending
+ha_call_service lock.front_door approval.
+Captures: Chrome 1440x1000 and 390x844 @2x (playwright-core driving the installed Chrome, as in the research), dark
+unless noted.
+
+monitor-ui-v2-desktop-idle.png         page height 2,647 px (target <= 3,000; mock 2,120)
+monitor-ui-v2-desktop-held.png         2,933 px
+monitor-ui-v2-desktop-trace.png        first trace + 24 h lanes open (top 1,500 px of 3,584)
+monitor-ui-v2-desktop-embed-light.png  ?embed=1, light, held
+monitor-ui-v2-phone-idle.png           4,393 px (target <= 4,500; mock 3,994), scrollWidth 390
+monitor-ui-v2-phone-held.png           4,822 px
+monitor-ui-v2-phone-light.png          4,393 px
+Console errors on every capture: none.
+
+Compared with ~/Projects/research/reports/weixue-monitor-ui-v1/03-final/*.png:
+- same regions in the same order and proportions: verdict bar, held card above the band, 5-cell band, summary +
+  24 h strip, sticky filter bar with counted segments, feed with time column / rail glyph / meta column, right rail
+  (chats, problems, home by room); phone first screen matches phone.png (dot row, 2x2, summary, strip, search, segments).
+- trace matches desktop-trace.png: six stats, Trace/Conversation/Raw, waterfall with first-token tick and gate,
+  lifecycle fold line, legend, arguments/result, token split, ids.
+- differences: lanes exist only for probes stored in health_probes (ha-mcp, Endpoint, Model API, Tunnel), not for
+  Device/Agent/Bridge; the held card names no device; chat sub-lines show current/busy/state/mode instead of turn
+  counts; the notice is labelled by its message reason (prefix_binding_mismatch on the live data).
+
+Interaction run (playwright): search "garage" -> 1 item; Failed segment -> failed task + failure rows; Cancelled -> 1
+folded item (x6); chat click filters to 1 and back to 14; Lifecycle toggle shows 40 lifecycle steps; #task=<id> opens
+that trace (2 rows), Conversation 1 turn, Raw without device ids; #task=<id of a folded member> renders the linked task;
+page text has no MAC and no token; "show all 4" unfolds (14 -> 17 items).
+Live run: with the page scrolled 1,200 px a new task was inserted; the first visible item moved 0.5 px, the pill read
+"1 new · jump to top", clicking it scrolled to the top with the new in-flight task first.
+
+HTTP: GET / without token 401; with ?token= 200; CSP frame-ancestors http://192.168.8.142:8123 on every response;
+/static/fonts/*.woff2 served as font/woff2.
+
+Tests: server/agent-monitor 64 passed. server/tests/test_setup_scripts.py in a minimal venv: 92 passed; 2 failed with
+ModuleNotFoundError (websockets not installed there) and the websocket check_ready test deselected; none touch the
+monitor.

@@ -1,5 +1,6 @@
 """Monitor configuration from the environment. Error messages never echo a value."""
 import os
+import re
 from dataclasses import dataclass
 from typing import Mapping
 from urllib.parse import urlsplit
@@ -7,6 +8,7 @@ from urllib.parse import urlsplit
 DEFAULT_TZ = "Europe/Dublin"
 # The agent service's ha-mcp ping period (decision 49); the ha-mcp tile turns red after period + 15 s.
 DEFAULT_HA_PROBE_S = 10.0
+_ORIGIN = re.compile(r"^https?://[A-Za-z0-9.-]+(:[0-9]{1,5})?$")
 
 
 class ConfigError(ValueError):
@@ -21,6 +23,7 @@ class Settings:
     gateway_url: str = "http://xiaozhi-esp32-server:8003"
     mcp_endpoint: str = "mcp-endpoint-server:8004"
     monitor_token: str = ""
+    frame_ancestors: str = "'none'"
     tunnel: bool = False
     home: bool = True
     tz: str = DEFAULT_TZ
@@ -46,6 +49,16 @@ def _host_port(raw: str) -> str:
     return value
 
 
+def _frame_ancestors(raw: str) -> str:
+    """CSP frame-ancestors sources: 'none' (default), 'self' and http(s)://host[:port] origins."""
+    sources = raw.split()
+    if not sources or sources == ["'none'"]:
+        return "'none'"
+    if not all(s == "'self'" or _ORIGIN.match(s) for s in sources):
+        raise ConfigError("MONITOR_FRAME_ANCESTORS must be 'none', 'self' or http(s)://<host>[:<port>] origins")
+    return " ".join(sources)
+
+
 def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
     token = env.get("MONITOR_TOKEN", "").strip()
     if token and len(token) < 32:
@@ -63,6 +76,7 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
         gateway_url=_base_url(env.get("GATEWAY_URL", "http://xiaozhi-esp32-server:8003"), "GATEWAY_URL"),
         mcp_endpoint=_host_port(env.get("MCP_ENDPOINT", "mcp-endpoint-server:8004")),
         monitor_token=token,
+        frame_ancestors=_frame_ancestors(env.get("MONITOR_FRAME_ANCESTORS", "")),
         tunnel=env.get("WG_TUNNEL", "").strip() == "1",
         home=env.get("MONITOR_HOME", "1").strip() != "0",
         tz=tz if tz and tz != "UTC" else DEFAULT_TZ,

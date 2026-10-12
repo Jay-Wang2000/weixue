@@ -10,6 +10,8 @@ import pytest
 
 import fixture_db as fx
 from conftest import MONITOR_TOKEN
+
+AUTH = {"Authorization": f"Bearer {MONITOR_TOKEN}"}
 from agent_monitor.app import STATIC
 
 GET_PATHS = ["/healthz", "/api/overview", "/api/timeline", f"/api/timeline?task={fx.T_LONG}",
@@ -197,7 +199,7 @@ async def test_unknown_schema_shows_the_banner_and_no_rows(make_app, db_path):
     writer.commit()
     writer.close()
     app = make_app()
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://m") as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://m", headers=AUTH) as client:
         overview = (await client.get("/api/overview")).json()
         assert overview["db"]["banner"] == "schema 7 not supported"
         assert (await client.get("/api/timeline")).json()["groups"] == []
@@ -209,7 +211,7 @@ async def test_missing_database_keeps_the_board_up(make_app, tmp_path, monkeypat
     app = make_app()
     app.state.board.db.path = str(tmp_path / "gone.db")
     app.state.board.db._local.conn = None
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://m") as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://m", headers=AUTH) as client:
         assert (await client.get("/api/overview")).json()["db"]["state"] == "missing"
         assert (await client.get("/healthz")).status_code == 503
 
@@ -219,9 +221,9 @@ async def test_stream_sends_a_snapshot_then_changed_sections(make_app, db_path):
     hub = app.state.hub
     await app.state.board.live.refresh()
     stream = hub.stream()
-    snapshot = [await asyncio.wait_for(stream.__anext__(), 5) for _ in range(6)]
+    snapshot = [await asyncio.wait_for(stream.__anext__(), 5) for _ in range(7)]
     sections = [json.loads(f.split("data: ", 1)[1])["section"] for f in snapshot]
-    assert sections == ["overview", "timeline", "cost", "chats", "errors", "home"]
+    assert sections == ["overview", "timeline", "cost", "chats", "errors", "problems", "home"]
     assert await hub.db_tick() is True
     assert await hub.db_tick() is False
     writer = sqlite3.connect(db_path)
@@ -247,6 +249,8 @@ async def test_index_and_static_files_are_self_contained(api):
         resp = await api.get(f"/static/{name}")
         assert resp.status_code == 200
     for path in STATIC.iterdir():
+        if path.suffix not in (".html", ".js", ".css"):
+            continue
         text = path.read_text()
         assert not re.search(r"https?://", text.replace("http://www.w3.org/2000/svg", "")), path.name
         assert "innerHTML" not in text, path.name

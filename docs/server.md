@@ -290,7 +290,7 @@ Compose service `agent-service` (`docs/agent-service.md`): no host port; the ser
 
 ## Agent monitor
 
-Compose service `agent-monitor` (`docs/agent-monitor.md`): a read-only board at `http://127.0.0.1:8020/`, bound to 127.0.0.1 only (decision 30); from the Mac or a phone through `ssh -L 8020:127.0.0.1:8020 jay@192.168.8.125` (decision 77, option A). Tiles turn red on the rules in `docs/agent-monitor.md` (device 3 s after its last poll, agent after 2 failed checks, ha-mcp after 25 s without a good ping, bridge after 65 s or on `stopped`). It stores nothing; the agent service prunes event tables after 30 days (decision 21).
+Compose service `agent-monitor` (`docs/agent-monitor.md`): a read-only board on `${MONITOR_BIND:-127.0.0.1}:8020`; the page and API need `?token=<MONITOR_TOKEN>`. On the server `MONITOR_BIND=192.168.8.125` and `MONITOR_FRAME_ANCESTORS=http://192.168.8.142:8123` let the Home Assistant dashboard embed it (decision 79); with the default bind, `ssh -L 8020:127.0.0.1:8020 jay@192.168.8.125`. Tiles turn red on the rules in `docs/agent-monitor.md` (device 3 s after its last poll, agent after 2 failed checks, ha-mcp after 25 s without a good ping, bridge after 65 s or on `stopped`). It stores nothing; the agent service prunes event tables after 30 days (decision 21).
 
 ## Verification
 
@@ -320,7 +320,7 @@ Callers: `scripts/audio_session.py` (`AgentClient`: `docker exec -i agent-servic
 ```bash
 scripts/lib/remote_docker.sh compose ps
 scripts/lib/remote_docker.sh logs --since 10m agent-service
-ssh -L 8020:127.0.0.1:8020 jay@192.168.8.125      # agent-monitor at http://127.0.0.1:8020/
+ssh -L 8020:127.0.0.1:8020 jay@192.168.8.125      # agent-monitor at http://127.0.0.1:8020/?token=<MONITOR_TOKEN> (default bind)
 ```
 
 The Mac reaches the server only from the home LAN; with Cisco Secure Client connected, `192.168.8.0/24` is routed into the VPN (`docs/firmware.md`).

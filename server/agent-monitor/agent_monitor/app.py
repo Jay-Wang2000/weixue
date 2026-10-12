@@ -1,7 +1,9 @@
 """FastAPI app: GET-only JSON API, the static page and an SSE stream of changed sections."""
 import asyncio
 import contextlib
+import hmac
 import json
+import mimetypes
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -9,30 +11,49 @@ from typing import Any, AsyncIterator, Callable, Dict, Optional, Set
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
-from . import queries, tiles
+from . import lanes, queries, severity, tiles
 from .config import Settings
 from .db import DbUnavailable, ReadOnlyDb
 from .live import LiveSources
 
 STATIC = Path(__file__).parent / "static"
+mimetypes.add_type("font/woff2", ".woff2")
 DB_POLL_S = 1.0
 LIVE_POLL_S = 2.0
 HEARTBEAT_S = 15.0
 HOME_PERIOD_S = 300
 CLIENT_QUEUE = 64
 TIMELINE_PAGE = 30
-SECTIONS = ("overview", "timeline", "cost", "chats", "errors", "home")
-SECURITY_HEADERS = {
-    "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
-                               "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "no-referrer",
-    "Cache-Control": "no-store",
-}
+PROBLEM_HOURS = 24
+SECTIONS = ("overview", "timeline", "cost", "chats", "errors", "problems", "home")
+GATED_PREFIX = "/api/"
+
+
+def security_headers(frame_ancestors: str) -> Dict[str, str]:
+    return {
+        "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
+                                   f"connect-src 'self'; frame-ancestors {frame_ancestors}; base-uri 'none'; "
+                                   "form-action 'none'",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "no-referrer",
+        "Cache-Control": "no-store",
+    }
+
+
+def token_ok(request: Request, token: str) -> bool:
+    """True when `token` is unset, or arrives as ?token= or as an Authorization bearer."""
+    if not token:
+        return True
+    expected = token.encode()
+    given = request.query_params.get("token", "")
+    if given and hmac.compare_digest(given.encode(), expected):
+        return True
+    scheme, _, bearer = request.headers.get("authorization", "").partition(" ")
+    return scheme.lower() == "bearer" and bool(bearer) and hmac.compare_digest(bearer.strip().encode(), expected)
 
 
 def _epoch(ts: Optional[str]) -> Optional[float]:
@@ -52,6 +73,10 @@ class Board:
 
     def now(self) -> datetime:
         return datetime.fromtimestamp(self.clock(), timezone.utc)
+
+    def midnight(self) -> str:
+        """Today's local midnight in `TZ`, as UTC ISO."""
+        return queries.iso(datetime.combine(self.now().astimezone(self.tz).date(), datetime.min.time(), self.tz))
 
     def db_state(self) -> Dict[str, Any]:
         state = self.db.state()
@@ -80,9 +105,11 @@ class Board:
         live = self.live
         db = self.db_state()
         probes_db: Dict[str, Any] = {}
-        counts: Dict[str, Any] = {"open_tasks": None, "errors_24h": None, "cost_today_usd": None}
+        counts: Dict[str, Any] = {"open_tasks": None, "errors_24h": None, "cost_today_usd": None,
+                                  "turns_today": None}
         pending = {"approvals": [], "interactions": []}
         cache = None
+        last_decision = None
         if db["state"] == "ok":
             with contextlib.suppress(DbUnavailable):
                 probes_db = queries.latest_probes(self.db)
@@ -90,9 +117,11 @@ class Board:
                     "open_tasks": queries.open_tasks(self.db),
                     "errors_24h": queries.error_count(self.db, queries.iso(self.now() - timedelta(hours=24))),
                     "cost_today_usd": queries.cost_today(self.db, self.tz, self.now()),
+                    "turns_today": queries.voice_turns(self.db, self.midnight())["turns"],
                 }
                 pending = queries.pending(self.db)
                 cache = queries.tools_cache(self.db)
+                last_decision = queries.last_decision(self.db)
         ha_probe = self._ha_probe(probes_db, "ha_mcp")
         tools_age = now - _epoch(cache["fetched_at"]) if cache and cache.get("fetched_at") else None
         ha_tile = tiles.ha_mcp(ha_probe, now, self.settings.ha_probe_s, tools_age)
@@ -127,8 +156,12 @@ class Board:
             "server": ha_status.get("server"),
             "tools_cache": cache,
             "probe_age_s": ha_tile["age_s"],
+            "last_decision": last_decision,
         }
-        return {"tiles": [t for t in strip if t["state"] != "off"], "mcp": mcp, "counts": counts, "db": db,
+        shown = [t for t in strip if t["state"] != "off"]
+        down = [t["label"] for t in shown if t["state"] == "bad"] + (["Database"] if db["state"] != "ok" else [])
+        verdict = {"state": "attention" if approvals or down else "ok", "held": len(approvals), "down": down}
+        return {"tiles": shown, "mcp": mcp, "counts": counts, "db": db, "verdict": verdict,
                 "agent": {k: status.get(k) for k in ("open_tasks", "turns_in_flight", "open_holds", "journal_mode")},
                 "tz": self.settings.tz, "home_enabled": self.settings.home, "tunnel": self.settings.tunnel,
                 "now": queries.iso(self.now())}
@@ -170,6 +203,38 @@ class Board:
             return {"errors": []}
         return {"errors": queries.errors(self.db, limit)}
 
+    def problems(self, hours: int = PROBLEM_HOURS) -> Dict[str, Any]:
+        since = queries.iso(self.now() - timedelta(hours=hours))
+        if not self._readable():
+            return {"since": since, "hours": hours, "rows": 0, "failures": 0, "notices": 0, "groups": [],
+                    "severity_map": severity.severity_map()}
+        return {**queries.problems(self.db, since), "hours": hours, "severity_map": severity.severity_map()}
+
+    def since(self, since: Optional[str] = None, hours: int = PROBLEM_HOURS) -> Dict[str, Any]:
+        """The since-you-last-looked summary from `since` (local midnight when absent) and the activity ticks of
+        the last `hours`."""
+        start = self.midnight() if since is None else queries.iso(queries._parse(since))
+        pulse_from = queries.iso(self.now() - timedelta(hours=hours))
+        out = {"now": queries.iso(self.now()), "default": since is None, "pulse_from": pulse_from}
+        if not self._readable():
+            return {**out, "since": start, "pulse": []}
+        return {**out, **queries.since_summary(self.db, start), "pulse": queries.pulse(self.db, pulse_from)}
+
+    def health_history(self, hours: int = PROBLEM_HOURS) -> Dict[str, Any]:
+        end = self.clock()
+        start = end - hours * 3600
+        out = {"hours": hours, "from": queries.iso(datetime.fromtimestamp(start, timezone.utc)),
+               "to": queries.iso(datetime.fromtimestamp(end, timezone.utc)), "lanes": []}
+        if not self._readable():
+            return out
+        history = queries.probe_history(self.db, out["from"])
+        for lane in lanes.lanes(history, start, end):
+            for seg in lane["segments"]:
+                seg["from"] = queries.iso(datetime.fromtimestamp(seg["from"], timezone.utc))
+                seg["to"] = queries.iso(datetime.fromtimestamp(seg["to"], timezone.utc))
+            out["lanes"].append(lane)
+        return out
+
     def home(self) -> Dict[str, Any]:
         out: Dict[str, Any] = {"enabled": self.settings.home, "entities": [], "fetched_at": None, "stale": None,
                                "period_s": HOME_PERIOD_S, "error": None}
@@ -189,7 +254,7 @@ class Board:
     def section(self, name: str) -> Dict[str, Any]:
         builders = {"overview": self.overview, "timeline": lambda: self.timeline(limit=TIMELINE_PAGE),
                     "cost": self.cost_section, "chats": self.chats, "errors": lambda: self.errors(50),
-                    "home": self.home}
+                    "problems": self.problems, "home": self.home}
         return builders[name]()
 
 
@@ -243,7 +308,7 @@ class Hub:
 
     async def live_tick(self) -> None:
         await self.board.live.refresh()
-        await self._build(("overview", "chats", "home"))
+        await self._build(("overview", "chats", "problems", "home"))
 
     async def _run(self) -> None:
         last_live = 0.0
@@ -271,7 +336,7 @@ class Hub:
                 try:
                     yield await asyncio.wait_for(queue.get(), HEARTBEAT_S)
                 except asyncio.TimeoutError:
-                    yield ": heartbeat\n\n"
+                    yield f"event: heartbeat\ndata: {json.dumps({'now': queries.iso(self.board.now())})}\n\n"
         finally:
             self.clients.discard(queue)
 
@@ -296,11 +361,22 @@ def create_app(settings: Settings, db: Optional[ReadOnlyDb] = None, live: Option
     app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.board = board
     app.state.hub = hub
+    headers_for_all = security_headers(settings.frame_ancestors)
+    page = (STATIC / "index.html").read_text(encoding="utf-8")
+
+    @app.middleware("http")
+    async def gate(request: Request, call_next):
+        path = request.url.path
+        if (path == "/" or path.startswith(GATED_PREFIX)) and not token_ok(request, settings.monitor_token):
+            if path == "/":
+                return PlainTextResponse("This board needs its token: open it as /?token=<MONITOR_TOKEN>.", 401)
+            return JSONResponse({"detail": "token required"}, 401, headers={"WWW-Authenticate": "Bearer"})
+        return await call_next(request)
 
     @app.middleware("http")
     async def headers(request: Request, call_next):
         response = await call_next(request)
-        for key, value in SECURITY_HEADERS.items():
+        for key, value in headers_for_all.items():
             response.headers.setdefault(key, value)
         return response
 
@@ -311,8 +387,8 @@ def create_app(settings: Settings, db: Optional[ReadOnlyDb] = None, live: Option
             raise HTTPException(503, "agent database not readable") from None
 
     @app.get("/")
-    def index():
-        return FileResponse(STATIC / "index.html")
+    def index(embed: str = ""):
+        return HTMLResponse(page.replace('data-embed="0"', f'data-embed="{1 if embed == "1" else 0}"', 1))
 
     @app.get("/healthz")
     def healthz():
@@ -329,11 +405,14 @@ def create_app(settings: Settings, db: Optional[ReadOnlyDb] = None, live: Option
 
     @app.get("/api/timeline")
     def timeline(task: Optional[str] = None, chat: Optional[str] = None, state: Optional[str] = None,
-                 kind: Optional[str] = None, before: Optional[str] = None, limit: int = Query(100, ge=1, le=200)):
+                 kind: Optional[str] = None, before: Optional[str] = None, limit: int = Query(100, ge=1, le=200),
+                 q: Optional[str] = Query(None, max_length=queries.SEARCH_MAX),
+                 segment: Optional[str] = Query(None, pattern="^(all|ha|approvals|failed|cancelled)$")):
         if task:
             detail = guarded(queries.task_detail, db, task) if board._readable() else None
             return {"groups": [detail] if detail else [], "next_before": None}
-        return guarded(board.timeline, chat=chat, state=state, kind=kind, before=before, limit=limit)
+        return guarded(board.timeline, chat=chat, state=state, kind=kind, before=before, limit=limit, q=q,
+                       segment=segment)
 
     @app.get("/api/tasks/{task_id}")
     def task(task_id: str):
@@ -357,6 +436,23 @@ def create_app(settings: Settings, db: Optional[ReadOnlyDb] = None, live: Option
     @app.get("/api/errors")
     def errors(limit: int = Query(100, ge=1, le=500)):
         return guarded(board.errors, limit)
+
+    @app.get("/api/problems")
+    def problems(hours: int = Query(PROBLEM_HOURS, ge=1, le=24 * 30)):
+        return guarded(board.problems, hours)
+
+    @app.get("/api/since")
+    def since(since: Optional[str] = Query(None, max_length=40), hours: int = Query(PROBLEM_HOURS, ge=1, le=72)):
+        if since is not None:
+            try:
+                queries._parse(since)
+            except ValueError:
+                raise HTTPException(422, "since must be an ISO 8601 time") from None
+        return guarded(board.since, since, hours)
+
+    @app.get("/api/health/history")
+    def health_history(hours: int = Query(PROBLEM_HOURS, ge=1, le=24 * 7)):
+        return guarded(board.health_history, hours)
 
     @app.get("/api/stream")
     async def stream(request: Request):
