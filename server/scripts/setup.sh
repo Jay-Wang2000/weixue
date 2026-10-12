@@ -355,14 +355,17 @@ fi
 
 # agent-service's database as it was before this run, copied with the service and the monitor stopped (a newer
 # image migrates it in place); rollback() puts it back and keeps the attempted one in db-failed/.
+container_running() {
+  [ "$(docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null | tr -d '[:space:]')" = true ]
+}
 backup_agent_db() {
   local file
   rm -rf "$AGENT_DATA/db-rollback"
   [ -f "$AGENT_DATA/db/agent.db" ] || return 0
-  [ "$(docker inspect -f '{{.State.Running}}' agent-service 2>/dev/null || echo false)" != true ] || AGENT_STOPPED=1
-  [ "$(docker inspect -f '{{.State.Running}}' agent-monitor 2>/dev/null || echo false)" != true ] || MONITOR_STOPPED=1
+  ! container_running agent-service || AGENT_STOPPED=1
+  ! container_running agent-monitor || MONITOR_STOPPED=1
   docker stop agent-service agent-monitor >/dev/null 2>&1 || true
-  [ "$(docker inspect -f '{{.State.Running}}' agent-service 2>/dev/null || echo false)" = false ] || return 1
+  ! container_running agent-service || return 1
   mkdir -p "$AGENT_DATA/db-rollback"
   for file in agent.db agent.db-wal agent.db-shm; do
     if [ -e "$AGENT_DATA/db/$file" ]; then cp -p "$AGENT_DATA/db/$file" "$AGENT_DATA/db-rollback/$file"; fi
