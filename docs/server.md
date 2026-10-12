@@ -320,7 +320,7 @@ Callers: `scripts/audio_session.py` (`AgentClient`: `docker exec -i agent-servic
 ```bash
 scripts/lib/remote_docker.sh compose ps
 scripts/lib/remote_docker.sh logs --since 10m agent-service
-ssh -L 8020:127.0.0.1:8020 jay@192.168.8.125      # agent-monitor at http://127.0.0.1:8020/?token=<MONITOR_TOKEN> (default bind)
+ssh -L 8020:127.0.0.1:8020 jay@192.168.8.125      # agent-monitor at http://127.0.0.1:8020/?token=<MONITOR_VIEW_TOKEN> (default bind)
 ```
 
 The Mac reaches the server only from the home LAN; with Cisco Secure Client connected, `192.168.8.0/24` is routed into the VPN (`docs/firmware.md`).

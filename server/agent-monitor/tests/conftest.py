@@ -17,6 +17,7 @@ from agent_monitor.db import ReadOnlyDb  # noqa: E402
 from agent_monitor.live import LiveSources  # noqa: E402
 
 MONITOR_TOKEN = "m" * 40
+VIEW_TOKEN = "v" * 40
 
 
 @pytest.fixture
@@ -84,7 +85,7 @@ def make_app(db_path, tmp_path, upstream):
                                           "ping_first_byte_ms_p50": 90, "tools": 77, "tools_source": "live"}))
         settings = Settings(db_path=str(db_path), bridge_status=str(bridge), agent_url="http://agent-service:8010",
                             gateway_url="http://xiaozhi-esp32-server:8003", mcp_endpoint="",
-                            **{"monitor_token": MONITOR_TOKEN, **overrides})
+                            **{"monitor_token": MONITOR_TOKEN, "view_token": VIEW_TOKEN, **overrides})
         client = httpx.AsyncClient(transport=httpx.MockTransport(upstream))
         live = LiveSources(settings, client=client, clock=clock)
         return create_app(settings, live=live, clock=clock, background=False)
@@ -95,7 +96,7 @@ def make_app(db_path, tmp_path, upstream):
 async def api(make_app):
     app = make_app()
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://monitor",
-                                 headers={"Authorization": f"Bearer {MONITOR_TOKEN}"}) as client:
+                                 headers={"Authorization": f"Bearer {VIEW_TOKEN}"}) as client:
         client.app = app
         await app.state.board.live.refresh()
         yield client

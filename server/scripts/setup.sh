@@ -167,6 +167,20 @@ if [ -z "${MONITOR_TOKEN:-}" ]; then
   echo "generated MONITOR_TOKEN in server/.env"
 fi
 export MONITOR_TOKEN
+# The only credential the monitor board accepts (docs/agent-monitor.md); it ends up in the Home Assistant card URL, so
+# it never doubles as another service's token.
+if [ -z "${MONITOR_VIEW_TOKEN:-}" ]; then
+  MONITOR_VIEW_TOKEN=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
+  [ -z "$(tail -c 1 .env)" ] || echo >> .env
+  printf 'MONITOR_VIEW_TOKEN=%s\n' "$MONITOR_VIEW_TOKEN" >> .env
+  echo "generated MONITOR_VIEW_TOKEN in server/.env"
+fi
+if [ "${#MONITOR_VIEW_TOKEN}" -lt 32 ] || [ "$MONITOR_VIEW_TOKEN" = "${MONITOR_TOKEN:-}" ] ||
+  [ "$MONITOR_VIEW_TOKEN" = "${AGENT_SERVICE_TOKEN:-}" ] || [ "$MONITOR_VIEW_TOKEN" = "${WEIXUE_PROACTIVE_TOKEN:-}" ]; then
+  echo "MONITOR_VIEW_TOKEN must be at least 32 characters and differ from every other token in server/.env" >&2
+  exit 1
+fi
+export MONITOR_VIEW_TOKEN
 
 MODEL=data/models/SenseVoiceSmall/model.pt
 MODEL_URL=https://modelscope.cn/models/iic/SenseVoiceSmall/resolve/master/model.pt
@@ -405,4 +419,4 @@ chmod 600 "$ENV_DEPLOYED"
 rm -f .env.failed "$ENDPOINT_CFG.rollback" "$ENDPOINT_URL.rollback"
 echo "OTA: http://$LAN_IP:8003/xiaozhi/ota/"
 echo "WS:  ws://$LAN_IP:8000/xiaozhi/v1/"
-echo "Monitor: http://${MONITOR_BIND:-127.0.0.1}:8020/?token=<MONITOR_TOKEN from server/.env>"
+echo "Monitor: http://${MONITOR_BIND:-127.0.0.1}:8020/?token=${MONITOR_VIEW_TOKEN}"

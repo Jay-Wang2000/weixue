@@ -23,6 +23,8 @@ class Settings:
     gateway_url: str = "http://xiaozhi-esp32-server:8003"
     mcp_endpoint: str = "mcp-endpoint-server:8004"
     monitor_token: str = ""
+    view_token: str = ""
+    local_only: bool = False
     frame_ancestors: str = "'none'"
     tunnel: bool = False
     home: bool = True
@@ -59,10 +61,18 @@ def _frame_ancestors(raw: str) -> str:
     return " ".join(sources)
 
 
-def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
-    token = env.get("MONITOR_TOKEN", "").strip()
+def _token(env: Mapping[str, str], name: str) -> str:
+    token = env.get(name, "").strip()
     if token and len(token) < 32:
-        raise ConfigError("MONITOR_TOKEN is shorter than 32 characters")
+        raise ConfigError(f"{name} is shorter than 32 characters")
+    return token
+
+
+def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
+    token = _token(env, "MONITOR_TOKEN")
+    view_token = _token(env, "MONITOR_VIEW_TOKEN")
+    if token and view_token == token:
+        raise ConfigError("MONITOR_VIEW_TOKEN must differ from MONITOR_TOKEN")
     try:
         port = int(env.get("MONITOR_PORT", "8020"))
         ha_probe_s = float(env.get("AGENT_HA_PROBE_S", "") or DEFAULT_HA_PROBE_S)
@@ -76,6 +86,8 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
         gateway_url=_base_url(env.get("GATEWAY_URL", "http://xiaozhi-esp32-server:8003"), "GATEWAY_URL"),
         mcp_endpoint=_host_port(env.get("MCP_ENDPOINT", "mcp-endpoint-server:8004")),
         monitor_token=token,
+        view_token=view_token,
+        local_only=env.get("MONITOR_BIND", "").strip() == "127.0.0.1",
         frame_ancestors=_frame_ancestors(env.get("MONITOR_FRAME_ANCESTORS", "")),
         tunnel=env.get("WG_TUNNEL", "").strip() == "1",
         home=env.get("MONITOR_HOME", "1").strip() != "0",

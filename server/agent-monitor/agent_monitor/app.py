@@ -45,15 +45,22 @@ def security_headers(frame_ancestors: str) -> Dict[str, str]:
 
 
 def token_ok(request: Request, token: str) -> bool:
-    """True when `token` is unset, or arrives as ?token= or as an Authorization bearer."""
+    """True when `token` is set and arrives as ?token= or as an Authorization bearer."""
     if not token:
-        return True
+        return False
     expected = token.encode()
     given = request.query_params.get("token", "")
     if given and hmac.compare_digest(given.encode(), expected):
         return True
     scheme, _, bearer = request.headers.get("authorization", "").partition(" ")
     return scheme.lower() == "bearer" and bool(bearer) and hmac.compare_digest(bearer.strip().encode(), expected)
+
+
+def board_access_ok(request: Request, settings: Settings) -> bool:
+    """The view token opens the board; without one the board is open only when it is bound to 127.0.0.1."""
+    if settings.view_token:
+        return token_ok(request, settings.view_token)
+    return settings.local_only
 
 
 def _epoch(ts: Optional[str]) -> Optional[float]:
@@ -367,9 +374,9 @@ def create_app(settings: Settings, db: Optional[ReadOnlyDb] = None, live: Option
     @app.middleware("http")
     async def gate(request: Request, call_next):
         path = request.url.path
-        if (path == "/" or path.startswith(GATED_PREFIX)) and not token_ok(request, settings.monitor_token):
+        if (path == "/" or path.startswith(GATED_PREFIX)) and not board_access_ok(request, settings):
             if path == "/":
-                return PlainTextResponse("This board needs its token: open it as /?token=<MONITOR_TOKEN>.", 401)
+                return PlainTextResponse("This board needs its token: open it as /?token=<MONITOR_VIEW_TOKEN>.", 401)
             return JSONResponse({"detail": "token required"}, 401, headers={"WWW-Authenticate": "Bearer"})
         return await call_next(request)
 
