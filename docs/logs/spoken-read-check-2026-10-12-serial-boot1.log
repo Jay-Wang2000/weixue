@@ -1,0 +1,1008 @@
+[    0.20 20:31:21Z] ESP-ROM:esp32s3-20210327
+[    0.20 20:31:21Z] Build:Mar 27 2021
+[    0.20 20:31:21Z] rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+[    0.20 20:31:21Z] Saved PC:0x40382d5a
+[    0.20 20:31:21Z] SPIWP:0xee
+[    0.20 20:31:21Z] mode:DIO, clock div:1
+[    0.20 20:31:21Z] load:0x3fce2820,len:0x544
+[    0.20 20:31:21Z] load:0x403c8700,len:0xd14
+[    0.20 20:31:21Z] load:0x403cb700,len:0x2eb4
+[    0.20 20:31:21Z] entry 0x403c88f4
+[    0.20 20:31:21Z] I (34) octal_psram: vendor id    : 0x0d (AP)
+[    0.20 20:31:21Z] I (34) octal_psram: dev id       : 0x02 (generation 3)
+[    0.20 20:31:21Z] I (34) octal_psram: density      : 0x03 (64 Mbit)
+[    0.20 20:31:21Z] I (36) octal_psram: good-die     : 0x01 (Pass)
+[    0.20 20:31:21Z] I (40) octal_psram: Latency      : 0x01 (Fixed)
+[    0.20 20:31:21Z] I (44) octal_psram: VCC          : 0x01 (3V)
+[    0.20 20:31:21Z] I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+[    0.20 20:31:21Z] I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+[    0.20 20:31:21Z] I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+[    0.20 20:31:21Z] I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+[    0.20 20:31:21Z] I (67) octal_psram: DriveStrength: 0x00 (1/1)
+[    0.20 20:31:21Z] I (71) MSPI Timing: Enter psram timing tuning
+[    0.20 20:31:21Z] I (76) esp_psram: Found 8MB PSRAM device
+[    0.20 20:31:21Z] I (79) esp_psram: Speed: 80MHz
+[    0.20 20:31:21Z] I (82) cpu_start: Multicore app
+[    0.20 20:31:21Z] I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+[    0.20 20:31:21Z] I (97) cpu_start: Pro cpu start user code
+[    0.20 20:31:21Z] I (97) cpu_start: cpu freq: 240000000 Hz
+[    0.20 20:31:21Z] I (98) app_init: Application information:
+[    0.20 20:31:21Z] I (102) app_init: Project name:     xiaozhi
+[    0.20 20:31:21Z] I (106) app_init: App version:      2.5.1
+[    0.20 20:31:21Z] I (110) app_init: Compile time:     Oct  7 2026 05:42:06
+[    0.20 20:31:21Z] I (115) app_init: ELF file SHA256:  ebf9ea9ac...
+[    0.20 20:31:21Z] I (119) app_init: ESP-IDF:          v6.1
+[    0.20 20:31:21Z] I (123) efuse_init: Min chip rev:     v0.0
+[    0.20 20:31:21Z] I (126) efuse_init: Max chip rev:     v0.99 
+[    0.20 20:31:21Z] I (130) efuse_init: Chip rev:         v0.2
+[    0.20 20:31:21Z] I (134) heap_init: Initializing. RAM available for dynamic allocation:
+[    0.20 20:31:21Z] I (140) heap_init: At 3FCAB520 len 0003E1F0 (248 KiB): RAM
+[    0.20 20:31:21Z] I (146) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+[    0.20 20:31:21Z] I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+[    0.20 20:31:21Z] I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+[    0.20 20:31:21Z] I (161) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+[    0.20 20:31:21Z] I (168) spi_flash: detected chip: gd
+[    0.20 20:31:21Z] I (171) spi_flash: flash io: qio
+[    0.20 20:31:21Z] I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[    0.20 20:31:21Z] I (180) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[    0.20 20:31:21Z] I (187) main_task: Started on CPU0
+[    0.20 20:31:21Z] I (187) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+[    0.20 20:31:21Z] I (197) main_task: Calling app_main()
+[    0.40 20:31:21Z] I (367) Board: UUID=<uuid> SKU=esp32-s3-touch-amoled-1.75c-weixue
+[    0.40 20:31:21Z] I (367) button: IoT Button Version: 4.2.1
+[    0.40 20:31:21Z] I (367) PowerSaveTimer: Power save timer enabled
+[    0.40 20:31:21Z] I (367) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+[    0.40 20:31:21Z] I (377) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+[    0.40 20:31:21Z] W (387) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.40 20:31:21Z] W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.61 20:31:21Z] W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.61 20:31:21Z] I (407) co5300: version: 2.2.0
+[    0.61 20:31:21Z] I (407) co5300_spi: LCD panel create success, version: 2.2.0
+[    0.61 20:31:21Z] W (577) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+[    1.86 20:31:23Z] I (1777) Display: Power management not supported
+[    1.86 20:31:23Z] I (1857) LcdDisplay: Turning display on
+[    2.07 20:31:23Z] I (1857) LcdDisplay: Initialize LVGL library
+[    2.07 20:31:23Z] I (1857) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+[    2.07 20:31:23Z] I (1857) LcdDisplay: Use 2MB of PSRAM for image cache
+[    2.07 20:31:23Z] I (1867) LcdDisplay: Initialize LVGL port
+[    2.07 20:31:23Z] I (1867) LcdDisplay: Adding LCD display
+[    2.07 20:31:23Z] I (1867) LVGL: Starting LVGL task
+[    2.07 20:31:23Z] I (1877) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+[    2.07 20:31:23Z] I (1877) Backlight: Set brightness to 75
+[    2.07 20:31:23Z] I (1887) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+[    2.07 20:31:23Z] I (1957) CST9217: Checkcode: 0x204ECACA
+[    2.07 20:31:23Z] I (1957) CST9217: Resolution X: 466, Y: 466
+[    2.07 20:31:23Z] I (1957) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+[    2.07 20:31:23Z] I (1957) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+[    2.07 20:31:23Z] I (1957) Qmi8658: QMI8658 found at 0x6B
+[    2.07 20:31:23Z] I (1987) Qmi8658: Reset result 0x80
+[    2.07 20:31:23Z] I (2007) MCP: Add tool: self.system.reconfigure_wifi [operator-only]
+[    2.07 20:31:23Z] I (2007) MCP: Add tool: self.screen.set_bedside
+[    2.07 20:31:23Z] I (2007) MCP: Add tool: self.imu.get_state
+[    2.07 20:31:23Z] I (2007) DiagConsole: listening on USB Serial/JTAG
+[    2.07 20:31:23Z] I (2007) StateMachine: State: unknown -> starting
+[    2.07 20:31:23Z] I (2017) Application: Clock: stored TZ IST-1GMT0,M10.5.0,M3.5.0/1
+[    2.07 20:31:23Z] I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=-0.145 y=-0.005 z=0.984 g
+[    2.07 20:31:23Z] I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+[    2.27 20:31:23Z] I (2147) MonitorPanel: page=1
+[    2.28 20:31:23Z] I (2227) Assets: The storage free size is 21568 KB
+[    2.28 20:31:23Z] I (2227) Assets: The assets map size is 4224 KB (partition 16384 KB)
+[    2.48 20:31:23Z] I (2467) Assets: The checksum calculation time is 245 ms
+[    2.48 20:31:23Z] I (2477) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+[    2.68 20:31:23Z] I (2477) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 384 ms without a sample (2)
+[    2.68 20:31:23Z] W (2577) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+[    2.68 20:31:23Z] I (2577) BoxAudioCodec: Duplex channels created
+[    2.68 20:31:23Z] I (2587) ES8311: Work in Slave mode
+[    2.68 20:31:23Z] I (2587) ES7210: Work in Slave mode
+[    2.68 20:31:23Z] I (2597) ES7210: Enable ES7210_INPUT_MIC1
+[    2.68 20:31:23Z] I (2597) ES7210: Enable ES7210_INPUT_MIC2
+[    2.68 20:31:23Z] I (2607) ES7210: Enable ES7210_INPUT_MIC3
+[    2.68 20:31:23Z] I (2607) ES7210: Enable ES7210_INPUT_MIC4
+[    2.68 20:31:23Z] I (2607) ES7210: Enable TDM mode
+[    2.68 20:31:23Z] I (2617) BoxAudioCodec: BoxAudioDevice initialized
+[    2.68 20:31:23Z] I (2617) AudioCodec: Audio codec started
+[    2.68 20:31:23Z] I (2617) Application: After board/audio init
+[    2.68 20:31:23Z] I (2617) SystemInfo: free sram: 175975 minimal sram: 74448
+[    2.68 20:31:23Z] I (2627) WeixueAgent: agent: protocol v1 level 2, boot 223094490
+[    2.68 20:31:23Z] I (2627) MCP: Add tool: self.get_device_status
+[    2.68 20:31:23Z] I (2637) MCP: Add tool: self.audio_speaker.set_volume
+[    2.68 20:31:23Z] I (2637) MCP: Add tool: self.screen.set_brightness
+[    2.68 20:31:23Z] I (2647) MCP: Add tool: self.screen.set_theme
+[    2.68 20:31:23Z] I (2647) MCP: Add tool: self.get_system_info [user] [operator-only]
+[    2.68 20:31:23Z] I (2657) MCP: Add tool: self.reboot [user] [operator-only]
+[    2.68 20:31:23Z] I (2657) MCP: Add tool: self.upgrade_firmware [user] [operator-only]
+[    2.68 20:31:23Z] I (2667) MCP: Add tool: self.screen.get_info [user] [operator-only]
+[    2.68 20:31:23Z] I (2667) MCP: Add tool: self.screen.snapshot [user] [operator-only]
+[    2.89 20:31:24Z] I (2677) MCP: Add tool: self.screen.preview_image [user] [operator-only]
+[    2.89 20:31:24Z] I (2677) MCP: Add tool: self.assets.set_download_url [user] [operator-only]
+[    2.89 20:31:24Z] I (2687) WifiManager: Initializing...
+[    2.89 20:31:24Z] I (2697) pp: pp rom version: e7ae62f
+[    2.89 20:31:24Z] I (2697) net80211: net80211 rom version: e7ae62f
+[    2.89 20:31:24Z] I (2707) wifi:wifi driver task: 3fce6a60, prio:23, stack:6656, core=0
+[    2.89 20:31:24Z] I (2707) wifi:wifi firmware version: e12a754
+[    2.89 20:31:24Z] I (2707) wifi:wifi certification version: v7.0
+[    2.89 20:31:24Z] I (2717) wifi:config NVS flash: disabled
+[    2.89 20:31:24Z] I (2717) wifi:config nano formatting: disabled
+[    2.89 20:31:24Z] I (2717) wifi:Init data frame dynamic rx buffer num: 6
+[    2.89 20:31:24Z] I (2727) wifi:Init dynamic rx mgmt buffer num: 5
+[    2.89 20:31:24Z] I (2727) wifi:Init management short buffer num: 32
+[    2.89 20:31:24Z] I (2737) wifi:Init dynamic tx buffer num: 32
+[    2.89 20:31:24Z] I (2737) wifi:Init static tx FG buffer num: 2
+[    2.89 20:31:24Z] I (2747) wifi:Init static rx buffer size: 1600
+[    2.89 20:31:24Z] I (2747) wifi:Init static rx buffer num: 3
+[    2.89 20:31:24Z] I (2747) wifi:Init dynamic rx buffer num: 6
+[    2.89 20:31:24Z] I (2757) wifi_init: rx ba win: 3
+[    2.89 20:31:24Z] I (2757) wifi_init: accept mbox: 6
+[    2.89 20:31:24Z] I (2757) wifi_init: tcpip mbox: 16
+[    2.89 20:31:24Z] I (2767) wifi_init: udp mbox: 6
+[    2.89 20:31:24Z] I (2767) wifi_init: tcp mbox: 6
+[    2.89 20:31:24Z] I (2767) wifi_init: tcp tx win: 5760
+[    2.89 20:31:24Z] I (2777) wifi_init: tcp rx win: 5760
+[    2.89 20:31:24Z] I (2777) wifi_init: tcp mss: 1440
+[    2.89 20:31:24Z] I (2777) WifiManager: Initialized
+[    2.89 20:31:24Z] I (2787) WifiBoard: Starting WiFi connection attempt
+[    2.89 20:31:24Z] I (2787) WifiManager: Starting station
+[    2.89 20:31:24Z] I (2787) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+[    2.89 20:31:24Z] I (2797) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+[    2.89 20:31:24Z] I (2837) wifi:mode : sta (<mac>)
+[    2.89 20:31:24Z] I (2837) wifi:enable tsf
+[    2.89 20:31:24Z] I (2837) WifiStation: Scanning saved channel 6
+[    2.89 20:31:24Z] I (2837) WifiBoard: WiFi scanning
+[    3.09 20:31:24Z] I (2957) WifiStation: Found AP: <ssid>, BSSID: <mac>, RSSI: -77, Channel: 6, Authmode: 3
+[    3.09 20:31:24Z] I (2957) WifiBoard: WiFi connecting to <ssid>
+[    3.09 20:31:24Z] W (2967) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+[    3.09 20:31:24Z] I (3027) wifi:new:<6,1>, old:<1,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.09 20:31:24Z] I (3027) wifi:state: init -> auth (0xb0)
+[    3.09 20:31:24Z] I (3037) wifi:state: auth -> init (0x8a0)
+[    3.09 20:31:24Z] I (3037) wifi:new:<6,0>, old:<6,1>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.09 20:31:24Z] I (3047) wifi:new:<6,1>, old:<6,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.09 20:31:24Z] I (3047) wifi:state: init -> auth (0xb0)
+[    3.09 20:31:24Z] I (3057) wifi:state: auth -> assoc (0x0)
+[    3.09 20:31:24Z] I (3057) wifi:state: assoc -> run (0x10)
+[    3.29 20:31:24Z] I (3097) wifi:connected with <ssid>, aid = 5, channel 6, 40U, bssid = <mac>
+[    3.29 20:31:24Z] I (3097) wifi:security: WPA2-PSK, phy: bgn, rssi: -76, cipher(pairwise:0x3, group:0x3), pmf:0
+[    3.29 20:31:24Z] I (3097) wifi:pm start, type: 1
+[    3.29 20:31:24Z] 
+[    3.29 20:31:24Z] I (3097) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+[    3.29 20:31:24Z] I (3107) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+[    3.29 20:31:24Z] I (3117) wifi:<ba-add>idx:0 (ifx:0, <mac>), tid:7, ssn:0, winSize:64
+[    3.29 20:31:24Z] I (3127) MonitorPanel: diag backend=checking poll_status=0 poll_age_ms=-1
+[    3.29 20:31:24Z] I (3197) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+[    3.50 20:31:24Z] I (3297) wifi:<ba-add>idx:1 (ifx:0, <mac>), tid:0, ssn:0, winSize:64
+[    4.13 20:31:25Z] I (4137) esp_netif_handlers: sta ip: <IP>, mask: <IP>, gw: <IP>
+[    4.33 20:31:25Z] I (4137) WifiStation: Got IP: <IP>
+[    4.33 20:31:25Z] I (4137) WifiBoard: Connected to WiFi: <ssid>
+[    4.33 20:31:25Z] I (4137) Application: Network connected
+[    4.33 20:31:25Z] I (4137) StateMachine: State: starting -> activating
+[    4.33 20:31:25Z] I (4147) MODEL_LOADER: Successfully load srmodels
+[    4.33 20:31:25Z] I (4167) Assets: Refreshing display theme...
+[    4.33 20:31:25Z] I (4197) Ota: Current version: 2.5.1
+[    4.33 20:31:25Z] I (4197) EspTcp: Resolved <IP> -> <IP>
+[    4.54 20:31:25Z] I (4527) HttpClient: Established new connection to <IP>:8003 protocol=http cost=330
+[    4.74 20:31:25Z] I (4717) HttpClient: HTTP connection closed
+[    4.74 20:31:25Z] I (4717) Ota: No mqtt section found !
+[    4.74 20:31:25Z] I (4717) Ota: Clock: TZ IST-1GMT0,M10.5.0,M3.5.0/1, UTC offset +60 min (January +0, July +60)
+[    4.74 20:31:25Z] I (4717) Ota: Current is the latest version
+[    4.74 20:31:25Z] I (4727) Ota: Running partition: ota_0
+[    4.74 20:31:25Z] I (4727) Application: Activation done
+[    4.74 20:31:25Z] I (4727) SystemInfo: free sram: 137911 minimal sram: 39812
+[    4.74 20:31:25Z] I (4737) StateMachine: State: activating -> idle
+[    4.94 20:31:26Z] I (4747) Application: Proactive poller: http://<IP>:8003/weixue/proactive/poll
+[    4.94 20:31:26Z] I (4747) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[    4.94 20:31:26Z] I (4747) EspTcp: Resolved <IP> -> <IP>
+[    4.94 20:31:26Z] I (4757) wifi:Set ps type: 2, coexist: 0
+[    4.94 20:31:26Z] 
+[    4.94 20:31:26Z] I (4767) AfeAudioEngine: Model 0: wn9_jarvis_tts
+[    4.94 20:31:26Z] I (4767) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[    4.94 20:31:26Z] I (4767) WakeWordCache: Allocated 64000 bytes in PSRAM
+[    4.94 20:31:26Z] I (4777) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+[    4.94 20:31:26Z] I (4787) AfeAudioEngine: Before AFE create: free=122671 min=39812 largest=77824
+[    4.94 20:31:26Z] MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+[    4.94 20:31:26Z] I (4877) AFE: AFE Version: (1MIC_V251128)
+[    4.94 20:31:26Z] I (4877) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[    4.94 20:31:26Z] I (4887) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+[    4.94 20:31:26Z] I (4897) AFE: AFE Version: (1MIC_V251128)
+[    4.94 20:31:26Z] I (4907) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[    4.94 20:31:26Z] I (4907) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+[    4.94 20:31:26Z] I (4917) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+[    4.94 20:31:26Z] I (4927) AfeAudioEngine: After AFE create: free=101511 min=33468 largest=59392
+[    5.14 20:31:26Z] I (4937) I2S_IF: Paired data: 0x3fcd7a94, current mode: playback, paired in_enable: 0, paired out_enable: 0
+[    5.14 20:31:26Z] I (4947) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+[    5.14 20:31:26Z] I (4947) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    5.14 20:31:26Z] I (4977) Adev_Codec: Open codec device OK
+[    5.14 20:31:26Z] I (4977) AudioCodec: Set output enable to true
+[    5.14 20:31:26Z] I (4977) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R3BTKYVPWYFFT5H27NXMKW state=unread seq=1791810207390 tier=silent speaks=0 result=applied via=poll
+[    5.14 20:31:26Z] I (4977) AudioService: Resampling audio from 16000 to 24000
+[    5.14 20:31:26Z] I (4987) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R3CJC8XK33KG5353T3H57D state=unread seq=1791810232799 tier=silent speaks=0 result=applied via=poll
+[    5.14 20:31:26Z] I (4987) I2S_IF: Peer mode playback need extend bits 32 to 64
+[    5.14 20:31:26Z] I (4987) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 208 ms without a sample (3)
+[    5.14 20:31:26Z] I (5017) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+[    5.14 20:31:26Z] I (5027) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    5.14 20:31:26Z] I (5037) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+[    5.14 20:31:26Z] I (5047) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    5.14 20:31:26Z] I (5037) FaceDisplay: agent ui: task=tsk_01M4R3BTKYVPWYFFT5H27NXMKW state=unread tier=silent flash=0 earcon=none
+[    5.14 20:31:26Z] I (5057) ES7210: Bits 16
+[    5.14 20:31:26Z] I (5057) FaceDisplay: agent ui: task=tsk_01M4R3CJC8XK33KG5353T3H57D state=unread tier=silent flash=0 earcon=none
+[    5.14 20:31:26Z] I (5067) ES7210: Enable ES7210_INPUT_MIC1
+[    5.14 20:31:26Z] I (5077) FaceDisplay: ring=dot bedside=0
+[    5.14 20:31:26Z] I (5077) ES7210: Enable ES7210_INPUT_MIC2
+[    5.14 20:31:26Z] I (5087) ES7210: Enable ES7210_INPUT_MIC3
+[    5.14 20:31:26Z] I (5087) ES7210: Enable ES7210_INPUT_MIC4
+[    5.14 20:31:26Z] I (5097) ES7210: Enable TDM mode
+[    5.14 20:31:26Z] I (5097) ES7210: Unmuted
+[    5.14 20:31:26Z] I (5097) Adev_Codec: Open codec device OK
+[    5.14 20:31:26Z] I (5107) AudioCodec: Set input enable to true
+[    5.14 20:31:26Z] I (5137) MonitorPanel: diag backend=online poll_status=200 poll_age_ms=128
+[    5.35 20:31:26Z] I (5207) EspTcp: Resolved <IP> -> <IP>
+[    5.35 20:31:26Z] I (5207) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+[    5.35 20:31:26Z] I (5247) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R3D2GWBQ0T7FM32T926MWJ state=unread seq=1791810250250 tier=silent speaks=0 result=applied via=poll
+[    5.35 20:31:26Z] I (5247) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R4Y6PBK6VJ1NHRM7WRQ6BN state=unread seq=1791811868908 tier=silent speaks=0 result=applied via=poll
+[    5.35 20:31:26Z] I (5267) FaceDisplay: agent ui: task=tsk_01M4R3D2GWBQ0T7FM32T926MWJ state=unread tier=silent flash=0 earcon=none
+[    5.35 20:31:26Z] I (5277) FaceDisplay: agent ui: task=tsk_01M4R4Y6PBK6VJ1NHRM7WRQ6BN state=unread tier=silent flash=0 earcon=none
+[    5.57 20:31:26Z] I (5467) EspTcp: Resolved <IP> -> <IP>
+[    5.77 20:31:27Z] I (5697) HttpClient: Established new connection to <IP>:8003 protocol=http cost=230
+[    5.97 20:31:27Z] I (5867) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R4YZXA964JMZQGFY1A5RX9 state=unread seq=1791811891502 tier=when_idle speaks=0 result=applied via=poll
+[    5.97 20:31:27Z] I (5877) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MCJKS1X157FMJ9WKQFEJ state=unread seq=1791812585503 tier=silent speaks=0 result=applied via=poll
+[    5.97 20:31:27Z] I (5907) FaceDisplay: agent ui: task=tsk_01M4R4YZXA964JMZQGFY1A5RX9 state=unread tier=when_idle flash=2 earcon=done
+[    5.97 20:31:27Z] I (5907) FaceDisplay: agent ui: task=tsk_01M4R5MCJKS1X157FMJ9WKQFEJ state=unread tier=silent flash=0 earcon=none
+[    5.97 20:31:27Z] I (5917) FaceDisplay: earcon=done
+[    5.97 20:31:27Z] I (5917) FaceDisplay: ring=flash bedside=0
+[    6.18 20:31:27Z] I (6087) EspTcp: Resolved <IP> -> <IP>
+[    6.38 20:31:27Z] I (6217) FaceDisplay: diag gaze=-7,-5 mode=idle
+[    6.38 20:31:27Z] I (6217) FaceDisplay: diag blink double=0 mode=idle
+[    6.38 20:31:27Z] I (6217) FaceDisplay: ring=off bedside=0
+[    6.59 20:31:27Z] I (6497) FaceDisplay: agent ui: pose=happy top=tsk_01M4R5MCJKS1X157FMJ9WKQFEJ
+[    6.79 20:31:28Z] I (6597) FaceDisplay: ring=flash bedside=0
+[    6.79 20:31:28Z] I (6697) HttpClient: Established new connection to <IP>:8003 protocol=http cost=610
+[    6.99 20:31:28Z] I (6817) FaceDisplay: ring=off bedside=0
+[    7.20 20:31:28Z] I (6997) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MVMYFX2W0371D3F7FCQR state=unread seq=1791812598031 tier=silent speaks=0 result=applied via=poll
+[    7.20 20:31:28Z] I (6997) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4RR8RDYB0MTVJ03NVTQMXFB state=unread seq=1791832125703 tier=silent speaks=0 result=applied via=poll
+[    7.20 20:31:28Z] I (7027) FaceDisplay: agent ui: task=tsk_01M4R5MVMYFX2W0371D3F7FCQR state=unread tier=silent flash=0 earcon=none
+[    7.20 20:31:28Z] I (7027) FaceDisplay: agent ui: task=tsk_01M4RR8RDYB0MTVJ03NVTQMXFB state=unread tier=silent flash=0 earcon=none
+[    7.41 20:31:28Z] I (7217) EspTcp: Resolved <IP> -> <IP>
+[    7.41 20:31:28Z] I (7247) FaceDisplay: ring=dot bedside=0
+[    7.82 20:31:29Z] I (7697) FaceDisplay: diag lit=4.36% screen 5.55% circle mode=happy mood=neutral dump=1 snap_ms=339.3
+[    7.82 20:31:29Z] I (7727) FaceDisplay: diag fps=9.5 frame_ms_avg=18.7 frame_ms_max=94.9 voice_flips=0 mode=idle mood=neutral inv_areas=2.2 inv_kpx=34.7 inv_full=3 ring=dot
+[    8.02 20:31:29Z] I (7907) HttpClient: Established new connection to <IP>:8003 protocol=http cost=690
+[    9.03 20:31:30Z] I (8937) WeixueAgent: agent: chats seq=1791836593051 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[    9.03 20:31:30Z] I (8967) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[    9.23 20:31:30Z] I (9147) EspTcp: Resolved <IP> -> <IP>
+[   10.05 20:31:31Z] I (9957) HttpClient: Established new connection to <IP>:8003 protocol=http cost=810
+[   10.45 20:31:31Z] I (10257) FaceDisplay: agent ui: pose=mini top=tsk_01M4RR8RDYB0MTVJ03NVTQMXFB
+[   11.06 20:31:32Z] I (10867) FaceDisplay: diag blink double=0 mode=idle
+[   11.06 20:31:32Z] I (10987) WeixueAgent: agent: sync seq=1791837091465 listed=8 dropped=0 tasks=8 via=poll
+[   11.27 20:31:32Z] I (11197) EspTcp: Resolved <IP> -> <IP>
+[   11.47 20:31:32Z] I (11417) FaceDisplay: diag lit=5.42% screen 6.90% circle mode=mini mood=neutral dump=2 snap_ms=334.2
+[   11.47 20:31:32Z] I (11427) FaceDisplay: diag gaze=0,6 mode=idle
+[   12.08 20:31:33Z] I (12007) HttpClient: Established new connection to <IP>:8003 protocol=http cost=810
+[   12.89 20:31:34Z] I (12797) FaceDisplay: diag fps=6.3 frame_ms_avg=12.0 frame_ms_max=22.8 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=18.6 inv_full=0 ring=dot
+[   14.73 20:31:35Z] I (14607) FaceDisplay: diag blink double=1 mode=idle
+[   14.73 20:31:35Z] I (14627) SystemInfo: free sram: 99195 minimal sram: 33468
+[   14.94 20:31:36Z] ### send diag volume 20
+[   15.13 20:31:36Z] I (14957) DiagConsole: ok diag volume 20: volume 20
+[   15.13 20:31:36Z] I (14957) AudioCodec: Set output volume to 20
+[   15.13 20:31:36Z] I (14967) WaveshareEsp32s3TouchAMOLED1inch75: Volume diag: output volume 20 this boot (stored 100 kept)
+[   17.17 20:31:38Z] I (17037) FaceDisplay: diag gaze=0,0 mode=idle
+[   17.99 20:31:39Z] I (17887) FaceDisplay: diag fps=6.3 frame_ms_avg=10.5 frame_ms_max=23.3 voice_flips=0 mode=idle mood=neutral inv_areas=1.6 inv_kpx=15.5 inv_full=0 ring=dot
+[   20.24 20:31:41Z] I (20227) FaceDisplay: diag blink double=0 mode=idle
+[   23.14 20:31:44Z] I (22977) FaceDisplay: diag fps=4.1 frame_ms_avg=12.1 frame_ms_max=18.4 voice_flips=0 mode=idle mood=neutral inv_areas=1.3 inv_kpx=20.1 inv_full=0 ring=dot
+[   23.35 20:31:44Z] I (23277) WeixueAgent: agent: chats seq=1791837104596 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[   23.35 20:31:44Z] I (23277) HttpClient: HTTP connection closed
+[   23.35 20:31:44Z] I (23297) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   23.56 20:31:44Z] I (23477) EspTcp: Resolved <IP> -> <IP>
+[   23.56 20:31:44Z] I (23507) FaceDisplay: diag gaze=0,6 mode=idle
+[   24.39 20:31:45Z] I (24297) HttpClient: Established new connection to <IP>:8003 protocol=http cost=820
+[   24.80 20:31:46Z] I (24627) SystemInfo: free sram: 98223 minimal sram: 33468
+[   25.63 20:31:46Z] I (25427) WeixueAgent: agent: chat=cht_01M4RX0SDV0J89HC1ACDMVTKV9 task=tsk_01M4RX0SYTTYTEA32GV62D2NAC state=unread seq=1791837105500 tier=silent speaks=0 result=applied via=poll
+[   25.63 20:31:46Z] I (25537) FaceDisplay: agent ui: task=tsk_01M4RX0SYTTYTEA32GV62D2NAC state=unread tier=silent flash=0 earcon=none
+[   25.63 20:31:46Z] I (25537) FaceDisplay: agent ui: pose=happy top=tsk_01M4RX0SYTTYTEA32GV62D2NAC
+[   25.84 20:31:47Z] I (25647) EspTcp: Resolved <IP> -> <IP>
+[   25.84 20:31:47Z] I (25777) FaceDisplay: diag blink double=0 mode=idle
+[   26.66 20:31:47Z] I (26547) HttpClient: Established new connection to <IP>:8003 protocol=http cost=900
+[   26.86 20:31:48Z] I (26697) FaceDisplay: diag lit=4.30% screen 5.48% circle mode=happy mood=neutral dump=3 snap_ms=322.5
+[   27.47 20:31:48Z] I (27387) WeixueAgent: agent: chats seq=1791837106007 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[   27.67 20:31:48Z] I (27477) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   27.67 20:31:48Z] I (27597) EspTcp: Resolved <IP> -> <IP>
+[   28.08 20:31:49Z] I (28017) FaceDisplay: diag fps=6.2 frame_ms_avg=11.7 frame_ms_max=25.0 voice_flips=0 mode=idle mood=neutral inv_areas=1.6 inv_kpx=17.5 inv_full=0 ring=dot
+[   28.28 20:31:49Z] I (28127) FaceDisplay: diag gaze=0,0 mode=idle
+[   28.48 20:31:49Z] I (28387) HttpClient: Established new connection to <IP>:8003 protocol=http cost=790
+[   28.68 20:31:49Z] I (28647) FaceDisplay: agent ui: pose=mini top=tsk_01M4RX0SYTTYTEA32GV62D2NAC
+[   29.90 20:31:51Z] I (29817) FaceDisplay: diag lit=5.91% screen 7.53% circle mode=mini mood=neutral dump=4 snap_ms=302.9
+[   31.53 20:31:52Z] I (31357) FaceDisplay: diag blink double=0 mode=idle
+[   32.13 20:31:53Z] I (32007) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=12 resyncs=3 skipped=43 read_errors=0 torn_timestamps=0
+[   32.13 20:31:53Z] I (32017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[   32.34 20:31:53Z] I (32147) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 156 ms without a sample (4)
+[   33.15 20:31:54Z] I (33047) FaceDisplay: diag fps=6.6 frame_ms_avg=11.9 frame_ms_max=26.1 voice_flips=0 mode=idle mood=neutral inv_areas=1.7 inv_kpx=17.0 inv_full=0 ring=dot
+[   34.58 20:31:55Z] I (34447) FaceDisplay: diag gaze=0,0 mode=idle
+[   34.79 20:31:56Z] I (34627) SystemInfo: free sram: 98323 minimal sram: 33468
+[   37.03 20:31:58Z] I (37007) FaceDisplay: diag blink double=0 mode=idle
+[   38.25 20:31:59Z] I (38147) FaceDisplay: diag fps=4.1 frame_ms_avg=14.2 frame_ms_max=24.2 voice_flips=0 mode=idle mood=neutral inv_areas=1.3 inv_kpx=20.1 inv_full=0 ring=dot
+[   38.87 20:32:00Z] I (38787) FaceDisplay: diag gaze=0,1 mode=idle
+[   43.00 20:32:04Z] I (42997) FaceDisplay: diag blink double=0 mode=idle
+[   43.21 20:32:04Z] I (43167) FaceDisplay: diag fps=4.0 frame_ms_avg=15.0 frame_ms_max=21.3 voice_flips=0 mode=idle mood=neutral inv_areas=1.2 inv_kpx=21.9 inv_full=0 ring=dot
+[   44.46 20:32:05Z] I (44357) FaceDisplay: diag gaze=5,4 mode=idle
+[   44.67 20:32:05Z] I (44627) SystemInfo: free sram: 97359 minimal sram: 33468
+[   47.15 20:32:08Z] I (47027) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=13 resyncs=4 skipped=55 read_errors=0 torn_timestamps=0
+[   47.15 20:32:08Z] I (47027) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[   47.15 20:32:08Z] W (47027) WaveshareEsp32s3TouchAMOLED1inch75: IMU read failed (1)
+[   47.15 20:32:08Z] I (47047) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (5)
+[   48.18 20:32:09Z] I (48067) FaceDisplay: diag blink double=0 mode=idle
+[   48.39 20:32:09Z] I (48197) FaceDisplay: diag fps=5.2 frame_ms_avg=12.1 frame_ms_max=22.0 voice_flips=0 mode=idle mood=neutral inv_areas=1.5 inv_kpx=18.6 inv_full=0 ring=dot
+[   50.05 20:32:11Z] I (49847) FaceDisplay: diag gaze=-3,0 mode=idle
+[   53.36 20:32:14Z] I (53277) FaceDisplay: diag fps=5.1 frame_ms_avg=12.6 frame_ms_max=23.0 voice_flips=0 mode=idle mood=neutral inv_areas=1.5 inv_kpx=18.4 inv_full=0 ring=dot
+[   54.39 20:32:15Z] I (54247) FaceDisplay: diag blink double=0 mode=idle
+[   54.81 20:32:16Z] I (54637) SystemInfo: free sram: 101159 minimal sram: 33468
+[   55.01 20:32:16Z] I (54997) EspTcp: Resolved <IP> -> <IP>
+[   55.22 20:32:16Z] I (55037) HttpClient: Established new connection to <IP>:8003 protocol=http cost=40
+[   55.64 20:32:16Z] I (55497) FaceDisplay: diag gaze=0,0 mode=idle
+[   58.32 20:32:19Z] I (58307) FaceDisplay: diag fps=4.6 frame_ms_avg=12.6 frame_ms_max=22.7 voice_flips=0 mode=idle mood=neutral inv_areas=1.5 inv_kpx=19.5 inv_full=0 ring=dot
+[   59.97 20:32:21Z] I (59907) FaceDisplay: diag blink double=1 mode=idle
+[   60.80 20:32:22Z] I (60707) FaceDisplay: diag gaze=2,1 mode=idle
+[   62.03 20:32:23Z] I (62027) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=13 resyncs=5 skipped=58 read_errors=1 torn_timestamps=0
+[   62.03 20:32:23Z] I (62027) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[   62.66 20:32:23Z] I (62557) FaceDisplay: diag shift=1,0
+[   63.49 20:32:24Z] I (63317) FaceDisplay: diag fps=5.6 frame_ms_avg=14.6 frame_ms_max=105.6 voice_flips=0 mode=idle mood=neutral inv_areas=1.7 inv_kpx=26.2 inv_full=1 ring=dot
+[   64.51 20:32:25Z] I (64497) FaceDisplay: diag blink double=1 mode=idle
+[   64.72 20:32:25Z] I (64627) SystemInfo: free sram: 97371 minimal sram: 33468
+[   65.12 20:32:26Z] I (65067) FaceDisplay: diag gaze=-5,-1 mode=idle
+[   66.36 20:32:27Z] I (66367) PowerSaveTimer: Enabling power save mode
+[   66.56 20:32:27Z] I (66367) Backlight: Set brightness to 20
+[   66.56 20:32:27Z] I (66417) FaceDisplay: mode=idle mood=sleepy
+[   66.56 20:32:27Z] I (66417) FaceDisplay: diag gaze=0,-1 mode=idle
+[   67.81 20:32:29Z] I (67647) FaceDisplay: diag lit=5.94% screen 7.57% circle mode=mini mood=sleepy dump=5 snap_ms=325.1
+[   68.62 20:32:29Z] I (68407) FaceDisplay: diag fps=7.5 frame_ms_avg=10.9 frame_ms_max=21.0 voice_flips=0 mode=idle mood=sleepy inv_areas=1.8 inv_kpx=15.7 inv_full=0 ring=dot
+[   69.23 20:32:30Z] I (69157) FaceDisplay: diag blink double=0 mode=idle
+[   71.47 20:32:32Z] I (71287) FaceDisplay: diag gaze=0,6 mode=idle
+[   73.50 20:32:34Z] I (73477) FaceDisplay: diag fps=5.3 frame_ms_avg=12.3 frame_ms_max=24.7 voice_flips=0 mode=idle mood=sleepy inv_areas=1.6 inv_kpx=17.8 inv_full=0 ring=dot
+[   73.70 20:32:34Z] I (73587) FaceDisplay: diag blink double=1 mode=idle
+[   74.72 20:32:35Z] I (74627) SystemInfo: free sram: 98335 minimal sram: 33468
+[   75.56 20:32:36Z] I (75487) FaceDisplay: diag gaze=0,6 mode=idle
+[   78.68 20:32:39Z] I (78487) FaceDisplay: diag fps=5.8 frame_ms_avg=10.5 frame_ms_max=24.5 voice_flips=0 mode=idle mood=sleepy inv_areas=1.7 inv_kpx=16.4 inv_full=0 ring=dot
+[   78.68 20:32:39Z] I (78597) FaceDisplay: diag blink double=0 mode=idle
+[   79.92 20:32:41Z] I (79767) FaceDisplay: diag gaze=0,6 mode=idle
+[   81.77 20:32:43Z] I (81617) EspTcp: Resolved <IP> -> <IP>
+[   81.77 20:32:43Z] I (81637) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[   83.63 20:32:44Z] I (83507) FaceDisplay: diag fps=4.8 frame_ms_avg=10.9 frame_ms_max=18.4 voice_flips=0 mode=idle mood=sleepy inv_areas=1.3 inv_kpx=17.9 inv_full=0 ring=dot
+[   84.68 20:32:45Z] I (84627) SystemInfo: free sram: 97359 minimal sram: 33468
+[   84.88 20:32:46Z] I (84777) FaceDisplay: diag blink double=0 mode=idle
+[   86.32 20:32:47Z] I (86157) FaceDisplay: diag gaze=-1,3 mode=idle
+[   88.60 20:32:49Z] I (88567) FaceDisplay: diag fps=5.7 frame_ms_avg=11.9 frame_ms_max=20.5 voice_flips=0 mode=idle mood=sleepy inv_areas=1.4 inv_kpx=16.9 inv_full=0 ring=dot
+[   89.62 20:32:50Z] I (89627) FaceDisplay: diag blink double=0 mode=idle
+[   92.10 20:32:53Z] I (92037) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=14 resyncs=6 skipped=73 read_errors=1 torn_timestamps=0
+[   92.10 20:32:53Z] I (92037) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[   92.10 20:32:53Z] I (92087) FaceDisplay: diag gaze=0,6 mode=idle
+[   92.31 20:32:53Z] I (92167) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=14 resyncs=6 skipped=73 read_errors=1 torn_timestamps=0
+[   92.31 20:32:53Z] I (92167) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[   93.76 20:32:55Z] I (93667) FaceDisplay: diag fps=4.7 frame_ms_avg=13.8 frame_ms_max=22.4 voice_flips=0 mode=idle mood=sleepy inv_areas=1.7 inv_kpx=19.4 inv_full=0 ring=dot
+[   94.81 20:32:56Z] I (94647) SystemInfo: free sram: 97359 minimal sram: 33468
+[   95.65 20:32:56Z] I (95587) FaceDisplay: diag blink double=0 mode=idle
+[   96.47 20:32:57Z] I (96437) FaceDisplay: diag gaze=0,0 mode=idle
+[   98.96 20:33:00Z] I (98767) FaceDisplay: diag fps=5.7 frame_ms_avg=11.4 frame_ms_max=24.0 voice_flips=0 mode=idle mood=sleepy inv_areas=1.5 inv_kpx=17.8 inv_full=0 ring=dot
+[   99.79 20:33:01Z] I (99727) FaceDisplay: diag blink double=0 mode=idle
+[  101.64 20:33:02Z] I (101647) FaceDisplay: diag gaze=1,3 mode=idle
+[  103.91 20:33:05Z] I (103777) FaceDisplay: diag fps=5.6 frame_ms_avg=11.8 frame_ms_max=23.0 voice_flips=0 mode=idle mood=sleepy inv_areas=1.5 inv_kpx=16.9 inv_full=0 ring=dot
+[  104.74 20:33:05Z] I (104627) SystemInfo: free sram: 97359 minimal sram: 33468
+[  104.94 20:33:06Z] I (104837) FaceDisplay: diag blink double=0 mode=idle
+[  107.64 20:33:08Z] I (107497) FaceDisplay: diag gaze=8,-3 mode=idle
+[  108.26 20:33:09Z] I (108247) EspTcp: Resolved <IP> -> <IP>
+[  108.26 20:33:09Z] I (108267) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[  108.47 20:33:09Z] I (108387) FaceDisplay: diag blink double=0 mode=idle
+[  108.88 20:33:10Z] I (108797) FaceDisplay: diag fps=7.6 frame_ms_avg=9.8 frame_ms_max=22.5 voice_flips=0 mode=idle mood=sleepy inv_areas=1.7 inv_kpx=14.0 inv_full=0 ring=dot
+[  113.43 20:33:14Z] I (113277) FaceDisplay: diag gaze=0,6 mode=idle
+[  113.43 20:33:14Z] I (113277) FaceDisplay: diag blink double=0 mode=idle
+[  113.84 20:33:15Z] I (113827) FaceDisplay: diag fps=5.0 frame_ms_avg=12.2 frame_ms_max=23.9 voice_flips=0 mode=idle mood=sleepy inv_areas=1.5 inv_kpx=17.8 inv_full=0 ring=dot
+[  114.67 20:33:15Z] I (114627) SystemInfo: free sram: 98323 minimal sram: 33468
+[  118.21 20:33:19Z] I (118037) FaceDisplay: diag blink double=0 mode=idle
+[  119.04 20:33:20Z] I (118877) FaceDisplay: diag fps=4.8 frame_ms_avg=10.6 frame_ms_max=18.0 voice_flips=0 mode=idle mood=sleepy inv_areas=1.4 inv_kpx=18.2 inv_full=0 ring=dot
+[  119.65 20:33:20Z] I (119627) FaceDisplay: diag gaze=0,0 mode=idle
+[  122.16 20:33:23Z] I (122057) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=15 resyncs=7 skipped=84 read_errors=2 torn_timestamps=0
+[  122.16 20:33:23Z] I (122057) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  122.78 20:33:24Z] I (122607) FaceDisplay: diag shift=1,1
+[  123.40 20:33:24Z] I (123357) FaceDisplay: diag blink double=1 mode=idle
+[  124.02 20:33:25Z] I (123907) FaceDisplay: diag fps=5.6 frame_ms_avg=14.4 frame_ms_max=96.6 voice_flips=0 mode=idle mood=sleepy inv_areas=1.7 inv_kpx=26.3 inv_full=1 ring=dot
+[  124.64 20:33:25Z] I (124627) SystemInfo: free sram: 97387 minimal sram: 33468
+[  125.06 20:33:26Z] I (124917) FaceDisplay: diag gaze=0,0 mode=idle
+[  127.73 20:33:28Z] I (127687) FaceDisplay: diag lit=5.95% screen 7.58% circle mode=mini mood=sleepy dump=6 snap_ms=321.6
+[  129.15 20:33:30Z] I (129007) FaceDisplay: diag fps=4.3 frame_ms_avg=13.3 frame_ms_max=23.2 voice_flips=0 mode=idle mood=sleepy inv_areas=1.5 inv_kpx=18.9 inv_full=0 ring=dot
+[  129.35 20:33:30Z] I (129327) FaceDisplay: diag blink double=1 mode=idle
+[  131.19 20:33:32Z] I (131147) FaceDisplay: diag gaze=-7,-1 mode=idle
+[  134.28 20:33:35Z] I (134077) FaceDisplay: diag fps=6.9 frame_ms_avg=11.3 frame_ms_max=25.3 voice_flips=0 mode=idle mood=sleepy inv_areas=1.8 inv_kpx=15.4 inv_full=0 ring=dot
+[  134.48 20:33:35Z] I (134397) FaceDisplay: diag blink double=1 mode=idle
+[  134.69 20:33:35Z] I (134627) SystemInfo: free sram: 102155 minimal sram: 33468
+[  134.89 20:33:36Z] I (134877) EspTcp: Resolved <IP> -> <IP>
+[  134.89 20:33:36Z] I (134887) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+[  136.14 20:33:37Z] I (135957) FaceDisplay: diag gaze=0,0 mode=idle
+[  137.18 20:33:38Z] I (137047) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=16 resyncs=8 skipped=93 read_errors=2 torn_timestamps=0
+[  137.18 20:33:38Z] I (137047) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  139.26 20:33:40Z] I (139137) FaceDisplay: diag fps=7.1 frame_ms_avg=11.4 frame_ms_max=24.2 voice_flips=0 mode=idle mood=sleepy inv_areas=1.8 inv_kpx=15.1 inv_full=0 ring=dot
+[  140.29 20:33:41Z] I (140297) FaceDisplay: diag blink double=0 mode=idle
+[  141.93 20:33:43Z] I (141817) FaceDisplay: diag gaze=-9,-3 mode=idle
+[  144.22 20:33:45Z] I (144177) FaceDisplay: diag fps=6.0 frame_ms_avg=11.1 frame_ms_max=24.4 voice_flips=0 mode=idle mood=sleepy inv_areas=1.6 inv_kpx=16.4 inv_full=0 ring=dot
+[  144.63 20:33:45Z] I (144627) SystemInfo: free sram: 97391 minimal sram: 33468
+[  144.84 20:33:46Z] I (144717) FaceDisplay: diag blink double=1 mode=idle
+[  146.08 20:33:47Z] I (146077) FaceDisplay: diag gaze=-9,1 mode=idle
+[  149.39 20:33:50Z] I (149187) FaceDisplay: diag fps=6.8 frame_ms_avg=11.3 frame_ms_max=23.5 voice_flips=0 mode=idle mood=sleepy inv_areas=1.7 inv_kpx=15.1 inv_full=0 ring=dot
+[  151.06 20:33:52Z] I (150997) FaceDisplay: diag gaze=-8,0 mode=idle
+[  151.69 20:33:52Z] I (151657) FaceDisplay: diag blink double=0 mode=idle
+[  152.09 20:33:53Z] I (152067) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=16 resyncs=9 skipped=96 read_errors=3 torn_timestamps=0
+[  152.09 20:33:53Z] I (152067) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  154.37 20:33:55Z] I (154197) FaceDisplay: diag fps=5.2 frame_ms_avg=11.6 frame_ms_max=22.0 voice_flips=0 mode=idle mood=sleepy inv_areas=1.5 inv_kpx=17.9 inv_full=0 ring=dot
+[  154.78 20:33:56Z] I (154637) SystemInfo: free sram: 97391 minimal sram: 33468
+[  155.20 20:33:56Z] I (155157) FaceDisplay: diag blink double=0 mode=idle
+[  157.89 20:33:59Z] I (157847) FaceDisplay: diag gaze=0,0 mode=idle
+[  159.14 20:34:00Z] I (158947) FaceDisplay: diag blink double=1 mode=idle
+[  159.35 20:34:00Z] I (159207) FaceDisplay: diag fps=6.6 frame_ms_avg=11.1 frame_ms_max=23.3 voice_flips=0 mode=idle mood=sleepy inv_areas=1.7 inv_kpx=16.1 inv_full=0 ring=dot
+[  161.63 20:34:02Z] I (161497) EspTcp: Resolved <IP> -> <IP>
+[  161.63 20:34:02Z] I (161517) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[  162.25 20:34:03Z] I (162087) FaceDisplay: diag gaze=0,6 mode=idle
+[  164.33 20:34:05Z] I (164227) FaceDisplay: diag fps=6.0 frame_ms_avg=12.3 frame_ms_max=24.0 voice_flips=0 mode=idle mood=sleepy inv_areas=1.8 inv_kpx=17.1 inv_full=0 ring=dot
+[  164.75 20:34:06Z] I (164627) SystemInfo: free sram: 97367 minimal sram: 33468
+[  165.37 20:34:06Z] I (165187) FaceDisplay: diag blink double=0 mode=idle
+[  165.58 20:34:06Z] I (165457) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (1)
+[  167.66 20:34:08Z] I (167627) FaceDisplay: diag gaze=0,0 mode=idle
+[  169.51 20:34:10Z] I (169327) FaceDisplay: diag fps=5.5 frame_ms_avg=10.6 frame_ms_max=18.5 voice_flips=0 mode=idle mood=sleepy inv_areas=1.5 inv_kpx=16.4 inv_full=0 ring=dot
+[  171.17 20:34:12Z] I (171027) FaceDisplay: diag blink double=0 mode=idle
+[  174.06 20:34:15Z] I (174007) FaceDisplay: diag gaze=0,0 mode=idle
+[  174.47 20:34:15Z] I (174327) FaceDisplay: diag fps=4.4 frame_ms_avg=14.4 frame_ms_max=25.2 voice_flips=0 mode=idle mood=sleepy inv_areas=1.5 inv_kpx=19.0 inv_full=0 ring=dot
+[  174.68 20:34:15Z] I (174637) SystemInfo: free sram: 97403 minimal sram: 33468
+[  177.17 20:34:18Z] I (176987) FaceDisplay: diag blink double=0 mode=idle
+[  178.82 20:34:20Z] I (178707) FaceDisplay: diag gaze=-7,2 mode=idle
+[  179.44 20:34:20Z] I (179337) FaceDisplay: diag fps=5.4 frame_ms_avg=12.9 frame_ms_max=23.9 voice_flips=0 mode=idle mood=sleepy inv_areas=1.7 inv_kpx=17.7 inv_full=0 ring=dot
+[  180.06 20:34:21Z] I (179957) WeixueAgent: agent: chats seq=1791837260779 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[  180.06 20:34:21Z] I (179977) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[  180.26 20:34:21Z] I (180157) EspTcp: Resolved <IP> -> <IP>
+[  180.26 20:34:21Z] I (180157) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+[  182.12 20:34:23Z] I (181997) WeixueAgent: agent: chat=cht_01M4RX5HWYF83VM3K3BEXWHPMD task=tsk_01M4RX5JFGCB6NW6QJ94T11HJY state=unread seq=1791837263205 tier=silent speaks=0 result=applied via=poll
+[  182.12 20:34:23Z] I (182007) FaceDisplay: agent ui: task=tsk_01M4RX5JFGCB6NW6QJ94T11HJY state=unread tier=silent flash=0 earcon=none
+[  182.12 20:34:23Z] I (182017) FaceDisplay: agent ui: pose=happy top=tsk_01M4RX5JFGCB6NW6QJ94T11HJY
+[  182.12 20:34:23Z] I (182047) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=17 resyncs=10 skipped=106 read_errors=3 torn_timestamps=1
+[  182.12 20:34:23Z] I (182047) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  182.12 20:34:23Z] I (182067) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=17 resyncs=10 skipped=106 read_errors=4 torn_timestamps=1
+[  182.12 20:34:23Z] I (182067) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  182.33 20:34:23Z] I (182207) EspTcp: Resolved <IP> -> <IP>
+[  182.75 20:34:24Z] I (182687) FaceDisplay: diag shift=0,1
+[  182.96 20:34:24Z] I (182837) HttpClient: Established new connection to <IP>:8003 protocol=http cost=630
+[  183.16 20:34:24Z] I (183027) WeixueAgent: agent: chats seq=1791837263710 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[  183.37 20:34:24Z] I (183227) FaceDisplay: diag lit=3.85% screen 4.91% circle mode=happy mood=sleepy dump=7 snap_ms=305.7
+[  183.37 20:34:24Z] I (183267) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[  183.37 20:34:24Z] I (183277) FaceDisplay: diag blink double=0 mode=idle
+[  183.57 20:34:24Z] I (183447) EspTcp: Resolved <IP> -> <IP>
+[  184.18 20:34:25Z] I (184047) HttpClient: Established new connection to <IP>:8003 protocol=http cost=600
+[  184.39 20:34:25Z] I (184267) FaceDisplay: diag gaze=0,0 mode=idle
+[  184.59 20:34:25Z] I (184407) FaceDisplay: diag fps=5.1 frame_ms_avg=14.5 frame_ms_max=114.1 voice_flips=0 mode=idle mood=sleepy inv_areas=1.7 inv_kpx=23.2 inv_full=1 ring=dot
+[  184.80 20:34:26Z] I (184627) SystemInfo: free sram: 96971 minimal sram: 33468
+[  185.20 20:34:26Z] I (185017) FaceDisplay: agent ui: pose=mini top=tsk_01M4RX5JFGCB6NW6QJ94T11HJY
+[  186.21 20:34:27Z] I (186157) FaceDisplay: diag lit=5.43% screen 6.92% circle mode=mini mood=sleepy dump=8 snap_ms=327.3
+[  187.22 20:34:28Z] I (187147) FaceDisplay: diag blink double=0 mode=idle
+[  188.63 20:34:29Z] I (188637) FaceDisplay: diag gaze=8,4 mode=idle
+[  189.64 20:34:30Z] I (189487) FaceDisplay: diag fps=4.5 frame_ms_avg=6.8 frame_ms_max=17.3 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=7.4 inv_full=0 ring=dot
+[  192.91 20:34:34Z] I (192847) FaceDisplay: diag blink double=1 mode=idle
+[  193.32 20:34:34Z] I (193227) FaceDisplay: diag gaze=-8,0 mode=idle
+[  194.58 20:34:35Z] I (194517) FaceDisplay: diag fps=4.6 frame_ms_avg=6.7 frame_ms_max=9.6 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.4 inv_full=0 ring=dot
+[  194.78 20:34:36Z] I (194627) SystemInfo: free sram: 97959 minimal sram: 33468
+[  197.46 20:34:38Z] I (197297) FaceDisplay: diag gaze=-6,0 mode=idle
+[  197.86 20:34:39Z] I (197847) FaceDisplay: diag blink double=0 mode=idle
+[  199.71 20:34:40Z] I (199537) FaceDisplay: diag fps=2.2 frame_ms_avg=6.7 frame_ms_max=9.2 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.5 inv_full=0 ring=dot
+[  203.04 20:34:44Z] I (202847) FaceDisplay: diag blink double=0 mode=idle
+[  203.24 20:34:44Z] I (203097) FaceDisplay: diag gaze=-9,0 mode=idle
+[  204.69 20:34:45Z] I (204567) FaceDisplay: diag fps=2.2 frame_ms_avg=6.5 frame_ms_max=9.8 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.4 inv_full=0 ring=dot
+[  204.69 20:34:45Z] I (204627) SystemInfo: free sram: 96995 minimal sram: 33468
+[  208.63 20:34:49Z] I (208527) FaceDisplay: diag blink double=1 mode=idle
+[  209.66 20:34:50Z] I (209587) FaceDisplay: diag gaze=0,0 mode=idle
+[  209.66 20:34:50Z] I (209587) FaceDisplay: diag fps=3.6 frame_ms_avg=6.4 frame_ms_max=8.8 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=4.5 inv_full=0 ring=dot
+[  210.70 20:34:51Z] I (210647) EspTcp: Resolved <IP> -> <IP>
+[  210.70 20:34:51Z] I (210667) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[  212.14 20:34:53Z] I (212087) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=18 resyncs=11 skipped=111 read_errors=4 torn_timestamps=1
+[  212.14 20:34:53Z] I (212087) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  214.01 20:34:55Z] I (213847) FaceDisplay: diag blink double=0 mode=idle
+[  214.62 20:34:55Z] I (214637) SystemInfo: free sram: 96999 minimal sram: 33468
+[  214.83 20:34:56Z] I (214687) FaceDisplay: diag fps=3.1 frame_ms_avg=6.2 frame_ms_max=9.9 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.5 inv_full=0 ring=dot
+[  215.85 20:34:57Z] I (215857) FaceDisplay: diag gaze=0,0 mode=idle
+[  217.71 20:34:58Z] I (217577) FaceDisplay: diag blink double=0 mode=idle
+[  219.78 20:35:01Z] I (219697) FaceDisplay: diag fps=1.8 frame_ms_avg=6.7 frame_ms_max=13.1 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=6.1 inv_full=0 ring=dot
+[  220.81 20:35:02Z] I (220757) FaceDisplay: diag gaze=-8,0 mode=idle
+[  223.32 20:35:04Z] I (223277) FaceDisplay: diag blink double=1 mode=idle
+[  224.76 20:35:06Z] I (224627) SystemInfo: free sram: 96999 minimal sram: 33468
+[  224.76 20:35:06Z] I (224717) FaceDisplay: diag fps=4.8 frame_ms_avg=6.6 frame_ms_max=9.5 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.5 inv_full=0 ring=dot
+[  225.57 20:35:06Z] I (225567) FaceDisplay: diag gaze=2,-3 mode=idle
+[  227.21 20:35:08Z] I (227067) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=19 resyncs=12 skipped=114 read_errors=4 torn_timestamps=1
+[  227.21 20:35:08Z] I (227067) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  229.26 20:35:10Z] I (229247) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (2)
+[  229.89 20:35:11Z] I (229797) FaceDisplay: diag fps=1.4 frame_ms_avg=6.3 frame_ms_max=10.1 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=8.6 inv_full=0 ring=dot
+[  230.30 20:35:11Z] I (230117) FaceDisplay: diag blink double=0 mode=idle
+[  230.30 20:35:11Z] I (230167) FaceDisplay: diag gaze=0,0 mode=idle
+[  234.63 20:35:15Z] I (234637) SystemInfo: free sram: 96999 minimal sram: 33468
+[  234.83 20:35:16Z] I (234837) FaceDisplay: diag fps=1.8 frame_ms_avg=5.8 frame_ms_max=9.8 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.7 inv_full=0 ring=dot
+[  235.66 20:35:16Z] I (235587) FaceDisplay: diag gaze=3,-1 mode=idle
+[  236.29 20:35:17Z] I (236177) FaceDisplay: diag blink double=1 mode=idle
+[  237.32 20:35:18Z] I (237277) EspTcp: Resolved <IP> -> <IP>
+[  237.32 20:35:18Z] I (237297) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[  240.01 20:35:21Z] I (239877) FaceDisplay: diag fps=4.6 frame_ms_avg=6.8 frame_ms_max=10.4 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=5.1 inv_full=0 ring=dot
+[  240.85 20:35:22Z] I (240727) FaceDisplay: diag blink double=0 mode=idle
+[  241.88 20:35:23Z] I (241777) FaceDisplay: diag gaze=0,6 mode=idle
+[  242.29 20:35:23Z] I (242087) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=19 resyncs=13 skipped=114 read_errors=5 torn_timestamps=2
+[  242.29 20:35:23Z] I (242087) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  242.91 20:35:24Z] I (242707) FaceDisplay: diag shift=-1,1
+[  244.76 20:35:26Z] I (244627) SystemInfo: free sram: 96987 minimal sram: 33468
+[  245.17 20:35:26Z] I (244977) FaceDisplay: diag fps=3.1 frame_ms_avg=12.5 frame_ms_max=107.6 voice_flips=0 mode=idle mood=sleepy inv_areas=2.1 inv_kpx=22.3 inv_full=1 ring=dot
+[  245.17 20:35:26Z] I (245077) FaceDisplay: diag blink double=1 mode=idle
+[  246.19 20:35:27Z] I (246187) FaceDisplay: diag lit=3.78% screen 4.82% circle mode=mini mood=sleepy dump=9 snap_ms=328.7
+[  246.60 20:35:27Z] I (246587) FaceDisplay: diag gaze=0,0 mode=idle
+[  249.66 20:35:30Z] I (249597) FaceDisplay: diag blink double=1 mode=idle
+[  250.07 20:35:31Z] I (249977) FaceDisplay: diag fps=5.6 frame_ms_avg=6.5 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.1 inv_kpx=5.3 inv_full=0 ring=dot
+[  252.56 20:35:33Z] I (252547) FaceDisplay: diag gaze=-10,0 mode=idle
+[  254.62 20:35:35Z] I (254637) SystemInfo: free sram: 96987 minimal sram: 33468
+[  255.23 20:35:36Z] I (255057) FaceDisplay: diag fps=3.7 frame_ms_avg=6.9 frame_ms_max=16.6 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.6 inv_full=0 ring=dot
+[  255.44 20:35:36Z] I (255267) FaceDisplay: diag blink double=0 mode=idle
+[  258.53 20:35:39Z] I (258467) FaceDisplay: diag gaze=0,0 mode=idle
+[  260.18 20:35:41Z] I (260117) FaceDisplay: diag fps=3.4 frame_ms_avg=5.8 frame_ms_max=9.7 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.6 inv_full=0 ring=dot
+[  260.81 20:35:42Z] I (260757) FaceDisplay: diag blink double=0 mode=idle
+[  262.88 20:35:44Z] I (262707) FaceDisplay: diag gaze=0,0 mode=idle
+[  263.90 20:35:45Z] I (263897) EspTcp: Resolved <IP> -> <IP>
+[  264.11 20:35:45Z] I (263927) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+[  264.73 20:35:45Z] I (264627) SystemInfo: free sram: 96987 minimal sram: 33468
+[  265.35 20:35:46Z] I (265157) FaceDisplay: diag fps=1.8 frame_ms_avg=6.3 frame_ms_max=9.6 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.6 inv_full=0 ring=dot
+[  266.39 20:35:47Z] I (266227) FaceDisplay: diag blink double=0 mode=idle
+[  267.00 20:35:48Z] I (266997) FaceDisplay: diag gaze=5,2 mode=idle
+[  270.32 20:35:51Z] I (270257) FaceDisplay: diag fps=2.9 frame_ms_avg=6.1 frame_ms_max=10.1 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.6 inv_full=0 ring=dot
+[  272.17 20:35:53Z] I (272087) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=20 resyncs=14 skipped=123 read_errors=5 torn_timestamps=2
+[  272.17 20:35:53Z] I (272087) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  272.17 20:35:53Z] I (272087) FaceDisplay: diag blink double=0 mode=idle
+[  272.17 20:35:53Z] I (272107) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=20 resyncs=14 skipped=123 read_errors=6 torn_timestamps=2
+[  272.17 20:35:53Z] I (272107) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  273.41 20:35:54Z] I (273277) FaceDisplay: diag gaze=0,0 mode=idle
+[  274.66 20:35:55Z] I (274627) SystemInfo: free sram: 97951 minimal sram: 33468
+[  275.49 20:35:56Z] I (275347) FaceDisplay: diag fps=2.9 frame_ms_avg=6.4 frame_ms_max=10.1 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.3 inv_full=0 ring=dot
+[  276.75 20:35:57Z] I (276737) FaceDisplay: diag blink double=0 mode=idle
+[  278.19 20:35:59Z] I (278147) FaceDisplay: diag gaze=-7,2 mode=idle
+[  280.48 20:36:01Z] I (280447) FaceDisplay: diag fps=3.3 frame_ms_avg=6.0 frame_ms_max=12.6 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=7.3 inv_full=0 ring=dot
+[  281.74 20:36:02Z] I (281617) FaceDisplay: diag blink double=0 mode=idle
+[  282.98 20:36:04Z] I (282907) FaceDisplay: diag gaze=0,6 mode=idle
+[  284.63 20:36:05Z] I (284627) SystemInfo: free sram: 96987 minimal sram: 33468
+[  285.67 20:36:06Z] I (285547) FaceDisplay: diag fps=3.1 frame_ms_avg=6.6 frame_ms_max=9.2 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.4 inv_full=0 ring=dot
+[  287.93 20:36:09Z] I (287887) FaceDisplay: diag gaze=0,0 mode=idle
+[  288.14 20:36:09Z] I (287967) FaceDisplay: diag blink double=1 mode=idle
+[  290.62 20:36:11Z] I (290527) EspTcp: Resolved <IP> -> <IP>
+[  290.62 20:36:11Z] I (290547) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[  290.62 20:36:11Z] I (290607) FaceDisplay: diag fps=4.0 frame_ms_avg=6.1 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.1 inv_full=0 ring=dot
+[  292.07 20:36:13Z] I (291987) FaceDisplay: diag gaze=0,0 mode=idle
+[  294.36 20:36:15Z] I (294327) FaceDisplay: diag blink double=0 mode=idle
+[  294.78 20:36:16Z] I (294627) SystemInfo: free sram: 97915 minimal sram: 33468
+[  295.82 20:36:17Z] I (295697) FaceDisplay: diag fps=1.6 frame_ms_avg=6.9 frame_ms_max=9.2 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.2 inv_full=0 ring=dot
+[  298.91 20:36:20Z] I (298807) FaceDisplay: diag gaze=0,0 mode=idle
+[  299.52 20:36:20Z] I (299447) FaceDisplay: diag blink double=0 mode=idle
+[  300.76 20:36:22Z] I (300717) FaceDisplay: diag fps=1.6 frame_ms_avg=6.8 frame_ms_max=10.3 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.2 inv_full=0 ring=dot
+[  302.22 20:36:23Z] I (302117) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=21 resyncs=15 skipped=129 read_errors=6 torn_timestamps=2
+[  302.22 20:36:23Z] I (302117) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  302.84 20:36:24Z] I (302767) FaceDisplay: diag shift=-1,0
+[  303.25 20:36:24Z] I (303217) FaceDisplay: diag gaze=0,0 mode=idle
+[  304.08 20:36:25Z] I (304067) FaceDisplay: diag blink double=0 mode=idle
+[  304.69 20:36:25Z] I (304627) SystemInfo: free sram: 96987 minimal sram: 33468
+[  305.93 20:36:27Z] I (305747) FaceDisplay: diag fps=1.8 frame_ms_avg=17.2 frame_ms_max=108.4 voice_flips=0 mode=idle mood=sleepy inv_areas=2.1 inv_kpx=32.8 inv_full=1 ring=dot
+[  306.13 20:36:27Z] I (305957) Backlight: Set brightness to 0
+[  306.33 20:36:27Z] I (306157) FaceDisplay: diag lit=5.44% screen 6.93% circle mode=mini mood=sleepy dump=10 snap_ms=299.0
+[  306.33 20:36:27Z] I (306157) WaveshareEsp32s3TouchAMOLED1inch75: Panel off after 300 s idle (VBUS present)
+[  306.53 20:36:27Z] I (306367) WaveshareEsp32s3TouchAMOLED1inch75: Idle power-off skipped: VBUS present
+[  309.17 20:36:30Z] I (309077) FaceDisplay: diag blink double=1 mode=idle
+[  309.17 20:36:30Z] I (309127) FaceDisplay: diag gaze=3,-5 mode=idle
+[  310.79 20:36:32Z] I (310757) FaceDisplay: diag fps=3.8 frame_ms_avg=6.4 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.5 inv_full=0 ring=dot
+[  310.99 20:36:32Z] I (310977) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (3)
+[  313.68 20:36:34Z] I (313637) FaceDisplay: diag blink double=0 mode=idle
+[  314.71 20:36:35Z] I (314627) SystemInfo: free sram: 97951 minimal sram: 33468
+[  315.12 20:36:36Z] I (315107) FaceDisplay: diag gaze=6,1 mode=idle
+[  315.96 20:36:37Z] I (315787) FaceDisplay: diag fps=2.8 frame_ms_avg=6.0 frame_ms_max=9.7 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.1 inv_full=0 ring=dot
+[  317.20 20:36:38Z] I (317097) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=22 resyncs=16 skipped=137 read_errors=6 torn_timestamps=3
+[  317.20 20:36:38Z] I (317097) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  317.20 20:36:38Z] I (317147) EspTcp: Resolved <IP> -> <IP>
+[  318.24 20:36:39Z] I (318197) HttpClient: Established new connection to <IP>:8003 protocol=http cost=1050
+[  320.09 20:36:41Z] I (319927) FaceDisplay: diag blink double=0 mode=idle
+[  320.94 20:36:42Z] I (320877) FaceDisplay: diag fps=1.6 frame_ms_avg=7.0 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.3 inv_full=0 ring=dot
+[  321.56 20:36:42Z] I (321427) FaceDisplay: diag gaze=0,0 mode=idle
+[  324.65 20:36:45Z] I (324627) SystemInfo: free sram: 96987 minimal sram: 33468
+[  325.47 20:36:46Z] I (325457) FaceDisplay: diag blink double=0 mode=idle
+[  325.88 20:36:47Z] I (325887) FaceDisplay: diag fps=3.0 frame_ms_avg=6.5 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.4 inv_full=0 ring=dot
+[  327.55 20:36:48Z] I (327397) FaceDisplay: diag gaze=-9,1 mode=idle
+[  331.05 20:36:52Z] I (330897) FaceDisplay: diag fps=1.4 frame_ms_avg=5.3 frame_ms_max=9.1 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=8.6 inv_full=0 ring=dot
+[  331.68 20:36:52Z] I (331637) FaceDisplay: diag blink double=0 mode=idle
+[  332.09 20:36:53Z] I (331967) FaceDisplay: diag gaze=0,0 mode=idle
+[  332.30 20:36:53Z] I (332137) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=22 resyncs=17 skipped=138 read_errors=7 torn_timestamps=3
+[  332.30 20:36:53Z] I (332137) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  334.79 20:36:56Z] I (334627) SystemInfo: free sram: 97951 minimal sram: 33468
+[  335.63 20:36:56Z] I (335467) FaceDisplay: diag blink double=0 mode=idle
+[  336.05 20:36:57Z] I (335987) FaceDisplay: diag fps=4.5 frame_ms_avg=6.0 frame_ms_max=9.9 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.9 inv_full=0 ring=dot
+[  338.32 20:36:59Z] I (338127) FaceDisplay: diag gaze=-5,-1 mode=idle
+[  340.20 20:37:01Z] I (340047) FaceDisplay: diag blink double=0 mode=idle
+[  341.22 20:37:02Z] I (341027) FaceDisplay: diag fps=3.0 frame_ms_avg=6.3 frame_ms_max=17.2 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=7.0 inv_full=0 ring=dot
+[  344.14 20:37:05Z] I (344117) FaceDisplay: diag blink double=1 mode=idle
+[  344.55 20:37:05Z] I (344487) FaceDisplay: diag gaze=2,-1 mode=idle
+[  344.75 20:37:06Z] I (344627) SystemInfo: free sram: 100775 minimal sram: 33468
+[  344.95 20:37:06Z] I (344797) EspTcp: Resolved <IP> -> <IP>
+[  344.95 20:37:06Z] I (344817) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[  346.20 20:37:07Z] I (346097) FaceDisplay: diag fps=4.3 frame_ms_avg=6.2 frame_ms_max=10.1 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.4 inv_full=0 ring=dot
+[  349.73 20:37:10Z] I (349627) FaceDisplay: diag blink double=1 mode=idle
+[  350.14 20:37:11Z] I (350077) FaceDisplay: diag gaze=0,0 mode=idle
+[  351.18 20:37:12Z] I (351107) FaceDisplay: diag fps=4.0 frame_ms_avg=5.6 frame_ms_max=9.7 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.7 inv_full=0 ring=dot
+[  354.70 20:37:15Z] I (354637) SystemInfo: free sram: 96987 minimal sram: 33468
+[  355.93 20:37:17Z] I (355807) FaceDisplay: diag gaze=0,0 mode=idle
+[  356.13 20:37:17Z] I (356127) FaceDisplay: diag fps=0.0 frame_ms_avg=0.0 frame_ms_max=0.0 voice_flips=0 mode=idle mood=sleepy inv_areas=0.0 inv_kpx=0.0 inv_full=0 ring=dot
+[  356.55 20:37:17Z] I (356447) FaceDisplay: diag blink double=0 mode=idle
+[  360.91 20:37:22Z] I (360727) FaceDisplay: diag gaze=0,0 mode=idle
+[  361.33 20:37:22Z] I (361157) FaceDisplay: diag fps=1.8 frame_ms_avg=6.3 frame_ms_max=9.8 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.7 inv_full=0 ring=dot
+[  361.74 20:37:22Z] I (361587) FaceDisplay: diag blink double=0 mode=idle
+[  362.15 20:37:23Z] I (362107) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=23 resyncs=18 skipped=140 read_errors=7 torn_timestamps=3
+[  362.15 20:37:23Z] I (362107) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  362.15 20:37:23Z] I (362147) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=23 resyncs=19 skipped=140 read_errors=8 torn_timestamps=3
+[  362.15 20:37:23Z] I (362147) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  362.99 20:37:24Z] I (362797) FaceDisplay: diag shift=-1,-1
+[  364.65 20:37:25Z] I (364627) SystemInfo: free sram: 96987 minimal sram: 33468
+[  365.48 20:37:26Z] I (365367) FaceDisplay: diag gaze=7,-3 mode=idle
+[  366.30 20:37:27Z] I (366257) FaceDisplay: diag lit=5.42% screen 6.90% circle mode=mini mood=sleepy dump=11 snap_ms=325.6
+[  366.30 20:37:27Z] I (366277) FaceDisplay: diag fps=3.1 frame_ms_avg=12.6 frame_ms_max=106.7 voice_flips=0 mode=idle mood=sleepy inv_areas=2.1 inv_kpx=22.7 inv_full=1 ring=dot
+[  367.31 20:37:28Z] I (367247) FaceDisplay: diag blink double=1 mode=idle
+[  369.96 20:37:31Z] I (369907) FaceDisplay: diag gaze=-6,-2 mode=idle
+[  371.40 20:37:32Z] I (371377) FaceDisplay: diag fps=5.5 frame_ms_avg=6.4 frame_ms_max=10.1 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.9 inv_full=0 ring=dot
+[  371.60 20:37:32Z] I (371417) EspTcp: Resolved <IP> -> <IP>
+[  371.60 20:37:32Z] I (371447) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+[  372.42 20:37:33Z] I (372237) FaceDisplay: diag blink double=0 mode=idle
+[  374.70 20:37:35Z] I (374577) FaceDisplay: diag gaze=0,1 mode=idle
+[  374.70 20:37:35Z] I (374627) SystemInfo: free sram: 97951 minimal sram: 33468
+[  376.57 20:37:37Z] I (376467) FaceDisplay: diag fps=2.9 frame_ms_avg=6.8 frame_ms_max=10.2 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.5 inv_full=0 ring=dot
+[  377.19 20:37:38Z] I (377107) FaceDisplay: diag blink double=1 mode=idle
+[  380.70 20:37:41Z] I (380597) FaceDisplay: diag gaze=-8,-3 mode=idle
+[  381.32 20:37:42Z] I (381147) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (4)
+[  381.53 20:37:42Z] I (381517) FaceDisplay: diag blink double=0 mode=idle
+[  381.53 20:37:42Z] I (381517) FaceDisplay: diag fps=5.1 frame_ms_avg=5.9 frame_ms_max=9.6 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.5 inv_full=0 ring=dot
+[  384.62 20:37:45Z] I (384627) SystemInfo: free sram: 96987 minimal sram: 33468
+[  385.65 20:37:46Z] I (385477) FaceDisplay: diag blink double=0 mode=idle
+[  386.48 20:37:47Z] I (386417) FaceDisplay: diag gaze=10,-2 mode=idle
+[  386.68 20:37:47Z] I (386537) FaceDisplay: diag fps=4.0 frame_ms_avg=6.0 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.1 inv_full=0 ring=dot
+[  390.99 20:37:52Z] I (390867) FaceDisplay: diag blink double=0 mode=idle
+[  391.61 20:37:52Z] I (391527) FaceDisplay: diag gaze=0,-5 mode=idle
+[  391.61 20:37:52Z] I (391567) FaceDisplay: diag fps=3.6 frame_ms_avg=6.9 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=7.0 inv_full=0 ring=dot
+[  392.23 20:37:53Z] I (392147) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=24 resyncs=20 skipped=144 read_errors=8 torn_timestamps=4
+[  392.23 20:37:53Z] I (392147) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  394.73 20:37:55Z] I (394627) SystemInfo: free sram: 97951 minimal sram: 33468
+[  395.97 20:37:57Z] I (395967) FaceDisplay: diag blink double=1 mode=idle
+[  396.17 20:37:57Z] I (396027) WeixueAgent: agent: chats seq=1791837476778 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[  396.17 20:37:57Z] I (396057) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[  396.38 20:37:57Z] I (396227) EspTcp: Resolved <IP> -> <IP>
+[  396.58 20:37:57Z] I (396587) FaceDisplay: diag fps=3.4 frame_ms_avg=6.4 frame_ms_max=11.6 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=6.1 inv_full=0 ring=dot
+[  397.20 20:37:58Z] I (397047) HttpClient: Established new connection to <IP>:8003 protocol=http cost=820
+[  397.82 20:37:59Z] I (397667) FaceDisplay: diag gaze=3,-1 mode=idle
+[  401.52 20:38:02Z] I (401487) FaceDisplay: diag blink double=0 mode=idle
+[  401.72 20:38:02Z] I (401607) FaceDisplay: diag fps=3.0 frame_ms_avg=6.7 frame_ms_max=14.1 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=7.0 inv_full=0 ring=dot
+[  403.58 20:38:04Z] I (403507) FaceDisplay: diag gaze=0,0 mode=idle
+[  404.81 20:38:06Z] I (404627) SystemInfo: free sram: 96991 minimal sram: 33468
+[  405.43 20:38:06Z] I (405237) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=working seq=1791837485986 tier=silent speaks=0 result=applied via=poll
+[  405.43 20:38:06Z] I (405267) FaceDisplay: agent ui: activity=Searching… task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y
+[  405.43 20:38:06Z] I (405267) FaceDisplay: agent ui: task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=working tier=silent flash=0 earcon=none
+[  405.43 20:38:06Z] I (405277) FaceDisplay: ring=progress bedside=0
+[  405.43 20:38:06Z] I (405447) EspTcp: Resolved <IP> -> <IP>
+[  406.25 20:38:07Z] I (406257) HttpClient: Established new connection to <IP>:8003 protocol=http cost=810
+[  406.66 20:38:07Z] I (406547) FaceDisplay: diag blink double=0 mode=idle
+[  406.66 20:38:07Z] I (406627) FaceDisplay: diag fps=2.6 frame_ms_avg=7.0 frame_ms_max=14.8 voice_flips=0 mode=idle mood=sleepy inv_areas=2.3 inv_kpx=6.7 inv_full=0 ring=progress
+[  407.29 20:38:08Z] I (407107) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=25 resyncs=21 skipped=149 read_errors=8 torn_timestamps=4
+[  407.29 20:38:08Z] I (407107) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  408.33 20:38:09Z] I (408317) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=working seq=1791837489407 tier=silent speaks=0 result=applied via=poll
+[  408.53 20:38:09Z] I (408527) EspTcp: Resolved <IP> -> <IP>
+[  409.35 20:38:10Z] I (409327) HttpClient: Established new connection to <IP>:8003 protocol=http cost=800
+[  409.77 20:38:11Z] I (409747) FaceDisplay: diag gaze=-8,0 mode=idle
+[  410.18 20:38:11Z] I (410147) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (5)
+[  411.83 20:38:13Z] I (411717) FaceDisplay: diag fps=4.1 frame_ms_avg=8.5 frame_ms_max=14.9 voice_flips=0 mode=idle mood=sleepy inv_areas=2.9 inv_kpx=8.3 inv_full=0 ring=progress
+[  412.46 20:38:13Z] I (412407) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=working seq=1791837493188 tier=silent speaks=0 result=applied via=poll
+[  412.66 20:38:13Z] I (412617) EspTcp: Resolved <IP> -> <IP>
+[  412.86 20:38:14Z] I (412787) FaceDisplay: diag blink double=0 mode=idle
+[  413.47 20:38:14Z] I (413427) HttpClient: Established new connection to <IP>:8003 protocol=http cost=810
+[  414.72 20:38:15Z] I (414637) SystemInfo: free sram: 96683 minimal sram: 33468
+[  416.78 20:38:18Z] I (416657) FaceDisplay: diag gaze=2,-1 mode=idle
+[  416.78 20:38:18Z] I (416657) FaceDisplay: diag blink double=0 mode=idle
+[  416.78 20:38:18Z] I (416737) FaceDisplay: diag fps=3.2 frame_ms_avg=9.1 frame_ms_max=19.6 voice_flips=0 mode=idle mood=sleepy inv_areas=3.2 inv_kpx=8.9 inv_full=0 ring=progress
+[  421.34 20:38:22Z] I (421207) FaceDisplay: diag gaze=0,0 mode=idle
+[  421.96 20:38:23Z] I (421807) FaceDisplay: diag fps=3.9 frame_ms_avg=9.0 frame_ms_max=19.1 voice_flips=0 mode=idle mood=sleepy inv_areas=2.8 inv_kpx=7.9 inv_full=0 ring=progress
+[  422.17 20:38:23Z] I (422147) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=25 resyncs=22 skipped=152 read_errors=9 torn_timestamps=5
+[  422.17 20:38:23Z] I (422147) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  422.58 20:38:23Z] I (422557) FaceDisplay: diag blink double=0 mode=idle
+[  422.79 20:38:24Z] I (422647) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=working seq=1791837503326 tier=silent speaks=0 result=applied via=poll
+[  422.99 20:38:24Z] I (422827) FaceDisplay: diag shift=0,-1
+[  422.99 20:38:24Z] I (422867) EspTcp: Resolved <IP> -> <IP>
+[  422.99 20:38:24Z] I (422877) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+[  422.99 20:38:24Z] I (422897) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=working seq=1791837503373 tier=silent speaks=0 result=applied via=poll
+[  422.99 20:38:24Z] I (422977) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=unread seq=1791837503379 tier=when_idle speaks=1 result=applied via=poll
+[  422.99 20:38:24Z] I (422977) Application: Proactive message pending (urgent=0)
+[  422.99 20:38:24Z] I (422987) Application: Session start: proactive
+[  422.99 20:38:24Z] I (422987) FaceDisplay: agent ui: task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=unread tier=when_idle flash=2 earcon=none
+[  422.99 20:38:24Z] I (422987) StateMachine: State: idle -> connecting
+[  423.19 20:38:24Z] I (422997) FaceDisplay: agent ui: pose=happy top=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y
+[  423.19 20:38:24Z] I (423017) FaceDisplay: ring=flash bedside=0
+[  423.19 20:38:24Z] I (423067) PowerSaveTimer: Exiting power save mode
+[  423.19 20:38:24Z] I (423067) Backlight: Set brightness to 75
+[  423.19 20:38:24Z] I (423067) Backlight: Set brightness to 75
+[  423.19 20:38:24Z] I (423067) WaveshareEsp32s3TouchAMOLED1inch75: Panel on
+[  423.19 20:38:24Z] I (423077) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[  423.19 20:38:24Z] I (423077) FaceDisplay: mode=listening mood=neutral
+[  423.19 20:38:24Z] I (423077) wifi:Set ps type: 0, coexist: 0
+[  423.19 20:38:24Z] I (423087) FaceDisplay: diag gaze=1,0 mode=listening
+[  423.19 20:38:24Z] 
+[  423.19 20:38:24Z] I (423097) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  423.19 20:38:24Z] I (423097) FaceDisplay: ring=pulse bedside=0
+[  423.19 20:38:24Z] I (423097) EspTcp: Resolved <IP> -> <IP>
+[  423.19 20:38:24Z] I (423157) WebSocket: WebSocket handshake done, cost=60 tcp=60 handshake=0
+[  423.19 20:38:24Z] I (423167) WS: Session ID: <uuid>
+[  423.19 20:38:24Z] I (423167) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[  423.19 20:38:24Z] I (423167) wifi:Set ps type: 0, coexist: 0
+[  423.19 20:38:24Z] 
+[  423.19 20:38:24Z] W (423177) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  423.19 20:38:24Z] I (423187) Application: Proactive session opened (lease-bound invocation)
+[  423.19 20:38:24Z] I (423197) StateMachine: State: connecting -> listening
+[  423.39 20:38:24Z] I (423267) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R4Y6PBK6VJ1NHRM7WRQ6BN state=unread seq=1791811868908 tier=silent speaks=0 result=duplicate via=push
+[  423.39 20:38:24Z] I (423277) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R4YZXA964JMZQGFY1A5RX9 state=unread seq=1791811891502 tier=when_idle speaks=0 result=duplicate via=push
+[  423.39 20:38:24Z] I (423287) FaceDisplay: agent ui: pose=full top=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y
+[  423.39 20:38:24Z] I (423397) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MCJKS1X157FMJ9WKQFEJ state=unread seq=1791812585503 tier=silent speaks=0 result=duplicate via=push
+[  423.59 20:38:24Z] I (423407) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MVMYFX2W0371D3F7FCQR state=unread seq=1791812598031 tier=silent speaks=0 result=duplicate via=push
+[  423.59 20:38:24Z] I (423467) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4RR8RDYB0MTVJ03NVTQMXFB state=unread seq=1791832125703 tier=silent speaks=0 result=duplicate via=push
+[  423.59 20:38:24Z] I (423477) WeixueAgent: agent: chat=cht_01M4RX0SDV0J89HC1ACDMVTKV9 task=tsk_01M4RX0SYTTYTEA32GV62D2NAC state=unread seq=1791837105500 tier=silent speaks=0 result=duplicate via=push
+[  423.59 20:38:24Z] I (423497) WeixueAgent: agent: chat=cht_01M4RX5HWYF83VM3K3BEXWHPMD task=tsk_01M4RX5JFGCB6NW6QJ94T11HJY state=unread seq=1791837263205 tier=silent speaks=0 result=duplicate via=push
+[  423.59 20:38:24Z] I (423507) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=unread seq=1791837503379 tier=when_idle speaks=1 result=duplicate via=push
+[  423.59 20:38:24Z] I (423527) Application: << Today is Monday
+[  423.60 20:38:24Z] I (423577) WeixueAgent: agent: chats seq=1791837503880 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[  423.60 20:38:24Z] I (423577) WeixueAgent: agent: sync seq=1791837504561 listed=8 dropped=0 tasks=8 via=push
+[  423.60 20:38:24Z] I (423587) StateMachine: State: listening -> speaking
+[  423.60 20:38:24Z] I (423587) WeixueAgent: agent: tracking playback of sentence 2c637ff3a3be4fd2a5c1c42d0ede76f3
+[  423.60 20:38:24Z] I (423587) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[  423.80 20:38:25Z] I (423607) FaceDisplay: mode=speaking mood=neutral
+[  423.80 20:38:25Z] I (423607) FaceDisplay: diag gaze=-4,-1 mode=speaking
+[  423.80 20:38:25Z] I (423617) FaceDisplay: ring=level bedside=0
+[  423.80 20:38:25Z] I (423637) MonitorPanel: diag reply="Today is Monday" (reply 1)
+[  423.80 20:38:25Z] I (423727) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":223094490,"seq":5,"kind":"shown","ack_upto":1791837504561,"via":"tap"}}
+[  423.80 20:38:25Z] I (423737) WeixueAgent: agent ack sent: shown upto 1791837504561 (attempt 1)
+[  424.21 20:38:25Z] I (424087) MonitorPanel: diag backend=session poll_status=200 poll_age_ms=1101
+[  424.82 20:38:26Z] I (424827) FaceDisplay: diag lit=18.83% screen 23.98% circle mode=speaking mood=neutral dump=12 snap_ms=403.4
+[  425.02 20:38:26Z] W (424837) AudioService: Encode queue is full, dropping oldest frame (dropped 1 so far)
+[  425.02 20:38:26Z] I (425027) StateMachine: State: speaking -> listening
+[  425.22 20:38:26Z] I (425057) FaceDisplay: mode=listening mood=neutral
+[  425.22 20:38:26Z] I (425057) FaceDisplay: diag gaze=-1,-1 mode=listening
+[  425.22 20:38:26Z] I (425057) FaceDisplay: ring=pulse bedside=0
+[  425.22 20:38:26Z] I (425137) WeixueAgent: agent played: sentence=2c637ff3a3be4fd2a5c1c42d0ede76f3 complete=1 played_ms=1080 reason=-
+[  425.22 20:38:26Z] I (425137) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/played","params":{"v":1,"boot":223094490,"seq":6,"sentence_id":"2c637ff3a3be4fd2a5c1c42d0ede76f3","complete":true}}
+[  425.22 20:38:26Z] I (425157) WeixueAgent: agent ack sent: played complete 2c637ff3a3be4fd2a5c1c42d0ede76f3 (attempt 1)
+[  425.22 20:38:26Z] I (425187) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=unread seq=1791837506559 tier=silent speaks=0 result=applied via=push
+[  425.22 20:38:26Z] I (425237) WS: Websocket disconnected
+[  425.43 20:38:26Z] I (425237) Application: Audio channel closed: 30 packets sent, 0 dropped, oldest sent 226 ms after encoding
+[  425.43 20:38:26Z] I (425237) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[  425.43 20:38:26Z] I (425247) wifi:Set ps type: 2, coexist: 0
+[  425.43 20:38:26Z] 
+[  425.43 20:38:26Z] I (425297) StateMachine: State: listening -> idle
+[  425.43 20:38:26Z] I (425297) FaceDisplay: mode=idle mood=neutral
+[  425.43 20:38:26Z] I (425297) FaceDisplay: diag gaze=15,9 mode=idle
+[  425.43 20:38:26Z] I (425307) FaceDisplay: ring=dot bedside=0
+[  426.04 20:38:27Z] I (425987) EspTcp: Resolved <IP> -> <IP>
+[  426.04 20:38:27Z] I (426027) HttpClient: Established new connection to <IP>:8003 protocol=http cost=40
+[  426.24 20:38:27Z] I (426117) MonitorPanel: diag backend=online poll_status=200 poll_age_ms=135
+[  426.85 20:38:28Z] I (426817) FaceDisplay: diag lit=10.55% screen 13.44% circle mode=idle mood=neutral dump=13 snap_ms=302.5
+[  426.85 20:38:28Z] I (426857) FaceDisplay: agent ui: pose=mini top=tsk_01M4RX5JFGCB6NW6QJ94T11HJY
+[  427.05 20:38:28Z] I (426857) FaceDisplay: diag fps=9.3 frame_ms_avg=33.4 frame_ms_max=147.4 voice_flips=0 mode=idle mood=neutral inv_areas=8.3 inv_kpx=52.5 inv_full=2 ring=dot
+[  428.88 20:38:30Z] I (428827) FaceDisplay: diag lit=5.47% screen 6.96% circle mode=mini mood=neutral dump=14 snap_ms=296.7
+[  428.88 20:38:30Z] I (428867) FaceDisplay: diag blink double=0 mode=idle
+[  430.91 20:38:32Z] I (430767) FaceDisplay: diag gaze=0,0 mode=idle
+[  431.93 20:38:33Z] I (431887) FaceDisplay: diag fps=5.6 frame_ms_avg=11.7 frame_ms_max=104.3 voice_flips=0 mode=idle mood=neutral inv_areas=2.1 inv_kpx=18.7 inv_full=1 ring=dot
+[  434.76 20:38:36Z] I (434627) SystemInfo: free sram: 89451 minimal sram: 33468
+[  435.17 20:38:36Z] I (434987) FaceDisplay: diag blink double=0 mode=idle
+[  435.58 20:38:36Z] I (435557) WeixueAgent: agent: chats seq=1791837507087 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[  435.78 20:38:37Z] I (435607) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[  435.78 20:38:37Z] I (435757) EspTcp: Resolved <IP> -> <IP>
+[  436.60 20:38:37Z] I (436567) HttpClient: Established new connection to <IP>:8003 protocol=http cost=810
+[  437.00 20:38:38Z] I (436987) FaceDisplay: diag fps=1.4 frame_ms_avg=5.8 frame_ms_max=9.4 voice_flips=0 mode=idle mood=neutral inv_areas=1.9 inv_kpx=4.0 inv_full=0 ring=dot
+[  437.62 20:38:38Z] I (437527) FaceDisplay: diag gaze=-2,0 mode=idle
+[  439.45 20:38:40Z] I (439287) FaceDisplay: diag blink double=0 mode=idle
+[  442.11 20:38:43Z] I (442077) FaceDisplay: diag fps=2.0 frame_ms_avg=5.6 frame_ms_max=9.9 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=6.4 inv_full=0 ring=dot
+[  444.38 20:38:45Z] I (444217) FaceDisplay: diag gaze=0,0 mode=idle
+[  444.80 20:38:46Z] I (444627) SystemInfo: free sram: 95251 minimal sram: 33468
+[  444.80 20:38:46Z] I (444767) FaceDisplay: diag blink double=0 mode=idle
+[  447.28 20:38:48Z] I (447107) FaceDisplay: diag fps=1.8 frame_ms_avg=5.7 frame_ms_max=9.5 voice_flips=0 mode=idle mood=neutral inv_areas=1.9 inv_kpx=5.9 inv_full=0 ring=dot
+[  448.73 20:38:49Z] I (448707) FaceDisplay: diag gaze=0,6 mode=idle
+[  451.01 20:38:52Z] I (450937) FaceDisplay: diag blink double=1 mode=idle
+[  452.25 20:38:53Z] I (452127) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=34 resyncs=23 skipped=179 read_errors=9 torn_timestamps=5
+[  452.25 20:38:53Z] I (452127) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  452.25 20:38:53Z] I (452167) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=34 resyncs=24 skipped=179 read_errors=10 torn_timestamps=5
+[  452.25 20:38:53Z] I (452167) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  452.25 20:38:53Z] I (452187) FaceDisplay: diag fps=3.2 frame_ms_avg=6.5 frame_ms_max=10.6 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=6.0 inv_full=0 ring=dot
+[  454.74 20:38:55Z] I (454627) SystemInfo: free sram: 94287 minimal sram: 33468
+[  455.15 20:38:56Z] I (455167) FaceDisplay: diag blink double=0 mode=idle
+[  455.36 20:38:56Z] I (455327) FaceDisplay: diag gaze=-6,1 mode=idle
+[  457.42 20:38:58Z] I (457257) FaceDisplay: diag fps=2.0 frame_ms_avg=6.4 frame_ms_max=10.7 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=6.8 inv_full=0 ring=dot
+[  460.33 20:39:01Z] I (460257) FaceDisplay: diag blink double=1 mode=idle
+[  461.57 20:39:02Z] I (461507) FaceDisplay: diag gaze=0,0 mode=idle
+[  462.41 20:39:03Z] I (462257) FaceDisplay: diag fps=4.4 frame_ms_avg=6.4 frame_ms_max=15.3 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=6.7 inv_full=0 ring=dot
+[  463.23 20:39:04Z] I (463177) EspTcp: Resolved <IP> -> <IP>
+[  463.23 20:39:04Z] I (463217) HttpClient: Established new connection to <IP>:8003 protocol=http cost=40
+[  464.67 20:39:05Z] I (464627) SystemInfo: free sram: 95251 minimal sram: 33468
+[  465.90 20:39:07Z] I (465887) FaceDisplay: diag blink double=0 mode=idle
+[  466.10 20:39:07Z] I (465967) FaceDisplay: diag gaze=8,1 mode=idle
+[  467.54 20:39:08Z] I (467357) FaceDisplay: diag fps=2.2 frame_ms_avg=6.0 frame_ms_max=9.5 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=6.3 inv_full=0 ring=dot
+[  470.43 20:39:11Z] I (470447) FaceDisplay: diag gaze=0,0 mode=idle
+[  471.05 20:39:12Z] I (470907) FaceDisplay: diag blink double=0 mode=idle
+[  472.48 20:39:13Z] I (472377) FaceDisplay: diag fps=2.4 frame_ms_avg=6.4 frame_ms_max=10.3 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=6.5 inv_full=0 ring=dot
+[  474.78 20:39:16Z] I (474627) SystemInfo: free sram: 94287 minimal sram: 33468
+[  476.23 20:39:17Z] I (476127) FaceDisplay: diag blink double=0 mode=idle
+[  476.85 20:39:18Z] I (476757) FaceDisplay: diag gaze=-9,-2 mode=idle
+[  477.48 20:39:18Z] I (477417) FaceDisplay: diag fps=2.8 frame_ms_avg=6.0 frame_ms_max=10.4 voice_flips=0 mode=idle mood=neutral inv_areas=2.0 inv_kpx=6.9 inv_full=0 ring=dot
+[  481.43 20:39:22Z] I (481377) FaceDisplay: diag blink double=1 mode=idle
+[  481.63 20:39:22Z] I (481587) FaceDisplay: diag gaze=10,2 mode=idle
+[  482.26 20:39:23Z] I (482167) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=35 resyncs=25 skipped=182 read_errors=10 torn_timestamps=5
+[  482.26 20:39:23Z] I (482167) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  482.67 20:39:23Z] I (482517) FaceDisplay: diag fps=3.1 frame_ms_avg=7.5 frame_ms_max=20.1 voice_flips=0 mode=idle mood=neutral inv_areas=2.1 inv_kpx=6.8 inv_full=0 ring=dot
+[  482.88 20:39:24Z] I (482877) FaceDisplay: diag shift=0,0
+[  484.53 20:39:25Z] I (484367) PowerSaveTimer: Enabling power save mode
+[  484.53 20:39:25Z] I (484367) Backlight: Set brightness to 20
+[  484.53 20:39:25Z] I (484387) FaceDisplay: mode=idle mood=sleepy
+[  484.53 20:39:25Z] I (484387) FaceDisplay: diag gaze=-10,-4 mode=idle
+[  484.74 20:39:25Z] I (484627) SystemInfo: free sram: 95251 minimal sram: 33468
+[  486.39 20:39:27Z] I (486207) FaceDisplay: diag blink double=1 mode=idle
+[  487.63 20:39:28Z] I (487547) FaceDisplay: diag fps=6.0 frame_ms_avg=9.7 frame_ms_max=106.1 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=14.9 inv_full=1 ring=dot
+[  489.49 20:39:30Z] I (489467) FaceDisplay: diag gaze=-10,-1 mode=idle
+[  489.89 20:39:31Z] I (489777) FaceDisplay: diag lit=5.46% screen 6.95% circle mode=mini mood=sleepy dump=15 snap_ms=308.1
+[  489.89 20:39:31Z] I (489907) EspTcp: Resolved <IP> -> <IP>
+[  490.91 20:39:32Z] I (490847) HttpClient: Established new connection to <IP>:8003 protocol=http cost=940
+[  492.74 20:39:33Z] I (492607) FaceDisplay: diag fps=0.8 frame_ms_avg=4.9 frame_ms_max=5.2 voice_flips=0 mode=idle mood=sleepy inv_areas=2.5 inv_kpx=10.7 inv_full=0 ring=dot
+[  492.95 20:39:34Z] I (492917) FaceDisplay: diag blink double=0 mode=idle
+[  493.96 20:39:35Z] I (493967) FaceDisplay: diag gaze=0,6 mode=idle
+[  494.77 20:39:36Z] I (494627) SystemInfo: free sram: 94287 minimal sram: 33468
+[  497.26 20:39:38Z] I (497137) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=36 resyncs=26 skipped=189 read_errors=10 torn_timestamps=5
+[  497.26 20:39:38Z] I (497137) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  497.67 20:39:38Z] I (497627) FaceDisplay: diag fps=3.8 frame_ms_avg=5.8 frame_ms_max=9.9 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.8 inv_full=0 ring=dot
+[  498.90 20:39:40Z] I (498907) FaceDisplay: diag blink double=0 mode=idle
+[  500.14 20:39:41Z] I (499977) FaceDisplay: diag gaze=0,0 mode=idle
+[  502.82 20:39:44Z] I (502647) FaceDisplay: diag fps=2.6 frame_ms_avg=7.1 frame_ms_max=9.8 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.1 inv_full=0 ring=dot
+[  504.68 20:39:45Z] I (504627) SystemInfo: free sram: 95251 minimal sram: 33468
+[  505.09 20:39:46Z] I (505007) FaceDisplay: diag blink double=1 mode=idle
+[  505.50 20:39:46Z] I (505457) FaceDisplay: diag gaze=0,6 mode=idle
+[  507.77 20:39:49Z] I (507677) FaceDisplay: diag fps=4.0 frame_ms_avg=5.8 frame_ms_max=8.9 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.1 inv_full=0 ring=dot
+[  509.65 20:39:50Z] I (509597) FaceDisplay: diag blink double=0 mode=idle
+[  511.72 20:39:52Z] I (511647) FaceDisplay: diag gaze=0,0 mode=idle
+[  512.34 20:39:53Z] I (512177) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=36 resyncs=27 skipped=190 read_errors=11 torn_timestamps=5
+[  512.34 20:39:53Z] I (512177) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  512.76 20:39:54Z] I (512707) FaceDisplay: diag fps=2.6 frame_ms_avg=6.0 frame_ms_max=10.2 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.2 inv_full=0 ring=dot
+[  513.38 20:39:54Z] I (513347) FaceDisplay: diag blink double=1 mode=idle
+[  514.82 20:39:56Z] I (514627) SystemInfo: free sram: 94287 minimal sram: 33468
+[  517.51 20:39:58Z] I (517447) EspTcp: Resolved <IP> -> <IP>
+[  517.51 20:39:58Z] I (517467) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[  517.91 20:39:59Z] I (517817) FaceDisplay: diag fps=3.3 frame_ms_avg=6.3 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.5 inv_full=0 ring=dot
+[  518.53 20:39:59Z] I (518467) FaceDisplay: diag gaze=0,0 mode=idle
+[  519.15 20:40:00Z] I (519107) FaceDisplay: diag blink double=0 mode=idle
+[  522.67 20:40:03Z] I (522527) FaceDisplay: diag gaze=6,3 mode=idle
+[  522.88 20:40:04Z] I (522837) FaceDisplay: diag fps=2.8 frame_ms_avg=7.5 frame_ms_max=15.4 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=6.9 inv_full=0 ring=dot
+[  524.75 20:40:06Z] I (524627) SystemInfo: free sram: 95215 minimal sram: 33468
+[  525.37 20:40:06Z] I (525217) FaceDisplay: diag blink double=0 mode=idle
+[  528.06 20:40:09Z] I (527867) FaceDisplay: diag fps=1.8 frame_ms_avg=6.2 frame_ms_max=10.3 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.8 inv_full=0 ring=dot
+[  528.47 20:40:09Z] I (528287) FaceDisplay: diag gaze=0,6 mode=idle
+[  529.92 20:40:11Z] I (529757) FaceDisplay: diag blink double=0 mode=idle
+[  533.02 20:40:14Z] I (532867) FaceDisplay: diag fps=3.0 frame_ms_avg=6.7 frame_ms_max=10.2 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.4 inv_full=0 ring=dot
+[  534.25 20:40:15Z] I (534247) FaceDisplay: diag blink double=0 mode=idle
+[  534.66 20:40:15Z] I (534627) SystemInfo: free sram: 94287 minimal sram: 33468
+[  535.29 20:40:16Z] I (535197) FaceDisplay: diag gaze=-6,0 mode=idle
+[  537.96 20:40:19Z] I (537917) FaceDisplay: diag fps=2.8 frame_ms_avg=5.7 frame_ms_max=9.3 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.2 inv_full=0 ring=dot
+[  538.17 20:40:19Z] I (538127) FaceDisplay: diag blink double=0 mode=idle
+[  540.63 20:40:21Z] I (540457) FaceDisplay: diag gaze=-5,2 mode=idle
+[  542.30 20:40:23Z] I (542157) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=37 resyncs=28 skipped=194 read_errors=11 torn_timestamps=5
+[  542.30 20:40:23Z] I (542157) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  542.30 20:40:23Z] I (542197) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=37 resyncs=29 skipped=194 read_errors=12 torn_timestamps=5
+[  542.30 20:40:23Z] I (542197) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  542.92 20:40:24Z] I (542937) FaceDisplay: diag blink double=1 mode=idle
+[  543.13 20:40:24Z] I (542937) FaceDisplay: diag shift=1,0
+[  543.13 20:40:24Z] I (542937) FaceDisplay: diag fps=2.2 frame_ms_avg=6.4 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.4 inv_full=0 ring=dot
+[  543.96 20:40:25Z] I (543837) EspTcp: Resolved <IP> -> <IP>
+[  544.16 20:40:25Z] I (544097) HttpClient: Established new connection to <IP>:8003 protocol=http cost=260
+[  544.77 20:40:26Z] I (544627) SystemInfo: free sram: 95231 minimal sram: 33468
+[  544.77 20:40:26Z] I (544727) FaceDisplay: diag gaze=0,0 mode=idle
+[  548.13 20:40:29Z] I (547937) FaceDisplay: diag fps=4.4 frame_ms_avg=10.8 frame_ms_max=105.1 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=17.7 inv_full=1 ring=dot
+[  548.95 20:40:30Z] I (548797) FaceDisplay: diag blink double=0 mode=idle
+[  549.98 20:40:31Z] I (549857) FaceDisplay: diag lit=5.46% screen 6.96% circle mode=mini mood=sleepy dump=16 snap_ms=299.4
+[  551.00 20:40:32Z] I (550857) FaceDisplay: diag gaze=0,6 mode=idle
+[  553.03 20:40:34Z] I (552887) FaceDisplay: diag blink double=0 mode=idle
+[  553.03 20:40:34Z] I (552977) FaceDisplay: diag fps=2.8 frame_ms_avg=6.9 frame_ms_max=9.4 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.2 inv_full=0 ring=dot
+[  554.66 20:40:35Z] I (554627) SystemInfo: free sram: 94287 minimal sram: 33468
+[  557.34 20:40:38Z] I (557177) FaceDisplay: diag blink double=0 mode=idle
+[  557.34 20:40:38Z] I (557217) FaceDisplay: diag gaze=0,0 mode=idle
+[  558.16 20:40:39Z] I (558077) FaceDisplay: diag fps=3.3 frame_ms_avg=6.3 frame_ms_max=10.6 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.3 inv_full=0 ring=dot
+[  561.26 20:40:42Z] I (561167) FaceDisplay: diag blink double=0 mode=idle
+[  562.50 20:40:43Z] I (562327) FaceDisplay: diag gaze=0,6 mode=idle
+[  563.34 20:40:44Z] I (563167) FaceDisplay: diag fps=2.6 frame_ms_avg=5.9 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.9 inv_full=0 ring=dot
+[  564.80 20:40:46Z] I (564627) SystemInfo: free sram: 95215 minimal sram: 33468
+[  565.62 20:40:46Z] I (565527) FaceDisplay: diag blink double=0 mode=idle
+[  568.31 20:40:49Z] I (568187) FaceDisplay: diag fps=1.4 frame_ms_avg=6.2 frame_ms_max=9.8 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.4 inv_full=0 ring=dot
+[  568.72 20:40:50Z] I (568717) FaceDisplay: diag gaze=0,0 mode=idle
+[  570.78 20:40:52Z] I (570697) EspTcp: Resolved <IP> -> <IP>
+[  570.78 20:40:52Z] I (570737) FaceDisplay: diag blink double=0 mode=idle
+[  571.81 20:40:53Z] I (571747) HttpClient: Established new connection to <IP>:8003 protocol=http cost=1050
+[  572.23 20:40:53Z] I (572207) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=38 resyncs=30 skipped=199 read_errors=12 torn_timestamps=6
+[  572.23 20:40:53Z] I (572207) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  573.26 20:40:54Z] I (573187) FaceDisplay: diag fps=2.6 frame_ms_avg=6.3 frame_ms_max=9.5 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.9 inv_full=0 ring=dot
+[  574.29 20:40:55Z] I (574257) FaceDisplay: diag blink double=0 mode=idle
+[  574.70 20:40:55Z] I (574637) SystemInfo: free sram: 95251 minimal sram: 33468
+[  575.74 20:40:57Z] I (575627) FaceDisplay: diag gaze=0,-1 mode=idle
+[  578.22 20:40:59Z] I (578127) FaceDisplay: diag blink double=0 mode=idle
+[  578.22 20:40:59Z] I (578217) FaceDisplay: diag fps=2.4 frame_ms_avg=6.4 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.7 inv_full=0 ring=dot
+[  582.16 20:41:03Z] I (582077) FaceDisplay: diag gaze=0,0 mode=idle
+[  582.37 20:41:03Z] I (582217) FaceDisplay: diag blink double=0 mode=idle
+[  583.40 20:41:04Z] I (583297) FaceDisplay: diag fps=3.5 frame_ms_avg=6.2 frame_ms_max=15.4 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=5.4 inv_full=0 ring=dot
+[  584.64 20:41:05Z] I (584627) SystemInfo: free sram: 95251 minimal sram: 33468
+[  585.89 20:41:07Z] I (585757) FaceDisplay: diag blink double=0 mode=idle
+[  587.32 20:41:08Z] I (587167) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=39 resyncs=31 skipped=203 read_errors=12 torn_timestamps=7
+[  587.32 20:41:08Z] I (587167) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  587.74 20:41:09Z] I (587697) FaceDisplay: diag gaze=0,0 mode=idle
+[  588.36 20:41:09Z] I (588337) FaceDisplay: diag fps=1.8 frame_ms_avg=7.3 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.6 inv_full=0 ring=dot
+[  590.64 20:41:11Z] I (590467) FaceDisplay: diag blink double=0 mode=idle
+[  593.53 20:41:14Z] I (593437) FaceDisplay: diag fps=1.6 frame_ms_avg=6.9 frame_ms_max=9.3 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.3 inv_full=0 ring=dot
+[  593.95 20:41:15Z] I (593967) FaceDisplay: diag gaze=-1,-5 mode=idle
+[  594.78 20:41:16Z] I (594627) SystemInfo: free sram: 94287 minimal sram: 33468
+[  595.19 20:41:16Z] I (595127) FaceDisplay: diag blink double=0 mode=idle
+[  598.21 20:41:19Z] ### send diag dump
+[  598.31 20:41:19Z] I (598247) DiagConsole: ok diag dump: {"device_state":"idle","panel_off":false,"brightness":20,"display":{"mode":"idle","mood":"sleepy","ring":"dot","bedside":false,"panel":false,"page":1,"card":false,"chats":false},"imu":{"face_down":false,"mic_muted":false,"last_gesture":"","last_gesture_age_ms":-1,"counts":{"pick_up":0,"face_down":0,"face_up":0,"double_tap":0},"accel_g":[-0.15,-0.00,0.98],"sampling":{"overruns":39,"resyncs":32,"skipped":203,"read_errors":13,"torn_timestamps":7}}}
+[  598.52 20:41:19Z] I (598347) EspTcp: Resolved <IP> -> <IP>
+[  598.52 20:41:19Z] I (598377) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+[  598.73 20:41:20Z] I (598637) FaceDisplay: diag lit=5.42% screen 6.90% circle mode=mini mood=sleepy dump=17 snap_ms=332.2
+[  598.73 20:41:20Z] I (598657) FaceDisplay: diag fps=2.3 frame_ms_avg=6.6 frame_ms_max=10.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=6.2 inv_full=0 ring=dot
+[  599.75 20:41:21Z] I (599617) FaceDisplay: diag gaze=0,0 mode=idle
+[  599.95 20:41:21Z] I (599847) FaceDisplay: diag blink double=0 mode=idle
+[  602.40 20:41:23Z] I (602227) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=39 resyncs=32 skipped=205 read_errors=13 torn_timestamps=7
+[  602.40 20:41:23Z] I (602237) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  603.00 20:41:24Z] I (603017) FaceDisplay: diag shift=1,1
+[  603.84 20:41:25Z] I (603687) FaceDisplay: diag fps=2.6 frame_ms_avg=13.4 frame_ms_max=113.7 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=24.7 inv_full=1 ring=dot
+[  604.66 20:41:25Z] I (604637) SystemInfo: free sram: 94287 minimal sram: 33468
+[  605.06 20:41:26Z] I (604957) FaceDisplay: diag blink double=0 mode=idle
+[  606.09 20:41:27Z] I (605937) FaceDisplay: diag gaze=0,0 mode=idle
+[  608.80 20:41:30Z] I (608717) FaceDisplay: diag fps=1.6 frame_ms_avg=7.0 frame_ms_max=9.4 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.5 inv_full=0 ring=dot
+[  610.87 20:41:32Z] I (610847) FaceDisplay: diag blink double=1 mode=idle
+[  611.49 20:41:32Z] I (611367) FaceDisplay: diag gaze=-9,-5 mode=idle
+[  613.78 20:41:35Z] I (613737) FaceDisplay: diag fps=4.8 frame_ms_avg=5.7 frame_ms_max=9.7 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.0 inv_full=0 ring=dot
+[  614.61 20:41:35Z] I (614627) SystemInfo: free sram: 94287 minimal sram: 33468
+[  616.87 20:41:38Z] I (616827) FaceDisplay: diag blink double=1 mode=idle
+[  618.31 20:41:39Z] I (618207) FaceDisplay: diag gaze=0,0 mode=idle
+[  618.93 20:41:40Z] I (618847) FaceDisplay: diag fps=5.1 frame_ms_avg=6.2 frame_ms_max=10.1 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.7 inv_full=0 ring=dot
+[  621.21 20:41:42Z] I (621137) FaceDisplay: diag blink double=0 mode=idle
+[  623.90 20:41:45Z] I (623897) FaceDisplay: diag fps=2.0 frame_ms_avg=5.4 frame_ms_max=9.0 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=4.3 inv_full=0 ring=dot
+[  624.72 20:41:46Z] I (624637) SystemInfo: free sram: 98075 minimal sram: 33468
+[  625.13 20:41:46Z] I (624977) EspTcp: Resolved <IP> -> <IP>
+[  625.13 20:41:46Z] I (624997) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[  625.13 20:41:46Z] I (625087) FaceDisplay: diag gaze=0,0 mode=idle
+[  625.34 20:41:46Z] I (625297) FaceDisplay: diag blink double=0 mode=idle
+[  629.06 20:41:50Z] I (628907) FaceDisplay: diag fps=1.6 frame_ms_avg=6.0 frame_ms_max=8.7 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.2 inv_full=0 ring=dot
+[  630.28 20:41:51Z] I (630297) FaceDisplay: diag blink double=0 mode=idle
+[  630.69 20:41:51Z] I (630507) FaceDisplay: diag gaze=-1,-3 mode=idle
+[  632.35 20:41:53Z] I (632187) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=40 resyncs=33 skipped=209 read_errors=13 torn_timestamps=7
+[  632.35 20:41:53Z] I (632187) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[  632.35 20:41:53Z] I (632227) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=40 resyncs=34 skipped=209 read_errors=14 torn_timestamps=7
+[  632.35 20:41:53Z] I (632227) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  634.00 20:41:55Z] I (633917) FaceDisplay: diag fps=2.0 frame_ms_avg=6.9 frame_ms_max=9.7 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.4 inv_full=0 ring=dot
+[  634.62 20:41:55Z] I (634627) SystemInfo: free sram: 94287 minimal sram: 33468
+[  636.07 20:41:57Z] I (635937) FaceDisplay: diag blink double=0 mode=idle
+[  636.90 20:41:58Z] I (636887) FaceDisplay: diag gaze=0,0 mode=idle
+[  639.15 20:42:00Z] I (638977) FaceDisplay: diag fps=2.6 frame_ms_avg=6.6 frame_ms_max=15.4 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=6.8 inv_full=0 ring=dot
+[  641.23 20:42:02Z] I (641217) FaceDisplay: diag blink double=0 mode=idle
+[  642.05 20:42:03Z] I (641947) FaceDisplay: diag gaze=0,0 mode=idle
+[  644.13 20:42:05Z] I (644067) FaceDisplay: diag fps=1.6 frame_ms_avg=6.5 frame_ms_max=9.9 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=4.3 inv_full=0 ring=dot
+[  644.75 20:42:06Z] I (644627) SystemInfo: free sram: 95251 minimal sram: 33468
+[  645.16 20:42:06Z] I (645027) FaceDisplay: diag blink double=0 mode=idle
+[  646.82 20:42:08Z] I (646767) FaceDisplay: diag gaze=-1,-1 mode=idle
+[  649.10 20:42:10Z] I (649047) FaceDisplay: diag blink double=0 mode=idle
+[  649.10 20:42:10Z] I (649087) FaceDisplay: diag fps=2.0 frame_ms_avg=6.0 frame_ms_max=9.4 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.0 inv_full=0 ring=dot
+[  651.59 20:42:12Z] I (651597) EspTcp: Resolved <IP> -> <IP>
+[  651.79 20:42:13Z] I (651617) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[  652.83 20:42:14Z] I (652777) FaceDisplay: diag blink double=0 mode=idle
+[  653.66 20:42:14Z] I (653657) FaceDisplay: diag gaze=0,0 mode=idle
+[  654.28 20:42:15Z] I (654127) FaceDisplay: diag fps=3.6 frame_ms_avg=5.7 frame_ms_max=10.4 voice_flips=0 mode=idle mood=sleepy inv_areas=1.9 inv_kpx=4.6 inv_full=0 ring=dot
+[  654.70 20:42:15Z] I (654627) SystemInfo: free sram: 94287 minimal sram: 33468
+[  657.37 20:42:18Z] I (657327) FaceDisplay: diag blink double=0 mode=idle
+[  658.20 20:42:19Z] I (658167) FaceDisplay: diag gaze=-10,-2 mode=idle
+[  658.82 20:42:20Z] I (658677) FaceDisplay: diag lit=5.45% screen 6.94% circle mode=mini mood=sleepy dump=18 snap_ms=321.0
+[  659.23 20:42:20Z] I (659187) FaceDisplay: diag fps=3.0 frame_ms_avg=6.0 frame_ms_max=9.9 voice_flips=0 mode=idle mood=sleepy inv_areas=2.1 inv_kpx=6.9 inv_full=0 ring=dot
+[  662.08 20:42:23Z] I (662007) FaceDisplay: diag blink double=1 mode=idle
+[  662.28 20:42:23Z] I (662227) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=41 resyncs=35 skipped=214 read_errors=14 torn_timestamps=7
+[  662.28 20:42:23Z] I (662237) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  663.09 20:42:24Z] I (663047) FaceDisplay: diag shift=0,1
+[  664.13 20:42:25Z] I (664027) FaceDisplay: diag gaze=0,0 mode=idle
+[  664.34 20:42:25Z] I (664237) FaceDisplay: diag fps=5.0 frame_ms_avg=10.4 frame_ms_max=108.0 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=15.8 inv_full=1 ring=dot
+[  664.76 20:42:26Z] I (664627) SystemInfo: free sram: 95251 minimal sram: 33468
+[  667.05 20:42:28Z] I (667007) FaceDisplay: diag blink double=0 mode=idle
+[  669.33 20:42:30Z] I (669247) FaceDisplay: diag fps=2.2 frame_ms_avg=6.0 frame_ms_max=10.2 voice_flips=0 mode=idle mood=sleepy inv_areas=2.0 inv_kpx=5.6 inv_full=0 ring=dot
+[  670.16 20:42:31Z] I (669987) FaceDisplay: diag gaze=0,0 mode=idle

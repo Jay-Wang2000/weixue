@@ -1,0 +1,732 @@
+[    0.20 20:49:54Z] ESP-ROM:esp32s3-20210327
+[    0.20 20:49:54Z] Build:Mar 27 2021
+[    0.20 20:49:54Z] rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+[    0.20 20:49:54Z] Saved PC:0x421cc044
+[    0.20 20:49:54Z] SPIWP:0xee
+[    0.20 20:49:54Z] mode:DIO, clock div:1
+[    0.20 20:49:54Z] load:0x3fce2820,len:0x544
+[    0.20 20:49:54Z] load:0x403c8700,len:0xd14
+[    0.20 20:49:54Z] load:0x403cb700,len:0x2eb4
+[    0.20 20:49:54Z] entry 0x403c88f4
+[    0.20 20:49:54Z] I (34) octal_psram: vendor id    : 0x0d (AP)
+[    0.20 20:49:54Z] I (34) octal_psram: dev id       : 0x02 (generation 3)
+[    0.20 20:49:54Z] I (34) octal_psram: density      : 0x03 (64 Mbit)
+[    0.20 20:49:54Z] I (36) octal_psram: good-die     : 0x01 (Pass)
+[    0.20 20:49:54Z] I (40) octal_psram: Latency      : 0x01 (Fixed)
+[    0.20 20:49:54Z] I (44) octal_psram: VCC          : 0x01 (3V)
+[    0.20 20:49:54Z] I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+[    0.20 20:49:54Z] I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+[    0.20 20:49:54Z] I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+[    0.20 20:49:54Z] I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+[    0.20 20:49:54Z] I (67) octal_psram: DriveStrength: 0x00 (1/1)
+[    0.20 20:49:54Z] I (71) MSPI Timing: Enter psram timing tuning
+[    0.20 20:49:54Z] I (76) esp_psram: Found 8MB PSRAM device
+[    0.20 20:49:54Z] I (79) esp_psram: Speed: 80MHz
+[    0.20 20:49:54Z] I (82) cpu_start: Multicore app
+[    0.20 20:49:54Z] I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+[    0.20 20:49:54Z] I (97) cpu_start: Pro cpu start user code
+[    0.20 20:49:54Z] I (97) cpu_start: cpu freq: 240000000 Hz
+[    0.20 20:49:54Z] I (98) app_init: Application information:
+[    0.20 20:49:54Z] I (102) app_init: Project name:     xiaozhi
+[    0.20 20:49:54Z] I (106) app_init: App version:      2.5.1
+[    0.20 20:49:54Z] I (110) app_init: Compile time:     Oct  7 2026 05:42:06
+[    0.20 20:49:54Z] I (115) app_init: ELF file SHA256:  ebf9ea9ac...
+[    0.20 20:49:54Z] I (119) app_init: ESP-IDF:          v6.1
+[    0.20 20:49:54Z] I (123) efuse_init: Min chip rev:     v0.0
+[    0.20 20:49:54Z] I (126) efuse_init: Max chip rev:     v0.99 
+[    0.20 20:49:54Z] I (130) efuse_init: Chip rev:         v0.2
+[    0.20 20:49:54Z] I (134) heap_init: Initializing. RAM available for dynamic allocation:
+[    0.20 20:49:54Z] I (140) heap_init: At 3FCAB520 len 0003E1F0 (248 KiB): RAM
+[    0.20 20:49:54Z] I (146) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+[    0.20 20:49:54Z] I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+[    0.20 20:49:54Z] I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+[    0.20 20:49:54Z] I (161) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+[    0.20 20:49:54Z] I (168) spi_flash: detected chip: gd
+[    0.20 20:49:54Z] I (171) spi_flash: flash io: qio
+[    0.20 20:49:54Z] I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[    0.20 20:49:54Z] I (180) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[    0.20 20:49:54Z] I (187) main_task: Started on CPU0
+[    0.20 20:49:54Z] I (187) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+[    0.20 20:49:54Z] I (197) main_task: Calling app_main()
+[    0.40 20:49:55Z] I (367) Board: UUID=<uuid> SKU=esp32-s3-touch-amoled-1.75c-weixue
+[    0.40 20:49:55Z] I (367) button: IoT Button Version: 4.2.1
+[    0.40 20:49:55Z] I (367) PowerSaveTimer: Power save timer enabled
+[    0.40 20:49:55Z] I (367) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+[    0.40 20:49:55Z] I (377) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+[    0.40 20:49:55Z] W (387) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.40 20:49:55Z] W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.61 20:49:55Z] W (397) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.61 20:49:55Z] I (407) co5300: version: 2.2.0
+[    0.61 20:49:55Z] I (407) co5300_spi: LCD panel create success, version: 2.2.0
+[    0.61 20:49:55Z] W (577) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+[    1.85 20:49:56Z] I (1777) Display: Power management not supported
+[    2.06 20:49:56Z] I (1857) LcdDisplay: Turning display on
+[    2.06 20:49:56Z] I (1857) LcdDisplay: Initialize LVGL library
+[    2.06 20:49:56Z] I (1857) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+[    2.06 20:49:56Z] I (1857) LcdDisplay: Use 2MB of PSRAM for image cache
+[    2.06 20:49:56Z] I (1867) LcdDisplay: Initialize LVGL port
+[    2.06 20:49:56Z] I (1867) LcdDisplay: Adding LCD display
+[    2.06 20:49:56Z] I (1867) LVGL: Starting LVGL task
+[    2.06 20:49:56Z] I (1877) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+[    2.06 20:49:56Z] I (1877) Backlight: Set brightness to 75
+[    2.06 20:49:56Z] I (1887) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+[    2.06 20:49:56Z] I (1957) CST9217: Checkcode: 0x204ECACA
+[    2.06 20:49:56Z] I (1957) CST9217: Resolution X: 466, Y: 466
+[    2.06 20:49:56Z] I (1957) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+[    2.06 20:49:56Z] I (1957) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+[    2.06 20:49:56Z] I (1957) Qmi8658: QMI8658 found at 0x6B
+[    2.06 20:49:56Z] I (1987) Qmi8658: Reset result 0x80
+[    2.06 20:49:56Z] I (2007) MCP: Add tool: self.system.reconfigure_wifi [operator-only]
+[    2.06 20:49:56Z] I (2007) MCP: Add tool: self.screen.set_bedside
+[    2.06 20:49:56Z] I (2007) MCP: Add tool: self.imu.get_state
+[    2.06 20:49:56Z] I (2007) DiagConsole: listening on USB Serial/JTAG
+[    2.06 20:49:56Z] I (2007) StateMachine: State: unknown -> starting
+[    2.06 20:49:56Z] I (2017) Application: Clock: stored TZ IST-1GMT0,M10.5.0,M3.5.0/1
+[    2.06 20:49:56Z] I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=-0.146 y=-0.005 z=0.983 g
+[    2.06 20:49:56Z] I (2027) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+[    2.27 20:49:57Z] I (2087) MonitorPanel: page=1
+[    2.27 20:49:57Z] I (2167) Assets: The storage free size is 21568 KB
+[    2.27 20:49:57Z] I (2167) Assets: The assets map size is 4224 KB (partition 16384 KB)
+[    2.48 20:49:57Z] I (2417) Assets: The checksum calculation time is 246 ms
+[    2.48 20:49:57Z] I (2427) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+[    2.68 20:49:57Z] I (2527) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (1)
+[    2.68 20:49:57Z] I (2527) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 114 ms without a sample (2)
+[    2.68 20:49:57Z] W (2527) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+[    2.68 20:49:57Z] I (2537) BoxAudioCodec: Duplex channels created
+[    2.68 20:49:57Z] I (2547) ES8311: Work in Slave mode
+[    2.68 20:49:57Z] I (2557) ES7210: Work in Slave mode
+[    2.68 20:49:57Z] I (2557) ES7210: Enable ES7210_INPUT_MIC1
+[    2.68 20:49:57Z] I (2567) ES7210: Enable ES7210_INPUT_MIC2
+[    2.68 20:49:57Z] I (2567) ES7210: Enable ES7210_INPUT_MIC3
+[    2.68 20:49:57Z] I (2567) ES7210: Enable ES7210_INPUT_MIC4
+[    2.68 20:49:57Z] I (2577) ES7210: Enable TDM mode
+[    2.68 20:49:57Z] I (2577) BoxAudioCodec: BoxAudioDevice initialized
+[    2.68 20:49:57Z] I (2577) AudioCodec: Audio codec started
+[    2.68 20:49:57Z] I (2587) Application: After board/audio init
+[    2.68 20:49:57Z] I (2587) SystemInfo: free sram: 175975 minimal sram: 74448
+[    2.68 20:49:57Z] I (2587) WeixueAgent: agent: protocol v1 level 2, boot 280505992
+[    2.68 20:49:57Z] I (2597) MCP: Add tool: self.get_device_status
+[    2.68 20:49:57Z] I (2597) MCP: Add tool: self.audio_speaker.set_volume
+[    2.68 20:49:57Z] I (2597) MCP: Add tool: self.screen.set_brightness
+[    2.68 20:49:57Z] I (2607) MCP: Add tool: self.screen.set_theme
+[    2.68 20:49:57Z] I (2607) MCP: Add tool: self.get_system_info [user] [operator-only]
+[    2.68 20:49:57Z] I (2617) MCP: Add tool: self.reboot [user] [operator-only]
+[    2.68 20:49:57Z] I (2617) MCP: Add tool: self.upgrade_firmware [user] [operator-only]
+[    2.68 20:49:57Z] I (2627) MCP: Add tool: self.screen.get_info [user] [operator-only]
+[    2.68 20:49:57Z] I (2637) MCP: Add tool: self.screen.snapshot [user] [operator-only]
+[    2.68 20:49:57Z] I (2637) MCP: Add tool: self.screen.preview_image [user] [operator-only]
+[    2.68 20:49:57Z] I (2647) MCP: Add tool: self.assets.set_download_url [user] [operator-only]
+[    2.68 20:49:57Z] I (2647) WifiManager: Initializing...
+[    2.68 20:49:57Z] I (2657) pp: pp rom version: e7ae62f
+[    2.68 20:49:57Z] I (2657) net80211: net80211 rom version: e7ae62f
+[    2.68 20:49:57Z] I (2677) wifi:wifi driver task: 3fce6a60, prio:23, stack:6656, core=0
+[    2.68 20:49:57Z] I (2677) wifi:wifi firmware version: e12a754
+[    2.68 20:49:57Z] I (2677) wifi:wifi certification version: v7.0
+[    2.68 20:49:57Z] I (2677) wifi:config NVS flash: disabled
+[    2.89 20:49:57Z] I (2677) wifi:config nano formatting: disabled
+[    2.89 20:49:57Z] I (2687) wifi:Init data frame dynamic rx buffer num: 6
+[    2.89 20:49:57Z] I (2687) wifi:Init dynamic rx mgmt buffer num: 5
+[    2.89 20:49:57Z] I (2697) wifi:Init management short buffer num: 32
+[    2.89 20:49:57Z] I (2697) wifi:Init dynamic tx buffer num: 32
+[    2.89 20:49:57Z] I (2707) wifi:Init static tx FG buffer num: 2
+[    2.89 20:49:57Z] I (2707) wifi:Init static rx buffer size: 1600
+[    2.89 20:49:57Z] I (2707) wifi:Init static rx buffer num: 3
+[    2.89 20:49:57Z] I (2717) wifi:Init dynamic rx buffer num: 6
+[    2.89 20:49:57Z] I (2717) wifi_init: rx ba win: 3
+[    2.89 20:49:57Z] I (2717) wifi_init: accept mbox: 6
+[    2.89 20:49:57Z] I (2727) wifi_init: tcpip mbox: 16
+[    2.89 20:49:57Z] I (2727) wifi_init: udp mbox: 6
+[    2.89 20:49:57Z] I (2727) wifi_init: tcp mbox: 6
+[    2.89 20:49:57Z] I (2737) wifi_init: tcp tx win: 5760
+[    2.89 20:49:57Z] I (2737) wifi_init: tcp rx win: 5760
+[    2.89 20:49:57Z] I (2737) wifi_init: tcp mss: 1440
+[    2.89 20:49:57Z] I (2747) WifiManager: Initialized
+[    2.89 20:49:57Z] I (2747) WifiBoard: Starting WiFi connection attempt
+[    2.89 20:49:57Z] I (2747) WifiManager: Starting station
+[    2.89 20:49:57Z] I (2757) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+[    2.89 20:49:57Z] I (2757) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+[    2.89 20:49:57Z] I (2797) wifi:mode : sta (<mac>)
+[    2.89 20:49:57Z] I (2797) wifi:enable tsf
+[    2.89 20:49:57Z] I (2797) WifiStation: Scanning saved channel 6
+[    2.89 20:49:57Z] I (2797) WifiBoard: WiFi scanning
+[    3.09 20:49:57Z] I (2927) WifiStation: Found AP: <ssid>, BSSID: <mac>, RSSI: -74, Channel: 6, Authmode: 3
+[    3.09 20:49:57Z] I (2927) WifiBoard: WiFi connecting to <ssid>
+[    3.09 20:49:57Z] W (2927) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+[    3.09 20:49:57Z] I (2987) wifi:new:<6,1>, old:<1,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.09 20:49:57Z] I (2997) wifi:state: init -> auth (0xb0)
+[    3.09 20:49:57Z] I (2997) wifi:state: auth -> init (0x8a0)
+[    3.09 20:49:57Z] I (2997) wifi:new:<6,0>, old:<6,1>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.09 20:49:57Z] I (3007) wifi:new:<6,1>, old:<6,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.09 20:49:57Z] I (3007) wifi:state: init -> auth (0xb0)
+[    3.09 20:49:57Z] I (3017) wifi:state: auth -> assoc (0x0)
+[    3.09 20:49:57Z] I (3027) wifi:state: assoc -> run (0x10)
+[    3.09 20:49:57Z] I (3037) MonitorPanel: diag backend=checking poll_status=0 poll_age_ms=-1
+[    3.09 20:49:57Z] I (3047) wifi:connected with <ssid>, aid = 5, channel 6, 40U, bssid = <mac>
+[    3.09 20:49:57Z] I (3047) wifi:security: WPA2-PSK, phy: bgn, rssi: -74, cipher(pairwise:0x3, group:0x3), pmf:0
+[    3.09 20:49:57Z] I (3057) wifi:pm start, type: 1
+[    3.09 20:49:57Z] 
+[    3.09 20:49:57Z] I (3057) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+[    3.09 20:49:57Z] I (3067) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+[    3.09 20:49:57Z] I (3077) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+[    3.09 20:49:57Z] I (3087) wifi:<ba-add>idx:0 (ifx:0, <mac>), tid:7, ssn:0, winSize:64
+[    3.30 20:49:58Z] I (3267) wifi:<ba-add>idx:1 (ifx:0, <mac>), tid:0, ssn:0, winSize:64
+[    4.13 20:49:58Z] I (4097) esp_netif_handlers: sta ip: <IP>, mask: <IP>, gw: <IP>
+[    4.13 20:49:58Z] I (4097) WifiStation: Got IP: <IP>
+[    4.13 20:49:58Z] I (4097) WifiBoard: Connected to WiFi: <ssid>
+[    4.13 20:49:58Z] I (4097) Application: Network connected
+[    4.13 20:49:58Z] I (4097) StateMachine: State: starting -> activating
+[    4.13 20:49:58Z] I (4107) MODEL_LOADER: Successfully load srmodels
+[    4.33 20:49:59Z] I (4127) Assets: Refreshing display theme...
+[    4.33 20:49:59Z] I (4157) Ota: Current version: 2.5.1
+[    4.33 20:49:59Z] I (4157) EspTcp: Resolved <IP> -> <IP>
+[    4.33 20:49:59Z] I (4197) HttpClient: Established new connection to <IP>:8003 protocol=http cost=40
+[    4.33 20:49:59Z] I (4227) HttpClient: HTTP connection closed
+[    4.33 20:49:59Z] I (4227) Ota: No mqtt section found !
+[    4.33 20:49:59Z] I (4227) Ota: Clock: TZ IST-1GMT0,M10.5.0,M3.5.0/1, UTC offset +60 min (January +0, July +60)
+[    4.33 20:49:59Z] I (4227) Ota: Current is the latest version
+[    4.33 20:49:59Z] I (4237) Ota: Running partition: ota_0
+[    4.33 20:49:59Z] I (4277) Application: Activation done
+[    4.33 20:49:59Z] I (4277) SystemInfo: free sram: 129359 minimal sram: 39812
+[    4.33 20:49:59Z] I (4277) StateMachine: State: activating -> idle
+[    4.33 20:49:59Z] I (4277) Application: Proactive poller: http://<IP>:8003/weixue/proactive/poll
+[    4.33 20:49:59Z] I (4287) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[    4.33 20:49:59Z] I (4287) EspTcp: Resolved <IP> -> <IP>
+[    4.33 20:49:59Z] I (4287) wifi:Set ps type: 2, coexist: 0
+[    4.33 20:49:59Z] 
+[    4.33 20:49:59Z] I (4307) AfeAudioEngine: Model 0: wn9_jarvis_tts
+[    4.33 20:49:59Z] I (4307) WakeWordCache: Allocated 64000 bytes in PSRAM
+[    4.33 20:49:59Z] I (4307) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[    4.33 20:49:59Z] I (4307) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+[    4.53 20:49:59Z] I (4327) AfeAudioEngine: Before AFE create: free=123071 min=39812 largest=77824
+[    4.53 20:49:59Z] MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+[    4.53 20:49:59Z] I (4417) AFE: AFE Version: (1MIC_V251128)
+[    4.53 20:49:59Z] I (4417) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[    4.53 20:49:59Z] I (4427) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+[    4.53 20:49:59Z] I (4437) AFE: AFE Version: (1MIC_V251128)
+[    4.53 20:49:59Z] I (4437) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[    4.53 20:49:59Z] I (4447) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+[    4.53 20:49:59Z] I (4457) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+[    4.53 20:49:59Z] I (4467) AfeAudioEngine: After AFE create: free=101803 min=33468 largest=59392
+[    4.53 20:49:59Z] I (4467) I2S_IF: Paired data: 0x3fcd7b54, current mode: playback, paired in_enable: 0, paired out_enable: 0
+[    4.53 20:49:59Z] I (4477) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+[    4.53 20:49:59Z] I (4487) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    4.53 20:49:59Z] I (4507) Adev_Codec: Open codec device OK
+[    4.53 20:49:59Z] I (4507) AudioCodec: Set output enable to true
+[    4.53 20:49:59Z] I (4517) I2S_IF: Peer mode playback need extend bits 32 to 64
+[    4.53 20:49:59Z] I (4517) AudioService: Resampling audio from 16000 to 24000
+[    4.53 20:49:59Z] I (4517) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+[    4.73 20:49:59Z] I (4527) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    4.73 20:49:59Z] I (4537) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+[    4.73 20:49:59Z] I (4547) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    4.73 20:49:59Z] I (4547) ES7210: Bits 16
+[    4.73 20:49:59Z] I (4557) ES7210: Enable ES7210_INPUT_MIC1
+[    4.73 20:49:59Z] I (4567) ES7210: Enable ES7210_INPUT_MIC2
+[    4.73 20:49:59Z] I (4567) ES7210: Enable ES7210_INPUT_MIC3
+[    4.73 20:49:59Z] I (4567) ES7210: Enable ES7210_INPUT_MIC4
+[    4.73 20:49:59Z] I (4567) ES7210: Enable TDM mode
+[    4.73 20:49:59Z] I (4577) ES7210: Unmuted
+[    4.73 20:49:59Z] I (4577) Adev_Codec: Open codec device OK
+[    4.73 20:49:59Z] I (4577) AudioCodec: Set input enable to true
+[    4.73 20:49:59Z] I (4667) WeixueAgent: agent: chats seq=1791837938137 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[    4.73 20:49:59Z] I (4667) HttpClient: HTTP connection closed
+[    4.73 20:49:59Z] I (4727) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[    4.94 20:49:59Z] I (4867) EspTcp: Resolved <IP> -> <IP>
+[    4.94 20:49:59Z] I (4897) HttpClient: Established new connection to <IP>:8003 protocol=http cost=30
+[    4.94 20:49:59Z] I (4927) WeixueAgent: agent: chat=cht_01M4RXQ06GQPAHVNFRPRWRHMS8 task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=needs_approval seq=1791838199183 tier=when_idle speaks=1 result=applied via=poll
+[    5.15 20:49:59Z] I (4937) WeixueAgent: agent: chat=cht_01M4RXT7ARZ7PYKA5WT6BGV4KA task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=needs_approval seq=1791838199184 tier=when_idle speaks=0 result=applied via=poll
+[    5.15 20:49:59Z] I (4937) FaceDisplay: agent ui: task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=needs_approval tier=when_idle flash=2 earcon=needs_you
+[    5.15 20:49:59Z] I (4967) FaceDisplay: diag blink double=0 mode=idle
+[    5.15 20:49:59Z] I (4967) FaceDisplay: ring=flash bedside=0
+[    5.15 20:49:59Z] I (4997) FaceDisplay: earcon=needs_you
+[    5.15 20:49:59Z] I (5007) FaceDisplay: agent ui: task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=needs_approval tier=when_idle flash=2 earcon=needs_you
+[    5.15 20:49:59Z] I (5027) FaceDisplay: earcon=needs_you
+[    5.15 20:49:59Z] I (5037) MonitorPanel: diag backend=online poll_status=200 poll_age_ms=42
+[    5.35 20:50:00Z] I (5197) EspTcp: Resolved <IP> -> <IP>
+[    5.35 20:50:00Z] I (5207) HttpClient: Established new connection to <IP>:8003 protocol=http cost=10
+[    5.35 20:50:00Z] I (5247) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MCJKS1X157FMJ9WKQFEJ state=unread seq=1791838199185 tier=silent speaks=0 result=applied via=poll
+[    5.35 20:50:00Z] I (5257) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MVMYFX2W0371D3F7FCQR state=unread seq=1791838199186 tier=silent speaks=0 result=applied via=poll
+[    5.35 20:50:00Z] I (5337) FaceDisplay: agent ui: task=tsk_01M4R5MCJKS1X157FMJ9WKQFEJ state=unread tier=silent flash=0 earcon=none
+[    5.35 20:50:00Z] I (5337) FaceDisplay: agent ui: task=tsk_01M4R5MVMYFX2W0371D3F7FCQR state=unread tier=silent flash=0 earcon=none
+[    5.55 20:50:00Z] I (5347) FaceDisplay: ring=off bedside=0
+[    5.55 20:50:00Z] I (5457) FaceDisplay: diag gaze=0,0 mode=idle
+[    5.55 20:50:00Z] I (5477) EspTcp: Resolved <IP> -> <IP>
+[    5.55 20:50:00Z] I (5477) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+[    5.55 20:50:00Z] I (5527) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4RR8RDYB0MTVJ03NVTQMXFB state=unread seq=1791838199187 tier=silent speaks=0 result=applied via=poll
+[    5.55 20:50:00Z] I (5527) WeixueAgent: agent: chat=cht_01M4RX0SDV0J89HC1ACDMVTKV9 task=tsk_01M4RX0SYTTYTEA32GV62D2NAC state=unread seq=1791838199188 tier=silent speaks=0 result=applied via=poll
+[    5.75 20:50:00Z] I (5557) FaceDisplay: agent ui: task=tsk_01M4RR8RDYB0MTVJ03NVTQMXFB state=unread tier=silent flash=0 earcon=none
+[    5.75 20:50:00Z] I (5557) FaceDisplay: agent ui: task=tsk_01M4RX0SYTTYTEA32GV62D2NAC state=unread tier=silent flash=0 earcon=none
+[    5.75 20:50:00Z] I (5657) FaceDisplay: ring=flash bedside=0
+[    5.75 20:50:00Z] I (5747) EspTcp: Resolved <IP> -> <IP>
+[    5.95 20:50:00Z] I (5817) HttpClient: Established new connection to <IP>:8003 protocol=http cost=70
+[    5.95 20:50:00Z] I (5847) WeixueAgent: agent: chat=cht_01M4RX5HWYF83VM3K3BEXWHPMD task=tsk_01M4RX5JFGCB6NW6QJ94T11HJY state=unread seq=1791838199189 tier=silent speaks=0 result=applied via=poll
+[    5.95 20:50:00Z] I (5857) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=unread seq=1791838199190 tier=silent speaks=0 result=applied via=poll
+[    5.95 20:50:00Z] I (5867) FaceDisplay: agent ui: task=tsk_01M4RX5JFGCB6NW6QJ94T11HJY state=unread tier=silent flash=0 earcon=none
+[    5.95 20:50:00Z] I (5887) FaceDisplay: agent ui: pose=attentive top=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M
+[    6.16 20:50:00Z] I (6017) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 146 ms without a sample (3)
+[    6.16 20:50:00Z] I (6017) FaceDisplay: ring=off bedside=0
+[    6.37 20:50:01Z] I (6207) EspTcp: Resolved <IP> -> <IP>
+[    6.37 20:50:01Z] I (6217) FaceDisplay: ring=ears bedside=0
+[    6.37 20:50:01Z] I (6227) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[    6.37 20:50:01Z] I (6247) WeixueAgent: agent: sync seq=1791838201086 listed=8 dropped=0 tasks=8 via=poll
+[    6.58 20:50:01Z] I (6477) EspTcp: Resolved <IP> -> <IP>
+[    6.79 20:50:01Z] I (6657) HttpClient: Established new connection to <IP>:8003 protocol=http cost=180
+[    7.19 20:50:01Z] I (7137) FaceDisplay: diag lit=8.16% screen 10.39% circle mode=attentive mood=neutral dump=1 snap_ms=364.0
+[    7.19 20:50:01Z] I (7167) FaceDisplay: agent ui: card advanced task=none by=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M reason=boot_newest_approval
+[    7.19 20:50:01Z] I (7177) FaceDisplay: agent ui: card open task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M
+[    7.19 20:50:01Z] I (7177) FaceDisplay: agent ui: pose=full top=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M
+[    7.60 20:50:02Z] I (7447) FaceDisplay: diag fps=8.0 frame_ms_avg=27.5 frame_ms_max=118.8 voice_flips=0 mode=idle mood=neutral inv_areas=2.6 inv_kpx=42.8 inv_full=4 ring=ears
+[    9.22 20:50:03Z] I (9197) FaceDisplay: diag lit=8.84% screen 11.26% circle mode=card mood=neutral dump=2 snap_ms=374.7
+[   10.04 20:50:04Z] I (9977) FaceDisplay: diag gaze=0,0 mode=idle
+[   11.26 20:50:05Z] I (11057) FaceDisplay: diag blink double=0 mode=idle
+[   12.69 20:50:07Z] I (12547) FaceDisplay: diag fps=6.1 frame_ms_avg=37.9 frame_ms_max=161.8 voice_flips=0 mode=idle mood=neutral inv_areas=4.1 inv_kpx=45.1 inv_full=1 ring=ears
+[   13.30 20:50:08Z] I (13197) FaceDisplay: diag gaze=0,0 mode=idle
+[   13.70 20:50:08Z] I (13597) SystemInfo: free sram: 98615 minimal sram: 33468
+[   13.99 20:50:08Z] ### send diag volume 20
+[   14.11 20:50:08Z] I (14007) DiagConsole: ok diag volume 20: volume 20
+[   14.11 20:50:08Z] I (14007) AudioCodec: Set output volume to 20
+[   14.11 20:50:08Z] I (14017) WaveshareEsp32s3TouchAMOLED1inch75: Volume diag: output volume 20 this boot (stored 100 kept)
+[   17.15 20:50:11Z] I (17077) FaceDisplay: diag blink double=0 mode=idle
+[   17.76 20:50:12Z] I (17587) FaceDisplay: diag fps=6.3 frame_ms_avg=27.8 frame_ms_max=58.0 voice_flips=0 mode=idle mood=neutral inv_areas=3.7 inv_kpx=33.1 inv_full=0 ring=ears
+[   18.17 20:50:12Z] I (18007) FaceDisplay: diag gaze=-2,-11 mode=idle
+[   20.00 20:50:14Z] I (19967) FaceDisplay: diag gaze=14,-9 mode=idle
+[   21.63 20:50:16Z] I (21507) FaceDisplay: diag blink double=0 mode=idle
+[   22.65 20:50:17Z] I (22637) FaceDisplay: diag fps=5.3 frame_ms_avg=33.1 frame_ms_max=58.6 voice_flips=0 mode=idle mood=neutral inv_areas=4.2 inv_kpx=38.6 inv_full=0 ring=ears
+[   23.46 20:50:18Z] I (23267) FaceDisplay: diag gaze=19,-3 mode=idle
+[   23.67 20:50:18Z] I (23607) SystemInfo: free sram: 98615 minimal sram: 33468
+[   26.10 20:50:20Z] I (26087) FaceDisplay: diag blink double=0 mode=idle
+[   26.30 20:50:21Z] I (26137) FaceDisplay: diag gaze=-14,8 mode=idle
+[   27.32 20:50:22Z] I (27197) FaceDisplay: agent ui: card advanced task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M by=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 reason=untouched_20s
+[   27.32 20:50:22Z] I (27197) FaceDisplay: agent ui: card open task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013
+[   27.72 20:50:22Z] I (27707) FaceDisplay: diag fps=6.1 frame_ms_avg=30.1 frame_ms_max=59.0 voice_flips=0 mode=idle mood=neutral inv_areas=3.8 inv_kpx=35.5 inv_full=0 ring=ears
+[   28.53 20:50:23Z] I (28407) FaceDisplay: diag lit=8.86% screen 11.29% circle mode=card mood=neutral dump=3 snap_ms=383.9
+[   29.54 20:50:24Z] I (29527) FaceDisplay: diag gaze=-2,7 mode=idle
+[   30.77 20:50:25Z] I (30727) FaceDisplay: diag blink double=0 mode=idle
+[   32.19 20:50:26Z] I (32017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=11 resyncs=3 skipped=10 read_errors=0 torn_timestamps=1
+[   32.19 20:50:26Z] I (32017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[   32.19 20:50:26Z] I (32147) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 150 ms without a sample (4)
+[   32.81 20:50:27Z] I (32727) FaceDisplay: diag fps=6.0 frame_ms_avg=29.0 frame_ms_max=58.5 voice_flips=0 mode=idle mood=neutral inv_areas=3.9 inv_kpx=34.7 inv_full=0 ring=ears
+[   33.22 20:50:27Z] I (33147) EspTcp: Resolved <IP> -> <IP>
+[   33.62 20:50:28Z] I (33597) SystemInfo: free sram: 102311 minimal sram: 33468
+[   34.23 20:50:28Z] I (34207) HttpClient: Established new connection to <IP>:8003 protocol=http cost=1060
+[   34.43 20:50:29Z] I (34307) FaceDisplay: diag gaze=12,-8 mode=idle
+[   35.04 20:50:29Z] I (34907) FaceDisplay: diag blink double=0 mode=idle
+[   37.48 20:50:32Z] I (37457) FaceDisplay: diag gaze=10,8 mode=idle
+[   37.89 20:50:32Z] I (37747) FaceDisplay: diag fps=6.6 frame_ms_avg=27.8 frame_ms_max=58.4 voice_flips=0 mode=idle mood=neutral inv_areas=3.8 inv_kpx=33.6 inv_full=0 ring=ears
+[   39.20 20:50:33Z] ### send diag card deny
+[   39.31 20:50:34Z] I (39247) DiagConsole: ok diag card deny: deny tap 315 302
+[   39.31 20:50:34Z] I (39257) DiagInput: pointer (315,302)->(315,302) 120 ms
+[   39.52 20:50:34Z] I (39387) WeixueAgent: agent response: kind=deny chat=cht_01M4RXQ06GQPAHVNFRPRWRHMS8 task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 card=int_01M4RXQABDGA705AXF748YVYZ5 option=deny via=tap seq=1
+[   39.52 20:50:34Z] I (39437) EspTcp: Resolved <IP> -> <IP>
+[   39.52 20:50:34Z] I (39437) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (2)
+[   40.13 20:50:34Z] I (39967) FaceDisplay: diag blink double=0 mode=idle
+[   41.55 20:50:36Z] I (41357) WebSocket: WebSocket handshake done, cost=1920 tcp=890 handshake=1030
+[   41.55 20:50:36Z] I (41527) FaceDisplay: diag gaze=-16,3 mode=idle
+[   42.39 20:50:37Z] ### send diag card deny
+[   42.57 20:50:37Z] I (42387) WeixueAgent: agent: chat=cht_01M4RXQ06GQPAHVNFRPRWRHMS8 task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=working seq=1791838236447 tier=silent speaks=0 result=applied via=poll
+[   42.57 20:50:37Z] I (42387) WeixueAgent: agent: chat=cht_01M4RXT7ARZ7PYKA5WT6BGV4KA task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=working seq=1791838236578 tier=silent speaks=0 result=applied via=poll
+[   42.57 20:50:37Z] I (42407) DiagConsole: ok diag card deny: deny tap 315 302
+[   42.57 20:50:37Z] I (42407) FaceDisplay: agent ui: activity=Thinking… task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013
+[   42.57 20:50:37Z] I (42427) FaceDisplay: agent ui: task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=working tier=silent flash=0 earcon=none
+[   42.57 20:50:37Z] I (42447) DiagInput: pointer (315,302)->(315,302) 120 ms
+[   42.57 20:50:37Z] I (42497) WeixueAgent: agent receipt: deny seq=1 card=int_01M4RXQABDGA705AXF748YVYZ5 result=accepted
+[   42.57 20:50:37Z] I (42497) Application: Device event sent (own session): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":1,"kind":"deny","chat_id":"cht_01M4RXQ06GQPAHVNFRPRWRHMS8","task_id":"tsk_01M4RXQ0PGBJTMWMDYHRDZS013","card_id":"int_01M4RXQABDGA705AXF748YVYZ5","option_id":"deny","via":"tap"}}
+[   42.57 20:50:37Z] I (42497) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (3)
+[   42.57 20:50:37Z] I (42527) WeixueAgent: agent ack received: deny tsk_01M4RXQ0PGBJTMWMDYHRDZS013 seq 1 (attempt 1)
+[   42.57 20:50:37Z] I (42507) FaceDisplay: agent ui: activity=Thinking… task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M
+[   42.57 20:50:37Z] I (42557) FaceDisplay: agent ui: task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=working tier=silent flash=0 earcon=none
+[   42.57 20:50:37Z] I (42567) FaceDisplay: ring=progress bedside=0
+[   42.77 20:50:37Z] I (42577) FaceDisplay: agent ui: card changed under the tap, refreshed task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013
+[   42.77 20:50:37Z] I (42617) FaceDisplay: earcon=denied
+[   42.77 20:50:37Z] I (42697) EspTcp: Resolved <IP> -> <IP>
+[   42.97 20:50:37Z] I (42777) FaceDisplay: diag fps=6.6 frame_ms_avg=31.5 frame_ms_max=77.4 voice_flips=0 mode=idle mood=neutral inv_areas=4.3 inv_kpx=41.1 inv_full=0 ring=progress
+[   43.58 20:50:38Z] I (43407) HttpClient: Established new connection to <IP>:8003 protocol=http cost=710
+[   43.78 20:50:38Z] I (43597) SystemInfo: free sram: 99263 minimal sram: 33468
+[   43.78 20:50:38Z] I (43617) FaceDisplay: agent ui: card closed
+[   43.78 20:50:38Z] I (43747) FaceDisplay: agent ui: pose=mini top=tsk_01M4RX5JFGCB6NW6QJ94T11HJY
+[   44.60 20:50:39Z] I (44427) WeixueAgent: agent: chat=cht_01M4RXT7ARZ7PYKA5WT6BGV4KA task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=working seq=1791838237248 tier=silent speaks=0 result=applied via=poll
+[   44.60 20:50:39Z] I (44437) WeixueAgent: agent: chat=cht_01M4RXQ06GQPAHVNFRPRWRHMS8 task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=working seq=1791838237605 tier=silent speaks=0 result=applied via=poll
+[   44.60 20:50:39Z] I (44467) Application: Proactive message pending (urgent=0)
+[   44.60 20:50:39Z] I (44467) Application: Session start: proactive
+[   44.60 20:50:39Z] I (44467) StateMachine: State: idle -> connecting
+[   44.60 20:50:39Z] I (44507) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   44.60 20:50:39Z] I (44507) wifi:Set ps type: 0, coexist: 0
+[   44.60 20:50:39Z] 
+[   44.60 20:50:39Z] I (44517) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[   44.60 20:50:39Z] I (44517) FaceDisplay: mode=listening mood=neutral
+[   44.60 20:50:39Z] I (44517) EspTcp: Resolved <IP> -> <IP>
+[   44.60 20:50:39Z] I (44527) FaceDisplay: diag gaze=-3,-2 mode=listening
+[   44.60 20:50:39Z] I (44537) FaceDisplay: ring=pulse bedside=0
+[   45.00 20:50:39Z] I (44817) FaceDisplay: agent ui: pose=full top=tsk_01M4RX5JFGCB6NW6QJ94T11HJY
+[   45.41 20:50:40Z] I (45247) WebSocket: WebSocket handshake done, cost=730 tcp=20 handshake=710
+[   45.41 20:50:40Z] I (45267) WS: Session ID: <uuid>
+[   45.41 20:50:40Z] I (45267) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   45.41 20:50:40Z] I (45267) wifi:Set ps type: 0, coexist: 0
+[   45.41 20:50:40Z] 
+[   45.41 20:50:40Z] W (45267) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[   45.41 20:50:40Z] I (45277) Application: Proactive session opened (lease-bound invocation)
+[   45.41 20:50:40Z] I (45297) StateMachine: State: connecting -> listening
+[   45.41 20:50:40Z] I (45307) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MCJKS1X157FMJ9WKQFEJ state=unread seq=1791838199185 tier=silent speaks=0 result=duplicate via=push
+[   45.41 20:50:40Z] I (45357) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MVMYFX2W0371D3F7FCQR state=unread seq=1791838199186 tier=silent speaks=0 result=duplicate via=push
+[   45.65 20:50:40Z] ### send diag card deny
+[   45.82 20:50:40Z] I (45677) FaceDisplay: diag lit=21.39% screen 27.25% circle mode=listening mood=neutral dump=4 snap_ms=311.1
+[   45.82 20:50:40Z] I (45677) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4RR8RDYB0MTVJ03NVTQMXFB state=unread seq=1791838199187 tier=silent speaks=0 result=duplicate via=push
+[   45.82 20:50:40Z] W (45677) DiagConsole: error diag card deny: no card open
+[   45.82 20:50:40Z] I (45687) WeixueAgent: agent: chat=cht_01M4RX0SDV0J89HC1ACDMVTKV9 task=tsk_01M4RX0SYTTYTEA32GV62D2NAC state=unread seq=1791838199188 tier=silent speaks=0 result=duplicate via=push
+[   45.82 20:50:40Z] W (45677) AudioService: Encode queue is full, dropping oldest frame (dropped 1 so far)
+[   45.82 20:50:40Z] I (45697) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 308 ms without a sample (5)
+[   45.82 20:50:40Z] I (45707) FaceDisplay: diag blink double=0 mode=listening
+[   45.82 20:50:40Z] I (45747) WeixueAgent: agent: chat=cht_01M4RX5HWYF83VM3K3BEXWHPMD task=tsk_01M4RX5JFGCB6NW6QJ94T11HJY state=unread seq=1791838199189 tier=silent speaks=0 result=duplicate via=push
+[   45.82 20:50:40Z] I (45757) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=unread seq=1791838199190 tier=silent speaks=0 result=duplicate via=push
+[   45.82 20:50:40Z] I (45787) WeixueAgent: agent: chat=cht_01M4RXQ06GQPAHVNFRPRWRHMS8 task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=unread seq=1791838237847 tier=when_idle speaks=1 result=applied via=push
+[   46.02 20:50:40Z] I (45807) WeixueAgent: agent: chat=cht_01M4RXT7ARZ7PYKA5WT6BGV4KA task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=unread seq=1791838237980 tier=when_idle speaks=1 result=applied via=push
+[   46.02 20:50:40Z] I (45827) WeixueAgent: agent: chats seq=1791838238553 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   46.02 20:50:40Z] I (45837) WeixueAgent: agent: sync seq=1791838240109 listed=8 dropped=0 tasks=8 via=push
+[   46.02 20:50:40Z] I (45847) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   46.02 20:50:40Z] I (45857) FaceDisplay: agent ui: task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=unread tier=when_idle flash=2 earcon=none
+[   46.02 20:50:40Z] I (45867) FaceDisplay: agent ui: task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=unread tier=when_idle flash=2 earcon=none
+[   46.02 20:50:40Z] I (45867) Application: << The toggle was denied
+[   46.02 20:50:40Z] I (45897) MonitorPanel: diag backend=session poll_status=200 poll_age_ms=1434
+[   46.22 20:50:40Z] I (46037) StateMachine: State: listening -> speaking
+[   46.22 20:50:40Z] I (46037) WeixueAgent: agent: tracking playback of sentence b35a51879c3a491b9dce7757bb7230c4
+[   46.22 20:50:40Z] I (46037) MonitorPanel: diag reply="The toggle was denied" (reply 1)
+[   46.22 20:50:40Z] I (46047) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (4)
+[   46.22 20:50:40Z] I (46047) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":3,"kind":"shown","ack_upto":1791838237605,"via":"tap"}}
+[   46.22 20:50:40Z] I (46067) WeixueAgent: agent ack sent: shown upto 1791838237605 (attempt 1)
+[   46.22 20:50:40Z] I (46047) FaceDisplay: mode=speaking mood=neutral
+[   46.22 20:50:40Z] I (46087) FaceDisplay: diag gaze=-7,-3 mode=speaking
+[   46.22 20:50:40Z] I (46097) FaceDisplay: ring=level bedside=0
+[   46.22 20:50:40Z] I (46147) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (5)
+[   46.22 20:50:40Z] I (46207) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":7,"kind":"shown","ack_upto":1791838240109,"via":"tap"}}
+[   46.22 20:50:40Z] I (46217) WeixueAgent: agent ack sent: shown upto 1791838240109 (attempt 1)
+[   47.03 20:50:41Z] I (47017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=25 resyncs=5 skipped=19 read_errors=0 torn_timestamps=5
+[   47.03 20:50:41Z] I (47017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[   47.24 20:50:41Z] W (47027) WaveshareEsp32s3TouchAMOLED1inch75: IMU read failed (1)
+[   47.85 20:50:42Z] I (47737) FaceDisplay: diag lit=19.22% screen 24.48% circle mode=speaking mood=neutral dump=5 snap_ms=355.6
+[   47.85 20:50:42Z] W (47747) AudioService: Encode queue is full, dropping oldest frame (dropped 2 so far)
+[   47.85 20:50:42Z] I (47817) FaceDisplay: diag fps=10.7 frame_ms_avg=27.6 frame_ms_max=147.2 voice_flips=4 mode=speaking mood=neutral inv_areas=5.1 inv_kpx=44.4 inv_full=3 ring=level
+[   48.26 20:50:42Z] I (48117) FaceDisplay: diag gaze=3,3 mode=speaking
+[   49.89 20:50:44Z] I (49737) FaceDisplay: diag gaze=-6,2 mode=speaking
+[   50.50 20:50:45Z] I (50407) Application: << so the test entity wasn't changed. I haven't retried it
+[   50.50 20:50:45Z] I (50407) MonitorPanel: diag reply="The toggle was denied so the test entity wasn't changed. I haven't retried it" (reply 1)
+[   51.11 20:50:45Z] I (51037) FaceDisplay: diag blink double=0 mode=speaking
+[   51.92 20:50:46Z] I (51787) FaceDisplay: diag gaze=0,3 mode=speaking
+[   52.93 20:50:47Z] I (52877) FaceDisplay: diag fps=15.5 frame_ms_avg=35.9 frame_ms_max=129.3 voice_flips=13 mode=speaking mood=neutral inv_areas=6.4 inv_kpx=40.4 inv_full=0 ring=level
+[   54.55 20:50:49Z] I (54547) StateMachine: State: speaking -> listening
+[   54.75 20:50:49Z] I (54597) FaceDisplay: mode=listening mood=neutral
+[   54.75 20:50:49Z] I (54597) FaceDisplay: diag gaze=-2,2 mode=listening
+[   54.75 20:50:49Z] I (54607) FaceDisplay: ring=pulse bedside=0
+[   55.36 20:50:50Z] I (55347) WeixueAgent: agent played: sentence=b35a51879c3a491b9dce7757bb7230c4 complete=1 played_ms=5820 reason=-
+[   55.36 20:50:50Z] I (55347) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/played","params":{"v":1,"boot":280505992,"seq":8,"sentence_id":"b35a51879c3a491b9dce7757bb7230c4","complete":true}}
+[   55.57 20:50:50Z] I (55367) WeixueAgent: agent ack sent: played complete b35a51879c3a491b9dce7757bb7230c4 (attempt 1)
+[   55.97 20:50:50Z] I (55877) WeixueAgent: agent: chat=cht_01M4RXQ06GQPAHVNFRPRWRHMS8 task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=unread seq=1791838250593 tier=silent speaks=0 result=applied via=push
+[   55.97 20:50:50Z] I (55887) WS: Websocket disconnected
+[   55.97 20:50:50Z] I (55907) Application: Audio channel closed: 172 packets sent, 0 dropped, oldest sent 153 ms after encoding
+[   55.97 20:50:50Z] I (55907) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[   55.97 20:50:50Z] I (55907) wifi:Set ps type: 2, coexist: 0
+[   55.97 20:50:50Z] 
+[   55.97 20:50:50Z] I (55947) StateMachine: State: listening -> idle
+[   55.97 20:50:50Z] I (55957) FaceDisplay: mode=idle mood=neutral
+[   55.97 20:50:50Z] I (55957) FaceDisplay: diag gaze=-7,6 mode=idle
+[   55.97 20:50:50Z] I (55967) FaceDisplay: ring=dot bedside=0
+[   56.17 20:50:50Z] I (56167) FaceDisplay: diag blink double=0 mode=idle
+[   56.17 20:50:50Z] I (56167) MonitorPanel: diag backend=online poll_status=200 poll_age_ms=11707
+[   56.58 20:50:51Z] I (56467) EspTcp: Resolved <IP> -> <IP>
+[   56.58 20:50:51Z] I (56507) HttpClient: Established new connection to <IP>:8003 protocol=http cost=40
+[   57.80 20:50:52Z] I (57717) FaceDisplay: agent ui: pose=mini top=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M
+[   58.01 20:50:52Z] I (57887) FaceDisplay: diag fps=10.6 frame_ms_avg=50.0 frame_ms_max=117.2 voice_flips=9 mode=idle mood=neutral inv_areas=9.5 inv_kpx=61.6 inv_full=1 ring=dot
+[   59.02 20:50:53Z] I (58947) FaceDisplay: diag lit=6.11% screen 7.79% circle mode=mini mood=neutral dump=6 snap_ms=341.8
+[   61.45 20:50:56Z] I (61317) FaceDisplay: diag gaze=0,0 mode=idle
+[   62.06 20:50:56Z] I (62027) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=36 resyncs=7 skipped=20 read_errors=1 torn_timestamps=6
+[   62.06 20:50:56Z] I (62027) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[   62.47 20:50:57Z] I (62327) FaceDisplay: diag blink double=0 mode=idle
+[   62.47 20:50:57Z] I (62437) FaceDisplay: diag shift=1,0
+[   63.07 20:50:57Z] I (62927) FaceDisplay: diag fps=3.6 frame_ms_avg=15.4 frame_ms_max=116.3 voice_flips=0 mode=idle mood=neutral inv_areas=2.2 inv_kpx=27.3 inv_full=1 ring=dot
+[   65.71 20:51:00Z] I (65597) SystemInfo: free sram: 90391 minimal sram: 33468
+[   66.32 20:51:01Z] I (66247) WeixueAgent: agent: chats seq=1791838251346 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[   66.32 20:51:01Z] I (66257) Application: Proactive message pending (urgent=0)
+[   66.32 20:51:01Z] I (66257) Application: Session start: proactive
+[   66.32 20:51:01Z] I (66257) StateMachine: State: idle -> connecting
+[   66.32 20:51:01Z] I (66267) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   66.32 20:51:01Z] I (66277) wifi:Set ps type: 0, coexist: 0
+[   66.32 20:51:01Z] 
+[   66.32 20:51:01Z] I (66277) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[   66.32 20:51:01Z] I (66297) EspTcp: Resolved <IP> -> <IP>
+[   66.32 20:51:01Z] I (66317) WebSocket: WebSocket handshake done, cost=20 tcp=10 handshake=10
+[   66.53 20:51:01Z] I (66327) WS: Session ID: <uuid>
+[   66.53 20:51:01Z] I (66327) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   66.53 20:51:01Z] I (66337) wifi:Set ps type: 0, coexist: 0
+[   66.53 20:51:01Z] I (66337) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   66.53 20:51:01Z] 
+[   66.53 20:51:01Z] I (66347) FaceDisplay: mode=listening mood=neutral
+[   66.53 20:51:01Z] W (66357) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[   66.53 20:51:01Z] I (66357) FaceDisplay: diag gaze=1,1 mode=listening
+[   66.53 20:51:01Z] I (66367) Application: Proactive session opened (lease-bound invocation)
+[   66.53 20:51:01Z] I (66377) FaceDisplay: ring=pulse bedside=0
+[   66.53 20:51:01Z] I (66377) StateMachine: State: connecting -> listening
+[   66.53 20:51:01Z] I (66447) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MCJKS1X157FMJ9WKQFEJ state=unread seq=1791838199185 tier=silent speaks=0 result=duplicate via=push
+[   66.53 20:51:01Z] I (66457) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MVMYFX2W0371D3F7FCQR state=unread seq=1791838199186 tier=silent speaks=0 result=duplicate via=push
+[   66.53 20:51:01Z] I (66457) FaceDisplay: agent ui: pose=full top=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M
+[   66.53 20:51:01Z] I (66487) FaceDisplay: diag blink double=0 mode=listening
+[   66.73 20:51:01Z] I (66597) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4RR8RDYB0MTVJ03NVTQMXFB state=unread seq=1791838199187 tier=silent speaks=0 result=duplicate via=push
+[   66.73 20:51:01Z] I (66607) WeixueAgent: agent: chat=cht_01M4RX0SDV0J89HC1ACDMVTKV9 task=tsk_01M4RX0SYTTYTEA32GV62D2NAC state=unread seq=1791838199188 tier=silent speaks=0 result=duplicate via=push
+[   66.73 20:51:01Z] I (66617) Application: << The toggle was denied
+[   66.73 20:51:01Z] I (66677) WeixueAgent: agent: chat=cht_01M4RX5HWYF83VM3K3BEXWHPMD task=tsk_01M4RX5JFGCB6NW6QJ94T11HJY state=unread seq=1791838199189 tier=silent speaks=0 result=duplicate via=push
+[   66.73 20:51:01Z] I (66687) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=unread seq=1791838199190 tier=silent speaks=0 result=duplicate via=push
+[   66.73 20:51:01Z] I (66707) WeixueAgent: agent: chat=cht_01M4RXT7ARZ7PYKA5WT6BGV4KA task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=unread seq=1791838237980 tier=when_idle speaks=1 result=duplicate via=push
+[   66.73 20:51:01Z] I (66717) WeixueAgent: agent: chat=cht_01M4RXQ06GQPAHVNFRPRWRHMS8 task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=unread seq=1791838250593 tier=silent speaks=0 result=duplicate via=push
+[   66.93 20:51:01Z] I (66737) WeixueAgent: agent: chats seq=1791838251346 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=duplicate via=push
+[   66.93 20:51:01Z] I (66747) WeixueAgent: agent: sync seq=1791838261169 listed=8 dropped=0 tasks=8 via=push
+[   66.93 20:51:01Z] I (66757) StateMachine: State: listening -> speaking
+[   66.93 20:51:01Z] I (66767) WeixueAgent: agent: tracking playback of sentence 3b775ad1d6714653841d1ef11a052d8c
+[   66.93 20:51:01Z] I (66777) FaceDisplay: mode=speaking mood=neutral
+[   66.93 20:51:01Z] I (66777) FaceDisplay: diag gaze=-1,0 mode=speaking
+[   66.93 20:51:01Z] I (66787) FaceDisplay: ring=level bedside=0
+[   66.93 20:51:01Z] I (66797) MonitorPanel: diag reply="The toggle was denied" (reply 2)
+[   66.93 20:51:01Z] I (66817) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":10,"kind":"shown","ack_upto":1791838251346,"via":"tap"}}
+[   66.93 20:51:01Z] I (66827) WeixueAgent: agent ack sent: shown upto 1791838251346 (attempt 1)
+[   67.14 20:51:01Z] I (66947) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":14,"kind":"shown","ack_upto":1791838261169,"via":"tap"}}
+[   67.14 20:51:01Z] I (66967) WeixueAgent: agent ack sent: shown upto 1791838261169 (attempt 1)
+[   67.14 20:51:01Z] I (66977) WeixueAgent: agent: chat=cht_01M4RY3S9TPTKK4AEEW9S2AG5E task=tsk_01M4RY3STQAK2YENHFNE37GC8G state=needs_approval seq=1791838261606 tier=when_idle speaks=0 result=applied via=push
+[   67.14 20:51:01Z] I (67017) FaceDisplay: agent ui: task=tsk_01M4RY3STQAK2YENHFNE37GC8G state=needs_approval tier=when_idle flash=2 earcon=needs_you
+[   67.14 20:51:01Z] I (67027) FaceDisplay: earcon=needs_you skipped: device busy or muted
+[   67.14 20:51:01Z] I (67027) FaceDisplay: diag blink double=0 mode=speaking
+[   67.34 20:51:02Z] I (67247) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":15,"kind":"shown","ack_upto":1791838261606,"via":"tap"}}
+[   67.34 20:51:02Z] I (67257) WeixueAgent: agent ack sent: shown upto 1791838261606 (attempt 1)
+[   67.34 20:51:02Z] I (67267) MonitorPanel: diag backend=session poll_status=200 poll_age_ms=1013
+[   68.15 20:51:02Z] I (67977) FaceDisplay: diag fps=5.3 frame_ms_avg=30.3 frame_ms_max=102.9 voice_flips=0 mode=speaking mood=neutral inv_areas=4.9 inv_kpx=40.1 inv_full=1 ring=level
+[   68.97 20:51:03Z] I (68877) Application: << so the test entity wasn't changed
+[   68.97 20:51:03Z] I (68927) MonitorPanel: diag reply="The toggle was denied so the test entity wasn't changed" (reply 2)
+[   69.58 20:51:04Z] I (69427) FaceDisplay: diag gaze=5,-1 mode=speaking
+[   70.81 20:51:05Z] I (70787) FaceDisplay: diag gaze=-1,1 mode=speaking
+[   71.62 20:51:06Z] I (71437) StateMachine: State: speaking -> listening
+[   71.62 20:51:06Z] I (71477) FaceDisplay: mode=listening mood=neutral
+[   71.62 20:51:06Z] I (71477) FaceDisplay: diag gaze=-2,0 mode=listening
+[   71.62 20:51:06Z] I (71477) FaceDisplay: ring=pulse bedside=0
+[   71.62 20:51:06Z] I (71547) WeixueAgent: agent played: sentence=3b775ad1d6714653841d1ef11a052d8c complete=1 played_ms=3840 reason=-
+[   71.62 20:51:06Z] I (71547) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/played","params":{"v":1,"boot":280505992,"seq":16,"sentence_id":"3b775ad1d6714653841d1ef11a052d8c","complete":true}}
+[   71.62 20:51:06Z] I (71557) WeixueAgent: agent ack sent: played complete 3b775ad1d6714653841d1ef11a052d8c (attempt 1)
+[   71.82 20:51:06Z] I (71797) WeixueAgent: agent: chat=cht_01M4RXT7ARZ7PYKA5WT6BGV4KA task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=unread seq=1791838266625 tier=silent speaks=0 result=applied via=push
+[   71.82 20:51:06Z] I (71797) WS: Websocket disconnected
+[   71.82 20:51:06Z] I (71797) Application: Audio channel closed: 89 packets sent, 0 dropped, oldest sent 225 ms after encoding
+[   71.82 20:51:06Z] I (71817) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[   71.82 20:51:06Z] I (71817) wifi:Set ps type: 2, coexist: 0
+[   71.82 20:51:06Z] 
+[   72.03 20:51:06Z] I (71847) StateMachine: State: listening -> idle
+[   72.03 20:51:06Z] I (71857) FaceDisplay: mode=idle mood=neutral
+[   72.03 20:51:06Z] I (71857) FaceDisplay: diag gaze=0,0 mode=idle
+[   72.03 20:51:06Z] I (71867) FaceDisplay: ring=ears bedside=0
+[   72.44 20:51:07Z] I (72267) EspTcp: Resolved <IP> -> <IP>
+[   72.44 20:51:07Z] I (72407) MonitorPanel: diag backend=online poll_status=200 poll_age_ms=142
+[   72.85 20:51:07Z] I (72837) FaceDisplay: diag blink double=0 mode=idle
+[   73.06 20:51:07Z] I (72997) HttpClient: Established new connection to <IP>:8003 protocol=http cost=730
+[   73.06 20:51:07Z] I (73017) FaceDisplay: diag fps=13.9 frame_ms_avg=40.2 frame_ms_max=124.1 voice_flips=16 mode=idle mood=neutral inv_areas=7.5 inv_kpx=48.6 inv_full=0 ring=ears
+[   73.47 20:51:08Z] I (73367) FaceDisplay: agent ui: card open task=tsk_01M4RY3STQAK2YENHFNE37GC8G
+[   74.72 20:51:09Z] I (74567) FaceDisplay: diag lit=8.89% screen 11.33% circle mode=card mood=neutral dump=7 snap_ms=373.8
+[   77.57 20:51:12Z] I (77377) FaceDisplay: diag gaze=0,0 mode=idle
+[   78.18 20:51:12Z] I (78037) FaceDisplay: diag fps=5.8 frame_ms_avg=41.1 frame_ms_max=155.9 voice_flips=0 mode=idle mood=neutral inv_areas=3.7 inv_kpx=46.7 inv_full=1 ring=ears
+[   79.19 20:51:13Z] I (79007) FaceDisplay: diag blink double=0 mode=idle
+[   79.59 20:51:14Z] I (79517) FaceDisplay: diag gaze=18,0 mode=idle
+[   81.63 20:51:16Z] I (81597) SystemInfo: free sram: 89943 minimal sram: 33468
+[   82.85 20:51:17Z] I (82667) FaceDisplay: diag gaze=-20,4 mode=idle
+[   83.26 20:51:17Z] I (83057) FaceDisplay: diag fps=6.8 frame_ms_avg=27.3 frame_ms_max=59.4 voice_flips=0 mode=idle mood=neutral inv_areas=3.5 inv_kpx=32.1 inv_full=0 ring=ears
+[   83.26 20:51:17Z] I (83137) WeixueAgent: agent: chats seq=1791838267154 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[   83.26 20:51:17Z] I (83147) Application: Proactive message pending (urgent=0)
+[   83.26 20:51:17Z] I (83147) Application: Session start: proactive
+[   83.26 20:51:17Z] I (83147) StateMachine: State: idle -> connecting
+[   83.26 20:51:17Z] I (83157) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   83.26 20:51:17Z] I (83167) wifi:Set ps type: 0, coexist: 0
+[   83.26 20:51:17Z] 
+[   83.26 20:51:17Z] I (83177) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[   83.26 20:51:17Z] I (83177) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   83.26 20:51:17Z] I (83187) EspTcp: Resolved <IP> -> <IP>
+[   83.26 20:51:17Z] I (83197) FaceDisplay: mode=listening mood=neutral
+[   83.26 20:51:17Z] I (83207) FaceDisplay: diag gaze=-1,-1 mode=listening
+[   83.26 20:51:17Z] I (83207) FaceDisplay: ring=pulse bedside=0
+[   83.26 20:51:17Z] I (83257) WebSocket: WebSocket handshake done, cost=70 tcp=50 handshake=20
+[   83.46 20:51:18Z] I (83287) WS: Session ID: <uuid>
+[   83.46 20:51:18Z] I (83287) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   83.46 20:51:18Z] I (83297) wifi:Set ps type: 0, coexist: 0
+[   83.46 20:51:18Z] 
+[   83.46 20:51:18Z] W (83297) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[   83.46 20:51:18Z] I (83307) Application: Proactive session opened (lease-bound invocation)
+[   83.46 20:51:18Z] I (83317) StateMachine: State: connecting -> listening
+[   83.46 20:51:18Z] I (83377) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MVMYFX2W0371D3F7FCQR state=unread seq=1791838199186 tier=silent speaks=0 result=duplicate via=push
+[   83.46 20:51:18Z] I (83387) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4RR8RDYB0MTVJ03NVTQMXFB state=unread seq=1791838199187 tier=silent speaks=0 result=duplicate via=push
+[   83.46 20:51:18Z] I (83437) WeixueAgent: agent: chat=cht_01M4RX0SDV0J89HC1ACDMVTKV9 task=tsk_01M4RX0SYTTYTEA32GV62D2NAC state=unread seq=1791838199188 tier=silent speaks=0 result=duplicate via=push
+[   83.66 20:51:18Z] I (83437) WeixueAgent: agent: chat=cht_01M4RX5HWYF83VM3K3BEXWHPMD task=tsk_01M4RX5JFGCB6NW6QJ94T11HJY state=unread seq=1791838199189 tier=silent speaks=0 result=duplicate via=push
+[   83.66 20:51:18Z] I (83517) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=unread seq=1791838199190 tier=silent speaks=0 result=duplicate via=push
+[   83.66 20:51:18Z] I (83527) WeixueAgent: agent: chat=cht_01M4RXQ06GQPAHVNFRPRWRHMS8 task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=unread seq=1791838250593 tier=silent speaks=0 result=duplicate via=push
+[   83.66 20:51:18Z] I (83567) WeixueAgent: agent: chat=cht_01M4RXT7ARZ7PYKA5WT6BGV4KA task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=unread seq=1791838266625 tier=silent speaks=0 result=duplicate via=push
+[   83.66 20:51:18Z] I (83567) WeixueAgent: agent: chats seq=1791838267154 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=duplicate via=push
+[   83.66 20:51:18Z] I (83567) Application: << I need your OK on the panel to turn on inputboolean.weixuesession_probe
+[   83.66 20:51:18Z] I (83617) WeixueAgent: agent: chat=cht_01M4RY3S9TPTKK4AEEW9S2AG5E task=tsk_01M4RY3STQAK2YENHFNE37GC8G state=needs_approval seq=1791838273688 tier=when_idle speaks=1 result=applied via=push
+[   83.66 20:51:18Z] I (83657) WeixueAgent: agent: sync seq=1791838278147 listed=8 dropped=0 tasks=8 via=push
+[   83.76 20:51:18Z] ### send diag card deny
+[   83.86 20:51:18Z] I (83667) StateMachine: State: listening -> speaking
+[   83.86 20:51:18Z] I (83667) WeixueAgent: agent: tracking playback of sentence 33c0f50f3c46467aad8180b7538c42d0
+[   83.86 20:51:18Z] I (83667) MonitorPanel: diag reply="I need your OK on the panel to turn on inputboolean.weixuesession_probe" (reply 3)
+[   83.87 20:51:18Z] I (83677) FaceDisplay: mode=speaking mood=neutral
+[   83.87 20:51:18Z] I (83687) FaceDisplay: diag gaze=-2,3 mode=speaking
+[   83.87 20:51:18Z] I (83697) FaceDisplay: ring=level bedside=0
+[   83.87 20:51:18Z] I (83747) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":19,"kind":"shown","ack_upto":1791838267154,"via":"tap"}}
+[   83.87 20:51:18Z] I (83757) WeixueAgent: agent ack sent: shown upto 1791838267154 (attempt 1)
+[   83.87 20:51:18Z] I (83757) MonitorPanel: diag backend=session poll_status=200 poll_age_ms=614
+[   83.87 20:51:18Z] I (83817) DiagConsole: ok diag card deny: deny tap 316 302
+[   83.87 20:51:18Z] I (83837) DiagInput: pointer (316,302)->(316,302) 120 ms
+[   84.07 20:51:18Z] I (83877) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":23,"kind":"shown","ack_upto":1791838278147,"via":"tap"}}
+[   84.07 20:51:18Z] I (83887) WeixueAgent: agent ack sent: shown upto 1791838278147 (attempt 1)
+[   84.07 20:51:18Z] I (83997) WeixueAgent: agent response: kind=deny chat=cht_01M4RY3S9TPTKK4AEEW9S2AG5E task=tsk_01M4RY3STQAK2YENHFNE37GC8G card=int_01M4RY44AK08F81KY4YYRSN9W1 option=deny via=tap seq=24
+[   84.07 20:51:18Z] I (84037) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":24,"kind":"deny","chat_id":"cht_01M4RY3S9TPTKK4AEEW9S2AG5E","task_id":"tsk_01M4RY3STQAK2YENHFNE37GC8G","card_id":"int_01M4RY44AK08F81KY4YYRSN9W1","option_id":"deny","via":"tap"}}
+[   84.27 20:51:19Z] I (84057) WeixueAgent: agent ack sent: deny tsk_01M4RY3STQAK2YENHFNE37GC8G seq 24 (attempt 1), awaiting receipt
+[   84.68 20:51:19Z] I (84487) FaceDisplay: diag blink double=0 mode=speaking
+[   85.28 20:51:20Z] I (85167) FaceDisplay: diag gaze=-6,2 mode=speaking
+[   85.49 20:51:20Z] I (85407) WeixueAgent: agent: chat=cht_01M4RY3S9TPTKK4AEEW9S2AG5E task=tsk_01M4RY3STQAK2YENHFNE37GC8G state=working seq=1791838280000 tier=silent speaks=0 result=applied via=push
+[   85.49 20:51:20Z] I (85457) FaceDisplay: agent ui: activity=Thinking… task=tsk_01M4RY3STQAK2YENHFNE37GC8G
+[   85.49 20:51:20Z] I (85457) FaceDisplay: agent ui: task=tsk_01M4RY3STQAK2YENHFNE37GC8G state=working tier=silent flash=0 earcon=none
+[   85.69 20:51:20Z] I (85667) WeixueAgent: agent ack received: deny tsk_01M4RY3STQAK2YENHFNE37GC8G seq 24 (attempt 1)
+[   85.69 20:51:20Z] I (85677) WeixueAgent: agent receipt: deny seq=24 card=int_01M4RY44AK08F81KY4YYRSN9W1 result=accepted
+[   85.69 20:51:20Z] I (85677) FaceDisplay: earcon=denied skipped: device busy or muted
+[   85.89 20:51:20Z] I (85687) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":25,"kind":"shown","ack_upto":1791838280000,"via":"tap"}}
+[   85.89 20:51:20Z] I (85707) WeixueAgent: agent ack sent: shown upto 1791838280000 (attempt 1)
+[   85.89 20:51:20Z] I (85857) WeixueAgent: agent: chat=cht_01M4RY3S9TPTKK4AEEW9S2AG5E task=tsk_01M4RY3STQAK2YENHFNE37GC8G state=working seq=1791838280522 tier=silent speaks=0 result=applied via=push
+[   86.09 20:51:20Z] I (86077) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":26,"kind":"shown","ack_upto":1791838280522,"via":"tap"}}
+[   86.09 20:51:20Z] I (86087) WeixueAgent: agent ack sent: shown upto 1791838280522 (attempt 1)
+[   86.70 20:51:21Z] I (86587) FaceDisplay: agent ui: card closed
+[   87.11 20:51:21Z] I (86947) WeixueAgent: agent: chat=cht_01M4RY3S9TPTKK4AEEW9S2AG5E task=tsk_01M4RY3STQAK2YENHFNE37GC8G state=unread seq=1791838281612 tier=when_idle speaks=1 result=applied via=push
+[   87.11 20:51:21Z] I (86987) WeixueAgent: agent: chats seq=1791838281787 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   87.11 20:51:21Z] I (87017) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   87.11 20:51:21Z] I (87017) FaceDisplay: agent ui: task=tsk_01M4RY3STQAK2YENHFNE37GC8G state=unread tier=when_idle flash=2 earcon=none
+[   87.31 20:51:22Z] I (87227) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":27,"kind":"shown","ack_upto":1791838281787,"via":"tap"}}
+[   87.31 20:51:22Z] I (87237) WeixueAgent: agent ack sent: shown upto 1791838281787 (attempt 1)
+[   87.72 20:51:22Z] I (87687) FaceDisplay: diag gaze=-4,0 mode=speaking
+[   88.13 20:51:22Z] I (88077) FaceDisplay: diag fps=16.1 frame_ms_avg=30.2 frame_ms_max=143.2 voice_flips=0 mode=speaking mood=neutral inv_areas=3.8 inv_kpx=45.4 inv_full=2 ring=level
+[   88.73 20:51:23Z] I (88697) FaceDisplay: diag blink double=0 mode=speaking
+[   90.56 20:51:25Z] I (90447) FaceDisplay: diag gaze=1,0 mode=speaking
+[   92.19 20:51:26Z] I (92017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=74 resyncs=11 skipped=39 read_errors=1 torn_timestamps=7
+[   92.19 20:51:26Z] I (92017) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: simulated read failure
+[   92.19 20:51:26Z] I (92037) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=74 resyncs=11 skipped=39 read_errors=2 torn_timestamps=7
+[   92.19 20:51:26Z] I (92037) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[   93.01 20:51:27Z] I (92867) FaceDisplay: diag gaze=7,-3 mode=speaking
+[   93.22 20:51:27Z] I (93117) FaceDisplay: diag blink double=0 mode=speaking
+[   93.22 20:51:27Z] I (93127) FaceDisplay: diag fps=11.9 frame_ms_avg=62.4 frame_ms_max=128.5 voice_flips=14 mode=speaking mood=neutral inv_areas=11.8 inv_kpx=69.0 inv_full=0 ring=level
+[   93.63 20:51:28Z] I (93617) SystemInfo: free sram: 96031 minimal sram: 33468
+[   95.09 20:51:29Z] I (94967) FaceDisplay: diag gaze=-2,0 mode=speaking
+[   95.92 20:51:30Z] I (95887) StateMachine: State: speaking -> listening
+[   96.12 20:51:30Z] I (95927) FaceDisplay: mode=listening mood=neutral
+[   96.12 20:51:30Z] I (95927) FaceDisplay: diag gaze=1,1 mode=listening
+[   96.12 20:51:30Z] I (95937) FaceDisplay: ring=pulse bedside=0
+[   96.12 20:51:30Z] I (95987) WeixueAgent: agent played: sentence=33c0f50f3c46467aad8180b7538c42d0 complete=1 played_ms=7260 reason=-
+[   96.12 20:51:30Z] I (95997) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/played","params":{"v":1,"boot":280505992,"seq":28,"sentence_id":"33c0f50f3c46467aad8180b7538c42d0","complete":true}}
+[   96.12 20:51:30Z] I (96007) WeixueAgent: agent ack sent: played complete 33c0f50f3c46467aad8180b7538c42d0 (attempt 1)
+[   96.12 20:51:30Z] I (96097) WS: Websocket disconnected
+[   96.12 20:51:30Z] I (96097) Application: Audio channel closed: 211 packets sent, 0 dropped, oldest sent 263 ms after encoding
+[   96.12 20:51:30Z] I (96097) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[   96.12 20:51:30Z] I (96107) wifi:Set ps type: 2, coexist: 0
+[   96.12 20:51:30Z] 
+[   96.32 20:51:31Z] I (96127) StateMachine: State: listening -> idle
+[   96.32 20:51:31Z] I (96137) FaceDisplay: mode=idle mood=neutral
+[   96.32 20:51:31Z] I (96137) FaceDisplay: diag gaze=0,0 mode=idle
+[   96.32 20:51:31Z] I (96137) FaceDisplay: ring=dot bedside=0
+[   96.32 20:51:31Z] I (96147) EspTcp: Resolved <IP> -> <IP>
+[   96.32 20:51:31Z] I (96147) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+[   96.32 20:51:31Z] I (96237) MonitorPanel: diag backend=online poll_status=200 poll_age_ms=95
+[   97.78 20:51:32Z] I (97627) FaceDisplay: diag blink double=0 mode=idle
+[   97.99 20:51:32Z] I (97907) FaceDisplay: agent ui: pose=mini top=tsk_01M4RY3STQAK2YENHFNE37GC8G
+[   98.20 20:51:32Z] I (98137) FaceDisplay: diag fps=10.8 frame_ms_avg=49.1 frame_ms_max=123.0 voice_flips=8 mode=idle mood=neutral inv_areas=8.5 inv_kpx=57.8 inv_full=1 ring=dot
+[   99.24 20:51:33Z] I (99127) FaceDisplay: diag lit=6.03% screen 7.69% circle mode=mini mood=neutral dump=8 snap_ms=328.6
+[   99.24 20:51:33Z] I (99157) FaceDisplay: diag gaze=0,6 mode=idle
+[  102.69 20:51:37Z] I (102527) FaceDisplay: diag blink double=0 mode=idle
+[  103.30 20:51:38Z] I (103147) FaceDisplay: diag fps=3.4 frame_ms_avg=7.9 frame_ms_max=23.7 voice_flips=0 mode=idle mood=neutral inv_areas=2.2 inv_kpx=11.4 inv_full=0 ring=dot
+[  104.31 20:51:39Z] I (104117) FaceDisplay: diag gaze=0,6 mode=idle
+[  105.74 20:51:40Z] I (105597) SystemInfo: free sram: 89919 minimal sram: 33468
+[  106.16 20:51:40Z] I (106037) FaceDisplay: diag blink double=0 mode=idle
+[  107.41 20:51:42Z] I (107407) HttpClient: HTTP connection closed
+[  107.41 20:51:42Z] I (107407) Application: Proactive message pending (urgent=0)
+[  107.41 20:51:42Z] I (107407) Application: Session start: proactive
+[  107.61 20:51:42Z] I (107407) StateMachine: State: idle -> connecting
+[  107.61 20:51:42Z] I (107417) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[  107.61 20:51:42Z] I (107427) wifi:Set ps type: 0, coexist: 0
+[  107.61 20:51:42Z] 
+[  107.61 20:51:42Z] I (107427) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  107.61 20:51:42Z] I (107437) EspTcp: Resolved <IP> -> <IP>
+[  107.61 20:51:42Z] I (107477) FaceDisplay: mode=listening mood=neutral
+[  107.61 20:51:42Z] I (107477) FaceDisplay: diag gaze=1,-2 mode=listening
+[  107.61 20:51:42Z] I (107477) FaceDisplay: ring=pulse bedside=0
+[  107.61 20:51:42Z] I (107517) WebSocket: WebSocket handshake done, cost=80 tcp=70 handshake=10
+[  107.61 20:51:42Z] I (107537) WS: Session ID: <uuid>
+[  107.61 20:51:42Z] I (107537) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[  107.61 20:51:42Z] I (107537) wifi:Set ps type: 0, coexist: 0
+[  107.61 20:51:42Z] 
+[  107.61 20:51:42Z] W (107537) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  107.61 20:51:42Z] I (107547) Application: Proactive session opened (lease-bound invocation)
+[  107.61 20:51:42Z] I (107557) StateMachine: State: connecting -> listening
+[  107.61 20:51:42Z] I (107567) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R5MVMYFX2W0371D3F7FCQR state=unread seq=1791838199186 tier=silent speaks=0 result=duplicate via=push
+[  107.81 20:51:42Z] I (107607) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4RR8RDYB0MTVJ03NVTQMXFB state=unread seq=1791838199187 tier=silent speaks=0 result=duplicate via=push
+[  107.81 20:51:42Z] I (107617) FaceDisplay: agent ui: pose=full top=tsk_01M4RY3STQAK2YENHFNE37GC8G
+[  107.81 20:51:42Z] I (107727) WeixueAgent: agent: chat=cht_01M4RX0SDV0J89HC1ACDMVTKV9 task=tsk_01M4RX0SYTTYTEA32GV62D2NAC state=unread seq=1791838199188 tier=silent speaks=0 result=duplicate via=push
+[  107.81 20:51:42Z] I (107727) WeixueAgent: agent: chat=cht_01M4RX5HWYF83VM3K3BEXWHPMD task=tsk_01M4RX5JFGCB6NW6QJ94T11HJY state=unread seq=1791838199189 tier=silent speaks=0 result=duplicate via=push
+[  107.81 20:51:42Z] I (107797) WeixueAgent: agent: chat=cht_01M4RXC4WJZEDVF858E2Q4R28Q task=tsk_01M4RXC5DG3YE0YNPEK0D7CD3Y state=unread seq=1791838199190 tier=silent speaks=0 result=duplicate via=push
+[  108.02 20:51:42Z] I (107827) Application: << The request was denied
+[  108.02 20:51:42Z] I (107827) WeixueAgent: agent: chat=cht_01M4RXQ06GQPAHVNFRPRWRHMS8 task=tsk_01M4RXQ0PGBJTMWMDYHRDZS013 state=unread seq=1791838250593 tier=silent speaks=0 result=duplicate via=push
+[  108.02 20:51:42Z] I (107837) WeixueAgent: agent: chat=cht_01M4RXT7ARZ7PYKA5WT6BGV4KA task=tsk_01M4RXT7YXR5PC8AQ33ZK8J43M state=unread seq=1791838266625 tier=silent speaks=0 result=duplicate via=push
+[  108.02 20:51:42Z] I (107847) WeixueAgent: agent: chat=cht_01M4RY3S9TPTKK4AEEW9S2AG5E task=tsk_01M4RY3STQAK2YENHFNE37GC8G state=unread seq=1791838281612 tier=when_idle speaks=1 result=duplicate via=push
+[  108.02 20:51:42Z] I (107907) WeixueAgent: agent: chats seq=1791838281787 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=duplicate via=push
+[  108.02 20:51:42Z] I (107907) WeixueAgent: agent: sync seq=1791838302378 listed=8 dropped=0 tasks=8 via=push
+[  108.02 20:51:42Z] I (107917) StateMachine: State: listening -> speaking
+[  108.02 20:51:42Z] I (107917) FaceDisplay: mode=speaking mood=neutral
+[  108.02 20:51:42Z] I (107917) WeixueAgent: agent: tracking playback of sentence ec6ae946b07c49ee9ba8fa0e231ee3ab
+[  108.02 20:51:42Z] I (107927) FaceDisplay: diag gaze=4,-1 mode=speaking
+[  108.02 20:51:42Z] I (107937) FaceDisplay: ring=level bedside=0
+[  108.02 20:51:42Z] I (107957) MonitorPanel: diag reply="The request was denied" (reply 4)
+[  108.23 20:51:42Z] I (108027) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":280505992,"seq":33,"kind":"shown","ack_upto":1791838302378,"via":"tap"}}
+[  108.23 20:51:42Z] I (108037) WeixueAgent: agent ack sent: shown upto 1791838302378 (attempt 1)
+[  108.23 20:51:42Z] I (108177) FaceDisplay: diag fps=3.2 frame_ms_avg=36.1 frame_ms_max=181.6 voice_flips=0 mode=speaking mood=neutral inv_areas=6.8 inv_kpx=44.6 inv_full=1 ring=level
+[  108.43 20:51:43Z] I (108307) MonitorPanel: diag backend=session poll_status=200 poll_age_ms=899
+[  109.27 20:51:44Z] I (109197) FaceDisplay: diag gaze=7,-2 mode=speaking
+[  109.69 20:51:44Z] I (109587) Application: << so the test entity wasn't turned on. I haven't retried it
+[  109.69 20:51:44Z] I (109607) MonitorPanel: diag reply="The request was denied so the test entity wasn't turned on. I haven't retried it" (reply 4)
+[  110.52 20:51:45Z] I (110407) FaceDisplay: diag blink double=0 mode=speaking
+[  110.93 20:51:45Z] I (110887) FaceDisplay: diag gaze=-1,2 mode=speaking
+[  113.40 20:51:48Z] I (113207) FaceDisplay: diag fps=14.3 frame_ms_avg=47.6 frame_ms_max=124.7 voice_flips=12 mode=speaking mood=neutral inv_areas=8.2 inv_kpx=50.5 inv_full=0 ring=level
+[  113.61 20:51:48Z] I (113577) FaceDisplay: diag gaze=4,0 mode=speaking
+[  113.82 20:51:48Z] I (113727) StateMachine: State: speaking -> listening
+[  113.82 20:51:48Z] I (113767) FaceDisplay: mode=listening mood=neutral
+[  113.82 20:51:48Z] I (113767) FaceDisplay: diag gaze=2,0 mode=listening
+[  113.82 20:51:48Z] I (113777) FaceDisplay: ring=pulse bedside=0
+[  114.03 20:51:48Z] I (113827) WeixueAgent: agent played: sentence=ec6ae946b07c49ee9ba8fa0e231ee3ab complete=1 played_ms=5640 reason=-
+[  114.03 20:51:48Z] I (113837) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/played","params":{"v":1,"boot":280505992,"seq":34,"sentence_id":"ec6ae946b07c49ee9ba8fa0e231ee3ab","complete":true}}
+[  114.03 20:51:48Z] I (113847) WeixueAgent: agent ack sent: played complete ec6ae946b07c49ee9ba8fa0e231ee3ab (attempt 1)
+[  115.07 20:51:49Z] I (114907) FaceDisplay: diag blink double=0 mode=listening
+[  115.07 20:51:49Z] I (114997) WeixueAgent: agent: chat=cht_01M4RY3S9TPTKK4AEEW9S2AG5E task=tsk_01M4RY3STQAK2YENHFNE37GC8G state=unread seq=1791838309582 tier=silent speaks=0 result=applied via=push
+[  115.07 20:51:49Z] I (115007) WS: Websocket disconnected
+[  115.07 20:51:49Z] I (115007) Application: Audio channel closed: 122 packets sent, 0 dropped, oldest sent 122 ms after encoding
+[  115.07 20:51:49Z] I (115017) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[  115.07 20:51:49Z] I (115017) wifi:Set ps type: 2, coexist: 0
+[  115.07 20:51:49Z] 
+[  115.07 20:51:49Z] I (115027) StateMachine: State: listening -> idle
+[  115.07 20:51:49Z] I (115047) FaceDisplay: mode=idle mood=neutral
+[  115.07 20:51:49Z] I (115047) FaceDisplay: diag gaze=0,0 mode=idle
+[  115.07 20:51:49Z] I (115047) FaceDisplay: ring=dot bedside=0
+[  115.49 20:51:50Z] I (115407) EspTcp: Resolved <IP> -> <IP>
+[  115.70 20:51:50Z] I (115657) MonitorPanel: diag backend=online poll_status=200 poll_age_ms=251
+[  116.32 20:51:51Z] I (116317) HttpClient: Established new connection to <IP>:8003 protocol=http cost=910
+[  116.74 20:51:51Z] I (116617) FaceDisplay: agent ui: pose=mini top=tsk_01M4RX5JFGCB6NW6QJ94T11HJY
+[  117.36 20:51:52Z] I (117177) FaceDisplay: diag gaze=0,6 mode=idle
+[  117.77 20:51:52Z] I (117737) FaceDisplay: diag lit=5.45% screen 6.94% circle mode=mini mood=neutral dump=9 snap_ms=308.3
+[  118.37 20:51:53Z] I (118237) FaceDisplay: diag fps=10.3 frame_ms_avg=30.3 frame_ms_max=106.9 voice_flips=2 mode=idle mood=neutral inv_areas=6.1 inv_kpx=43.1 inv_full=1 ring=dot
+[  118.37 20:51:53Z] I (118347) FaceDisplay: diag blink double=0 mode=idle
+[  121.63 20:51:56Z] I (121597) FaceDisplay: diag blink double=0 mode=idle
+[  122.24 20:51:56Z] I (122057) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: overruns=89 resyncs=14 skipped=47 read_errors=2 torn_timestamps=7
+[  122.24 20:51:56Z] I (122057) WaveshareEsp32s3TouchAMOLED1inch75: IMU diag: stall 120 ms, then an immediate extra read
+[  122.66 20:51:57Z] I (122517) FaceDisplay: diag shift=1,1
+[  123.48 20:51:58Z] I (123287) FaceDisplay: diag fps=2.2 frame_ms_avg=14.2 frame_ms_max=103.7 voice_flips=0 mode=idle mood=neutral inv_areas=2.1 inv_kpx=27.7 inv_full=1 ring=dot
+[  123.48 20:51:58Z] I (123397) FaceDisplay: diag gaze=2,0 mode=idle
+[  124.73 20:51:59Z] I (124597) SystemInfo: free sram: 89943 minimal sram: 33468
+[  125.76 20:52:00Z] I (125647) WeixueAgent: agent: chats seq=1791838310614 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[  125.76 20:52:00Z] I (125677) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[  125.76 20:52:00Z] I (125687) FaceDisplay: diag blink double=0 mode=idle
+[  125.97 20:52:00Z] I (125847) EspTcp: Resolved <IP> -> <IP>
+[  125.97 20:52:00Z] I (125847) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+[  127.61 20:52:02Z] I (127567) FaceDisplay: diag gaze=0,0 mode=idle
+[  128.44 20:52:03Z] I (128377) FaceDisplay: diag fps=2.9 frame_ms_avg=6.1 frame_ms_max=12.6 voice_flips=0 mode=idle mood=neutral inv_areas=1.9 inv_kpx=7.8 inv_full=0 ring=dot
+[  130.29 20:52:05Z] I (130297) FaceDisplay: diag blink double=0 mode=idle
