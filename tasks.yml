@@ -480,7 +480,7 @@ tasks:
     description: |
       Draft only, in the ha-agent repo on a local branch (no push): extract the facts about the home from ~/Projects/ha-agent CLAUDE.md (Key facts, guardrails that describe the house, not the repo), skills (multi-light area controls patterns, blueprints), plans and the live HA registry via the weixue agent's read-only snapshot data (areas, entity names) into home/*.md — rooms-and-areas.md, devices-and-naming.md, people-and-routines.md, automations.md, index.md — one topic per file, first line = title, no secrets, no repo/dev rules, no ha-mcp URL. Jay reviews before anything is enabled.
     depends_on: []
-    status: in_progress
+    status: review
     retries: 0
     model: sonnet
   - id: feat-agent-service
