@@ -453,7 +453,25 @@ tasks:
     description: |
       Jay: the monitor board (server/agent-monitor, FastAPI + static index.html/app.js/app.css, SSE) is not very readable; find good agent-monitor UI designs. Method per docs/METHODOLOGY.md "UI design method": ground (current board teardown with screenshots), references from real products and designer galleries (agent/LLM observability: LangSmith, Langfuse, Braintrust, Helicone, OpenAI traces, Claude Code; ops: Grafana, Datadog; home: HA dashboards), three concepts as HTML/SVG mocks rendered to PNG (Chrome headless), judges (glanceability, information fit, implementability), synthesis report + Artifact with the images; then a build task feat-monitor-ui-v2.
     depends_on: [feat-agent-monitor]
+    status: done
+    retries: 0
+    model: opus
+  - id: fix-device-auto-shutdown
+    name: "Device powers off by itself after a while (Jay 2026-10-12)"
+    branch: fix/device-auto-shutdown
+    description: |
+      Jay: the device shuts down on its own after some time. Serial logs show upstream PowerSaveTimer enabling/exiting power save every ~50-60 s. Investigate upstream xiaozhi-esp32 PowerSaveTimer (seconds_to_sleep / seconds_to_shutdown, OnShutdownRequest) and the 1.75C board's power path (PMIC/charger state, "charging" detection while on the Mac USB port, battery level), our overrides (face_display power-save handling). Reproduce with a long idle serial capture (>15 min) and record the shutdown reason; fix so a mains/USB-powered device never shuts down (shutdown only on battery below a threshold, if at all), keep the screen dim/power-save behaviour; flash + on-device verification (30 min idle, no power-off).
+    depends_on: [feat-firmware-base]
     status: in_progress
+    retries: 0
+    model: opus
+  - id: feat-monitor-ui-v2
+    name: "Monitor redesign: Logbook direction (research weixue-monitor-ui-v1), HA-embeddable"
+    branch: feat/monitor-ui-v2
+    description: |
+      Build the final direction from ~/Projects/research/reports/weixue-monitor-ui-v1.md (03-final/index.html is the visual truth): verdict bar, context band, held-approval card, since-you-last-looked summary, activity feed with search and counted segments, chats rail, problems split by severity, per-task trace from /api/tasks/{id}; phase 3 adds GET /api/health/history. Plus decision 79: bind 192.168.8.125:8020, CSP frame-ancestors http://192.168.8.142:8123, MONITOR_TOKEN in the iframe URL, no own chrome when embedded (?embed=1), follows prefers-color-scheme. Tests + screenshot diff against the mock; verify inside an HA Webpage card.
+    depends_on: [research-monitor-ui]
+    status: pending
     retries: 0
     model: opus
   - id: feat-agent-service
