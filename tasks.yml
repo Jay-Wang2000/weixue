@@ -457,12 +457,13 @@ tasks:
     retries: 0
     model: opus
   - id: fix-device-auto-shutdown
+    milestone: parked   # Jay 2026-10-12: auto shutdown is acceptable; investigation stopped
     name: "Device powers off by itself after a while (Jay 2026-10-12)"
     branch: fix/device-auto-shutdown
     description: |
       Jay: the device shuts down on its own after some time. Serial logs show upstream PowerSaveTimer enabling/exiting power save every ~50-60 s. Investigate upstream xiaozhi-esp32 PowerSaveTimer (seconds_to_sleep / seconds_to_shutdown, OnShutdownRequest) and the 1.75C board's power path (PMIC/charger state, "charging" detection while on the Mac USB port, battery level), our overrides (face_display power-save handling). Reproduce with a long idle serial capture (>15 min) and record the shutdown reason; fix so a mains/USB-powered device never shuts down (shutdown only on battery below a threshold, if at all), keep the screen dim/power-save behaviour; flash + on-device verification (30 min idle, no power-off).
     depends_on: [feat-firmware-base]
-    status: in_progress
+    status: pending
     retries: 0
     model: opus
   - id: feat-monitor-ui-v2
