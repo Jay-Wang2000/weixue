@@ -83,3 +83,4 @@ Rule: if Codex P1 findings per task rise above the baseline for two consecutive 
 - 2026-10-11 18:02 main redeployed (PR #27) + reconciliation flash (0 diag strings, idle, chats=9); dead approval card still restored at boot pending fix-mirror-reconcile.
 - 2026-10-11 fix-mirror-reconcile merged (PR #28): root cause = playback card update re-queued a card for a cancelled task; service and gateway fixes; 1049 + 224 tests, sim reconcile round PASS. Follow-up fix-terminal-items-polish (unseen-after-reboot, handed-off speech after close).
 - 2026-10-11 18:36 main redeployed (PR #28): ready lines OK; after a board reboot the cancelled probe task no longer appears in the boot snapshot (0 lines).
+- 2026-10-12 feat-ubuntu-migration merged (PR #29): wg sidecar removed, Linux setup.sh, remote mode, runbook; reviewer PASS 0 err / 7 warn; server staged (checkout, images, models). Secrets/data copy + staging deploy await Jay; cutover pending.
