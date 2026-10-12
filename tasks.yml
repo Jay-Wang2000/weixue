@@ -472,7 +472,7 @@ tasks:
     description: |
       Build the final direction from ~/Projects/research/reports/weixue-monitor-ui-v1.md (03-final/index.html is the visual truth): verdict bar, context band, held-approval card, since-you-last-looked summary, activity feed with search and counted segments, chats rail, problems split by severity, per-task trace from /api/tasks/{id}; phase 3 adds GET /api/health/history. Plus decision 79: bind 192.168.8.125:8020, CSP frame-ancestors http://192.168.8.142:8123, MONITOR_TOKEN in the iframe URL, no own chrome when embedded (?embed=1), follows prefers-color-scheme. Tests + screenshot diff against the mock; verify inside an HA Webpage card.
     depends_on: [research-monitor-ui]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: docs-home-seed
