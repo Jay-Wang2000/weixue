@@ -444,7 +444,7 @@ tasks:
     description: |
       Decision 77. Target: Ubuntu server 192.168.8.125 on the home LAN, x86_64. Remove the wg service/profile and WG_TUNNEL from compose, setup.sh, docs (office mode note changes: HA reachable from the server at all times; the Mac no longer runs the stack). setup.sh: host checks must work on Linux (LAN_IP check against the server's interfaces, no device lock on the server — the lock stays a Mac concept for flashing; deploy is triggered from the Mac over SSH or run on the server). Migration runbook docs/runbooks/ubuntu-migration.md: install Docker Engine + compose plugin (sudo), clone the repo on the server (deploy key or https), rsync server/.env (edited: LAN_IP, GOOGLE_SA_FILE path on the server), secrets (0600), data/ (DB, models, endpoint cfg), build images, setup.sh, readiness; device re-provision OTA_URL via firmware/tools/usb_provision.py to http://192.168.8.125:8003/xiaozhi/ota/; stop the Mac stack; rollback = re-point the device to the Mac. Scripts (audio_session.sh, approval_gate.py, AgentClient, serial/judge) gain a remote mode so docker exec/logs run on the server over SSH (WEIXUE_SERVER_SSH=user@host). Tests + a dry run against the server; E2E one-breath x5 after cutover.
     depends_on: [fix-mirror-reconcile]
-    status: in_progress
+    status: done
     retries: 0
     model: opus
   - id: feat-agent-service

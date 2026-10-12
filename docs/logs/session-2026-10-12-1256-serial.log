@@ -1,0 +1,636 @@
+[    0.11 12:56:48Z] ### item one_breath
+[    0.11 12:56:48Z] ### send diag dump
+[    0.31 12:56:48Z] ESP-ROM:esp32s3-20210327
+[    0.31 12:56:48Z] Build:Mar 27 2021
+[    0.31 12:56:48Z] rst:0x15 (USB_UART_CHIPESP-ROM:esp32s3-20210327
+[    0.31 12:56:48Z] Build:Mar 27 2021
+[    0.31 12:56:48Z] rst:0x15 (USB_UART_CHIP_RESET),boot:0xb (SPI_FAST_FLASH_BOOT)
+[    0.31 12:56:48Z] Saved PC:0x40382d5a
+[    0.31 12:56:48Z] SPIWP:0xee
+[    0.31 12:56:48Z] mode:DIO, clock div:1
+[    0.31 12:56:48Z] load:0x3fce2820,len:0x544
+[    0.31 12:56:48Z] load:0x403c8700,len:0xd14
+[    0.31 12:56:48Z] load:0x403cb700,len:0x2eb4
+[    0.31 12:56:48Z] entry 0x403c88f4
+[    0.31 12:56:48Z] I (34) octal_psram: vendor id    : 0x0d (AP)
+[    0.31 12:56:48Z] I (34) octal_psram: dev id       : 0x02 (generation 3)
+[    0.31 12:56:48Z] I (34) octal_psram: density      : 0x03 (64 Mbit)
+[    0.31 12:56:48Z] I (36) octal_psram: good-die     : 0x01 (Pass)
+[    0.31 12:56:48Z] I (40) octal_psram: Latency      : 0x01 (Fixed)
+[    0.31 12:56:48Z] I (44) octal_psram: VCC          : 0x01 (3V)
+[    0.31 12:56:48Z] I (48) octal_psram: SRF          : 0x01 (Fast Refresh)
+[    0.31 12:56:48Z] I (53) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+[    0.31 12:56:48Z] I (58) octal_psram: BurstLen     : 0x01 (32 Byte)
+[    0.31 12:56:48Z] I (62) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+[    0.31 12:56:48Z] I (68) octal_psram: DriveStrength: 0x00 (1/1)
+[    0.31 12:56:48Z] I (72) MSPI Timing: Enter psram timing tuning
+[    0.31 12:56:48Z] I (76) esp_psram: Found 8MB PSRAM device
+[    0.31 12:56:48Z] I (79) esp_psram: Speed: 80MHz
+[    0.31 12:56:48Z] I (82) cpu_start: Multicore app
+[    0.31 12:56:48Z] I (96) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+[    0.31 12:56:48Z] I (97) cpu_start: Pro cpu start user code
+[    0.31 12:56:48Z] I (97) cpu_start: cpu freq: 240000000 Hz
+[    0.31 12:56:48Z] I (98) app_init: Application information:
+[    0.31 12:56:48Z] I (102) app_init: Project name:     xiaozhi
+[    0.31 12:56:48Z] I (106) app_init: App version:      2.5.1
+[    0.31 12:56:48Z] I (110) app_init: Compile time:     Oct  7 2026 05:42:06
+[    0.31 12:56:48Z] I (115) app_init: ELF file SHA256:  aee5230ff...
+[    0.31 12:56:48Z] I (119) app_init: ESP-IDF:          v6.1
+[    0.31 12:56:48Z] I (123) efuse_init: Min chip rev:     v0.0
+[    0.31 12:56:48Z] I (127) efuse_init: Max chip rev:     v0.99 
+[    0.31 12:56:48Z] I (131) efuse_init: Chip rev:         v0.2
+[    0.31 12:56:48Z] I (135) heap_init: Initializing. RAM available for dynamic allocation:
+[    0.31 12:56:48Z] I (141) heap_init: At 3FCAB520 len 0003E1F0 (248 KiB): RAM
+[    0.31 12:56:48Z] I (146) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+[    0.31 12:56:48Z] I (151) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+[    0.31 12:56:48Z] I (156) heap_init: At 600FE000 len 00001FD8 (7 KiB): RTCRAM
+[    0.31 12:56:48Z] I (162) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+[    0.31 12:56:48Z] I (169) spi_flash: detected chip: gd
+[    0.31 12:56:48Z] I (171) spi_flash: flash io: qio
+[    0.31 12:56:48Z] I (175) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[    0.31 12:56:48Z] I (181) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[    0.31 12:56:48Z] I (188) main_task: Started on CPU0
+[    0.31 12:56:48Z] I (188) esp_psram: Reserving pool of 100K of internal memory for DMA/internal allocations
+[    0.31 12:56:48Z] I (198) main_task: Calling app_main()
+[    0.52 12:56:48Z] I (368) Board: UUID=<uuid> SKU=esp32-s3-touch-amoled-1.75c-weixue
+[    0.52 12:56:48Z] I (368) button: IoT Button Version: 4.2.1
+[    0.52 12:56:48Z] I (368) PowerSaveTimer: Power save timer enabled
+[    0.52 12:56:48Z] I (368) WaveshareEsp32s3TouchAMOLED1inch75: Init AXP2101
+[    0.52 12:56:48Z] I (378) WaveshareEsp32s3TouchAMOLED1inch75: VBUS present, battery present, idle power-off on battery after 300 s, panel off after 300 s
+[    0.52 12:56:48Z] W (388) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.52 12:56:48Z] W (398) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.52 12:56:48Z] W (398) spi_common: GPIO 0 is conflict with others and be overwritten
+[    0.52 12:56:48Z] I (408) co5300: version: 2.2.0
+[    0.52 12:56:48Z] I (408) co5300_spi: LCD panel create success, version: 2.2.0
+[    0.72 12:56:49Z] W (578) co5300_spi: The 3Ah command has been used and will be overwritten by external initialization sequence
+[    1.94 12:56:50Z] I (1778) Display: Power management not supported
+[    1.94 12:56:50Z] I (1858) LcdDisplay: Turning display on
+[    1.94 12:56:50Z] I (1858) LcdDisplay: Initialize LVGL library
+[    1.94 12:56:50Z] I (1858) LcdDisplay: Added 2560KB LVGL pool in PSRAM
+[    1.94 12:56:50Z] I (1858) LcdDisplay: Use 2MB of PSRAM for image cache
+[    1.94 12:56:50Z] I (1868) LcdDisplay: Initialize LVGL port
+[    1.94 12:56:50Z] I (1868) LcdDisplay: Adding LCD display
+[    1.94 12:56:50Z] I (1868) LVGL: Starting LVGL task
+[    1.94 12:56:50Z] I (1878) FaceDisplay: bedside window 22:00-07:00 (1320-420 min)
+[    1.94 12:56:50Z] I (1878) Backlight: Set brightness to 75
+[    1.94 12:56:50Z] I (1888) WaveshareEsp32s3TouchAMOLED1inch75: Initialize touch controller
+[    2.15 12:56:50Z] I (1958) CST9217: Checkcode: 0x204ECACA
+[    2.15 12:56:50Z] I (1958) CST9217: Resolution X: 466, Y: 466
+[    2.15 12:56:50Z] I (1958) CST9217: Chip Type: 0x9217, ProjectID: 0x5734
+[    2.15 12:56:50Z] I (1958) WaveshareEsp32s3TouchAMOLED1inch75: Touch panel initialized successfully
+[    2.15 12:56:50Z] I (1958) Qmi8658: QMI8658 found at 0x6B
+[    2.15 12:56:50Z] I (1988) Qmi8658: Reset result 0x80
+[    2.15 12:56:50Z] I (2008) MCP: Add tool: self.system.reconfigure_wifi [operator-only]
+[    2.15 12:56:50Z] I (2008) MCP: Add tool: self.screen.set_bedside
+[    2.15 12:56:50Z] I (2008) MCP: Add tool: self.imu.get_state
+[    2.15 12:56:50Z] I (2008) StateMachine: State: unknown -> starting
+[    2.15 12:56:50Z] I (2008) Application: Clock: stored TZ IST-1GMT0,M10.5.0,M3.5.0/1
+[    2.15 12:56:50Z] I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU accel x=0.134 y=-0.057 z=0.992 g
+[    2.15 12:56:50Z] I (2028) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 0 ms without a sample (1)
+[    2.15 12:56:50Z] I (2088) MonitorPanel: page=1
+[    2.35 12:56:50Z] I (2168) Assets: The storage free size is 21568 KB
+[    2.35 12:56:50Z] I (2168) Assets: The assets map size is 4224 KB (partition 16384 KB)
+[    2.55 12:56:50Z] I (2408) Assets: The checksum calculation time is 245 ms
+[    2.55 12:56:50Z] I (2418) FaceDisplay: agent ui: 20 px CJK font loaded (1287460 bytes)
+[    2.55 12:56:50Z] I (2418) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 380 ms without a sample (2)
+[    2.55 12:56:50Z] W (2528) i2s_common: the rx channel on I2S0 is switched from master to slave for full-duplex mode
+[    2.55 12:56:50Z] I (2528) BoxAudioCodec: Duplex channels created
+[    2.55 12:56:50Z] I (2528) ES8311: Work in Slave mode
+[    2.55 12:56:50Z] I (2538) ES7210: Work in Slave mode
+[    2.55 12:56:50Z] I (2548) ES7210: Enable ES7210_INPUT_MIC1
+[    2.75 12:56:51Z] I (2548) ES7210: Enable ES7210_INPUT_MIC2
+[    2.75 12:56:51Z] I (2558) ES7210: Enable ES7210_INPUT_MIC3
+[    2.75 12:56:51Z] I (2558) ES7210: Enable ES7210_INPUT_MIC4
+[    2.75 12:56:51Z] I (2558) ES7210: Enable TDM mode
+[    2.75 12:56:51Z] I (2568) BoxAudioCodec: BoxAudioDevice initialized
+[    2.75 12:56:51Z] I (2568) AudioCodec: Audio codec started
+[    2.75 12:56:51Z] I (2568) Application: After board/audio init
+[    2.75 12:56:51Z] I (2568) SystemInfo: free sram: 187207 minimal sram: 85680
+[    2.75 12:56:51Z] I (2568) WeixueAgent: agent: protocol v1 level 2, boot 451652428
+[    2.75 12:56:51Z] I (2578) MCP: Add tool: self.get_device_status
+[    2.75 12:56:51Z] I (2578) MCP: Add tool: self.audio_speaker.set_volume
+[    2.75 12:56:51Z] I (2588) MCP: Add tool: self.screen.set_brightness
+[    2.75 12:56:51Z] I (2588) MCP: Add tool: self.screen.set_theme
+[    2.75 12:56:51Z] I (2598) MCP: Add tool: self.get_system_info [user] [operator-only]
+[    2.75 12:56:51Z] I (2598) MCP: Add tool: self.reboot [user] [operator-only]
+[    2.75 12:56:51Z] I (2608) MCP: Add tool: self.upgrade_firmware [user] [operator-only]
+[    2.75 12:56:51Z] I (2608) MCP: Add tool: self.screen.get_info [user] [operator-only]
+[    2.75 12:56:51Z] I (2618) MCP: Add tool: self.screen.snapshot [user] [operator-only]
+[    2.75 12:56:51Z] I (2628) MCP: Add tool: self.screen.preview_image [user] [operator-only]
+[    2.75 12:56:51Z] I (2628) MCP: Add tool: self.assets.set_download_url [user] [operator-only]
+[    2.75 12:56:51Z] I (2638) WifiManager: Initializing...
+[    2.75 12:56:51Z] I (2638) pp: pp rom version: e7ae62f
+[    2.75 12:56:51Z] I (2648) net80211: net80211 rom version: e7ae62f
+[    2.75 12:56:51Z] I (2658) wifi:wifi driver task: 3fce3e80, prio:23, stack:6656, core=0
+[    2.75 12:56:51Z] I (2658) wifi:wifi firmware version: e12a754
+[    2.75 12:56:51Z] I (2658) wifi:wifi certification version: v7.0
+[    2.75 12:56:51Z] I (2658) wifi:config NVS flash: disabled
+[    2.75 12:56:51Z] I (2668) wifi:config nano formatting: disabled
+[    2.75 12:56:51Z] I (2668) wifi:Init data frame dynamic rx buffer num: 6
+[    2.75 12:56:51Z] I (2678) wifi:Init dynamic rx mgmt buffer num: 5
+[    2.75 12:56:51Z] I (2678) wifi:Init management short buffer num: 32
+[    2.75 12:56:51Z] I (2688) wifi:Init dynamic tx buffer num: 32
+[    2.75 12:56:51Z] I (2688) wifi:Init static tx FG buffer num: 2
+[    2.75 12:56:51Z] I (2688) wifi:Init static rx buffer size: 1600
+[    2.75 12:56:51Z] I (2698) wifi:Init static rx buffer num: 3
+[    2.75 12:56:51Z] I (2698) wifi:Init dynamic rx buffer num: 6
+[    2.75 12:56:51Z] I (2708) wifi_init: rx ba win: 3
+[    2.75 12:56:51Z] I (2708) wifi_init: accept mbox: 6
+[    2.75 12:56:51Z] I (2708) wifi_init: tcpip mbox: 16
+[    2.75 12:56:51Z] I (2708) wifi_init: udp mbox: 6
+[    2.75 12:56:51Z] I (2718) wifi_init: tcp mbox: 6
+[    2.75 12:56:51Z] I (2718) wifi_init: tcp tx win: 5760
+[    2.75 12:56:51Z] I (2718) wifi_init: tcp rx win: 5760
+[    2.75 12:56:51Z] I (2728) wifi_init: tcp mss: 1440
+[    2.75 12:56:51Z] I (2728) WifiManager: Initialized
+[    2.75 12:56:51Z] I (2728) WifiBoard: Starting WiFi connection attempt
+[    2.75 12:56:51Z] I (2738) WifiManager: Starting station
+[    2.75 12:56:51Z] I (2738) WifiStation: Station DHCP hostname: Xiaozhi-4BFC
+[    2.95 12:56:51Z] I (2748) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+[    2.95 12:56:51Z] I (2788) wifi:mode : sta (<mac>)
+[    2.95 12:56:51Z] I (2788) wifi:enable tsf
+[    2.95 12:56:51Z] I (2788) WifiStation: Scanning saved channel 6
+[    2.95 12:56:51Z] I (2788) WifiBoard: WiFi scanning
+[    2.95 12:56:51Z] I (2908) WifiStation: Found AP: <ssid>, BSSID: <mac>, RSSI: -58, Channel: 6, Authmode: 3
+[    2.95 12:56:51Z] I (2908) WifiBoard: WiFi connecting to <ssid>
+[    2.95 12:56:51Z] W (2908) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+[    3.11 12:56:51Z] ### inject failed: diag dump: no answer (not a diag build, or the console is not running)
+[    3.16 12:56:51Z] I (2978) wifi:new:<6,1>, old:<1,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.16 12:56:51Z] I (2978) wifi:state: init -> auth (0xb0)
+[    3.16 12:56:51Z] I (2988) wifi:state: auth -> init (0x8a0)
+[    3.16 12:56:51Z] I (2988) wifi:new:<6,0>, old:<6,1>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.16 12:56:51Z] I (2998) wifi:new:<6,1>, old:<6,0>, ap:<255,255>, sta:<6,1>, prof:1, snd_ch_cfg:0x0
+[    3.16 12:56:51Z] I (2998) wifi:state: init -> auth (0xb0)
+[    3.16 12:56:51Z] I (3008) wifi:state: auth -> assoc (0x0)
+[    3.16 12:56:51Z] I (3008) wifi:state: assoc -> run (0x10)
+[    3.16 12:56:51Z] I (3038) wifi:connected with <ssid>, aid = 5, channel 6, 40U, bssid = <mac>
+[    3.16 12:56:51Z] I (3038) wifi:security: WPA2-PSK, phy: bgn, rssi: -59, cipher(pairwise:0x3, group:0x3), pmf:0
+[    3.16 12:56:51Z] I (3038) wifi:pm start, type: 1
+[    3.16 12:56:51Z] 
+[    3.16 12:56:51Z] I (3038) wifi:dp: 1, bi: 102400, li: 10, scale listen interval from 1024000 us to 1024000 us
+[    3.16 12:56:51Z] I (3048) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+[    3.16 12:56:51Z] I (3068) wifi:<ba-add>idx:0 (ifx:0, <mac>), tid:7, ssn:0, winSize:64
+[    3.16 12:56:51Z] I (3098) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+[    3.37 12:56:51Z] I (3208) wifi:<ba-add>idx:1 (ifx:0, <mac>), tid:0, ssn:0, winSize:64
+[    4.18 12:56:52Z] I (4078) esp_netif_handlers: sta ip: <IP>, mask: <IP>, gw: <IP>
+[    4.18 12:56:52Z] I (4078) WifiStation: Got IP: <IP>
+[    4.18 12:56:52Z] I (4078) WifiBoard: Connected to WiFi: <ssid>
+[    4.18 12:56:52Z] I (4078) Application: Network connected
+[    4.18 12:56:52Z] I (4078) StateMachine: State: starting -> activating
+[    4.18 12:56:52Z] I (4088) MODEL_LOADER: Successfully load srmodels
+[    4.18 12:56:52Z] I (4118) Assets: Refreshing display theme...
+[    4.18 12:56:52Z] I (4138) Ota: Current version: 2.5.1
+[    4.18 12:56:52Z] I (4148) EspTcp: Resolved <IP> -> <IP>
+[    4.79 12:56:53Z] I (4638) HttpClient: Established new connection to <IP>:8003 protocol=http cost=490
+[    5.19 12:56:53Z] I (5058) HttpClient: HTTP connection closed
+[    5.19 12:56:53Z] I (5058) Ota: No mqtt section found !
+[    5.19 12:56:53Z] I (5058) Ota: Clock: TZ IST-1GMT0,M10.5.0,M3.5.0/1, UTC offset +60 min (January +0, July +60)
+[    5.19 12:56:53Z] I (5058) Ota: Current is the latest version
+[    5.19 12:56:53Z] I (5068) Ota: Running partition: ota_0
+[    5.19 12:56:53Z] I (5068) Application: Activation done
+[    5.19 12:56:53Z] I (5068) SystemInfo: free sram: 140251 minimal sram: 39812
+[    5.19 12:56:53Z] I (5078) StateMachine: State: activating -> idle
+[    5.19 12:56:53Z] I (5078) Application: Proactive poller: http://<IP>:8003/weixue/proactive/poll
+[    5.19 12:56:53Z] I (5088) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[    5.19 12:56:53Z] I (5088) EspTcp: Resolved <IP> -> <IP>
+[    5.19 12:56:53Z] I (5098) wifi:Set ps type: 2, coexist: 0
+[    5.19 12:56:53Z] 
+[    5.19 12:56:53Z] I (5108) AfeAudioEngine: Model 0: wn9_jarvis_tts
+[    5.19 12:56:53Z] I (5108) WakeWordCache: Allocated 64000 bytes in PSRAM
+[    5.19 12:56:53Z] I (5108) AFE_CONFIG: Set WakeNet Model: wn9_jarvis_tts
+[    5.19 12:56:53Z] I (5118) AfeAudioEngine: Before AFE create: free=137715 min=39812 largest=94208
+[    5.19 12:56:53Z] I (5158) HttpClient: Established new connection to <IP>:8003 protocol=http cost=70
+[    5.40 12:56:53Z] MC Quantized wakenet9: wakenet9l_tts1h8_Jarvis_3_0.627_0.632, tigger:v4, mode:0, p:0, (May 25 2026 15:51:00)
+[    5.40 12:56:53Z] I (5218) AFE: AFE Version: (1MIC_V251128)
+[    5.40 12:56:53Z] I (5218) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[    5.40 12:56:53Z] I (5228) AFE: AFE Pipeline: [input] -> |AEC(FD_LOW_COST, NLP_VERY_AGGRESSIVE)| -> |VAD(WebRTC)| -> |WakeNet(wn9_jarvis_tts,)| -> [output]
+[    5.40 12:56:53Z] I (5238) AFE: AFE Version: (1MIC_V251128)
+[    5.40 12:56:53Z] I (5238) AFE: Input PCM Config: total 2 channels(1 microphone, 1 playback), sample rate:16000
+[    5.40 12:56:53Z] I (5248) AFE: AFE Pipeline: [input] -> |VAD(WebRTC)| -> [output]
+[    5.40 12:56:53Z] I (5258) AfeAudioEngine: Initialized FD AFE, detector: WakeNet, NS: off, feed: 512, fetch: 512
+[    5.40 12:56:53Z] I (5268) AfeAudioEngine: After AFE create: free=111423 min=33468 largest=69632
+[    5.40 12:56:53Z] I (5268) I2S_IF: Paired data: 0x3fcd4eb4, current mode: playback, paired in_enable: 0, paired out_enable: 0
+[    5.40 12:56:53Z] I (5278) I2S_IF: STD: TX, data_bit: 16, slot_bit: 16, ws_width: 16, slot_mode: MONO, slot_mask: 0x1
+[    5.40 12:56:53Z] I (5288) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    5.40 12:56:53Z] I (5308) Adev_Codec: Open codec device OK
+[    5.40 12:56:53Z] I (5308) AudioCodec: Set output enable to true
+[    5.40 12:56:53Z] I (5318) WeixueAgent: agent: chat=cht_01M4NX1G4325ZJZQ64KWYPB6EP task=tsk_01M4NX1GBHDNE99RXNC7G3Q3KR state=unread seq=1791738248658 tier=when_idle speaks=0 result=applied via=poll
+[    5.40 12:56:53Z] I (5318) AudioService: Resampling audio from 16000 to 24000
+[    5.40 12:56:53Z] I (5328) WeixueAgent: agent: chat=cht_01M4NY6M4566RZ5A17EFACZRC4 task=tsk_01M4NY6M73MJ8F93G6832YG6XA state=unread seq=1791738248659 tier=silent speaks=0 result=applied via=poll
+[    5.40 12:56:53Z] I (5328) I2S_IF: Peer mode playback need extend bits 32 to 64
+[    5.40 12:56:53Z] I (5328) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 220 ms without a sample (3)
+[    5.40 12:56:53Z] I (5358) I2S_IF: TDM: RX, data_bit: 16, slot_bit: 16, ws_width: 32, total_slot: 4, slot_mask: 0x3
+[    5.40 12:56:53Z] I (5368) I2S_IF: TDM: RX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    5.40 12:56:53Z] I (5378) I2S_IF: STD: TX, data_bit: 16, slot_bit: 32, ws_width: 32, slot_mode: MONO, slot_mask: 0x1
+[    5.40 12:56:53Z] I (5378) I2S_IF: STD: TX, sample_rate_hz: 24000, mclk_multiple: 256, clk_src: 6
+[    5.40 12:56:53Z] I (5388) ES7210: Bits 16
+[    5.60 12:56:53Z] I (5398) FaceDisplay: agent ui: task=tsk_01M4NX1GBHDNE99RXNC7G3Q3KR state=unread tier=when_idle flash=2 earcon=done
+[    5.60 12:56:53Z] I (5398) ES7210: Enable ES7210_INPUT_MIC1
+[    5.60 12:56:53Z] I (5398) FaceDisplay: agent ui: task=tsk_01M4NY6M73MJ8F93G6832YG6XA state=unread tier=silent flash=0 earcon=none
+[    5.60 12:56:53Z] I (5408) ES7210: Enable ES7210_INPUT_MIC2
+[    5.60 12:56:53Z] I (5418) FaceDisplay: earcon=done
+[    5.60 12:56:53Z] I (5418) FaceDisplay: ring=flash bedside=0
+[    5.60 12:56:53Z] I (5428) ES7210: Enable ES7210_INPUT_MIC3
+[    5.60 12:56:53Z] I (5428) ES7210: Enable ES7210_INPUT_MIC4
+[    5.60 12:56:53Z] I (5438) ES7210: Enable TDM mode
+[    5.60 12:56:53Z] I (5448) ES7210: Unmuted
+[    5.60 12:56:53Z] I (5448) Adev_Codec: Open codec device OK
+[    5.60 12:56:53Z] I (5448) AudioCodec: Set input enable to true
+[    5.60 12:56:53Z] I (5548) EspTcp: Resolved <IP> -> <IP>
+[    5.60 12:56:53Z] I (5548) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+[    5.60 12:56:53Z] I (5558) WeixueAgent: agent: chat=cht_01M4NYGAR64B9V2C99S34NVPVT task=tsk_01M4NYGAV5NRXJFJCWWEB8ZZ7A state=unread seq=1791738248660 tier=when_idle speaks=0 result=applied via=poll
+[    5.60 12:56:53Z] I (5568) WeixueAgent: agent: chat=cht_01M4NYKTB9KJXDR270MWMMNV0D task=tsk_01M4NYKTP4GNAE7S9SPF4VA8MB state=unread seq=1791738248661 tier=when_idle speaks=0 result=applied via=poll
+[    5.80 12:56:54Z] I (5608) FaceDisplay: agent ui: task=tsk_01M4NYGAV5NRXJFJCWWEB8ZZ7A state=unread tier=when_idle flash=2 earcon=done
+[    5.80 12:56:54Z] I (5608) FaceDisplay: agent ui: task=tsk_01M4NYKTP4GNAE7S9SPF4VA8MB state=unread tier=when_idle flash=2 earcon=done
+[    5.80 12:56:54Z] I (5748) FaceDisplay: earcon=done
+[    5.80 12:56:54Z] I (5778) EspTcp: Resolved <IP> -> <IP>
+[    6.01 12:56:54Z] I (5918) FaceDisplay: ring=off bedside=0
+[    6.21 12:56:54Z] I (6178) HttpClient: Established new connection to <IP>:8003 protocol=http cost=400
+[    6.42 12:56:54Z] I (6298) FaceDisplay: ring=flash bedside=0
+[    6.62 12:56:55Z] I (6538) FaceDisplay: ring=off bedside=0
+[    6.70 12:56:55Z] ### idle wait: idle L192, ready after 6.6 s (settle 1.5 s)
+[    6.70 12:56:55Z] ### say: Jarvis, what time is it?
+[    6.83 12:56:55Z] I (6638) WeixueAgent: agent: chat=cht_01M4NYQ1CSN2ZM7ZW36N8YR59P task=tsk_01M4NYQ1FFMX0DR0Q4KGV7390T state=unread seq=1791738286631 tier=when_idle speaks=0 result=applied via=poll
+[    6.83 12:56:55Z] I (6648) WeixueAgent: agent: chat=cht_01M4P0KKQM6FKAWKPNCHKKXNVR task=tsk_01M4P0KKTPDFM4J76QWYMNW1ZD state=unread seq=1791740215552 tier=when_idle speaks=0 result=applied via=poll
+[    6.83 12:56:55Z] I (6678) FaceDisplay: agent ui: task=tsk_01M4NYQ1FFMX0DR0Q4KGV7390T state=unread tier=when_idle flash=2 earcon=done
+[    6.83 12:56:55Z] I (6678) FaceDisplay: agent ui: task=tsk_01M4P0KKTPDFM4J76QWYMNW1ZD state=unread tier=when_idle flash=2 earcon=done
+[    6.83 12:56:55Z] I (6688) FaceDisplay: agent ui: pose=happy top=tsk_01M4P0KKTPDFM4J76QWYMNW1ZD
+[    6.83 12:56:55Z] I (6688) FaceDisplay: earcon=done
+[    6.83 12:56:55Z] I (6698) FaceDisplay: ring=flash bedside=0
+[    7.03 12:56:55Z] I (6858) EspTcp: Resolved <IP> -> <IP>
+[    7.03 12:56:55Z] I (6898) HttpClient: Established new connection to <IP>:8003 protocol=http cost=40
+[    7.03 12:56:55Z] I (6918) WeixueAgent: agent: chat=cht_01M4P1CP4W5E52PDSYYP9HYYGN task=tsk_01M4P1CPBGK62W38JBVH9WA2P7 state=unread seq=1791741051738 tier=when_idle speaks=0 result=applied via=poll
+[    7.03 12:56:55Z] I (6928) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4P2VBSWQZ6DV3PQZAYA3MMZ state=unread seq=1791742559540 tier=silent speaks=0 result=applied via=poll
+[    7.03 12:56:55Z] I (6938) FaceDisplay: agent ui: task=tsk_01M4P1CPBGK62W38JBVH9WA2P7 state=unread tier=when_idle flash=2 earcon=done
+[    7.03 12:56:55Z] I (6978) FaceDisplay: earcon=done
+[    7.03 12:56:55Z] I (6988) FaceDisplay: agent ui: task=tsk_01M4P2VBSWQZ6DV3PQZAYA3MMZ state=unread tier=silent flash=0 earcon=none
+[    7.24 12:56:55Z] I (7178) EspTcp: Resolved <IP> -> <IP>
+[    7.24 12:56:55Z] I (7198) HttpClient: Established new connection to <IP>:8003 protocol=http cost=20
+[    7.24 12:56:55Z] I (7218) WeixueAgent: agent: chats seq=1791809785482 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=poll
+[    7.44 12:56:55Z] I (7318) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[    7.44 12:56:55Z] I (7318) FaceDisplay: ring=off bedside=0
+[    7.44 12:56:55Z] I (7418) EspTcp: Resolved <IP> -> <IP>
+[    7.64 12:56:56Z] I (7568) FaceDisplay: ring=flash bedside=0
+[    8.06 12:56:56Z] I (7888) FaceDisplay: ring=off bedside=0
+[    8.26 12:56:56Z] I (8228) FaceDisplay: ring=dot bedside=0
+[    8.26 12:56:56Z] I (8228) HttpClient: Established new connection to <IP>:8003 protocol=http cost=810
+[    9.27 12:56:57Z] I (9258) WeixueAgent: agent: sync seq=1791809816749 listed=8 dropped=0 tasks=8 via=poll
+[    9.47 12:56:57Z] I (9458) EspTcp: Resolved <IP> -> <IP>
+[   10.29 12:56:58Z] I (10108) Application: Wake word detected: Jarvis (state: 3)
+[   10.29 12:56:58Z] I (10108) Application: Session start: wake_word
+[   10.29 12:56:58Z] I (10108) StateMachine: State: idle -> connecting
+[   10.29 12:56:58Z] I (10118) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   10.29 12:56:58Z] I (10118) wifi:Set ps type: 0, coexist: 0
+[   10.29 12:56:58Z] 
+[   10.29 12:56:58Z] I (10128) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[   10.29 12:56:58Z] I (10138) EspTcp: Resolved <IP> -> <IP>
+[   10.29 12:56:58Z] I (10138) HttpClient: Established new connection to <IP>:8003 protocol=http cost=680
+[   10.29 12:56:58Z] I (10188) FaceDisplay: mode=listening mood=neutral
+[   10.29 12:56:58Z] I (10188) WebSocket: WebSocket handshake done, cost=60 tcp=50 handshake=10
+[   10.29 12:56:58Z] I (10218) WS: Session ID: <uuid>
+[   10.29 12:56:58Z] I (10218) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   10.29 12:56:58Z] I (10218) wifi:Set ps type: 0, coexist: 0
+[   10.29 12:56:58Z] 
+[   10.29 12:56:58Z] W (10218) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[   10.29 12:56:58Z] I (10228) Application: Wake word detected: Jarvis
+[   10.49 12:56:58Z] I (10378) FaceDisplay: ring=pulse bedside=0
+[   10.49 12:56:58Z] I (10488) AfeAudioEngine: Encoded wake word into 33 packets in 377 ms
+[   10.69 12:56:59Z] I (10498) Application: Sent 5 packets captured after the wake word
+[   10.69 12:56:59Z] I (10498) StateMachine: State: connecting -> listening
+[   10.69 12:56:59Z] I (10548) WeixueAgent: agent: chat=cht_01M4NX1G4325ZJZQ64KWYPB6EP task=tsk_01M4NX1GBHDNE99RXNC7G3Q3KR state=unread seq=1791738248658 tier=when_idle speaks=0 result=duplicate via=push
+[   10.69 12:56:59Z] I (10558) WeixueAgent: agent: chat=cht_01M4NY6M4566RZ5A17EFACZRC4 task=tsk_01M4NY6M73MJ8F93G6832YG6XA state=unread seq=1791738248659 tier=silent speaks=0 result=duplicate via=push
+[   10.69 12:56:59Z] I (10558) FaceDisplay: agent ui: pose=full top=tsk_01M4P2VBSWQZ6DV3PQZAYA3MMZ
+[   10.89 12:56:59Z] I (10698) WeixueAgent: agent: chat=cht_01M4NYGAR64B9V2C99S34NVPVT task=tsk_01M4NYGAV5NRXJFJCWWEB8ZZ7A state=unread seq=1791738248660 tier=when_idle speaks=0 result=duplicate via=push
+[   10.89 12:56:59Z] W (10698) AudioService: Encode queue is full, dropping oldest frame (dropped 1 so far)
+[   10.89 12:56:59Z] I (10698) WeixueAgent: agent: chat=cht_01M4NYKTB9KJXDR270MWMMNV0D task=tsk_01M4NYKTP4GNAE7S9SPF4VA8MB state=unread seq=1791738248661 tier=when_idle speaks=0 result=duplicate via=push
+[   10.89 12:56:59Z] I (10778) WeixueAgent: agent: chat=cht_01M4NYQ1CSN2ZM7ZW36N8YR59P task=tsk_01M4NYQ1FFMX0DR0Q4KGV7390T state=unread seq=1791738286631 tier=when_idle speaks=0 result=duplicate via=push
+[   10.89 12:56:59Z] I (10788) WeixueAgent: agent: chat=cht_01M4P0KKQM6FKAWKPNCHKKXNVR task=tsk_01M4P0KKTPDFM4J76QWYMNW1ZD state=unread seq=1791740215552 tier=when_idle speaks=0 result=duplicate via=push
+[   10.89 12:56:59Z] I (10808) WeixueAgent: agent: chat=cht_01M4P1CP4W5E52PDSYYP9HYYGN task=tsk_01M4P1CPBGK62W38JBVH9WA2P7 state=unread seq=1791741051738 tier=when_idle speaks=0 result=duplicate via=push
+[   10.89 12:56:59Z] I (10818) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4P2VBSWQZ6DV3PQZAYA3MMZ state=unread seq=1791742559540 tier=silent speaks=0 result=duplicate via=push
+[   10.89 12:56:59Z] I (10838) WeixueAgent: agent: chats seq=1791809785482 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=duplicate via=push
+[   10.89 12:56:59Z] I (10868) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 110 ms without a sample (4)
+[   11.09 12:56:59Z] I (10898) WeixueAgent: agent: sync seq=1791809818615 listed=8 dropped=0 tasks=8 via=push
+[   11.30 12:56:59Z] I (11108) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":5,"kind":"shown","ack_upto":1791809818615,"via":"tap"}}
+[   11.30 12:56:59Z] I (11118) WeixueAgent: agent ack sent: shown upto 1791809818615 (attempt 1)
+[   11.30 12:56:59Z] I (11228) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (1)
+[   13.76 12:57:02Z] I (13588) Application: >> Jarvis, what time is it?
+[   13.76 12:57:02Z] I (13588) StateMachine: State: listening -> speaking
+[   13.76 12:57:02Z] I (13588) FaceDisplay: mode=thinking mood=neutral
+[   13.76 12:57:02Z] I (13588) FaceDisplay: ring=spin bedside=0
+[   14.17 12:57:02Z] I (14098) WeixueAgent: agent: chats seq=1791809822510 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   14.17 12:57:02Z] I (14128) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   14.37 12:57:02Z] I (14338) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":6,"kind":"shown","ack_upto":1791809822510,"via":"tap"}}
+[   14.37 12:57:02Z] I (14338) WeixueAgent: agent ack sent: shown upto 1791809822510 (attempt 1)
+[   15.38 12:57:03Z] I (15378) FaceDisplay: mode=thinking mood=happy
+[   16.82 12:57:05Z] I (16658) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R3079R96JBC60TY7PHYMBA state=unread seq=1791809824948 tier=silent speaks=0 result=applied via=push
+[   16.82 12:57:05Z] I (16658) Application: << It's almost two in the afternoon
+[   16.82 12:57:05Z] I (16668) FaceDisplay: agent ui: task=tsk_01M4R3079R96JBC60TY7PHYMBA state=unread tier=silent flash=0 earcon=none
+[   16.82 12:57:05Z] I (16678) FaceDisplay: mode=speaking mood=happy
+[   16.82 12:57:05Z] I (16688) FaceDisplay: ring=level bedside=0
+[   17.02 12:57:05Z] I (16948) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":7,"kind":"shown","ack_upto":1791809824948,"via":"tap"}}
+[   17.02 12:57:05Z] I (16948) WeixueAgent: agent ack sent: shown upto 1791809824948 (attempt 1)
+[   17.23 12:57:05Z] I (17168) WeixueAgent: agent: chats seq=1791809825575 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   17.23 12:57:05Z] I (17188) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   17.43 12:57:05Z] I (17388) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":8,"kind":"shown","ack_upto":1791809825575,"via":"tap"}}
+[   17.43 12:57:05Z] I (17398) WeixueAgent: agent ack sent: shown upto 1791809825575 (attempt 1)
+[   18.66 12:57:07Z] I (18478) Application: << Monday the twelfth of October
+[   20.89 12:57:09Z] I (20808) StateMachine: State: speaking -> listening
+[   20.89 12:57:09Z] I (20838) FaceDisplay: mode=listening mood=neutral
+[   20.89 12:57:09Z] I (20848) FaceDisplay: ring=pulse bedside=0
+[   25.37 12:57:13Z] I (25188) Application: >> 在这个下降通道里面 , 那整体的一个
+[   25.37 12:57:13Z] I (25198) StateMachine: State: listening -> speaking
+[   25.37 12:57:13Z] I (25208) FaceDisplay: mode=thinking mood=neutral
+[   25.37 12:57:13Z] I (25208) FaceDisplay: ring=spin bedside=0
+[   25.78 12:57:14Z] I (25698) WeixueAgent: agent: chats seq=1791809834111 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   25.78 12:57:14Z] I (25728) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   25.98 12:57:14Z] I (25928) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":9,"kind":"shown","ack_upto":1791809834111,"via":"tap"}}
+[   25.98 12:57:14Z] I (25938) WeixueAgent: agent ack sent: shown upto 1791809834111 (attempt 1)
+[   26.80 12:57:15Z] I (26698) FaceDisplay: mode=thinking mood=happy
+[   26.80 12:57:15Z] I (26768) Application: << 你的话好像没说完
+[   26.80 12:57:15Z] I (26778) FaceDisplay: mode=speaking mood=happy
+[   26.80 12:57:15Z] I (26778) FaceDisplay: ring=level bedside=0
+[   28.42 12:57:16Z] I (28258) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R30JM8177P8HNH6D6EQVE4 state=unread seq=1791809836548 tier=silent speaks=0 result=applied via=push
+[   28.42 12:57:16Z] I (28288) FaceDisplay: agent ui: task=tsk_01M4R30JM8177P8HNH6D6EQVE4 state=unread tier=silent flash=0 earcon=none
+[   28.63 12:57:17Z] I (28498) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":10,"kind":"shown","ack_upto":1791809836548,"via":"tap"}}
+[   28.63 12:57:17Z] I (28498) WeixueAgent: agent ack sent: shown upto 1791809836548 (attempt 1)
+[   28.83 12:57:17Z] I (28648) WeixueAgent: agent: chats seq=1791809837050 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   28.83 12:57:17Z] I (28668) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   29.04 12:57:17Z] I (28868) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":11,"kind":"shown","ack_upto":1791809837050,"via":"tap"}}
+[   29.04 12:57:17Z] I (28878) WeixueAgent: agent ack sent: shown upto 1791809837050 (attempt 1)
+[   29.24 12:57:17Z] I (29058) Application: << 我只听到"在这个下降通道里面,那整体的一个
+[   33.93 12:57:22Z] I (33788) Application: << 你是想问股票或行情走势,还是别的事情?
+[   34.74 12:57:23Z] I (34598) SystemInfo: free sram: 100535 minimal sram: 33468
+[   38.83 12:57:27Z] I (38628) StateMachine: State: speaking -> listening
+[   38.83 12:57:27Z] I (38638) FaceDisplay: mode=listening mood=neutral
+[   38.83 12:57:27Z] I (38638) FaceDisplay: ring=pulse bedside=0
+[   46.80 12:57:35Z] I (46648) WS: Websocket disconnected
+[   46.80 12:57:35Z] I (46648) Application: Audio channel closed: 640 packets sent, 0 dropped, oldest sent 341 ms after encoding
+[   46.80 12:57:35Z] I (46648) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[   46.80 12:57:35Z] I (46658) wifi:Set ps type: 2, coexist: 0
+[   46.80 12:57:35Z] 
+[   46.80 12:57:35Z] I (46658) StateMachine: State: listening -> idle
+[   46.80 12:57:35Z] I (46668) FaceDisplay: mode=idle mood=neutral
+[   46.81 12:57:35Z] I (46668) FaceDisplay: ring=dot bedside=0
+[   47.21 12:57:35Z] I (47178) EspTcp: Resolved <IP> -> <IP>
+[   47.83 12:57:36Z] I (47758) HttpClient: Established new connection to <IP>:8003 protocol=http cost=580
+[   48.30 12:57:36Z] ### idle wait: idle L371, ready after 31.5 s (settle 1.5 s)
+[   48.30 12:57:36Z] ### say: Jarvis, what time is it?
+[   48.44 12:57:36Z] I (48238) FaceDisplay: agent ui: pose=mini top=tsk_01M4R30JM8177P8HNH6D6EQVE4
+[   50.27 12:57:38Z] I (50158) Application: Wake word detected: Jarvis (state: 3)
+[   50.27 12:57:38Z] I (50158) Application: Session start: wake_word
+[   50.27 12:57:38Z] I (50158) StateMachine: State: idle -> connecting
+[   50.27 12:57:38Z] I (50168) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   50.27 12:57:38Z] I (50168) wifi:Set ps type: 0, coexist: 0
+[   50.27 12:57:38Z] 
+[   50.27 12:57:38Z] E (50178) EspTcp: TCP receive failed: -1
+[   50.27 12:57:38Z] I (50198) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[   50.27 12:57:38Z] I (50198) EspTcp: Resolved <IP> -> <IP>
+[   50.27 12:57:38Z] I (50238) FaceDisplay: mode=listening mood=neutral
+[   50.27 12:57:38Z] I (50238) FaceDisplay: ring=pulse bedside=0
+[   50.47 12:57:38Z] I (50328) WebSocket: WebSocket handshake done, cost=130 tcp=120 handshake=10
+[   50.47 12:57:38Z] I (50338) WS: Session ID: <uuid>
+[   50.47 12:57:38Z] I (50338) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   50.47 12:57:38Z] I (50338) wifi:Set ps type: 0, coexist: 0
+[   50.47 12:57:38Z] 
+[   50.47 12:57:38Z] W (50348) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[   50.47 12:57:38Z] I (50358) Application: Wake word detected: Jarvis
+[   50.68 12:57:39Z] I (50548) AfeAudioEngine: Encoded wake word into 33 packets in 386 ms
+[   50.68 12:57:39Z] I (50568) Application: Sent 5 packets captured after the wake word
+[   50.68 12:57:39Z] I (50568) StateMachine: State: connecting -> listening
+[   50.68 12:57:39Z] I (50618) WeixueAgent: agent: chat=cht_01M4NYGAR64B9V2C99S34NVPVT task=tsk_01M4NYGAV5NRXJFJCWWEB8ZZ7A state=unread seq=1791738248660 tier=when_idle speaks=0 result=duplicate via=push
+[   50.68 12:57:39Z] I (50628) WeixueAgent: agent: chat=cht_01M4NYKTB9KJXDR270MWMMNV0D task=tsk_01M4NYKTP4GNAE7S9SPF4VA8MB state=unread seq=1791738248661 tier=when_idle speaks=0 result=duplicate via=push
+[   50.68 12:57:39Z] I (50628) FaceDisplay: agent ui: pose=full top=tsk_01M4R30JM8177P8HNH6D6EQVE4
+[   50.88 12:57:39Z] I (50758) WeixueAgent: agent: chat=cht_01M4NYQ1CSN2ZM7ZW36N8YR59P task=tsk_01M4NYQ1FFMX0DR0Q4KGV7390T state=unread seq=1791738286631 tier=when_idle speaks=0 result=duplicate via=push
+[   50.88 12:57:39Z] I (50768) WeixueAgent: agent: chat=cht_01M4P0KKQM6FKAWKPNCHKKXNVR task=tsk_01M4P0KKTPDFM4J76QWYMNW1ZD state=unread seq=1791740215552 tier=when_idle speaks=0 result=duplicate via=push
+[   50.88 12:57:39Z] I (50838) WeixueAgent: agent: chat=cht_01M4P1CP4W5E52PDSYYP9HYYGN task=tsk_01M4P1CPBGK62W38JBVH9WA2P7 state=unread seq=1791741051738 tier=when_idle speaks=0 result=duplicate via=push
+[   50.88 12:57:39Z] I (50838) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4P2VBSWQZ6DV3PQZAYA3MMZ state=unread seq=1791742559540 tier=silent speaks=0 result=duplicate via=push
+[   50.88 12:57:39Z] I (50868) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R3079R96JBC60TY7PHYMBA state=unread seq=1791809824948 tier=silent speaks=0 result=duplicate via=push
+[   51.09 12:57:39Z] I (50878) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R30JM8177P8HNH6D6EQVE4 state=unread seq=1791809836548 tier=silent speaks=0 result=duplicate via=push
+[   51.09 12:57:39Z] I (50888) WeixueAgent: agent: chats seq=1791809837050 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=duplicate via=push
+[   51.09 12:57:39Z] I (50918) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (2)
+[   51.09 12:57:39Z] I (50958) WeixueAgent: agent: sync seq=1791809858756 listed=8 dropped=0 tasks=8 via=push
+[   51.29 12:57:39Z] I (51168) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":16,"kind":"shown","ack_upto":1791809858756,"via":"tap"}}
+[   51.29 12:57:39Z] I (51178) WeixueAgent: agent ack sent: shown upto 1791809858756 (attempt 1)
+[   52.11 12:57:40Z] I (52108) Application: >> What time is it?
+[   52.31 12:57:40Z] I (52118) StateMachine: State: listening -> speaking
+[   52.31 12:57:40Z] I (52128) FaceDisplay: mode=thinking mood=neutral
+[   52.31 12:57:40Z] I (52128) FaceDisplay: ring=spin bedside=0
+[   52.72 12:57:41Z] I (52628) WeixueAgent: agent: chats seq=1791809861038 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   52.72 12:57:41Z] I (52658) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   52.94 12:57:41Z] I (52868) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":17,"kind":"shown","ack_upto":1791809861038,"via":"tap"}}
+[   52.94 12:57:41Z] I (52868) WeixueAgent: agent ack sent: shown upto 1791809861038 (attempt 1)
+[   53.75 12:57:42Z] I (53608) FaceDisplay: mode=thinking mood=happy
+[   55.18 12:57:43Z] I (54998) Application: << It's one fifty-seven in the afternoon
+[   55.18 12:57:43Z] I (54998) FaceDisplay: mode=speaking mood=happy
+[   55.18 12:57:43Z] I (54998) FaceDisplay: ring=level bedside=0
+[   55.18 12:57:43Z] I (55158) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R31CXQE6RPS886Y240KRNR state=unread seq=1791809863418 tier=silent speaks=0 result=applied via=push
+[   55.38 12:57:43Z] I (55188) FaceDisplay: agent ui: task=tsk_01M4R31CXQE6RPS886Y240KRNR state=unread tier=silent flash=0 earcon=none
+[   55.58 12:57:43Z] I (55388) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":18,"kind":"shown","ack_upto":1791809863418,"via":"tap"}}
+[   55.58 12:57:43Z] I (55398) WeixueAgent: agent ack sent: shown upto 1791809863418 (attempt 1)
+[   55.79 12:57:44Z] I (55708) WeixueAgent: agent: chats seq=1791809864110 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   55.79 12:57:44Z] I (55748) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   55.99 12:57:44Z] I (55958) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":19,"kind":"shown","ack_upto":1791809864110,"via":"tap"}}
+[   55.99 12:57:44Z] I (55968) WeixueAgent: agent ack sent: shown upto 1791809864110 (attempt 1)
+[   57.63 12:57:46Z] I (57478) StateMachine: State: speaking -> listening
+[   57.63 12:57:46Z] I (57568) FaceDisplay: mode=listening mood=neutral
+[   57.63 12:57:46Z] I (57568) FaceDisplay: ring=pulse bedside=0
+[   65.58 12:57:53Z] I (65498) WS: Websocket disconnected
+[   65.58 12:57:53Z] I (65498) Application: Audio channel closed: 288 packets sent, 0 dropped, oldest sent 338 ms after encoding
+[   65.58 12:57:53Z] I (65508) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[   65.58 12:57:53Z] I (65518) wifi:Set ps type: 2, coexist: 0
+[   65.58 12:57:53Z] 
+[   65.58 12:57:53Z] I (65538) StateMachine: State: listening -> idle
+[   65.58 12:57:53Z] I (65548) FaceDisplay: mode=idle mood=neutral
+[   65.58 12:57:53Z] I (65548) FaceDisplay: ring=dot bedside=0
+[   67.08 12:57:55Z] ### idle wait: idle L442, ready after 11.9 s (settle 1.5 s)
+[   67.08 12:57:55Z] ### say: Jarvis, what time is it?
+[   67.21 12:57:55Z] I (67058) FaceDisplay: agent ui: pose=mini top=tsk_01M4R31CXQE6RPS886Y240KRNR
+[   69.04 12:57:57Z] I (68898) Application: Wake word detected: Jarvis (state: 3)
+[   69.04 12:57:57Z] I (68898) Application: Session start: wake_word
+[   69.04 12:57:57Z] I (68898) StateMachine: State: idle -> connecting
+[   69.04 12:57:57Z] I (68908) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   69.04 12:57:57Z] I (68908) wifi:Set ps type: 0, coexist: 0
+[   69.04 12:57:57Z] 
+[   69.04 12:57:57Z] E (68918) EspTcp: TCP receive failed: -1
+[   69.04 12:57:57Z] I (68938) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[   69.04 12:57:57Z] I (68938) EspTcp: Resolved <IP> -> <IP>
+[   69.04 12:57:57Z] I (68968) WebSocket: WebSocket handshake done, cost=30 tcp=10 handshake=20
+[   69.04 12:57:57Z] I (68998) WS: Session ID: <uuid>
+[   69.04 12:57:57Z] I (68998) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   69.04 12:57:57Z] I (68998) wifi:Set ps type: 0, coexist: 0
+[   69.04 12:57:57Z] 
+[   69.04 12:57:57Z] W (69008) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[   69.04 12:57:57Z] I (69018) Application: Wake word detected: Jarvis
+[   69.26 12:57:57Z] I (69068) FaceDisplay: mode=listening mood=neutral
+[   69.26 12:57:57Z] I (69078) FaceDisplay: ring=pulse bedside=0
+[   69.46 12:57:57Z] I (69278) AfeAudioEngine: Encoded wake word into 33 packets in 379 ms
+[   69.46 12:57:57Z] I (69288) Application: Sent 5 packets captured after the wake word
+[   69.46 12:57:57Z] I (69288) StateMachine: State: connecting -> listening
+[   69.46 12:57:57Z] I (69358) WeixueAgent: agent: chat=cht_01M4NYKTB9KJXDR270MWMMNV0D task=tsk_01M4NYKTP4GNAE7S9SPF4VA8MB state=unread seq=1791738248661 tier=when_idle speaks=0 result=duplicate via=push
+[   69.46 12:57:57Z] I (69358) WeixueAgent: agent: chat=cht_01M4NYQ1CSN2ZM7ZW36N8YR59P task=tsk_01M4NYQ1FFMX0DR0Q4KGV7390T state=unread seq=1791738286631 tier=when_idle speaks=0 result=duplicate via=push
+[   69.46 12:57:57Z] I (69368) FaceDisplay: agent ui: pose=full top=tsk_01M4R31CXQE6RPS886Y240KRNR
+[   69.67 12:57:58Z] I (69488) WeixueAgent: agent: chat=cht_01M4P0KKQM6FKAWKPNCHKKXNVR task=tsk_01M4P0KKTPDFM4J76QWYMNW1ZD state=unread seq=1791740215552 tier=when_idle speaks=0 result=duplicate via=push
+[   69.67 12:57:58Z] I (69498) WeixueAgent: agent: chat=cht_01M4P1CP4W5E52PDSYYP9HYYGN task=tsk_01M4P1CPBGK62W38JBVH9WA2P7 state=unread seq=1791741051738 tier=when_idle speaks=0 result=duplicate via=push
+[   69.67 12:57:58Z] I (69568) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4P2VBSWQZ6DV3PQZAYA3MMZ state=unread seq=1791742559540 tier=silent speaks=0 result=duplicate via=push
+[   69.67 12:57:58Z] I (69568) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R3079R96JBC60TY7PHYMBA state=unread seq=1791809824948 tier=silent speaks=0 result=duplicate via=push
+[   69.67 12:57:58Z] I (69588) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R30JM8177P8HNH6D6EQVE4 state=unread seq=1791809836548 tier=silent speaks=0 result=duplicate via=push
+[   69.67 12:57:58Z] I (69608) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R31CXQE6RPS886Y240KRNR state=unread seq=1791809863418 tier=silent speaks=0 result=duplicate via=push
+[   69.87 12:57:58Z] I (69678) WeixueAgent: agent: chats seq=1791809864110 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=duplicate via=push
+[   69.87 12:57:58Z] I (69678) WeixueAgent: agent: sync seq=1791809877396 listed=8 dropped=0 tasks=8 via=push
+[   70.07 12:57:58Z] I (69898) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":24,"kind":"shown","ack_upto":1791809877396,"via":"tap"}}
+[   70.07 12:57:58Z] I (69898) WeixueAgent: agent ack sent: shown upto 1791809877396 (attempt 1)
+[   70.89 12:57:59Z] I (70858) Application: >> What time is it?
+[   70.89 12:57:59Z] I (70858) StateMachine: State: listening -> speaking
+[   71.09 12:57:59Z] I (70898) FaceDisplay: mode=thinking mood=neutral
+[   71.09 12:57:59Z] I (70898) FaceDisplay: ring=spin bedside=0
+[   71.49 12:57:59Z] I (71368) WeixueAgent: agent: chats seq=1791809879784 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   71.49 12:57:59Z] I (71408) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   71.69 12:58:00Z] I (71608) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":25,"kind":"shown","ack_upto":1791809879784,"via":"tap"}}
+[   71.69 12:58:00Z] I (71618) WeixueAgent: agent ack sent: shown upto 1791809879784 (attempt 1)
+[   72.30 12:58:00Z] I (72158) FaceDisplay: mode=thinking mood=happy
+[   73.73 12:58:02Z] I (73598) Application: << It's still one fifty-seven in the afternoon
+[   73.74 12:58:02Z] I (73618) FaceDisplay: mode=speaking mood=happy
+[   73.74 12:58:02Z] I (73618) FaceDisplay: ring=level bedside=0
+[   73.74 12:58:02Z] I (73638) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R31Z7HGB3VSXH85BA87EAK state=unread seq=1791809882041 tier=silent speaks=0 result=applied via=push
+[   73.74 12:58:02Z] I (73708) FaceDisplay: agent ui: task=tsk_01M4R31Z7HGB3VSXH85BA87EAK state=unread tier=silent flash=0 earcon=none
+[   73.94 12:58:02Z] I (73908) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":26,"kind":"shown","ack_upto":1791809882041,"via":"tap"}}
+[   73.94 12:58:02Z] I (73918) WeixueAgent: agent ack sent: shown upto 1791809882041 (attempt 1)
+[   74.14 12:58:02Z] I (74118) WeixueAgent: agent: chats seq=1791809882524 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   74.14 12:58:02Z] I (74138) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   74.55 12:58:02Z] I (74348) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":27,"kind":"shown","ack_upto":1791809882524,"via":"tap"}}
+[   74.55 12:58:02Z] I (74348) WeixueAgent: agent ack sent: shown upto 1791809882524 (attempt 1)
+[   76.99 12:58:05Z] I (76798) StateMachine: State: speaking -> listening
+[   76.99 12:58:05Z] I (76828) FaceDisplay: mode=listening mood=neutral
+[   76.99 12:58:05Z] I (76828) FaceDisplay: ring=pulse bedside=0
+[   84.95 12:58:13Z] I (84828) WS: Websocket disconnected
+[   84.95 12:58:13Z] I (84828) Application: Audio channel closed: 298 packets sent, 0 dropped, oldest sent 324 ms after encoding
+[   84.95 12:58:13Z] I (84828) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[   84.95 12:58:13Z] I (84838) wifi:Set ps type: 2, coexist: 0
+[   84.95 12:58:13Z] 
+[   84.95 12:58:13Z] I (84868) StateMachine: State: listening -> idle
+[   84.95 12:58:13Z] I (84868) EspTcp: Resolved <IP> -> <IP>
+[   84.95 12:58:13Z] I (84868) HttpClient: Established new connection to <IP>:8003 protocol=http cost=0
+[   84.95 12:58:13Z] I (84888) FaceDisplay: mode=idle mood=neutral
+[   84.95 12:58:13Z] I (84888) FaceDisplay: ring=dot bedside=0
+[   86.45 12:58:14Z] ### idle wait: idle L510, ready after 12.7 s (settle 1.5 s)
+[   86.45 12:58:14Z] ### say: Jarvis, what time is it?
+[   86.59 12:58:14Z] I (86398) FaceDisplay: agent ui: pose=mini top=tsk_01M4R31Z7HGB3VSXH85BA87EAK
+[   87.80 12:58:16Z] I (87748) WaveshareEsp32s3TouchAMOLED1inch75: IMU sample counter re-read (3)
+[   88.41 12:58:16Z] I (88268) Application: Wake word detected: Jarvis (state: 3)
+[   88.41 12:58:16Z] I (88268) Application: Session start: wake_word
+[   88.41 12:58:16Z] I (88268) StateMachine: State: idle -> connecting
+[   88.42 12:58:16Z] I (88278) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   88.42 12:58:16Z] I (88278) wifi:Set ps type: 0, coexist: 0
+[   88.42 12:58:16Z] 
+[   88.42 12:58:16Z] E (88288) EspTcp: TCP receive failed: -1
+[   88.42 12:58:16Z] I (88288) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[   88.42 12:58:16Z] I (88298) EspTcp: Resolved <IP> -> <IP>
+[   88.42 12:58:16Z] I (88328) WebSocket: WebSocket handshake done, cost=30 tcp=30 handshake=0
+[   88.42 12:58:16Z] I (88358) WS: Session ID: <uuid>
+[   88.42 12:58:16Z] I (88358) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[   88.42 12:58:16Z] I (88358) wifi:Set ps type: 0, coexist: 0
+[   88.42 12:58:16Z] 
+[   88.42 12:58:16Z] W (88358) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[   88.42 12:58:16Z] I (88368) Application: Wake word detected: Jarvis
+[   88.62 12:58:17Z] I (88438) FaceDisplay: mode=listening mood=neutral
+[   88.62 12:58:17Z] I (88448) FaceDisplay: ring=pulse bedside=0
+[   88.82 12:58:17Z] I (88648) AfeAudioEngine: Encoded wake word into 33 packets in 380 ms
+[   88.82 12:58:17Z] I (88658) Application: Sent 5 packets captured after the wake word
+[   88.82 12:58:17Z] I (88658) StateMachine: State: connecting -> listening
+[   88.82 12:58:17Z] I (88718) WeixueAgent: agent: chat=cht_01M4NYQ1CSN2ZM7ZW36N8YR59P task=tsk_01M4NYQ1FFMX0DR0Q4KGV7390T state=unread seq=1791738286631 tier=when_idle speaks=0 result=duplicate via=push
+[   88.82 12:58:17Z] I (88718) WeixueAgent: agent: chat=cht_01M4P0KKQM6FKAWKPNCHKKXNVR task=tsk_01M4P0KKTPDFM4J76QWYMNW1ZD state=unread seq=1791740215552 tier=when_idle speaks=0 result=duplicate via=push
+[   88.82 12:58:17Z] I (88728) FaceDisplay: agent ui: pose=full top=tsk_01M4R31Z7HGB3VSXH85BA87EAK
+[   89.03 12:58:17Z] I (88858) WeixueAgent: agent: chat=cht_01M4P1CP4W5E52PDSYYP9HYYGN task=tsk_01M4P1CPBGK62W38JBVH9WA2P7 state=unread seq=1791741051738 tier=when_idle speaks=0 result=duplicate via=push
+[   89.03 12:58:17Z] W (88858) AudioService: Encode queue is full, dropping oldest frame (dropped 2 so far)
+[   89.03 12:58:17Z] I (88858) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4P2VBSWQZ6DV3PQZAYA3MMZ state=unread seq=1791742559540 tier=silent speaks=0 result=duplicate via=push
+[   89.03 12:58:17Z] I (88938) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R3079R96JBC60TY7PHYMBA state=unread seq=1791809824948 tier=silent speaks=0 result=duplicate via=push
+[   89.03 12:58:17Z] I (88948) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R30JM8177P8HNH6D6EQVE4 state=unread seq=1791809836548 tier=silent speaks=0 result=duplicate via=push
+[   89.03 12:58:17Z] I (88958) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R31CXQE6RPS886Y240KRNR state=unread seq=1791809863418 tier=silent speaks=0 result=duplicate via=push
+[   89.03 12:58:17Z] I (88978) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R31Z7HGB3VSXH85BA87EAK state=unread seq=1791809882041 tier=silent speaks=0 result=duplicate via=push
+[   89.23 12:58:17Z] I (89048) WeixueAgent: agent: chats seq=1791809882524 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=duplicate via=push
+[   89.23 12:58:17Z] I (89048) WeixueAgent: agent: sync seq=1791809896753 listed=8 dropped=0 tasks=8 via=push
+[   89.44 12:58:17Z] I (89268) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":32,"kind":"shown","ack_upto":1791809896753,"via":"tap"}}
+[   89.44 12:58:17Z] I (89278) WeixueAgent: agent ack sent: shown upto 1791809896753 (attempt 1)
+[   90.27 12:58:18Z] I (90158) Application: >> What time is it?
+[   90.27 12:58:18Z] I (90158) StateMachine: State: listening -> speaking
+[   90.27 12:58:18Z] I (90198) FaceDisplay: mode=thinking mood=neutral
+[   90.27 12:58:18Z] I (90198) FaceDisplay: ring=spin bedside=0
+[   90.88 12:58:19Z] I (90678) WeixueAgent: agent: chats seq=1791809899075 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   90.88 12:58:19Z] I (90708) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   91.08 12:58:19Z] I (90908) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":33,"kind":"shown","ack_upto":1791809899075,"via":"tap"}}
+[   91.08 12:58:19Z] I (90918) WeixueAgent: agent ack sent: shown upto 1791809899075 (attempt 1)
+[   91.28 12:58:19Z] I (91238) FaceDisplay: mode=thinking mood=happy
+[   92.71 12:58:21Z] I (92568) Application: << It's one fifty-eight in the afternoon
+[   92.71 12:58:21Z] I (92568) FaceDisplay: mode=speaking mood=happy
+[   92.71 12:58:21Z] I (92578) FaceDisplay: ring=level bedside=0
+[   92.71 12:58:21Z] I (92578) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R32J2DXVSB9BR80FMXEFCN state=unread seq=1791809900982 tier=silent speaks=0 result=applied via=push
+[   92.71 12:58:21Z] I (92658) FaceDisplay: agent ui: task=tsk_01M4R32J2DXVSB9BR80FMXEFCN state=unread tier=silent flash=0 earcon=none
+[   92.91 12:58:21Z] I (92858) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":34,"kind":"shown","ack_upto":1791809900982,"via":"tap"}}
+[   92.91 12:58:21Z] I (92868) WeixueAgent: agent ack sent: shown upto 1791809900982 (attempt 1)
+[   93.12 12:58:21Z] I (93058) WeixueAgent: agent: chats seq=1791809901465 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[   93.12 12:58:21Z] I (93098) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[   93.32 12:58:21Z] I (93298) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":35,"kind":"shown","ack_upto":1791809901465,"via":"tap"}}
+[   93.32 12:58:21Z] I (93308) WeixueAgent: agent ack sent: shown upto 1791809901465 (attempt 1)
+[   95.56 12:58:23Z] I (95378) StateMachine: State: speaking -> listening
+[   95.56 12:58:23Z] I (95408) FaceDisplay: mode=listening mood=neutral
+[   95.56 12:58:23Z] I (95408) FaceDisplay: ring=pulse bedside=0
+[  103.55 12:58:31Z] I (103368) WS: Websocket disconnected
+[  103.55 12:58:31Z] I (103368) Application: Audio channel closed: 283 packets sent, 0 dropped, oldest sent 336 ms after encoding
+[  103.55 12:58:31Z] I (103368) WifiStation: Setting WiFi power save level: LOW_POWER (MAX_MODEM)
+[  103.55 12:58:31Z] I (103378) wifi:Set ps type: 2, coexist: 0
+[  103.55 12:58:31Z] 
+[  103.55 12:58:31Z] I (103388) StateMachine: State: listening -> idle
+[  103.55 12:58:31Z] I (103398) FaceDisplay: mode=idle mood=neutral
+[  103.55 12:58:31Z] I (103398) FaceDisplay: ring=dot bedside=0
+[  105.06 12:58:33Z] ### idle wait: idle L582, ready after 12.3 s (settle 1.5 s)
+[  105.06 12:58:33Z] ### say: Jarvis, what time is it?
+[  105.19 12:58:33Z] I (105008) FaceDisplay: agent ui: pose=mini top=tsk_01M4R32J2DXVSB9BR80FMXEFCN
+[  107.02 12:58:35Z] I (106888) Application: Wake word detected: Jarvis (state: 3)
+[  107.02 12:58:35Z] I (106888) Application: Session start: wake_word
+[  107.02 12:58:35Z] I (106888) StateMachine: State: idle -> connecting
+[  107.02 12:58:35Z] I (106898) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[  107.02 12:58:35Z] I (106898) wifi:Set ps type: 0, coexist: 0
+[  107.02 12:58:35Z] 
+[  107.02 12:58:35Z] E (106908) EspTcp: TCP receive failed: -1
+[  107.02 12:58:35Z] I (106928) WS: Connecting to websocket server: ws://<IP>:8000/xiaozhi/v1/ with version: 1
+[  107.02 12:58:35Z] I (106928) EspTcp: Resolved <IP> -> <IP>
+[  107.02 12:58:35Z] I (106958) WebSocket: WebSocket handshake done, cost=30 tcp=20 handshake=10
+[  107.02 12:58:35Z] I (106978) FaceDisplay: mode=listening mood=neutral
+[  107.02 12:58:35Z] I (106998) WS: Session ID: <uuid>
+[  107.02 12:58:35Z] I (106998) WifiStation: Setting WiFi power save level: PERFORMANCE (NONE)
+[  107.02 12:58:35Z] I (106998) wifi:Set ps type: 0, coexist: 0
+[  107.02 12:58:35Z] 
+[  107.02 12:58:35Z] W (106998) Application: Server sample rate 16000 does not match device output sample rate 24000, resampling may cause distortion
+[  107.02 12:58:35Z] I (107018) Application: Wake word detected: Jarvis
+[  107.42 12:58:35Z] I (107238) AfeAudioEngine: Encoded wake word into 33 packets in 344 ms
+[  107.42 12:58:35Z] I (107238) FaceDisplay: ring=pulse bedside=0
+[  107.42 12:58:35Z] I (107238) Application: Sent 5 packets captured after the wake word
+[  107.42 12:58:35Z] I (107238) StateMachine: State: connecting -> listening
+[  107.42 12:58:35Z] I (107318) WeixueAgent: agent: chat=cht_01M4P0KKQM6FKAWKPNCHKKXNVR task=tsk_01M4P0KKTPDFM4J76QWYMNW1ZD state=unread seq=1791740215552 tier=when_idle speaks=0 result=duplicate via=push
+[  107.42 12:58:35Z] I (107328) WeixueAgent: agent: chat=cht_01M4P1CP4W5E52PDSYYP9HYYGN task=tsk_01M4P1CPBGK62W38JBVH9WA2P7 state=unread seq=1791741051738 tier=when_idle speaks=0 result=duplicate via=push
+[  107.42 12:58:35Z] I (107328) FaceDisplay: agent ui: pose=full top=tsk_01M4R32J2DXVSB9BR80FMXEFCN
+[  107.63 12:58:36Z] I (107458) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4P2VBSWQZ6DV3PQZAYA3MMZ state=unread seq=1791742559540 tier=silent speaks=0 result=duplicate via=push
+[  107.63 12:58:36Z] W (107458) AudioService: Encode queue is full, dropping oldest frame (dropped 3 so far)
+[  107.63 12:58:36Z] I (107468) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R3079R96JBC60TY7PHYMBA state=unread seq=1791809824948 tier=silent speaks=0 result=duplicate via=push
+[  107.63 12:58:36Z] I (107498) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R30JM8177P8HNH6D6EQVE4 state=unread seq=1791809836548 tier=silent speaks=0 result=duplicate via=push
+[  107.63 12:58:36Z] I (107508) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R31CXQE6RPS886Y240KRNR state=unread seq=1791809863418 tier=silent speaks=0 result=duplicate via=push
+[  107.63 12:58:36Z] I (107518) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R31Z7HGB3VSXH85BA87EAK state=unread seq=1791809882041 tier=silent speaks=0 result=duplicate via=push
+[  107.63 12:58:36Z] I (107548) WeixueAgent: agent: chat=cht_01M4NGJ62D74JRKM2KXEWSVJ8W task=tsk_01M4R32J2DXVSB9BR80FMXEFCN state=unread seq=1791809900982 tier=silent speaks=0 result=duplicate via=push
+[  107.63 12:58:36Z] I (107548) WeixueAgent: agent: chats seq=1791809901465 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=duplicate via=push
+[  107.63 12:58:36Z] I (107568) WeixueAgent: agent: sync seq=1791809915384 listed=8 dropped=0 tasks=8 via=push
+[  107.63 12:58:36Z] I (107608) WaveshareEsp32s3TouchAMOLED1inch75: IMU resync after 158 ms without a sample (5)
+[  107.83 12:58:36Z] I (107778) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":39,"kind":"shown","ack_upto":1791809915384,"via":"tap"}}
+[  107.83 12:58:36Z] I (107788) WeixueAgent: agent ack sent: shown upto 1791809915384 (attempt 1)
+[  108.85 12:58:37Z] I (108758) Application: >> What time is it?
+[  108.85 12:58:37Z] I (108758) StateMachine: State: listening -> speaking
+[  108.85 12:58:37Z] I (108758) FaceDisplay: mode=thinking mood=neutral
+[  108.85 12:58:37Z] I (108758) FaceDisplay: ring=spin bedside=0
+[  109.26 12:58:37Z] I (109268) WeixueAgent: agent: chats seq=1791809917679 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W n=8 result=applied via=push
+[  109.47 12:58:37Z] I (109278) FaceDisplay: agent ui: chats=8 current=cht_01M4NGJ62D74JRKM2KXEWSVJ8W header=Jarvis. Jarvis.
+[  109.67 12:58:38Z] I (109488) Application: Device event sent (audio channel): {"jsonrpc":"2.0","method":"notifications/weixue/agent_response","params":{"v":1,"boot":451652428,"seq":40,"kind":"shown","ack_upto":1791809917679,"via":"tap"}}
+[  109.67 12:58:38Z] I (109488) WeixueAgent: agent ack sent: shown upto 1791809917679 (attempt 1)
+[  110.08 12:58:38Z] I (109938) FaceDisplay: mode=thinking mood=happy
+[  111.50 12:58:39Z] I (111498) Application: << It's still one fifty-eight in the afternoon
+[  111.50 12:58:39Z] I (111498) FaceDisplay: mode=speaking mood=happy
+[  111.50 12:58:39Z] I (111498) FaceDisplay: ring=level bedside=0
+[  111.50 12:58:39Z] ### result one_breath: pass 5/5 pass 5; t1 pass: heard 'Jarvis, what time is it?' L316, reply L326; t2 pass: heard 'What time is it?' L414, reply L423; t3 pass: heard 'What time is it?' L482, reply L491; t4 pass: heard 'What time is it?' L554, reply L563; t5 pass: heard 'What time is it?' L624, reply L633
