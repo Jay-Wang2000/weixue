@@ -82,6 +82,8 @@ class ChatIndex:
 
     def mark_read(self, chat_id: str) -> None:
         chat = self.store.chat(chat_id)
+        if chat is None:
+            return
         self.store.update("chats", "chat_id", chat_id, {"last_read_seq": chat["activity_seq"]})
         self._changed(chat["device_id"])
 

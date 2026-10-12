@@ -12,7 +12,8 @@ retried until the service answers. Speech plays only after agent-service recorde
 card decisions are receipted after agent-service answered them. Hand-offs, card decisions, wire
 seqs and unsent acks are kept in a state file across restarts. Open cards are reconciled against
 agent-service task state after the restore, on every stream reconnect and before every seq-0 or
-session snapshot."""
+session snapshot. A result played whole or tapped is mirrored seen; speech of a card that was
+decided or replaced is withdrawn unless it started playing."""
 import asyncio
 import json
 import os
@@ -70,6 +71,7 @@ SPEECH_FINAL = ("played", "cut_off", "lost", "dropped", "deferred", "stale", "un
 # Speech states after which the hand-off was made: the delivery is never spoken again.
 HANDED_OFF = ("handed_off", "played", "cut_off", "lost")
 OPEN_CARD_STATES = ("needs_approval", "needs_input")
+RESULT_STATES = wire.TERMINAL + ("unread",)
 STATE_KEEP = 256
 # Per GET /v1/tasks/{id} of a reconcile; the requests run concurrently.
 RECONCILE_SECONDS = 2
@@ -152,6 +154,9 @@ class Speech:
     ended_at: Optional[float] = None
     played: Optional[dict] = None
     spoken_acked: bool = False
+    # Wire state of the spoken item, and its card_id when it is an open card.
+    item_state: Optional[str] = None
+    card_id: Optional[str] = None
 
 
 def _ended(latest, payload):
@@ -160,6 +165,12 @@ def _ended(latest, payload):
         return False
     done = lambda state: state in wire.TERMINAL or state == "unread"
     return done(latest.payload.get("state")) and not done(payload.get("state"))
+
+
+def _card_replaced(latest, payload):
+    """Whether payload takes the place of latest's open card (another state or another card)."""
+    return latest.get("state") in OPEN_CARD_STATES and (
+        payload.get("state") != latest.get("state") or payload.get("card_id") != latest.get("card_id"))
 
 
 def _eviction_victim(mirror):
@@ -557,6 +568,8 @@ class AgentGateway:
             del dev.mirror[old_task]
             self._log(f"agent mirror full: {old_task} no longer mirrored for device={device_id}")
         if latest is None or seq > latest.seq:
+            if latest is not None and _card_replaced(latest.payload, payload):
+                self._withdraw_card_speech(device_id, latest.payload["card_id"], f"card replaced by {payload['state']}")
             dev.mirror[task] = entry
         dev.outgoing.append(entry)
         if not delivery_id.startswith("fx_"):
@@ -575,7 +588,13 @@ class AgentGateway:
     def drop(self, device_id, task_ids):
         """Removes tasks from the device's mirror; the next poll or session carries a snapshot."""
         dev = self.device(device_id)
-        dropped = [t for t in task_ids if dev.mirror.pop(t, None) is not None]
+        dropped = []
+        for t in task_ids:
+            entry = dev.mirror.pop(t, None)
+            if entry is not None:
+                dropped.append(t)
+                if entry.payload.get("state") in OPEN_CARD_STATES:
+                    self._withdraw_card_speech(device_id, entry.payload.get("card_id"), "task dropped")
         dev.outgoing = [e for e in dev.outgoing if e.raw or e.payload.get("task_id") not in task_ids]
         if dropped:
             dev.snapshot_due = True
@@ -973,6 +992,8 @@ class AgentGateway:
                 self._record_decision(device_id, card, event)
         forward = self.sink.response(device_id, event)
         if event["kind"] == "ack_seen" and latest is not None:
+            if latest.payload.get("state") in RESULT_STATES:
+                latest.payload["seen"] = True
             self.sink.ack(latest.delivery_id, latest.lease_id, "user_ack", device_id, seq=latest.seq)
         if forward is not None and event["kind"] in wire.CARD_KINDS:
             self.decisions_in_flight[card] = (event["kind"], event["boot"], event["seq"])
@@ -990,6 +1011,7 @@ class AgentGateway:
         while len(self.card_decisions) > DEDUP_KEEP:
             self.card_decisions.popitem(last=False)
         self._save()
+        self._withdraw_card_speech(device_id, event["card_id"], f"card decided ({event['kind']})")
 
     async def _finish_decision(self, conn, device_id, event, card, forward, receipt):
         """Receipt of an approve / deny / answer once agent-service answered: accepted when it
@@ -1045,7 +1067,8 @@ class AgentGateway:
         speech = Speech(
             id=uuid.uuid4().hex[:16], device=device_id, delivery_id=entry.delivery_id, lease_id=entry.lease_id,
             task_id=payload["task_id"], text=text, urgent=payload["delivery"] == "interrupt", ttl=SPEECH_TTL_SECONDS,
-            attempt=attempt,
+            attempt=attempt, item_state=payload["state"],
+            card_id=payload.get("card_id") if payload["state"] in OPEN_CARD_STATES else None,
         )
         self.speeches[speech.id] = speech
         while len(self.speeches) > ACK_VIEW:
@@ -1183,6 +1206,42 @@ class AgentGateway:
         self._spoken(speech)
         self._speech_final(speech, outcome, sentence_id=event["sentence_id"], boot=event["boot"],
                            device_seq=event["seq"], cut_at_ms=event.get("cut_at_ms"), reason=event.get("reason"))
+        if outcome == "played" and speech.item_state in RESULT_STATES:
+            self._mark_seen(device_id, speech.task_id)
+
+    def _mark_seen(self, device_id, task_id):
+        """The device played a result whole: its mirrored result item goes again with seen:true."""
+        dev = self.devices.get(device_id)
+        entry = dev.mirror.get(task_id) if dev is not None else None
+        if entry is None or entry.payload.get("state") not in RESULT_STATES or entry.payload.get("seen"):
+            return None
+        fields = {k: v for k, v in entry.payload.items() if k not in ("kind", "v", "seq", "ts")}
+        fields.update(seen=True, delivery="silent", speaks=False)
+        item = Entry(payload=wire.build_item(fields, self._next_seq(dev), int(self.wall() * 1000)),
+                     delivery_id=entry.delivery_id, gseq=entry.gseq, born=entry.born)
+        dev.mirror[task_id] = item
+        dev.outgoing.append(item)
+        if item.delivery_id and not item.delivery_id.startswith(("fx_", "gw_")):
+            self.wire_seqs[item.delivery_id] = item.seq
+            self._save()
+        self._log(f"agent item seen device={device_id} task={task_id} state={item.payload['state']} seq={item.seq} "
+                  f"delivery={item.delivery_id}: played")
+        self._dispatch(device_id, dev, [item])
+        return item
+
+    def _withdraw_card_speech(self, device_id, card_id, why):
+        """Speech of a decided or replaced card that has not started playing is withdrawn from the
+        proactive queue and acked dropped."""
+        if not card_id:
+            return
+        for speech in list(self.speeches.values()):
+            if speech.device != device_id or speech.card_id != card_id or speech.state in SPEECH_FINAL:
+                continue
+            msg = self.proactive.messages.get(speech.proactive_id) if speech.proactive_id else None
+            if msg is not None and not self.proactive.withdraw(msg.id, why):
+                continue
+            self._log(f"agent speech {speech.id} delivery={speech.delivery_id} card={card_id} withdrawn: {why}")
+            self._speech_final(speech, "dropped", detail=why)
 
     def on_interrupted(self, conn):
         """An INTERRUPT item stops the session's playback: the agent sentence playing on it is cut
@@ -1365,6 +1424,7 @@ class AgentGateway:
     def _replace_card(self, device_id, dev, entry, state, summary):
         """Mirrors and queues the task's state in place of its open card."""
         p = entry.payload
+        self._withdraw_card_speech(device_id, p.get("card_id"), f"card closed in agent-service ({state})")
         fields = {"chat_id": p["chat_id"], "task_id": p["task_id"], "state": state, "summary": summary or "",
                   "lang": p.get("lang"), "delivery": "silent"}
         if p.get("title"):

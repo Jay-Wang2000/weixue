@@ -740,6 +740,42 @@ void TestResults() {
     Check(!done.model.Face(20).show, "done clears the complication");
 }
 
+// Decision 84: a result the device played whole comes again with seen:true and is read without a
+// tap; after a reboot the snapshot's seen:true copy stays read.
+void TestSpokenResultRead() {
+    Rig r;
+    Item spoken = MakeItem("u", State::kUnread, Tier::kWhenIdle, "c_kitchen");
+    spoken.speaks = true;
+    r.Apply(spoken, 0);
+    int more = 0;
+    Check(r.model.Ring(2000, 0).count == 1 && r.model.Rows(2000, 3, &more).size() == 1,
+          "spoken result before its played ack: dot and row");
+    Item played = spoken;
+    played.seq = ++g_seq;
+    played.tier = Tier::kSilent;
+    played.speaks = false;
+    played.seen = true;
+    auto arrivals = r.Apply(played, 5000);
+    Check(arrivals.empty(), "seen copy: no arrival, earcon or flash");
+    Check(!r.model.Face(5100).show && r.model.Ring(5100, 0).count == 0, "seen copy: complication and dot removed");
+    Check(r.model.Rows(5100, 3, &more).empty() && more == 0, "seen copy: no task row");
+    Check(r.model.Chats(5100)[0].chip.empty(), "seen copy: no Unread chip on its chat");
+
+    Rig boot;
+    Item snapshot = played;
+    snapshot.seq = ++g_seq;
+    Check(boot.Apply(snapshot, 0).empty(), "after a reboot: the snapshot's seen copy makes no arrival");
+    boot.store.Sync({"u"}, ++g_seq);
+    boot.model.SetTasks(boot.store.tasks(), 10, "09:41");
+    Check(boot.store.Find("u") != nullptr && boot.store.Find("u")->seen, "after a reboot: kept and seen");
+    Check(!boot.model.Face(100).show && boot.model.Ring(2000, 0).count == 0 && boot.model.Rows(2000, 3, &more).empty(),
+          "after a reboot: no complication, dot or row");
+
+    Rig unspoken;
+    unspoken.Apply(MakeItem("n", State::kUnread, Tier::kSilent), 0);
+    Check(unspoken.model.Ring(2000, 0).count == 1, "a result never spoken keeps the dot until tapped");
+}
+
 void TestPriority() {
     Rig r;
     r.Apply(MakeItem("w", State::kWorking), 0);
@@ -1098,6 +1134,7 @@ int main() {
     TestQuestion();
     TestDiagCard();
     TestResults();
+    TestSpokenResultRead();
     TestPriority();
     TestChats();
     TestRingArcs();

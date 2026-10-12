@@ -1375,6 +1375,7 @@ class Engine:
             self.emit(run.chat_id, "text", {"delta": final_text}, run.trace_id, task_id=run.task_id, turn_id=run.turn_id)
             run.reply.spoken_any = True
         spoken_inline = self.reply_open(run)
+        heard = spoken_inline and run.reply.voice and run.reply.spoken_any
         if run.stop_reason == "steer" or any((self.store.turn(t) or {}).get("task_id") == task["task_id"]
                                              for t in actor.queue):
             self.chats.add_note(run.chat_id, "note",
@@ -1394,7 +1395,7 @@ class Engine:
             self.end_reply(run.chat_id, run.turn_id, run.reply, "turn_done", run.trace_id, run.task_id)
         speak = None if spoken_inline else (final_text or None)
         await self.finish_task(task["task_id"], "done", summary_text=final_text, speak=speak, turn_id=run.turn_id,
-                               spoken_inline=spoken_inline)
+                               spoken_inline=spoken_inline, seen=heard)
 
     async def _turn_failed(self, run: TurnRun, code: str, message: str, recorded: bool = False) -> None:
         if not recorded:
@@ -1409,12 +1410,14 @@ class Engine:
             self.end_reply(run.chat_id, run.turn_id, run.reply, "turn_done", run.trace_id, run.task_id)
         if run.task_id:
             await self.finish_task(run.task_id, "failed", error={"code": code, "message": jsonlog.truncate(message, 300)},
-                                   speak=None if inline else speak, turn_id=run.turn_id, spoken_inline=inline)
+                                   speak=None if inline else speak, turn_id=run.turn_id, spoken_inline=inline,
+                                   seen=inline and run.reply.voice)
 
     async def finish_task(self, task_id: str, state: str, error: Optional[Dict[str, str]] = None,
                           speak: Optional[str] = None, reason: Optional[str] = None, outcome: Optional[str] = None,
                           summary_text: Optional[str] = None, turn_id: Optional[str] = None,
-                          spoken_inline: bool = False, unread: bool = True) -> None:
+                          spoken_inline: bool = False, unread: bool = True, seen: bool = False) -> None:
+        """Ends the task and queues its result card; seen: the result was heard on the device in the turn's reply."""
         task = self.store.task(task_id)
         if task is None or task["state"] in TERMINAL_STATES:
             return
@@ -1441,10 +1444,13 @@ class Engine:
         self.emit(task["chat_id"], state, data, task["trace_id"], task_id=task_id, turn_id=turn_id)
         self.chats.set_summary(task["chat_id"], summary)
         self.chats.touch(task["chat_id"])
+        if seen:
+            self.chats.mark_read(task["chat_id"])
         options = None
         if state == "failed":
             options = [{"id": "retry", "label": "Retry"}] if retry_allowed else [{"id": "check", "label": "Check state"}]
-        payload = agent_payload(task, state, unread=unread, side_effects=effects, options=options)
+        payload = agent_payload(task, state, unread=unread, side_effects=effects, options=options,
+                                seen=True if seen else None)
         if state == "cancelled" or spoken_inline or not speak:
             self.outbox.enqueue(task["device_id"], "agent", "SILENT", f"task:{task_id}", payload, task_id=task_id,
                                 chat_id=task["chat_id"], turn_id=turn_id, lang=task["lang"])

@@ -3,7 +3,7 @@
 
 async def test_chat_list_switch_back_resolve_and_read(make):
     h = await make()
-    first = await h.send_json("Kitchen lights tonight")
+    first = await h.send_json("Kitchen lights tonight", origin="api")
     await h.idle(first["chat_id"])
     created = (await h.http.post("/v1/chats", json={"device_id": "sim-device-01"},
                                  headers={"Idempotency-Key": "c-1"})).json()

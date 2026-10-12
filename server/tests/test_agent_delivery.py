@@ -543,6 +543,107 @@ async def test_played_complete_cut_and_lost():
     assert gw.speeches[rec3["speech_id"]].state == "lost" and gw.sink.acks[-1]["outcome"] == "lost"
 
 
+def played(gw, sentence_id, seq, complete=True, **extra):
+    gw.on_device_event(Conn(), wad.PLAYED_METHOD, {"v": 1, "boot": 1, "seq": seq, "sentence_id": sentence_id,
+                                                   "complete": complete, **extra})
+
+
+def spoken(proactive, gw, task, state="unread", sentence_id="s-1", **extra):
+    rec = gw.submit(DEVICE, card(task, state, delivery="when_idle", speaks=True, **extra), speech="Spoken.")
+    msg = tagged_message(proactive, rec["speech_id"])
+    msg.agent["sentence_id"] = sentence_id
+    return rec, msg
+
+
+async def test_a_result_played_whole_goes_again_seen_and_stays_seen_in_the_boot_snapshot():
+    """Decision 84: spoken means read."""
+    proactive, gw = make()
+    rec, _ = spoken(proactive, gw, "t1")
+    first = gw.devices[DEVICE].mirror["t1"]
+    played(gw, "s-1", 1)
+    item = gw.devices[DEVICE].mirror["t1"]
+    assert item is not first and item.seq > first.seq and item.delivery_id == rec["delivery_id"]
+    assert item.payload["seen"] is True and item.payload["delivery"] == "silent" and item.payload["speaks"] is False
+    assert item.payload["state"] == "unread" and item.payload["summary"] == first.payload["summary"]
+    assert [a["outcome"] for a in gw.sink.acks] == ["accepted", "spoken", "played"]
+    applied, _, _ = snapshot_walk(gw)
+    assert [p["seen"] for p in applied if p.get("task_id") == "t1"] == [True]
+
+
+@pytest.mark.parametrize("ending", ["cut_off", "lost"])
+async def test_a_result_not_played_whole_stays_unseen(ending):
+    clock = Clock()
+    proactive, gw = make(clock)
+    _, msg = spoken(proactive, gw, "t1")
+    if ending == "cut_off":
+        played(gw, "s-1", 1, complete=False, cut_at_ms=900, reason="wake")
+    else:
+        gw.on_tts("s-1", "stop")
+        msg.status = "delivered"
+        clock.t += wad.LOST_SECONDS
+        gw._track_speech()
+    assert gw.sink.acks[-1]["outcome"] == ending
+    assert gw.devices[DEVICE].mirror["t1"].payload["seen"] is False
+
+
+async def test_a_played_approval_card_is_not_marked_seen():
+    proactive, gw = make()
+    spoken(proactive, gw, "t1", "needs_approval", card_id="i1", options=APPROVAL)
+    before = gw.devices[DEVICE].mirror["t1"]
+    played(gw, "s-1", 1)
+    assert gw.devices[DEVICE].mirror["t1"] is before and "seen" not in before.payload
+
+
+async def test_ack_seen_marks_the_mirrored_result_seen():
+    _, gw = make()
+    gw.submit(DEVICE, card("t1", "failed"))
+    gw.on_device_event(Conn(), wad.RESPONSE_METHOD, response(1, "ack_seen", chat_id="c1", task_id="t1"))
+    assert gw.devices[DEVICE].mirror["t1"].payload["seen"] is True
+    applied, _, _ = snapshot_walk(gw)
+    assert [p["seen"] for p in applied if p.get("task_id") == "t1"] == [True]
+
+
+async def test_a_seen_result_from_the_service_snapshot_or_stream_is_mirrored_seen():
+    _, gw = make()
+    offer = {"kind": "agent", "delivery_id": "dlv_1", "lease_id": "L", "tier": "SILENT", "gseq": 3,
+             "payload": {"task_id": "t1", "chat_id": "c1", "state": "done", "summary": "Done.", "seen": True}}
+    gw.offer(DEVICE, offer)
+    payload = gw.devices[DEVICE].mirror["t1"].payload
+    assert payload["state"] == "unread" and payload["seen"] is True
+
+
+@pytest.mark.parametrize("close", ["decided", "replaced", "reconciled"])
+async def test_handed_off_card_speech_is_withdrawn_once_the_card_closes(close):
+    """Finding 76: an approval's WHEN_IDLE speech must not play after the card is decided."""
+    proactive, gw = make()
+    rec, msg = spoken(proactive, gw, "t1", "needs_approval", card_id="i1", options=APPROVAL)
+    assert msg.status == "queued"
+    if close == "decided":
+        gw.on_device_event(Conn(), wad.RESPONSE_METHOD,
+                           response(1, "approve", chat_id="c1", task_id="t1", card_id="i1"))
+    elif close == "replaced":
+        gw.submit(DEVICE, card("t1", "working"))
+    else:
+        gw._replace_card(DEVICE, gw.devices[DEVICE], gw.devices[DEVICE].mirror["t1"], "done", "Done.")
+    assert msg.status == "expired" and msg.error.startswith("card ")
+    assert proactive.next_for(DEVICE) is None, "nothing left to play"
+    speech = gw.speeches[rec["speech_id"]]
+    assert speech.state == "dropped" and gw.sink.acks[-1]["outcome"] == "dropped"
+    assert rec["delivery_id"] not in gw.handoffs
+
+
+async def test_card_speech_that_started_playing_is_not_withdrawn():
+    proactive, gw = make()
+    rec, msg = spoken(proactive, gw, "t1", "needs_approval", card_id="i1", options=APPROVAL)
+    msg.status = "delivering"
+    gw.submit(DEVICE, card("t1", "working"))
+    assert msg.status == "delivering" and gw.speeches[rec["speech_id"]].state == "handed_off"
+    other, other_msg = spoken(proactive, gw, "t2", "needs_approval", card_id="i2", options=APPROVAL,
+                              sentence_id="s-2")
+    gw.submit(DEVICE, card("t2", "needs_approval", card_id="i2", options=APPROVAL, delivery="interrupt"))
+    assert other_msg.status == "queued", "the same card raised to another tier keeps its speech"
+
+
 async def test_failed_speech_before_audio_is_left_to_the_service_to_offer_again():
     proactive, gw = make()
     rec = gw.submit(DEVICE, card("t1", "unread", speaks=True), speech="Again.")

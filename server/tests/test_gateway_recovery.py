@@ -878,3 +878,41 @@ async def test_the_restore_never_reopens_a_task_that_ended():
     assert await gw.restore(DEVICE)
     assert gw.devices[DEVICE].mirror["tsk_b"].delivery_id == "dlv_end"
     assert not [g for g in service.gets if g.startswith("/v1/tasks/")]
+
+
+# Decision 84 (spoken means read) and the closed card's speech (finding 76)
+
+
+async def test_a_played_result_posts_played_and_goes_to_the_device_seen():
+    service = Service()
+    proactive, gw = gateway(service)
+    rec = gw.offer(DEVICE, spoken_offer())
+    speech = gw.speeches[rec["speech_id"]]
+    assert await wait_for(lambda: speech.state == "handed_off", 1)
+    proactive.messages[speech.proactive_id].agent["sentence_id"] = "s-1"
+    conn = Conn()
+    gw.on_agent_session(DEVICE, conn)
+    gw.on_device_event(conn, wad.PLAYED_METHOD, {"v": 1, "boot": 1, "seq": 1, "sentence_id": "s-1", "complete": True})
+    await settle()
+    assert await wait_for(lambda: ("dlv_s1", "played") in service.acks("dlv_s1"), 1)
+    items = [p for p in conn.websocket.payloads() if p.get("task_id") == "tsk_1"]
+    assert items[-1]["seen"] is True and items[-1]["state"] == "unread" and items[-1]["delivery"] == "silent"
+    assert gw.wire_seqs["dlv_s1"] == items[-1]["seq"], "a restored copy keeps the seq the device applied"
+
+
+async def test_an_approval_speech_handed_off_is_withdrawn_when_the_decision_is_accepted():
+    service = Service()
+    proactive, gw = gateway(service)
+    offer = dict(spoken_offer(task="t1"), chat_id="cht_1",
+                 payload={"state": "needs_approval", "summary": "Plug on?", "interaction": {"interaction_id": "int_1",
+                                                                                             "action": {}}})
+    rec = gw.offer(DEVICE, offer)
+    speech = gw.speeches[rec["speech_id"]]
+    assert await wait_for(lambda: speech.state == "handed_off", 1)
+    msg = proactive.messages[speech.proactive_id]
+    conn = Conn()
+    gw.on_device_event(conn, wad.RESPONSE_METHOD, approve(1))
+    assert await wait_for(lambda: receipts(conn), 1)
+    assert receipts(conn)[-1]["result"] == "accepted"
+    assert msg.status == "expired" and speech.state == "dropped"
+    assert await wait_for(lambda: ("dlv_s1", "dropped") in service.acks("dlv_s1"), 1)
