@@ -141,7 +141,7 @@ $SSH $SRV 'cd /home/jay/weixue/server && docker compose stop'
    ```
    `LAN_IP` there stays the Mac's own address (audio_session.sh home-mode check).
 7. Voice check (home mode): `scripts/audio_session.sh --no-flash -- --items one_breath --count 5`.
-8. Monitor: `ssh -L 8020:127.0.0.1:8020 $SRV`, then `http://127.0.0.1:8020/`.
+8. Monitor: `http://192.168.8.125:8020/?token=<MONITOR_TOKEN>` with `MONITOR_BIND=192.168.8.125`, else `ssh -L 8020:127.0.0.1:8020 $SRV` and `http://127.0.0.1:8020/?token=<MONITOR_TOKEN>` (docs/agent-monitor.md).
 
 ## Rollback
 

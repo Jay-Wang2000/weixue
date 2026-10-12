@@ -873,14 +873,15 @@ def test_first_monitor_deploy_rolls_back_without_it(setup_tree):
     assert "agent-monitor" in state["removed"] and "previous version is not ready" not in result.stdout
 
 
-def test_monitor_is_bound_to_localhost_only():
+def test_monitor_binds_localhost_unless_monitor_bind_is_set():
     services = yaml.safe_load((SERVER_DIR / "docker-compose.yml").read_text())["services"]
     monitor = services["agent-monitor"]
-    assert monitor["ports"] == ["127.0.0.1:8020:8020"]
+    assert monitor["ports"] == ["${MONITOR_BIND:-127.0.0.1}:8020:8020"]
+    assert "MONITOR_FRAME_ANCESTORS=${MONITOR_FRAME_ANCESTORS:-}" in monitor["environment"]
     assert "env_file" not in monitor and "network_mode" not in monitor
     assert {e.split("=", 1)[0] for e in monitor["environment"]} == {
         "AGENT_SERVICE_URL", "MONITOR_TOKEN", "GATEWAY_URL", "MCP_ENDPOINT", "AGENT_HA_PROBE_S",
-        "MONITOR_HOME", "TZ"}
+        "MONITOR_HOME", "MONITOR_FRAME_ANCESTORS", "TZ"}
     assert "MONITOR_HOME=${MONITOR_HOME:-1}" in monitor["environment"]
     agent = services["agent-service"]["environment"]
     assert "AGENT_HOME_SNAPSHOT_S=${AGENT_HOME_SNAPSHOT_S:-300}" in agent and "AGENT_HOME_ENTITIES=${AGENT_HOME_ENTITIES:-}" in agent

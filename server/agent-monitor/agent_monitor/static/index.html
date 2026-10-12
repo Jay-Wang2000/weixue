@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-embed="0">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>weixue monitor</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="/static/app.css">
@@ -10,35 +11,52 @@
 </head>
 <body>
 <header class="top">
-  <div class="brand"><span class="mark"></span>weixue <span class="dim">agent monitor</span></div>
-  <div class="meta"><span id="clock">--:--</span> <span id="live" class="pill pill-unknown">connecting</span></div>
+  <div class="wrap">
+    <div class="brand chrome">weixue <span>monitor</span></div>
+    <div class="verdict" aria-live="polite">
+      <span id="v-glyph" class="g g-off" aria-hidden="true"></span>
+      <b id="v-word">Connecting</b>
+      <span id="v-why" class="why"></span>
+    </div>
+    <span id="live" class="live"><i aria-hidden="true"></i><span id="live-text">connecting</span></span>
+    <span id="clock" class="clock chrome"></span>
+    <div class="theme chrome" role="group" aria-label="Theme">
+      <button type="button" data-t="auto">Auto</button><button type="button" data-t="light">Light</button><button type="button" data-t="dark">Dark</button>
+    </div>
+  </div>
 </header>
-<div id="banner" class="banner" hidden></div>
-<section id="tiles" class="tiles" aria-label="Connections"></section>
-<main class="grid">
-  <section class="card" id="mcp-card"><h2>MCP</h2><div id="mcp" class="body"></div></section>
-  <section class="card" id="summary-card"><h2>Today</h2><div id="summary" class="body"></div></section>
-  <section class="card span2" id="timeline-card">
-    <h2>Timeline</h2>
-    <form id="filters" class="filters">
-      <label>Chat <select id="f-chat"><option value="">all</option></select></label>
-      <label>State <select id="f-state">
-        <option value="">all</option><option value="open">open</option><option value="done">done</option>
-        <option value="failed">failed</option><option value="cancelled">cancelled</option>
-      </select></label>
-      <label>Tool kind <select id="f-kind">
-        <option value="">all</option><option value="ha">ha</option><option value="app">app</option>
-        <option value="memory">memory</option><option value="server">server</option>
-      </select></label>
-    </form>
-    <div id="timeline" class="body"></div>
-    <button id="older" class="more" type="button" hidden>Older</button>
-  </section>
-  <section class="card span2" id="cost-card"><h2>Cost</h2><div id="cost" class="body"></div></section>
-  <section class="card" id="home-card" hidden><h2>Home</h2><div id="home" class="body"></div></section>
-  <section class="card" id="chats-card"><h2>Chats</h2><div id="chats" class="body"></div></section>
-  <section class="card" id="errors-card"><h2>Errors</h2><div id="errors" class="body"></div></section>
-</main>
-<footer class="foot dim">Read-only. Times in <span id="tzname">Europe/Dublin</span>.</footer>
+
+<div class="wrap">
+  <div id="banner" class="banner" role="alert" hidden></div>
+  <section id="held" class="heldcard" aria-label="Held HA call" hidden></section>
+  <section id="context" class="context" aria-label="Context"></section>
+  <section id="away" class="away" aria-label="Since you last looked"></section>
+
+  <div class="layout">
+    <main>
+      <div class="filters">
+        <label class="search" role="search">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+          <input id="q" type="search" placeholder="Search what you said…" aria-label="Search what you said" maxlength="100" autocomplete="off">
+        </label>
+        <div id="seg" class="seg" role="group" aria-label="Show"></div>
+        <select id="f-chat" class="sel hide-ph" aria-label="Chat"><option value="">All chats</option></select>
+        <span class="grow"></span>
+        <button id="newpill" class="newpill" type="button" hidden></button>
+        <label class="hide-ph"><input id="lifecycle" type="checkbox" class="chk"> Lifecycle events</label>
+      </div>
+      <div id="linked"></div>
+      <div id="feed"><p class="empty">Loading…</p></div>
+      <button id="older" class="older" type="button" hidden>Older</button>
+    </main>
+    <aside class="rail">
+      <section id="r-chats" aria-label="Chats"></section>
+      <section id="r-problems" aria-label="Problems"></section>
+      <section id="r-home" aria-label="Home"></section>
+    </aside>
+  </div>
+
+  <footer class="chrome">Read-only: decide held calls on the device panel or in Home Assistant. Times in <span id="tzname">Europe/Dublin</span>. Model and mode are shown only when a task differs from the usual.</footer>
+</div>
 </body>
 </html>

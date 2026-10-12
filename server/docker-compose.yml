@@ -109,9 +109,10 @@ services:
       - MCP_ENDPOINT=mcp-endpoint-server:8004
       - AGENT_HA_PROBE_S=${AGENT_HA_PROBE_S:-10}
       - MONITOR_HOME=${MONITOR_HOME:-1}
+      - MONITOR_FRAME_ANCESTORS=${MONITOR_FRAME_ANCESTORS:-}
       - TZ=${TZ:-UTC}
     ports:
-      - "127.0.0.1:8020:8020"
+      - "${MONITOR_BIND:-127.0.0.1}:8020:8020"
     # rw so a mode=ro WAL reader can open agent.db-shm after a clean writer shutdown (docs/agent-monitor.md).
     volumes:
       - ./data/agent-service/db:/db

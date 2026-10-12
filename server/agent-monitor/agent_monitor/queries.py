@@ -7,6 +7,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence
 from zoneinfo import ZoneInfo
 
 from .db import ReadOnlyDb
+from .severity import FOLD_GAP_S, severity
 
 TEXT_MAX = 120
 MESSAGE_MAX = 200
@@ -14,9 +15,14 @@ TIMELINE_MAX = 200
 RETENTION_DAYS = 30
 OPEN_STATES = ("done", "failed", "cancelled")
 HELD_APPROVAL_STATES = ("in_flight", "pending", "awaiting_decision_after_wait")
+VOICE_TURN_KINDS = ("user", "steer")
+SEARCH_MAX = 100
+PROBLEM_ROWS_MAX = 5000
+PROBLEM_WINDOWS_MAX = 50
+PULSE_MAX = 1000
 
 TASK_COLS = ("task_id", "chat_id", "device_id", "state", "title", "summary", "outcome", "mode", "result_tier",
-             "retry_of", "side_effects_json", "created_at", "updated_at", "finished_at", "cost_usd")
+             "retry_of", "side_effects_json", "trace_id", "created_at", "updated_at", "finished_at", "cost_usd")
 TURN_COLS = ("turn_id", "task_id", "chat_id", "kind", "state", "routed", "mode", "model", "terminal_reason",
              "reply_end_reason", "interrupted_by", "ttft_ms", "cost_usd", "created_at", "started_at", "ended_at",
              "reply_end_at")
@@ -42,6 +48,7 @@ ERROR_COLS = ("id", "ts", "source", "code", "message", "task_id", "chat_id", "tr
 APPROVAL_COLS = ("approval_id", "task_id", "chat_id", "tool", "state", "decision", "via", "ha_expires_at",
                  "created_at")
 PROBE_COLS = ("id", "ts", "probe", "ok", "latency_ms", "detail_json")
+PROBE_HISTORY_COLS = ("id", "ts", "probe", "ok", "latency_ms")
 CONNECTION_COLS = ("id", "ts", "device_id", "kind", "detail_json")
 HOME_COLS = ("entity_id", "name", "state", "attributes_json", "last_changed", "updated_at")
 HOME_META_COLS = ("period_s", "attempted_at", "fetched_at", "entity_count", "error_code")
@@ -231,14 +238,53 @@ def _group(task: Dict[str, Any], children: Dict[str, Any]) -> Dict[str, Any]:
     return group
 
 
+_HA_TASKS = "task_id IN (SELECT task_id FROM tool_calls WHERE kind = 'ha')"
+_APPROVAL_TASKS = ("task_id IN (SELECT task_id FROM tool_calls WHERE approval_id IS NOT NULL "
+                   "OR approval_decision IS NOT NULL)")
+SEGMENTS = {"ha": (_HA_TASKS, []), "approvals": (_APPROVAL_TASKS, []), "failed": ("state = ?", ["failed"]),
+            "cancelled": ("state = ?", ["cancelled"])}
+
+
+def _like(value: str) -> str:
+    escaped = value[:SEARCH_MAX].replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
+def _search(q: str) -> tuple:
+    """Tasks whose title, user text or reply contains q (case-insensitive for ASCII)."""
+    pattern = _like(q)
+    return ("(title LIKE ? ESCAPE '\\' OR task_id IN (SELECT task_id FROM turns WHERE text LIKE ? ESCAPE '\\' "
+            "OR final_text LIKE ? ESCAPE '\\'))", [pattern, pattern, pattern])
+
+
+def segment_counts(db: ReadOnlyDb, where: List[str], params: List[Any]) -> Dict[str, int]:
+    sql = (f"SELECT COUNT(*) AS everything, COALESCE(SUM({_HA_TASKS}), 0) AS ha, "
+           f"COALESCE(SUM({_APPROVAL_TASKS}), 0) AS approvals, COALESCE(SUM(state = 'failed'), 0) AS failed, "
+           "COALESCE(SUM(state = 'cancelled'), 0) AS cancelled FROM tasks")
+    if where:
+        sql += " WHERE " + " AND ".join(where)
+    return db.one(sql, params)
+
+
 def timeline(db: ReadOnlyDb, chat: Optional[str] = None, state: Optional[str] = None, kind: Optional[str] = None,
-             before: Optional[str] = None, limit: int = 100) -> Dict[str, Any]:
-    """Tasks newest first with their turns, tool calls, transitions, interactions, deliveries and token totals."""
+             before: Optional[str] = None, limit: int = 100, q: Optional[str] = None,
+             segment: Optional[str] = None) -> Dict[str, Any]:
+    """Tasks newest first with their turns, tool calls, transitions, interactions, deliveries and token totals,
+    plus the task count of each segment under the chat and search filters."""
     limit = max(1, min(int(limit), TIMELINE_MAX))
     where, params = [], []
     if chat:
         where.append("chat_id = ?")
         params.append(chat)
+    if q and q.strip():
+        sql, args = _search(q.strip())
+        where.append(sql)
+        params.extend(args)
+    counts = segment_counts(db, where, params)
+    if segment in SEGMENTS:
+        sql, args = SEGMENTS[segment]
+        where.append(sql)
+        params.extend(args)
     if state:
         if state == "open":
             where.append(f"state NOT IN ({_marks(OPEN_STATES)})")
@@ -260,7 +306,7 @@ def timeline(db: ReadOnlyDb, chat: Optional[str] = None, state: Optional[str] = 
     tasks = tasks[:limit]
     children = _children(db, [t["task_id"] for t in tasks], kind)
     groups = [_group(t, children[t["task_id"]]) for t in tasks]
-    return {"groups": groups, "next_before": tasks[-1]["created_at"] if more and tasks else None}
+    return {"groups": groups, "next_before": tasks[-1]["created_at"] if more and tasks else None, "segments": counts}
 
 
 def task_detail(db: ReadOnlyDb, task_id: str) -> Optional[Dict[str, Any]]:
@@ -384,6 +430,134 @@ def errors(db: ReadOnlyDb, limit: int = 100) -> List[Dict[str, Any]]:
 
 def error_count(db: ReadOnlyDb, since: str) -> int:
     return db.scalar("SELECT COUNT(*) AS n FROM errors WHERE ts >= ?", (since,)) or 0
+
+
+def voice_turns(db: ReadOnlyDb, since: str) -> Dict[str, int]:
+    return db.one(f"SELECT COUNT(*) AS turns, COUNT(DISTINCT chat_id) AS chats FROM turns WHERE created_at >= ? "
+                  f"AND kind IN ({_marks(VOICE_TURN_KINDS)})", (since, *VOICE_TURN_KINDS))
+
+
+def last_decision(db: ReadOnlyDb) -> Optional[Dict[str, Any]]:
+    """The newest held call with a decision, and the title of its task."""
+    row = db.one("SELECT c.task_id, c.tool, c.target, c.approval_decision, c.decided_via, c.decided_at, t.title "
+                 "FROM tool_calls c LEFT JOIN tasks t ON t.task_id = c.task_id WHERE c.approval_decision IS NOT NULL "
+                 "ORDER BY COALESCE(c.decided_at, c.started_at) DESC LIMIT 1")
+    if row:
+        row["title"] = text(row["title"])
+    return row
+
+
+def _reason(message: Optional[str]) -> Optional[str]:
+    """The `reason` of a JSON error message, as an identifier."""
+    data = _json(message) if message and message.startswith("{") else None
+    reason = data.get("reason") if isinstance(data, dict) else None
+    return reason if isinstance(reason, str) and re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", reason) else None
+
+
+def problems(db: ReadOnlyDb, since: str) -> Dict[str, Any]:
+    """Error rows since `since` grouped by (source, code) with their severity, count, last task and the
+    occurrences folded into windows of rows at most FOLD_GAP_S apart."""
+    rows = db.query(f"SELECT {cols(ERROR_COLS)} FROM errors WHERE ts >= ? ORDER BY ts, id LIMIT ?",
+                    (since, PROBLEM_ROWS_MAX))
+    total = db.scalar("SELECT COUNT(*) AS n FROM errors WHERE ts >= ?", (since,)) or 0
+    groups: Dict[tuple, Dict[str, Any]] = {}
+    for row in rows:
+        k = (row["source"], row["code"])
+        group = groups.get(k)
+        if group is None:
+            group = groups[k] = {"source": row["source"], "code": row["code"],
+                                 "severity": severity(row["source"], row["code"]), "count": 0,
+                                 "first_ts": row["ts"], "last_ts": row["ts"], "task_id": None, "chat_id": None,
+                                 "message": None, "recovered": None, "windows": [], "reasons": {}}
+        group["count"] += 1
+        reason = _reason(row["message"])
+        if reason:
+            group["reasons"][reason] = group["reasons"].get(reason, 0) + 1
+        group["last_ts"] = row["ts"]
+        group["message"] = scrub(row["message"])
+        if row["task_id"]:
+            group["task_id"], group["chat_id"] = row["task_id"], row["chat_id"]
+        windows = group["windows"]
+        last = windows[-1] if windows else None
+        if last and (_parse(row["ts"]) - _parse(last["to"])).total_seconds() <= FOLD_GAP_S:
+            last["to"] = row["ts"]
+            last["count"] += 1
+        else:
+            last = {"from": row["ts"], "to": row["ts"], "count": 1, "task_ids": []}
+            windows.append(last)
+        if row["task_id"] and row["task_id"] not in last["task_ids"] and len(last["task_ids"]) < 5:
+            last["task_ids"].append(row["task_id"])
+    if ("home_snapshot" in {k[0] for k in groups}) and db.has_table("home_snapshot_meta"):
+        fetched = db.scalar("SELECT fetched_at FROM home_snapshot_meta WHERE id = 1")
+        for (source, _), group in groups.items():
+            if source == "home_snapshot":
+                group["recovered"] = bool(fetched and _parse(fetched) > _parse(group["last_ts"]))
+    for group in groups.values():
+        group["windows"] = group["windows"][-PROBLEM_WINDOWS_MAX:]
+        group["reasons"] = [{"reason": r, "count": n} for r, n in
+                            sorted(group["reasons"].items(), key=lambda kv: kv[1], reverse=True)[:3]]
+    failures = sorted((g for g in groups.values() if g["severity"] == "failure"), key=lambda g: g["last_ts"],
+                      reverse=True)
+    notices = sorted((g for g in groups.values() if g["severity"] == "notice"), key=lambda g: g["count"], reverse=True)
+    return {"since": since, "rows": total, "failures": sum(g["count"] for g in failures),
+            "notices": sum(g["count"] for g in notices), "groups": failures + notices}
+
+
+def since_summary(db: ReadOnlyDb, since: str) -> Dict[str, Any]:
+    """What happened since `since`: voice turns and chats, tasks by end state, HA writes, decided approvals,
+    cost and the problem groups."""
+    tasks = db.one(f"SELECT COUNT(*) AS tasks, COALESCE(SUM(state = 'failed'), 0) AS failed, "
+                   f"COALESCE(SUM(state = 'cancelled'), 0) AS cancelled, "
+                   f"COALESCE(SUM(state NOT IN ({_marks(OPEN_STATES)})), 0) AS open FROM tasks WHERE created_at >= ?",
+                   (*OPEN_STATES, since))
+    approvals = db.one("SELECT COUNT(*) AS decided, COALESCE(SUM(approval_decision = 'approve'), 0) AS approved, "
+                       "COALESCE(SUM(approval_decision = 'deny'), 0) AS denied FROM tool_calls "
+                       "WHERE approval_decision IS NOT NULL AND COALESCE(decided_at, started_at) >= ?", (since,))
+    ha_changes = db.scalar("SELECT COUNT(*) AS n FROM tool_calls WHERE kind = 'ha' AND read_only = 0 "
+                           "AND status = 'ok' AND started_at >= ?", (since,)) or 0
+    cost_usd = db.scalar("SELECT COALESCE(SUM(cost_usd), 0) AS c FROM usage WHERE ts >= ?", (since,)) or 0.0
+    found = problems(db, since)
+    return {"since": since, **voice_turns(db, since), **tasks, "ha_changes": ha_changes, "approvals": approvals,
+            "cost_usd": round(cost_usd, 6), "failures": found["failures"], "notices": found["notices"],
+            "problems": [{k: g[k] for k in ("source", "code", "severity", "count", "last_ts", "recovered")}
+                         for g in found["groups"]]}
+
+
+def pulse(db: ReadOnlyDb, since: str) -> List[Dict[str, Any]]:
+    """One tick per task created since `since` (ok, cancel, held, bad, run) and one per failure row
+    without a task."""
+    rows = db.query(f"SELECT task_id, state, created_at, {_APPROVAL_TASKS} AS held FROM tasks WHERE created_at >= ? "
+                    "ORDER BY created_at LIMIT ?", (since, PULSE_MAX))
+    ticks = []
+    for row in rows:
+        if row["state"] == "failed":
+            kind = "bad"
+        elif row["state"] == "cancelled":
+            kind = "cancel"
+        elif row["held"]:
+            kind = "held"
+        elif row["state"] not in OPEN_STATES:
+            kind = "run"
+        else:
+            kind = "ok"
+        ticks.append({"ts": row["created_at"], "kind": kind, "task_id": row["task_id"]})
+    for row in db.query("SELECT ts, source, code FROM errors WHERE ts >= ? AND task_id IS NULL ORDER BY ts LIMIT ?",
+                        (since, PULSE_MAX)):
+        if severity(row["source"], row["code"]) == "failure":
+            ticks.append({"ts": row["ts"], "kind": "bad", "task_id": None})
+    return sorted(ticks, key=lambda t: t["ts"])
+
+
+def probe_history(db: ReadOnlyDb, since: str) -> Dict[str, List[Dict[str, Any]]]:
+    """health_probes rows per probe since `since`, preceded by each probe's last row before it."""
+    before = db.query(f"SELECT {cols(PROBE_HISTORY_COLS)} FROM health_probes WHERE id IN "
+                      "(SELECT MAX(id) FROM health_probes WHERE ts < ? GROUP BY probe)", (since,))
+    rows = db.query(f"SELECT {cols(PROBE_HISTORY_COLS)} FROM health_probes WHERE ts >= ? ORDER BY probe, ts, id",
+                    (since,))
+    out: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for row in sorted(before, key=lambda r: r["probe"]) + rows:
+        out[row["probe"]].append({"ts": row["ts"], "ok": bool(row["ok"]), "latency_ms": row["latency_ms"]})
+    return dict(out)
 
 
 def open_tasks(db: ReadOnlyDb) -> int:
