@@ -1,0 +1,12 @@
+# setup.sh host-check dry run on jay-dev-ubuntu Linux x86_64, 2026-10-12T13:15:27+01:00; fake docker (exit 99), dummy .env values
+# interfaces: lo=127.0.0.1/8 wlp0s20f3=192.168.8.125/24 docker0=172.17.0.1/16 br-26d132cea942=172.18.0.1/16 
+# 'docker daemon is not running' = every host check passed and the first docker call was reached
+LAN_IP=192.168.8.125 | rc=1 env-unchanged | docker daemon is not running
+LAN_IP=192.168.8.220 (the Mac) | rc=1 env-unchanged | LAN_IP=192.168.8.220 is not an IPv4 address on this host's interfaces (docs/server.md, Network boundary)
+LAN_IP unset | rc=1 env-unchanged | server/.env must set LAN_IP (required: LAN_IP BIND_IP ALLOWED_DEVICES TZ TZ_OFFSET ANTHROPIC_API_KEY GOOGLE_SA_FILE HA_MCP_URL; see .env.example and docs/server.md)
+BIND_IP=192.168.8.125 | rc=1 env-unchanged | docker daemon is not running
+BIND_IP=10.9.9.9 | rc=1 env-unchanged | BIND_IP=10.9.9.9 is not 0.0.0.0, 127.0.0.1 or an IPv4 address on a local interface (docs/server.md)
+WG_TUNNEL=1 | rc=1 env-unchanged | WG_TUNNEL and the tunnel compose profile are not supported: remove them from server/.env (docs/server.md)
+COMPOSE_PROFILES=tunnel | rc=1 env-unchanged | WG_TUNNEL and the tunnel compose profile are not supported: remove them from server/.env (docs/server.md)
+COMPOSE_PROFILES=console | rc=1 env-unchanged | docker daemon is not running
+WEIXUE_SERVER_SSH=jay@192.168.8.125 | rc=1 env-unchanged | WEIXUE_SERVER_SSH is set: the stack runs on 192.168.8.125; run setup.sh there, or remove it from server/.env to deploy here (docs/server.md)

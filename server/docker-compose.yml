@@ -16,7 +16,7 @@ services:
       - TZ=${TZ:-UTC}
       - WEIXUE_TZ=${TZ:-}
       - WEIXUE_PROACTIVE_TOKEN=${WEIXUE_PROACTIVE_TOKEN:-}
-      - AGENT_SERVICE_URL=http://${AGENT_SERVICE_HOST:-agent-service}:8010
+      - AGENT_SERVICE_URL=http://agent-service:8010
       - AGENT_SERVICE_TOKEN=${AGENT_SERVICE_TOKEN:-}
       - MONITOR_TOKEN=${MONITOR_TOKEN:-}
       - WEIXUE_STT_CAPTURE=${WEIXUE_STT_CAPTURE:-0}
@@ -49,10 +49,8 @@ services:
       context: ./mcp-bridge
     container_name: mcp-bridge
     restart: unless-stopped
-    network_mode: ${WG_TUNNEL:+service:wg}
     environment:
       - HA_MCP_URL=${HA_MCP_URL:?set HA_MCP_URL in server/.env}
-      - TUNNEL_IFACE=${WG_TUNNEL:+wg0}
     volumes:
       - ./data/mcp-bridge/endpoint-url:/run/secrets/mcp-endpoint-url:ro
       - ./policy/voice_bridge.json:/app/policy/voice_bridge.json:ro
@@ -67,9 +65,6 @@ services:
     depends_on:
       mcp-endpoint-server:
         condition: service_started
-      wg:
-        condition: service_healthy
-        required: false
 
   agent-service:
     image: weixue/agent-service:local
@@ -79,7 +74,6 @@ services:
         hamcp: ./weixue_hamcp
     container_name: agent-service
     restart: unless-stopped
-    network_mode: ${WG_TUNNEL:+service:wg}
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - HA_MCP_URL=${HA_MCP_URL:?set HA_MCP_URL in server/.env}
@@ -101,10 +95,6 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 3
-    depends_on:
-      wg:
-        condition: service_healthy
-        required: false
 
   agent-monitor:
     image: weixue/agent-monitor:local
@@ -113,11 +103,10 @@ services:
     container_name: agent-monitor
     restart: unless-stopped
     environment:
-      - AGENT_SERVICE_URL=http://${AGENT_SERVICE_HOST:-agent-service}:8010
+      - AGENT_SERVICE_URL=http://agent-service:8010
       - MONITOR_TOKEN=${MONITOR_TOKEN:-}
       - GATEWAY_URL=http://xiaozhi-esp32-server:8003
       - MCP_ENDPOINT=mcp-endpoint-server:8004
-      - WG_TUNNEL=${WG_TUNNEL:-}
       - AGENT_HA_PROBE_S=${AGENT_HA_PROBE_S:-10}
       - MONITOR_HOME=${MONITOR_HOME:-1}
       - TZ=${TZ:-UTC}
@@ -138,33 +127,6 @@ services:
       agent-service:
         condition: service_started
 
-  wg:
-    profiles: [tunnel]
-    image: weixue/wg:local
-    build:
-      context: ./wg
-    container_name: wg
-    restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
-    tmpfs:
-      - /run/wireguard:mode=0700
-    volumes:
-      - type: bind
-        source: ./.secrets/wg0.conf
-        target: /etc/wireguard/wg0.conf
-        read_only: true
-        bind:
-          create_host_path: false
-    healthcheck:
-      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
-      interval: 15s
-      timeout: 5s
-      start_period: 60s
-      start_interval: 5s
-      retries: 3
 
   xiaozhi-esp32-server-web:
     profiles: [console]

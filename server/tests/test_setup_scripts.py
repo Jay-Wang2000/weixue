@@ -137,7 +137,7 @@ def test_claude_agent_with_function_call_is_reported(tmp_path):
 
 def test_agent_service_env_reaches_the_server_and_the_switch_is_documented():
     environment = yaml.safe_load((SERVER_DIR / "docker-compose.yml").read_text())["services"]["xiaozhi-esp32-server"]["environment"]
-    assert {"AGENT_SERVICE_URL=http://${AGENT_SERVICE_HOST:-agent-service}:8010",
+    assert {"AGENT_SERVICE_URL=http://agent-service:8010",
             "AGENT_SERVICE_TOKEN=${AGENT_SERVICE_TOKEN:-}"} <= set(environment)
     assert "VOICE_LLM=anthropic" in (SERVER_DIR / ".env.example").read_text().splitlines()
 
@@ -370,7 +370,13 @@ FAKE_IP = """#!/bin/sh
 echo '1: lo    inet 127.0.0.1/8 scope host lo\\       valid_lft forever preferred_lft forever'
 echo '2: eth0    inet 10.9.8.7/24 brd 10.9.8.255 scope global eth0\\       valid_lft forever preferred_lft forever'
 echo '2: eth0    inet 10.9.8.50/24 brd 10.9.8.255 scope global secondary eth0:1\\       valid_lft forever preferred_lft forever'
-echo '5: wg0    inet 10.8.0.2 peer 10.8.0.1/32 scope global wg0\\       valid_lft forever preferred_lft forever'
+echo '5: tun0    inet 10.8.0.2 peer 10.8.0.1/32 scope global tun0\\       valid_lft forever preferred_lft forever'
+"""
+
+FAKE_IFCONFIG = """#!/bin/sh
+printf 'lo0: flags=8049<UP,LOOPBACK,RUNNING,MULTICAST> mtu 16384\\n\\tinet 127.0.0.1 netmask 0xff000000\\n'
+printf 'en0: flags=8863<UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST> mtu 1500\\n\\tinet6 fe80::1%%en0 prefixlen 64\\n'
+printf '\\tinet 10.9.8.7 netmask 0xffffff00 broadcast 10.9.8.255\\n'
 """
 
 OLD_CONFIG = "old: config\n"
@@ -386,7 +392,7 @@ def setup_tree(tmp_path):
     (server / "scripts" / "check_ready.py").write_text(READY_STUB)
     sa = tmp_path / "sa.json"
     sa.write_text("{}")
-    env_file = {**ENV, "GOOGLE_SA_FILE": str(sa)}
+    env_file = {**ENV, "LAN_IP": "10.9.8.7", "GOOGLE_SA_FILE": str(sa)}
     env_file.pop("MCP_ENDPOINT")
     (server / ".env").write_text("".join(f"{k}={v}\n" for k, v in env_file.items()))
     model = server / "data" / "models" / "SenseVoiceSmall" / "model.pt"
@@ -561,6 +567,67 @@ def test_preflight_bind_ip_per_system(setup_tree, system, bind_ip, accepted):
         expected = "on macOS use 0.0.0.0 or 127.0.0.1" if system == "Darwin" else "is not 0.0.0.0, 127.0.0.1 or an IPv4 address on a local interface"
         assert f"BIND_IP={bind_ip}" in result.stdout and expected in result.stdout
         assert state["log"] == []
+
+
+@pytest.mark.parametrize("lan_ip, accepted", [
+    ("10.9.8.7", True), ("10.9.8.50", True), ("10.8.0.2", True),
+    ("192.168.1.10", False), ("10.9.8.70", False), ("10.9.8.7/24", False),
+])
+def test_preflight_lan_ip_must_be_an_address_of_this_host(setup_tree, lan_ip, accepted):
+    server, run = setup_tree
+    run.set_env(LAN_IP=lan_ip)
+    result, state = run(FAKE_UNAME="Linux")
+    if accepted:
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert f"OTA: http://{lan_ip}:8003/xiaozhi/ota/" in result.stdout
+    else:
+        assert result.returncode == 1
+        assert f"LAN_IP={lan_ip} is not an IPv4 address on this host's interfaces" in result.stdout
+        assert state["log"] == []
+
+
+@pytest.mark.parametrize("lan_ip, accepted", [("10.9.8.7", True), ("10.9.8.8", False)])
+def test_preflight_lan_ip_from_ifconfig_without_ip(setup_tree, lan_ip, accepted):
+    server, run = setup_tree
+    bin_dir = server.parent.parent / "bin"
+    (bin_dir / "ip").unlink()
+    if shutil.which("ip", path=os.environ["PATH"]):
+        pytest.skip("a system ip command shadows the ifconfig path")
+    (bin_dir / "ifconfig").write_text(FAKE_IFCONFIG)
+    (bin_dir / "ifconfig").chmod(0o755)
+    run.set_env(LAN_IP=lan_ip)
+    result, state = run(FAKE_UNAME="Darwin")
+    assert (result.returncode == 0) is accepted, result.stdout + result.stderr
+    if not accepted:
+        assert f"LAN_IP={lan_ip} is not an IPv4 address on this host's interfaces" in result.stdout
+        assert state["log"] == []
+
+
+@pytest.mark.parametrize("values, message", [
+    ({"WG_TUNNEL": "1"}, "WG_TUNNEL and the tunnel compose profile are not supported"),
+    ({"WG_TUNNEL": "0"}, "WG_TUNNEL and the tunnel compose profile are not supported"),
+    ({"COMPOSE_PROFILES": "console,tunnel"}, "WG_TUNNEL and the tunnel compose profile are not supported"),
+    ({"WEIXUE_SERVER_SSH": "jay@192.0.2.5"}, "WEIXUE_SERVER_SSH is set: the stack runs on 192.0.2.5"),
+])
+def test_preflight_refuses_tunnel_settings_and_a_remote_stack(setup_tree, values, message):
+    server, run = setup_tree
+    run.set_env(**values)
+    env_before = (server / ".env").read_text()
+    result, state = run()
+    assert result.returncode == 1 and message in result.stdout
+    assert state["log"] == [] and (server / ".env").read_text() == env_before
+
+
+def test_console_profile_is_kept_and_no_service_needs_a_tunnel():
+    services = yaml.safe_load((SERVER_DIR / "docker-compose.yml").read_text())["services"]
+    assert "wg" not in services and not (SERVER_DIR / "wg").exists()
+    profiles = {p for svc in services.values() for p in svc.get("profiles", [])}
+    assert profiles == {"console"}
+    for name, svc in services.items():
+        assert "network_mode" not in svc, name
+        assert "wg" not in (svc.get("depends_on") or {}), name
+        assert not any("WG_TUNNEL" in e or "TUNNEL_IFACE" in e for e in svc.get("environment", [])), name
+    assert "AGENT_SERVICE_URL=http://agent-service:8010" in services["xiaozhi-esp32-server"]["environment"]
 
 
 def test_success_snapshots_env_and_rollback_restores_it(setup_tree):
@@ -775,18 +842,6 @@ def test_first_agent_service_deploy_rolls_back_without_it(setup_tree):
     assert "previous version is not ready" not in result.stdout
 
 
-@pytest.mark.parametrize("tunnel, host", [("", None), ("1", "wg")])
-def test_agent_service_host_follows_the_tunnel_mode(setup_tree, tunnel, host):
-    server, run = setup_tree
-    if tunnel:
-        (server / ".secrets").mkdir()
-        (server / ".secrets" / "wg0.conf").write_text("[Interface]\n")
-        os.chmod(server / ".secrets" / "wg0.conf", 0o600)
-    run.set_env(WG_TUNNEL=tunnel or None)
-    result, _ = run()
-    assert result.returncode == 0, result.stdout + result.stderr
-    hosts = [l for l in (server / ".env").read_text().splitlines() if l.startswith("AGENT_SERVICE_HOST=")]
-    assert hosts == ([f"AGENT_SERVICE_HOST={host}"] if host else [])
 
 
 def test_monitor_token_is_generated_once_and_never_printed(setup_tree):
@@ -824,7 +879,7 @@ def test_monitor_is_bound_to_localhost_only():
     assert monitor["ports"] == ["127.0.0.1:8020:8020"]
     assert "env_file" not in monitor and "network_mode" not in monitor
     assert {e.split("=", 1)[0] for e in monitor["environment"]} == {
-        "AGENT_SERVICE_URL", "MONITOR_TOKEN", "GATEWAY_URL", "MCP_ENDPOINT", "WG_TUNNEL", "AGENT_HA_PROBE_S",
+        "AGENT_SERVICE_URL", "MONITOR_TOKEN", "GATEWAY_URL", "MCP_ENDPOINT", "AGENT_HA_PROBE_S",
         "MONITOR_HOME", "TZ"}
     assert "MONITOR_HOME=${MONITOR_HOME:-1}" in monitor["environment"]
     agent = services["agent-service"]["environment"]
@@ -902,7 +957,7 @@ def test_failure_before_publishing_restores_env_and_the_endpoint_unit(setup_tree
         run.set_env(**extra_env)
     before = (server / ".env").read_text()
     key = server / "data" / "mcp-endpoint" / ".mcp-endpoint-server.cfg"
-    result, state = run(FAKE_FAIL=fail, WG_TUNNEL="")
+    result, state = run(FAKE_FAIL=fail)
     assert result.returncode == 1
     assert "before publishing" in result.stdout and "endpoint key restored from the last run" in result.stdout
     assert (server / ".env").read_text() == before, "tokens and profiles generated by the failed run are gone"

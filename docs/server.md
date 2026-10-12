@@ -1,6 +1,6 @@
 # Backend server
 
-xiaozhi-esp32-server 0.9.7 in Docker Compose on the Mac (Rancher Desktop). The server image is built from the upstream clone at `${WEIXUE_VENDOR:-~/Projects/weixue-vendor}/xiaozhi-esp32-server`, pinned in `vendor.lock`; `setup.sh` refuses to build if the clone is not at that commit or has local changes. The resulting image carries the commit in its `org.opencontainers.image.revision` label. Other images are pinned by digest in `vendor.lock`, `docker-compose.yml` and `.env.example`.
+xiaozhi-esp32-server 0.9.7 in Docker Compose on the home Ubuntu server (Deployment host); the Mac is the device and test host. The server image is built from the upstream clone at `${WEIXUE_VENDOR:-~/Projects/weixue-vendor}/xiaozhi-esp32-server`, pinned in `vendor.lock`; `setup.sh` refuses to build if the clone is not at that commit or has local changes. The resulting image carries the commit in its `org.opencontainers.image.revision` label. Other images are pinned by digest in `vendor.lock`, `docker-compose.yml` and `.env.example`.
 
 ## Firmware endpoints
 
@@ -17,7 +17,7 @@ Replace `<LAN_IP>` with `LAN_IP` from `server/.env`.
 
 ## Network boundary
 
-- OTA (8003) and WebSocket (8000) are published on `BIND_IP` from `server/.env`. `setup.sh` accepts `0.0.0.0` or `127.0.0.1`, and on Linux also an IPv4 address on a local interface. The Mac uses `BIND_IP=0.0.0.0`: both ports on every Mac interface, the same exposure as an unbound `8000:8000` mapping. `mcp-endpoint-server` (8004) is on `127.0.0.1` only.
+- `LAN_IP` in `server/.env` must be an IPv4 address of one of the host's interfaces (`ip -4 addr`, or `ifconfig` where `ip` is absent); `setup.sh` refuses any other value. OTA (8003) and WebSocket (8000) are published on `BIND_IP`. `setup.sh` accepts `0.0.0.0` or `127.0.0.1`, and on Linux also an IPv4 address on a local interface. The server and the Mac use `BIND_IP=0.0.0.0`: both ports on every host interface, the same exposure as an unbound `8000:8000` mapping. `mcp-endpoint-server` (8004) is on `127.0.0.1` only.
 - `server.auth.enabled: true`; `allowed_devices` is rendered from `ALLOWED_DEVICES` in `server/.env` (lower-case MACs, comma-separated; `.env.example` holds the 1.75C, `7c:0c:5f:42:4b:fc`). `setup.sh` fails at pre-flight when it is unset or empty and at validation when it is not lower-case.
 - Strict allow-list (`weixue_patches.py`): an OTA `POST` whose `Device-Id` is listed gets the websocket section with `"token":""`; any other id, or none, gets `403` `{"success":false,"message":"device not allowed"}` and no websocket section. A WebSocket handshake with an unlisted `Device-Id` (header or query parameter) receives `认证失败` and is closed, whatever `Authorization` token it presents; a listed id connects with or without one. Both refusals log a warning naming the id. The firmware retries a failed OTA check with 10 s doubling back-off, at most 10 times, then uses its stored websocket settings.
 - A WebSocket client without `Device-Id` receives the upstream "端口正常…" banner and is closed (the readiness probe).
@@ -34,7 +34,7 @@ ws://<host>:8004/mcp_endpoint/mcp/?token=<AES-encrypted token>
 
 - The token is derived from a key generated on first start (`server/data/mcp-endpoint/.mcp-endpoint-server.cfg`, mode 0600) and printed in `docker logs mcp-endpoint-server`. The full URL is a secret; redact container logs before sharing them.
 - The server container uses `ws://mcp-endpoint-server:8004/...` (written into `server/data/.config.yaml` by `setup.sh`).
-- MCP clients on the Mac use `ws://localhost:8004/...` with the same token.
+- MCP clients on the stack's host use `ws://localhost:8004/...` with the same token; from the Mac through `ssh -L 8004:127.0.0.1:8004 jay@192.168.8.125`.
 - Deleting `server/data/mcp-endpoint/` regenerates the key and invalidates every issued URL.
 - `setup.sh` also writes the tool-side URL to `server/data/mcp-bridge/endpoint-url` (0600) for the `mcp-bridge` service, which connects ha-mcp to the endpoint: [ha-mcp.md](ha-mcp.md).
 
@@ -257,27 +257,26 @@ No `temperature`/`top_p` keys: Sonnet 5.5 rejects non-default sampling. Tool nam
 
 ## Reproduce
 
-Prerequisites: Rancher Desktop running (`~/.rd/bin` on PATH), python3, the two clones from `vendor.lock` under `~/Projects/weixue-vendor/`, ~4 GB free disk.
+Prerequisites: Docker Engine with the compose plugin (the Ubuntu server) or Rancher Desktop (the Mac, `~/.rd/bin` on PATH), python3, the `xiaozhi-esp32-server` clone pinned in `vendor.lock` under `${WEIXUE_VENDOR:-~/Projects/weixue-vendor}`, ~12 GB free disk (the x86_64 server image is 10.6 GB).
 
 ```bash
 cd server
-cp .env.example .env     # set LAN_IP, BIND_IP (Mac: 0.0.0.0), ALLOWED_DEVICES, TZ, TZ_OFFSET, ANTHROPIC_API_KEY, GOOGLE_SA_FILE, HA_MCP_URL (chmod 600)
+cp .env.example .env     # set LAN_IP, BIND_IP (0.0.0.0), ALLOWED_DEVICES, TZ, TZ_OFFSET, ANTHROPIC_API_KEY, GOOGLE_SA_FILE, HA_MCP_URL (chmod 600)
 ./scripts/setup.sh
 ```
 
-Required `.env` keys: `LAN_IP`, `BIND_IP`, `ALLOWED_DEVICES`, `TZ`, `TZ_OFFSET`, `ANTHROPIC_API_KEY`, `GOOGLE_SA_FILE`, `HA_MCP_URL` (`REQUIRED_KEYS` in `setup.sh`). After the pre-flight, `setup.sh` appends `AGENT_SERVICE_TOKEN` (32 random bytes, hex) when it is unset and never prints it, and keeps `AGENT_SERVICE_HOST=wg` in `.env` exactly while `WG_TUNNEL=1`.
+Required `.env` keys: `LAN_IP`, `BIND_IP`, `ALLOWED_DEVICES`, `TZ`, `TZ_OFFSET`, `ANTHROPIC_API_KEY`, `GOOGLE_SA_FILE`, `HA_MCP_URL` (`REQUIRED_KEYS` in `setup.sh`). After the pre-flight, `setup.sh` appends `AGENT_SERVICE_TOKEN` (32 random bytes, hex) when it is unset and never prints it.
 
-`setup.sh` is idempotent. In order: a pre-flight that fails before any build, publish or container change when a required key is unset or empty, `GOOGLE_SA_FILE` is missing, or `BIND_IP` is not accepted (Network boundary); downloads SenseVoiceSmall (~936 MB) if missing, checks the vendor clone, starts `mcp-endpoint-server`, renders `config/config.template.yaml` with `scripts/render_config.py` (values are escaped; `@@NAME?@@` is optional and renders empty when unset) to a mode-0600 temporary file next to `data/.config.yaml`, tags the current `mcp-bridge` and server images (and `weixue/wg:local` while `WG_TUNNEL=1`) `:rollback`, builds them, and validates the rendered file with `scripts/validate_config.py` inside the new server image (YAML, `server.websocket`, auth allow-list, selected modules, LLM key, `mcp_endpoint`; problems are printed without values). A failed render, build or validation exits with `data/.config.yaml` and the `:local` images unchanged. Then it copies `data/.config.yaml` to `data/.config.yaml.rollback`, writes `data/mcp-bridge/endpoint-url` through a temporary file and a rename, renames the rendered file over `data/.config.yaml`, force-recreates the containers (`wg` too while `WG_TUNNEL=1`; otherwise it then removes the `wg` container) and checks deployment readiness:
+`setup.sh` is idempotent. In order: a pre-flight that fails before any build, publish or container change when a required key is unset or empty, `GOOGLE_SA_FILE` is missing, `LAN_IP` or `BIND_IP` is not accepted (Network boundary), `WEIXUE_SERVER_SSH` is set (the stack runs on that host, Deployment host), or `WG_TUNNEL` or the `tunnel` compose profile is set; downloads SenseVoiceSmall (~936 MB) if missing, checks the vendor clone, starts `mcp-endpoint-server`, renders `config/config.template.yaml` with `scripts/render_config.py` (values are escaped; `@@NAME?@@` is optional and renders empty when unset) to a mode-0600 temporary file next to `data/.config.yaml`, tags the current images `:rollback`, builds them, and validates the rendered file with `scripts/validate_config.py` inside the new server image (YAML, `server.websocket`, auth allow-list, selected modules, LLM key, `mcp_endpoint`; problems are printed without values). A failed render, build or validation exits with `data/.config.yaml` and the `:local` images unchanged. Then it copies `data/.config.yaml` to `data/.config.yaml.rollback`, writes `data/mcp-bridge/endpoint-url` through a temporary file and a rename, renames the rendered file over `data/.config.yaml`, force-recreates the containers and checks deployment readiness:
 
 1. `scripts/check_ready.py`, up to 90 s: OTA banner on 8003, WebSocket handshake and banner frame on 8000, at `BIND_IP`, or `127.0.0.1` for `0.0.0.0`.
-2. While `WG_TUNNEL=1`, the `wg` healthcheck (handshake under 180 s old and the boundary chain hooked in), retried every 2 s for up to `DEPLOY_WAIT_S` (90 s).
-3. The bridge's healthcheck (`python -m weixue_bridge.health`: it connected to the endpoint and registered ha-mcp's tools, and its last ping succeeded), same bound.
-4. One read-only Home Assistant call along the voice path, made from the server container with the server's own endpoint URL: `scripts/check_ha_path.py` (`ha_get_state` for `zone.home` through the endpoint, the bridge, the tunnel when enabled, and ha-mcp; a state or `ENTITY_NOT_FOUND` counts as Home Assistant answering), same bound, 20 s per attempt. It prints one line and never a URL.
-5. agent-service's healthcheck (`python -m weixue_agent.health`: database writable, last model request not failed, a successful ha-mcp ping within 60 s), same bound. A rollback of the first deployment that adds agent-service removes it and skips this check.
+2. The bridge's healthcheck (`python -m weixue_bridge.health`: it connected to the endpoint and registered ha-mcp's tools, and its last ping succeeded), retried every 2 s for up to `DEPLOY_WAIT_S` (90 s).
+3. One read-only Home Assistant call along the voice path, made from the server container with the server's own endpoint URL: `scripts/check_ha_path.py` (`ha_get_state` for `zone.home` through the endpoint, the bridge and ha-mcp; a state or `ENTITY_NOT_FOUND` counts as Home Assistant answering), same bound, 20 s per attempt. It prints one line and never a URL.
+4. agent-service's healthcheck (`python -m weixue_agent.health`: database writable, last model request not failed, a successful ha-mcp ping within 60 s), same bound. A rollback of the first deployment that adds agent-service removes it and skips this check.
 
-After all five pass it copies `.env` to `.env.deployed` (0600). If the recreate or any check fails, it restores the previous config, the endpoint unit (below) and images and, when `.env.deployed` exists, `.env` from it (the attempted file is kept as `.env.failed`, 0600), recreates the containers in that file's tunnel mode, runs the same checks against them and exits 1.
+After all checks pass it copies `.env` to `.env.deployed` (0600). If the recreate or any check fails, it restores the previous config, the endpoint unit (below) and images and, when `.env.deployed` exists, `.env` from it (the attempted file is kept as `.env.failed`, 0600), recreates the containers, runs the same checks against them and exits 1.
 
-From the first change of `server/.env` on, the run is one transaction (`PHASE` in `setup.sh`, an `EXIT` trap; `.env` is copied to `.env.txn`, 0600, removed at exit). Any failure before publishing, an unexpected exit under `set -e` included, restores the `:local` images from `:rollback`, the endpoint key and URL file (recreating `mcp-endpoint-server` when its key changed, stopping it when this run started it), the agent-service database files it moved back to `data/agent-service/`, `docker start` for agent-service and agent-monitor when this run stopped them (database move or backup), and `server/.env` as it was at the start of the run, so tokens or profiles the failed run wrote are gone; it prints `setup failed (exit <n>, line <n>) before publishing; …` and exits non-zero. A failure after publishing started takes the rollback below (`setup failed … while publishing; rolling back`).
+From the first change of `server/.env` on, the run is one transaction (`PHASE` in `setup.sh`, an `EXIT` trap; `.env` is copied to `.env.txn`, 0600, removed at exit). Any failure before publishing, an unexpected exit under `set -e` included, restores the `:local` images from `:rollback`, the endpoint key and URL file (recreating `mcp-endpoint-server` when its key changed, stopping it when this run started it), the agent-service database files it moved back to `data/agent-service/`, `docker start` for agent-service and agent-monitor when this run stopped them (database move or backup), and `server/.env` as it was at the start of the run, so tokens the failed run wrote are gone; it prints `setup failed (exit <n>, line <n>) before publishing; …` and exits non-zero. A failure after publishing started takes the rollback below (`setup failed … while publishing; rolling back`).
 
 The endpoint key (`data/mcp-endpoint/.mcp-endpoint-server.cfg`), the URL derived from it and its two consumers (`mcp_endpoint` in `data/.config.yaml` and `data/mcp-bridge/endpoint-url`) are one deployment unit: `setup.sh` copies the key file and the URL file to `.rollback` (0600) before it starts `mcp-endpoint-server`; a rollback restores both with the config and, when the key changed during the attempt, recreates `mcp-endpoint-server` with the restored key. A successful run removes those two copies. If that second recreate also fails, the stack is down: it prints a `manual restore:` block (retag each `:rollback` image to `:local`, then `docker compose [--profile …] up -d --force-recreate …` from `server/`) and exits 1. `docker-compose.yml` is not rolled back; without `.env.deployed` (first run) neither is `.env`. Logs: `docker logs -f xiaozhi-esp32-server`.
 
@@ -287,11 +286,11 @@ Optional web console (MySQL + Redis + manager-web, port 8002): set `MYSQL_ROOT_P
 
 ## Agent service
 
-Compose service `agent-service` (`docs/agent-service.md`): no host port; the server container reaches it at `AGENT_SERVICE_URL` (`http://agent-service:8010`, or `http://wg:8010` while `WG_TUNNEL=1`, where it shares the tunnel namespace like `mcp-bridge`) with the bearer `AGENT_SERVICE_TOKEN`, and the agent gateway (`docs/agent-protocol.md`) consumes its outbox for every device with an agent session. Its environment holds `ANTHROPIC_API_KEY`, `HA_MCP_URL`, `AGENT_SERVICE_TOKEN`, `MONITOR_TOKEN`, `AGENT_DB`, the ha-mcp probe cadence, the ha-mcp tool-call read timeout `HA_MCP_READ_TIMEOUT_S` (default 35 s; it must outlast the ha-mcp policy `wait_seconds`, see `docs/agent-service.md`) and `TZ`; data lives in `data/agent-service/` (database in `db/`).
+Compose service `agent-service` (`docs/agent-service.md`): no host port; the server container reaches it at `AGENT_SERVICE_URL` (`http://agent-service:8010`) with the bearer `AGENT_SERVICE_TOKEN`, and the agent gateway (`docs/agent-protocol.md`) consumes its outbox for every device with an agent session. Its environment holds `ANTHROPIC_API_KEY`, `HA_MCP_URL`, `AGENT_SERVICE_TOKEN`, `MONITOR_TOKEN`, `AGENT_DB`, the ha-mcp probe cadence, the ha-mcp tool-call read timeout `HA_MCP_READ_TIMEOUT_S` (default 35 s; it must outlast the ha-mcp policy `wait_seconds`, see `docs/agent-service.md`) and `TZ`; data lives in `data/agent-service/` (database in `db/`).
 
 ## Agent monitor
 
-Compose service `agent-monitor` (`docs/agent-monitor.md`): a read-only board at `http://127.0.0.1:8020/`, bound to 127.0.0.1 only (decision 30); from a phone through `ssh -L 8020:127.0.0.1:8020`, on the Ubuntu server later through Tailscale. Tiles turn red on the rules in `docs/agent-monitor.md` (device 3 s after its last poll, agent after 2 failed checks, ha-mcp after 25 s without a good ping, bridge after 65 s or on `stopped`). It stores nothing; the agent service prunes event tables after 30 days (decision 21).
+Compose service `agent-monitor` (`docs/agent-monitor.md`): a read-only board at `http://127.0.0.1:8020/`, bound to 127.0.0.1 only (decision 30); from the Mac or a phone through `ssh -L 8020:127.0.0.1:8020 jay@192.168.8.125` (decision 77, option A). Tiles turn red on the rules in `docs/agent-monitor.md` (device 3 s after its last poll, agent after 2 failed checks, ha-mcp after 25 s without a good ping, bridge after 65 s or on `stopped`). It stores nothing; the agent service prunes event tables after 30 days (decision 21).
 
 ## Verification
 
@@ -299,54 +298,32 @@ Compose service `agent-monitor` (`docs/agent-monitor.md`): a read-only board at 
 - Port 8000 accepts WebSocket; a `hello` returns `session_id`; a `listen/detect` text turn returns `stt`, `tts start/sentence_start/stop` and Opus frames.
 - Not verified without hardware: ASR on live microphone audio.
 
-## Office / off-LAN mode (WireGuard tunnel)
+## Deployment host
 
-When the Mac is off the home LAN, `mcp-bridge` reaches ha-mcp through a WireGuard client sidecar, compose service `wg` (profile `tunnel`, image `weixue/wg:local` built from `server/wg/`: pinned Alpine + `wireguard-tools`, kernel WireGuard). The bridge and agent-service share the sidecar's network namespace (`network_mode: service:wg`); the server, `mcp-endpoint-server` and the device path are unchanged. The bridge still reaches `ws://mcp-endpoint-server:8004` by name: the sidecar sits on the project network and keeps Docker's resolver.
+The stack runs on the home Ubuntu server `192.168.8.125` (Ubuntu 24.04, x86_64, Docker Engine + compose plugin, user `jay` in the `docker` group): checkout `/home/jay/weixue`, upstream clone `/home/jay/weixue-vendor` (`WEIXUE_VENDOR` in its `server/.env`), Google service account `/home/jay/weixue-secrets/google-sa.json` (0600). The server is on the home LAN with Home Assistant, so ha-mcp is reachable from it at all times. Images are built on the server by `setup.sh`. Migration, cutover and rollback: [runbooks/ubuntu-migration.md](runbooks/ubuntu-migration.md). `docker` and `docker compose` commands in this document run on the server (from the Mac: `scripts/lib/remote_docker.sh`, below).
 
-Prerequisites:
-
-- The router's WireGuard server (GL.iNet) is reachable from the WAN on its UDP port.
-- `server/.secrets/wg0.conf` (mode 0600, directory 0700) is the router's client config with `AllowedIPs = 192.168.8.0/24` only, so nothing but home-LAN traffic enters the tunnel. MTU 1420 (the `MTU` line, or wg-quick's default on a 1500-byte path).
-- `DNS` lines in the config are ignored; `HA_MCP_URL` uses an IP address.
-
-| Item | Behaviour |
-|---|---|
-| Config | Mounted read-only at `/etc/wireguard/wg0.conf` (`create_host_path: false`: a missing file fails the start instead of creating a directory). The sidecar brings `wg0` up from a copy without `DNS` lines on a tmpfs |
-| Start | A failed `wg-quick up` (for example the endpoint name not resolving at boot) is retried every 10 s with one redacted log line per failure; the container keeps running |
-| Keepalive | Peers without `PersistentKeepalive` get 25 s, so the sidecar handshakes without bridge traffic |
-| Boundary | Before `wg-quick up`, the sidecar adds chain `WG_BOUNDARY` to `OUTPUT` (iptables, ip6tables for IPv6 entries) that drops every packet to an `AllowedIPs` network leaving through any interface other than `wg0`. Home-LAN traffic from the namespace (the bridge's HA requests) therefore never takes the default route: not while `wg-quick up` is failing, not after `wg0` is removed, and not in a replacement namespace before its tunnel is up. A config whose `AllowedIPs` holds a default route (`0.0.0.0/0`, `::/0`) or no `AllowedIPs` stops the sidecar. Evidence with scratch containers: `docs/logs/fix-wave5-server-c7-tunnel-boundary-2026-10-07.log` |
-| Healthcheck | Healthy while the boundary chain is hooked into `OUTPUT` and the latest handshake is under 180 s old; 60 s start period |
-| Logs | `docker logs wg` prints one line (`wg0 up, N peer(s), mtu M`); wg-quick errors are printed with addresses, keys, endpoints and quoted values redacted |
-| Bridge | Compose starts it once `wg` is healthy (`depends_on` with `required: false`, so it does not apply without the profile). In tunnel mode (`TUNNEL_IFACE=wg0`) it connects to nothing until `wg0` exists in the namespace. In both modes it exits non-zero after `ENDPOINT_MAX_FAILURES` consecutive failed endpoint connects (`mcp-bridge/weixue_bridge/config.py`), and when its `eth0` (tunnel mode: or `wg0`) is gone after an endpoint connection ends; `restart: unless-stopped` starts it again, in tunnel mode inside the sidecar's current namespace |
-
-Enable: set `WG_TUNNEL=1` in `server/.env`, then `./scripts/setup.sh`. It checks that `.secrets/wg0.conf` exists with mode 0600 (it never reads the file), adds `tunnel` to `COMPOSE_PROFILES` in `server/.env` (other profiles are kept) and recreates `wg`, `mcp-bridge` and the server. `server/.env` then holds both lines:
+The Mac is the device and test host: it flashes and drives the board under the device lock, plays session audio and runs the gate drivers. Its `server/.env` keeps what those scripts read (`LAN_IP` = the Mac's own address for the home-mode check of `scripts/audio_session.sh`, `GOOGLE_SA_FILE`, `WEIXUE_PROACTIVE_TOKEN` equal to the server's, `ALLOWED_DEVICES`, `VOICE_*`) and names the server:
 
 ```bash
-WG_TUNNEL=1
-COMPOSE_PROFILES=tunnel
+WEIXUE_SERVER_SSH=jay@192.168.8.125
+WEIXUE_SERVER_SSH_OPTS="-o IdentitiesOnly=yes -i ~/.ssh/id_ed25519"
 ```
 
-so every plain `docker compose` command in `server/` includes `wg`. A `COMPOSE_PROFILES` exported in the shell overrides `.env` and must then contain `tunnel`; without it compose refuses with `depends on undefined service "wg"`. Compose treats any non-empty `WG_TUNNEL` as on; `setup.sh` rejects every value other than empty and `1`. Recreating only the tunnel path:
+`setup.sh` refuses to run while `WEIXUE_SERVER_SSH` is set, so the Mac does not start a second stack against ha-mcp; the Mac stack is started only by the rollback in the runbook.
+
+### Remote mode
+
+`scripts/lib/remote_docker.sh` (bash functions `weixue_docker`, `weixue_compose`, `weixue_server_host`, also a CLI) and `scripts/lib/remote_docker.py` (`docker_argv`, `run`, `server_host`, `setting`) run docker on the stack's host. With `WEIXUE_SERVER_SSH` unset or empty, `docker …` runs locally and compose uses the live `server/` directory. Otherwise the command is `ssh -o BatchMode=yes -o ConnectTimeout=10 $WEIXUE_SERVER_SSH_OPTS $WEIXUE_SERVER_SSH 'docker …'` with every argument single-quoted for the remote shell and stdin passed through; compose runs in `WEIXUE_SERVER_DIR` (default `weixue/server` under the SSH user's home). Each setting comes from the environment when set there (an empty value forces local mode), else from the live `server/.env` (`WEIXUE_LIVE_ENV`, default `~/Projects/weixue/server/.env`); `WEIXUE_SERVER_SSH_OPTS` is split on spaces.
+
+Callers: `scripts/audio_session.py` (`AgentClient`: `docker exec -i agent-service python -c …`, the service token stays in the container; server `docker logs`), `scripts/approval_gate.py` (agent-service `docker logs`) and `scripts/spike_whisper.py`. In remote mode `scripts/audio_session.sh` passes `--fixture-base http://<WEIXUE_SERVER_SSH host>:8003`. Scripts under `server/` (`setup.sh`, the sim stacks, `agent-service/tools/e2e_live.sh`) run on the stack's host. Log windows (`--since`/`--until` epoch seconds) assume the Mac and server clocks agree (both NTP).
 
 ```bash
-docker compose up -d --build wg mcp-bridge
-docker ps --filter name=wg --filter name=mcp-bridge    # both (healthy)
+scripts/lib/remote_docker.sh compose ps
+scripts/lib/remote_docker.sh logs --since 10m agent-service
+ssh -L 8020:127.0.0.1:8020 jay@192.168.8.125      # agent-monitor at http://127.0.0.1:8020/
 ```
 
-Disable: set `WG_TUNNEL=` and run `./scripts/setup.sh`, which removes `tunnel` from `COMPOSE_PROFILES`, moves the bridge back to the project network and removes the `wg` container; by hand, delete both lines, then `docker compose up -d mcp-bridge && docker rm -f wg`.
-
-Restarts: compose recreating or restarting `wg` restarts `mcp-bridge` with it. After any other `wg` restart (`docker restart wg`, a crash) the bridge loses `eth0`, exits once its endpoint connection drops and rejoins the new namespace on its own; `docker restart mcp-bridge` only skips that wait.
-
-Not covered: inbound traffic from the home LAN to the Mac, such as the proactive webhook (`docs/proactive.md`), still needs the LAN path.
-
-## Migrate to Ubuntu
-
-1. Install Docker Engine + compose plugin; clone this repo; clone both repos from `vendor.lock` at the pinned commits into `~/Projects/weixue-vendor/`.
-2. Copy `server/.env` (secrets, 0600) and `server/data/` (`.config.yaml`, `mcp-endpoint/` key, `models/`). Copying `mcp-endpoint/` keeps MCP URLs valid; omit `models/` to let `setup.sh` re-download.
-3. Copy the Google service-account JSON (0600) and point `GOOGLE_SA_FILE` at it.
-4. Set `LAN_IP` and `BIND_IP` in `.env` to the Ubuntu host's address (the ports then bind to that address only) and run `./scripts/setup.sh`.
-5. Re-point the firmware `OTA_URL` to the new address, or give the host the old IP / a DNS name. MCP clients on other hosts need an SSH tunnel or a changed 8004 binding.
-6. Open TCP 8000 and 8003 on the host firewall.
+The Mac reaches the server only from the home LAN; with Cisco Secure Client connected, `192.168.8.0/24` is routed into the VPN (`docs/firmware.md`).
 
 ## Timezone
 

@@ -67,7 +67,6 @@ Failure text through a full LLM turn (scripted rounds, voice filter with `light`
 - After `server/data/mcp-endpoint/` is deleted (new endpoint key) or the endpoint image changes, run `./scripts/setup.sh`: it rewrites `data/mcp-bridge/endpoint-url` and `data/.config.yaml` and recreates the bridge and the server.
 - After editing `voice_bridge.json` or `HA_MCP_URL`: `docker compose up -d --force-recreate mcp-bridge`.
 - The bridge exits non-zero after `ENDPOINT_MAX_FAILURES` consecutive failed endpoint connects (`weixue_bridge/config.py`); `restart: unless-stopped` starts it again.
-- In tunnel mode (`WG_TUNNEL=1`, `docs/server.md`) the compose commands here work unchanged: `server/.env` carries `COMPOSE_PROFILES=tunnel`.
 - A device session reads the tool list when it connects; sessions opened before the bridge came up keep their old list until they reconnect.
 
 ## Rotate the secret path

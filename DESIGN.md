@@ -55,7 +55,7 @@
 - **ADR-1 固件**：小智（官方 1.75C 支持、AEC、中文唤醒、MIT）。否决 ESPHome（无 AEC、无中文唤醒）、自研 ESP-IDF（工作量）。
 - **ADR-2 HA 接口**：ha-mcp 策略引擎；内置 `mcp_server` 无策略，不作备选。
 - **ADR-3 语音服务**：Google Cloud STT+TTS（中英、凭据已就绪、零维护）；自托管留作后续。
-- **ADR-4 后端宿主**：开发期 Mac（Docker Compose）；后期迁到家里 Ubuntu 主机，配置与数据卷保持可迁移。
+- **ADR-4 后端宿主**：家里 Ubuntu 服务器 192.168.8.125（Docker Compose，x86_64，决定 77；镜像在服务器上构建）；Mac 为设备/测试主机，其脚本经 SSH 在服务器上执行 docker（`WEIXUE_SERVER_SSH`，`docs/server.md` Deployment host）。不设 VPN 隧道：服务器与 HA 同在家庭局域网。迁移与回退：`docs/runbooks/ubuntu-migration.md`。
 - **ADR-6 唤醒词**：单一英文唤醒词 `Hi Jarvis`，用 ESP-SR 现成 WakeNet 模型（`wn9_jarvis_tts`，sdkconfig `CONFIG_SR_WN_WN9_JARVIS_TTS=y`；若乐鑫模型实际短语为 "Jarvis" 则以模型为准）。不用 MultiNet 自定义短语、不走付费定制、不加第二个唤醒词。调研：`research/reports/weixue-q3-wakeword.md`。
 - **ADR-7 对话逻辑**：仿 ChatGPT 语音：英语为主、中文为辅；STT 多语言识别，LLM 用用户所用语言回答，TTS 随之切换声音；回答结束后保持数秒免唤醒追问；语音打断受服务端 `VOICE_BARGE_IN` 控制（2026-10-11 决定 58：默认 0，播放期间的说话被丢弃；双击/BOOT 物理打断不受影响）。
 - **ADR-8 代码托管**：按 CLAUDE.md 的 remote-deferred 例外工作：共享 `weixue-vendor` 只作只读基线，改动在每任务的本地 `feat/*` 分支完成并记录基线提交；review/test 通过后本地 `--no-ff` 合并。个人 remote 建立后创建两个上游 fork，切换到一任务一提交一 PR；不直接推送 main。Flash 覆盖前保存带时间戳和校验值的备份。

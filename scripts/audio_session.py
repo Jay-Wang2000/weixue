@@ -8,7 +8,8 @@ clips cached under ~/Projects/weixue-vendor/session-clips and played with afplay
 gestures and touches go through the diag console (firmware/tools/diag_inject.py). --no-audio runs only
 the items that need no speech; --synth-only synthesises every clip and exits (no board, no playback).
 Every wake clip waits for the idle device plus SETTLE_S. The earcons item drives one held Home Assistant
-call (HELD_ASK) through the agent service, reached with `docker exec` inside its container.
+call (HELD_ASK) through the agent service, reached with `docker exec` inside its container. docker runs on the
+stack's host (scripts/lib/remote_docker.py: over SSH when WEIXUE_SERVER_SSH is set).
 Verdicts come from scripts/session_judge.py; each table row carries the judged events (Reason).
 """
 import argparse
@@ -26,6 +27,8 @@ sys.path.insert(0, os.path.join(ROOT, "firmware", "tools"))
 from diag_inject import DiagSerial, redact  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+import remote_docker  # noqa: E402
 import session_judge as judge  # noqa: E402
 import session_tts  # noqa: E402
 
@@ -115,8 +118,8 @@ print(json.dumps({"status": status, "body": body}))
 
 
 class AgentClient:
-    """agent-service HTTP API, called by a python process inside its container (`docker exec`): the
-    service token never leaves the container. request() returns (HTTP status, JSON body); status 0
+    """agent-service HTTP API, called by a python process inside its container (`docker exec` on the stack's
+    host): the service token never leaves the container. request() returns (HTTP status, JSON body); status 0
     when the call did not complete."""
 
     def __init__(self, container=AGENT_CONTAINER):
@@ -126,8 +129,8 @@ class AgentClient:
         headers = {"Idempotency-Key": str(uuid.uuid4())} if idempotent else {}
         payload = json.dumps({"method": method, "path": path, "body": body, "headers": headers})
         try:
-            out = subprocess.run(["docker", "exec", "-i", self.container, "python", "-c", AGENT_REQUEST],
-                                 input=payload, capture_output=True, text=True, timeout=40)
+            out = remote_docker.run(["exec", "-i", self.container, "python", "-c", AGENT_REQUEST],
+                                    input=payload, capture_output=True, text=True, timeout=40)
         except (OSError, subprocess.TimeoutExpired):
             return 0, None
         if out.returncode != 0 or not out.stdout.strip():
@@ -257,8 +260,8 @@ class Session:
 
     def server_lines(self, t0, t1):
         try:
-            out = subprocess.run(["docker", "logs", "--since", str(int(t0)), "--until", str(int(t1) + 1),
-                                  SERVER_CONTAINER], capture_output=True, text=True, timeout=30)
+            out = remote_docker.run(["logs", "--since", str(int(t0)), "--until", str(int(t1) + 1), SERVER_CONTAINER],
+                                    capture_output=True, text=True, timeout=30)
         except (OSError, subprocess.TimeoutExpired):
             return None
         if out.returncode != 0:

@@ -12,7 +12,7 @@ A read-only web board for the agent backend: one FastAPI process (`python -m age
 
 | Section | Source |
 |---|---|
-| Tiles: Device · Agent · ha-mcp · Bridge · Endpoint · Tunnel | gateway `GET /weixue/proactive` devices; agent `/healthz` and `/v1/status.probes`; latest `health_probes` row when `/v1/status` fails; `bridge.json`; TCP connect to `mcp-endpoint-server:8004`; the tunnel tile only with `WG_TUNNEL=1` |
+| Tiles: Device · Agent · ha-mcp · Bridge · Endpoint | gateway `GET /weixue/proactive` devices; agent `/healthz` and `/v1/status.probes`; latest `health_probes` row when `/v1/status` fails; `bridge.json`; TCP connect to `mcp-endpoint-server:8004` |
 | MCP | reachable, tool count, policy version and `wait_seconds`, pending ours (`approvals` held, with target, age, expiry) and not ours (count from the ha_mcp probe, "left for you in HA") |
 | Timeline | tasks newest first with turns, every tool call (args summary, result, duration, held-call decision, `decided_via`, time), task transitions incl. steers and cancels, interactions, deliveries and acks; filters chat, state, tool kind; paged by `before` |
 | Cost | today / 7 d / 30 d, a 30-day bar chart by model, tables per chat, task and day (tokens, cache hit %, web requests, USD) |
@@ -47,7 +47,7 @@ Times are stored UTC and shown in `TZ` (Europe/Dublin when unset or UTC); cost d
 
 ## Deployment
 
-Compose service `agent-monitor`: image `weixue/agent-monitor:local` (`python:3.12-slim` by digest, `requirements.lock` with `--no-deps` + `pip check`), `ports: 127.0.0.1:8020:8020`, environment `AGENT_SERVICE_URL`, `MONITOR_TOKEN`, `GATEWAY_URL`, `MCP_ENDPOINT`, `WG_TUNNEL`, `AGENT_HA_PROBE_S`, `MONITOR_HOME` (default `1`), `TZ` (no `HA_MCP_URL`, no API key, no `env_file`), `mem_limit 128m`, healthcheck `python -m agent_monitor.health`. `scripts/setup.sh` generates `MONITOR_TOKEN` once into `server/.env` (never printed), moves an existing `data/agent-service/agent.db*` into `data/agent-service/db/` while agent-service is stopped, builds and recreates the monitor with the stack and waits for its healthcheck; a first deployment that fails rolls back without it.
+Compose service `agent-monitor`: image `weixue/agent-monitor:local` (`python:3.12-slim` by digest, `requirements.lock` with `--no-deps` + `pip check`), `ports: 127.0.0.1:8020:8020`, environment `AGENT_SERVICE_URL`, `MONITOR_TOKEN`, `GATEWAY_URL`, `MCP_ENDPOINT`, `AGENT_HA_PROBE_S`, `MONITOR_HOME` (default `1`), `TZ` (no `HA_MCP_URL`, no API key, no `env_file`), `mem_limit 128m`, healthcheck `python -m agent_monitor.health`. `scripts/setup.sh` generates `MONITOR_TOKEN` once into `server/.env` (never printed), moves an existing `data/agent-service/agent.db*` into `data/agent-service/db/` while agent-service is stopped, builds and recreates the monitor with the stack and waits for its healthcheck; a first deployment that fails rolls back without it.
 
 `MONITOR_TOKEN` is a read scope: agent-service accepts it on `GET /v1/status` and `GET /v1/tasks/{id}/trace` only, the gateway on `GET /weixue/proactive` only.
 

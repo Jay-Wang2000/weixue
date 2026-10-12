@@ -4,7 +4,7 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 
 ## Stack
 - Firmware: fork of `78/xiaozhi-esp32`, board `esp32-s3-touch-amoled-1.75c`, ESP-IDF (version per upstream), LVGL. Flash over `/dev/cu.usbmodem2101` (may change).
-- Backend: fork of `xinnan-tech/xiaozhi-esp32-server`, Docker Compose on this Mac (later Ubuntu). New providers: Google Cloud STT/TTS, Anthropic LLM.
+- Backend: fork of `xinnan-tech/xiaozhi-esp32-server`, Docker Compose on the home Ubuntu server `jay@192.168.8.125` (`docs/server.md`, Deployment host). This Mac is the device/test host; its scripts run docker on the server over SSH (`WEIXUE_SERVER_SSH`). New providers: Google Cloud STT/TTS, Anthropic LLM.
 - HA: via ha-mcp (`~/Projects/ha-agent`); never print the secret-path URL; policy changes need user confirmation.
 
 ## Rules
@@ -37,4 +37,4 @@ Read `DESIGN.md` first; decisions live in its ADRs. Research background: `~/Proj
 
 ## Office mode
 - When Jay is in the office (Mac away from the home LAN), no agent may use macOS `say` or play audio; the Mac output is muted. Device voice tests are deferred; Jay is told only when a test needs him.
-- Home Assistant stays reachable from the office through the WireGuard sidecar (`server/.env` WG_TUNNEL=1, compose profile `tunnel`, see `docs/server.md`): only the mcp-bridge container uses it. HA-dependent server tasks are not deferred; only audio is. Deploying a compose file that lacks the `wg` service would drop the tunnel, so server branches must be rebased onto `main` before any live deploy.
+- Home Assistant is reachable from the backend on the Ubuntu server at all times, wherever the Mac is; the audio rules above are unchanged. The Mac reaches the server over SSH only from the home LAN (`docs/server.md`, Remote mode).

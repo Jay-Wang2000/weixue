@@ -106,8 +106,8 @@ def count_replays(lines, task_id, tool=a.HELD_TOOL):
 def docker_logs(since, until, container=a.AGENT_CONTAINER):
     """Redacted agent-service log lines between two epoch seconds, or None."""
     try:
-        out = subprocess.run(["docker", "logs", "--since", str(int(since)), "--until", str(int(until) + 1), container],
-                             capture_output=True, text=True, timeout=30)
+        out = a.remote_docker.run(["logs", "--since", str(int(since)), "--until", str(int(until) + 1), container],
+                                  capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.TimeoutExpired):
         return None
     if out.returncode != 0:

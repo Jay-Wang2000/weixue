@@ -18,6 +18,31 @@ if [ ${#MISSING[@]} -gt 0 ]; then
   exit 1
 fi
 [ -f "$GOOGLE_SA_FILE" ] || { echo "GOOGLE_SA_FILE does not exist"; exit 1; }
+# WEIXUE_SERVER_SSH names the host that runs this stack (scripts/lib/remote_docker.sh); it is not this one.
+if [ -n "${WEIXUE_SERVER_SSH:-}" ]; then
+  echo "WEIXUE_SERVER_SSH is set: the stack runs on ${WEIXUE_SERVER_SSH#*@}; run setup.sh there, or remove it from server/.env to deploy here (docs/server.md)"
+  exit 1
+fi
+if [ -n "${WG_TUNNEL:-}" ] || [[ ",${COMPOSE_PROFILES:-}," == *,tunnel,* ]]; then
+  echo "WG_TUNNEL and the tunnel compose profile are not supported: remove them from server/.env (docs/server.md)"
+  exit 1
+fi
+# IPv4 addresses on this host's interfaces, one per line.
+local_ipv4() {
+  if command -v ip >/dev/null 2>&1; then
+    ip -o -4 addr 2>/dev/null | awk '{ split($4, a, "/"); print a[1] }' || true
+  else
+    ifconfig 2>/dev/null | awk '$1 == "inet" { print $2 }' || true
+  fi
+}
+LOCAL_IPV4=$(local_ipv4)
+case $'\n'"$LOCAL_IPV4"$'\n' in
+  *$'\n'"$LAN_IP"$'\n'*) ;;
+  *)
+    echo "LAN_IP=$LAN_IP is not an IPv4 address on this host's interfaces (docs/server.md, Network boundary)"
+    exit 1
+    ;;
+esac
 # BIND_IP: 0.0.0.0 or 127.0.0.1; on Linux also an IPv4 address on a local interface.
 case "$BIND_IP" in
   0.0.0.0 | 127.0.0.1) ;;
@@ -26,7 +51,6 @@ case "$BIND_IP" in
       echo "BIND_IP=$BIND_IP: on macOS use 0.0.0.0 or 127.0.0.1 in server/.env (docs/server.md)"
       exit 1
     fi
-    LOCAL_IPV4=$(ip -o -4 addr 2>/dev/null | awk '{ split($4, a, "/"); print a[1] }' || true)
     case $'\n'"$LOCAL_IPV4"$'\n' in
       *$'\n'"$BIND_IP"$'\n'*) ;;
       *)
@@ -35,19 +59,6 @@ case "$BIND_IP" in
         ;;
     esac
     ;;
-esac
-
-# WG_TUNNEL=1 runs mcp-bridge in the wg sidecar's network namespace (docs/server.md, Office / off-LAN mode).
-# wg0.conf is checked by existence and mode only; its contents are never read here.
-WG_CONF=.secrets/wg0.conf
-case "${WG_TUNNEL:-}" in
-  "") TUNNEL_SERVICES="" ;;
-  1)
-    [ -f "$WG_CONF" ] || { echo "WG_TUNNEL=1 but server/$WG_CONF does not exist"; exit 1; }
-    [ -n "$(find "$WG_CONF" -maxdepth 0 -perm 0600)" ] || { echo "server/$WG_CONF must be mode 0600"; exit 1; }
-    TUNNEL_SERVICES=wg
-    ;;
-  *) echo "WG_TUNNEL must be 1 or empty"; exit 1 ;;
 esac
 
 # Images this run tagged :rollback (IMAGES) go back to those tags.
@@ -137,18 +148,7 @@ FAILED_LINE=""
 trap 'FAILED_LINE=$LINENO' ERR
 trap on_exit EXIT
 
-# COMPOSE_PROFILES in .env holds `tunnel` exactly while WG_TUNNEL=1, so every docker compose command in server/ sees wg.
-ENV_PROFILES=$(sed -n 's/^COMPOSE_PROFILES=//p' .env | tail -n 1 | sed -E "s/^\"(.*)\"$/\\1/; s/^'(.*)'$/\\1/")
-PROFILES=$(printf '%s' "$ENV_PROFILES" | tr ',' '\n' | awk '$0 != "" && $0 != "tunnel" { printf "%s%s", sep, $0; sep = "," }')
-[ -z "$TUNNEL_SERVICES" ] || PROFILES=${PROFILES:+$PROFILES,}tunnel
-if [ "$PROFILES" != "$ENV_PROFILES" ]; then
-  ENV_REST=$(grep -v '^COMPOSE_PROFILES=' .env || true)
-  { printf '%s\n' "$ENV_REST"; [ -z "$PROFILES" ] || echo "COMPOSE_PROFILES=$PROFILES"; } > .env
-fi
-if [ -n "$PROFILES" ]; then export COMPOSE_PROFILES=$PROFILES; else unset COMPOSE_PROFILES; fi
-
-# agent-service: bearer token generated once into server/.env (never printed); its host is wg while the
-# service shares the tunnel namespace.
+# agent-service: bearer token generated once into server/.env (never printed).
 if [ -z "${AGENT_SERVICE_TOKEN:-}" ]; then
   AGENT_SERVICE_TOKEN=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
   [ -z "$(tail -c 1 .env)" ] || echo >> .env
@@ -164,12 +164,6 @@ if [ -z "${MONITOR_TOKEN:-}" ]; then
   echo "generated MONITOR_TOKEN in server/.env"
 fi
 export MONITOR_TOKEN
-AGENT_HOST_WANT=$([ -n "$TUNNEL_SERVICES" ] && echo wg || true)
-if [ "$(sed -n 's/^AGENT_SERVICE_HOST=//p' .env | tail -n 1)" != "$AGENT_HOST_WANT" ]; then
-  ENV_REST=$(grep -v '^AGENT_SERVICE_HOST=' .env || true)
-  { printf '%s\n' "$ENV_REST"; [ -z "$AGENT_HOST_WANT" ] || echo "AGENT_SERVICE_HOST=$AGENT_HOST_WANT"; } > .env
-fi
-if [ -n "$AGENT_HOST_WANT" ]; then export AGENT_SERVICE_HOST=$AGENT_HOST_WANT; else unset AGENT_SERVICE_HOST; fi
 
 MODEL=data/models/SenseVoiceSmall/model.pt
 MODEL_URL=https://modelscope.cn/models/iic/SenseVoiceSmall/resolve/master/model.pt
@@ -193,9 +187,8 @@ export UPSTREAM_COMMIT
 docker info >/dev/null 2>&1 || { echo "docker daemon is not running"; exit 1; }
 
 CONFIG=data/.config.yaml
-SERVICES=($TUNNEL_SERVICES mcp-bridge agent-service agent-monitor xiaozhi-esp32-server)
+SERVICES=(mcp-bridge agent-service agent-monitor xiaozhi-esp32-server)
 IMAGES_ALL=(weixue/mcp-bridge:local weixue/agent-service:local weixue/agent-monitor:local weixue/xiaozhi-esp32-server:local)
-[ -z "$TUNNEL_SERVICES" ] || IMAGES_ALL+=(weixue/wg:local)
 ready_host() { if [ "$BIND_IP" = 0.0.0.0 ]; then echo 127.0.0.1; else echo "$BIND_IP"; fi; }
 
 umask 077
@@ -252,15 +245,11 @@ wait_for() {
   done
 }
 
-# Deployment readiness: OTA and WebSocket banners, the tunnel (WG_TUNNEL=1: handshake and
-# boundary), the bridge's health file, one read-only Home Assistant call made from the
-# server container through the endpoint, the bridge and ha-mcp (scripts/check_ha_path.py),
+# Deployment readiness: OTA and WebSocket banners, the bridge's health file, one read-only Home
+# Assistant call made from the server container through the endpoint, the bridge and ha-mcp (scripts/check_ha_path.py),
 # agent-service's healthcheck (database, model API, ha-mcp ping) and agent-monitor's /healthz (database readable).
 deploy_ready() {
   python3 scripts/check_ready.py "$(ready_host)" || return 1
-  if [ "${WG_TUNNEL:-}" = 1 ]; then
-    wait_for "wg tunnel" docker exec wg /usr/local/bin/healthcheck.sh || return 1
-  fi
   wait_for mcp-bridge docker exec mcp-bridge python -m weixue_bridge.health || return 1
   wait_for "Home Assistant via the voice path" \
     sh -c 'docker exec -i xiaozhi-esp32-server python - --timeout 20 < scripts/check_ha_path.py' || return 1
@@ -270,7 +259,7 @@ deploy_ready() {
   if [ -n "$MONITOR_REQUIRED" ]; then
     wait_for agent-monitor docker exec agent-monitor python -m agent_monitor.health || return 1
   fi
-  echo "ready: bridge healthy$([ "${WG_TUNNEL:-}" != 1 ] || echo ", tunnel healthy"), Home Assistant answered via the voice path$([ -z "$AGENT_REQUIRED" ] || echo ", agent-service healthy")$([ -z "$MONITOR_REQUIRED" ] || echo ", agent-monitor healthy")"
+  echo "ready: bridge healthy, Home Assistant answered via the voice path$([ -z "$AGENT_REQUIRED" ] || echo ", agent-service healthy")$([ -z "$MONITOR_REQUIRED" ] || echo ", agent-monitor healthy")"
 }
 
 manual_restore() {
@@ -323,9 +312,7 @@ rollback() {
     docker rm -f agent-monitor >/dev/null 2>&1 || true
   fi
   services+=(xiaozhi-esp32-server)
-  [ "${WG_TUNNEL:-}" != 1 ] || services=(wg "${services[@]}")
   if restore_images && docker compose up -d --force-recreate "${services[@]}"; then
-    [ "${WG_TUNNEL:-}" = 1 ] || docker rm -f wg >/dev/null 2>&1 || true
     deploy_ready || echo "previous version is not ready either"
   else
     manual_restore "${services[@]}"
@@ -408,7 +395,6 @@ mv -f "$ENDPOINT_FILE" "$ENDPOINT_URL"
 mv -f "$STAGED" "$CONFIG"
 
 docker compose up -d --force-recreate "${SERVICES[@]}" || rollback "docker compose up failed"
-[ -n "$TUNNEL_SERVICES" ] || docker rm -f wg >/dev/null 2>&1 || true
 deploy_ready || rollback "new version is not ready"
 PHASE=done
 cp .env "$ENV_DEPLOYED"

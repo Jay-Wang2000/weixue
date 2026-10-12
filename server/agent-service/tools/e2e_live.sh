@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Live end-to-end gate: tools.e2e_conversation in a one-off agent-service container next to the service
-# (compose network at home, the wg namespace in office mode), with `docker restart agent-service` between
-# restart-begin and restart-check. Keys come from server/.env and are never printed.
+# Live end-to-end gate: tools.e2e_conversation in a one-off agent-service container on the compose network,
+# with `docker restart agent-service` between restart-begin and restart-check. Runs on the host of the stack.
+# Keys come from server/.env and are never printed.
 #   server/agent-service/tools/e2e_live.sh [scenario...]
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 export PATH="$HOME/.rd/bin:$PATH"
 set -a; . ./.env; set +a
-if [ "${WG_TUNNEL:-}" = 1 ]; then NET=container:wg; URL=http://127.0.0.1:8010; else NET=server_default; URL=http://agent-service:8010; fi
+NET=server_default
+URL=http://agent-service:8010
 mkdir -p data/e2e
 SCENARIOS=("$@")
 [ ${#SCENARIOS[@]} -gt 0 ] || SCENARIOS=(short free denied long steer second barge-in restart disconnect)
