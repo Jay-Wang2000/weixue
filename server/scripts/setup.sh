@@ -4,6 +4,9 @@
 # publishing restores server/.env, the endpoint unit, the images and the agent-service database
 # location; a failure after it restores the previous deployment.
 set -euo pipefail
+container_running() {
+  [ "$(docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null | tr -d '[:space:]')" = true ]
+}
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.rd/bin:$PATH"
 
@@ -203,7 +206,7 @@ for file in "$ENDPOINT_CFG" "$ENDPOINT_URL"; do
   if [ -f "$file" ]; then cp -p "$file" "$file.rollback"; fi
 done
 
-[ "$(docker inspect -f '{{.State.Running}}' mcp-endpoint-server 2>/dev/null || echo false)" = true ] || ENDPOINT_STARTED=1
+container_running mcp-endpoint-server || ENDPOINT_STARTED=1
 docker compose up -d mcp-endpoint-server
 MCP=""
 for _ in $(seq 1 30); do
@@ -336,11 +339,11 @@ fi
 # service is stopped; compose sets AGENT_DB for this and for a rolled-back image.
 if [ -f "$AGENT_DATA/agent.db" ] && [ ! -e "$AGENT_DATA/db/agent.db" ]; then
   PHASE=migrate
-  if [ "$(docker inspect -f '{{.State.Running}}' agent-service 2>/dev/null || echo false)" = true ]; then
+  if container_running agent-service; then
     AGENT_STOPPED=1
   fi
   docker stop agent-service >/dev/null 2>&1 || true
-  if [ "$(docker inspect -f '{{.State.Running}}' agent-service 2>/dev/null || echo false)" != false ]; then
+  if container_running agent-service; then
     echo "agent-service is still running; its database was not moved and nothing was published"
     exit 1
   fi
@@ -355,9 +358,6 @@ fi
 
 # agent-service's database as it was before this run, copied with the service and the monitor stopped (a newer
 # image migrates it in place); rollback() puts it back and keeps the attempted one in db-failed/.
-container_running() {
-  [ "$(docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null | tr -d '[:space:]')" = true ]
-}
 backup_agent_db() {
   local file
   rm -rf "$AGENT_DATA/db-rollback"
