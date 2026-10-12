@@ -471,9 +471,18 @@ tasks:
     description: |
       Build the final direction from ~/Projects/research/reports/weixue-monitor-ui-v1.md (03-final/index.html is the visual truth): verdict bar, context band, held-approval card, since-you-last-looked summary, activity feed with search and counted segments, chats rail, problems split by severity, per-task trace from /api/tasks/{id}; phase 3 adds GET /api/health/history. Plus decision 79: bind 192.168.8.125:8020, CSP frame-ancestors http://192.168.8.142:8123, MONITOR_TOKEN in the iframe URL, no own chrome when embedded (?embed=1), follows prefers-color-scheme. Tests + screenshot diff against the mock; verify inside an HA Webpage card.
     depends_on: [research-monitor-ui]
-    status: pending
+    status: in_progress
     retries: 0
     model: opus
+  - id: docs-home-seed
+    name: "Seed ha-agent/home/ with the home facts both agents will share (decision 80, draft for Jay)"
+    branch: docs/home-seed
+    description: |
+      Draft only, in the ha-agent repo on a local branch (no push): extract the facts about the home from ~/Projects/ha-agent CLAUDE.md (Key facts, guardrails that describe the house, not the repo), skills (multi-light area controls patterns, blueprints), plans and the live HA registry via the weixue agent's read-only snapshot data (areas, entity names) into home/*.md — rooms-and-areas.md, devices-and-naming.md, people-and-routines.md, automations.md, index.md — one topic per file, first line = title, no secrets, no repo/dev rules, no ha-mcp URL. Jay reviews before anything is enabled.
+    depends_on: []
+    status: in_progress
+    retries: 0
+    model: sonnet
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
