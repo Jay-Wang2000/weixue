@@ -5,6 +5,7 @@ server clock UTC+1). Driver tests replay a serial fixture through Session with a
 and the clock mocked."""
 import datetime
 import json
+import os
 import re
 import subprocess
 import sys
@@ -18,6 +19,8 @@ FIX = Path(__file__).resolve().parent / "fixtures"
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS.parent / "firmware" / "tools"))
 import session_judge as j  # noqa: E402
+
+os.environ["WEIXUE_SERVER_SSH"] = ""  # docker stays local whatever the live server/.env names
 
 try:
     import audio_session
@@ -664,7 +667,7 @@ class AgentClientTest(unittest.TestCase):
 
 
 class ShellEnvTest(unittest.TestCase):
-    def test_reads_token_fixture_and_flag_from_env_without_printing(self):
+    def mode_args(self, extra_env=""):
         import os
         import tempfile
         root = SCRIPTS.parent
@@ -672,20 +675,29 @@ class ShellEnvTest(unittest.TestCase):
             env_file = Path(d) / ".env"
             env_file.write_text("LAN_IP=10.9.9.9\nWEIXUE_PROACTIVE_TOKEN=\"tok-secret-123\"\nBIND_IP=0.0.0.0\n"
                                 "ALLOWED_DEVICES=aa:bb:cc:dd:ee:ff,11:22:33:44:55:66\nVOICE_BARGE_IN=1\n"
-                                "VOICE_LLM=claude_agent\n")
+                                "VOICE_LLM=claude_agent\n" + extra_env)
             stub = Path(d) / "probe.sh"
             src = (root / "scripts" / "audio_session.sh").read_text()
             body = src[src.index("mode_args=()"):src.index("set +e")]
-            stub.write_text("set -euo pipefail\nlive_env=\"$1\"\nno_audio=1\n" +
+            stub.write_text("set -euo pipefail\nlive_env=\"$1\"\nno_audio=1\nexport WEIXUE_LIVE_ENV=\"$1\"\n"
+                            f". {root / 'scripts' / 'lib' / 'remote_docker.sh'}\n" +
                             src[src.index("env_value() {"):src.index("\n}\n", src.index("env_value() {")) + 3] +
                             body + 'printf "%s\\n" "${mode_args[@]}"\n'
                             '[ "$WEIXUE_PROACTIVE_TOKEN" = tok-secret-123 ] && echo token-exported\n')
+            env = {k: v for k, v in os.environ.items() if not k.startswith("WEIXUE_SERVER_")}
             out = subprocess.run(["bash", str(stub), str(env_file)], capture_output=True, text=True,
-                                 env={**os.environ, "WEIXUE_PROACTIVE_TOKEN": ""})
+                                 env={**env, "WEIXUE_PROACTIVE_TOKEN": ""})
         self.assertEqual(out.returncode, 0, out.stderr)
-        self.assertEqual(out.stdout.splitlines(), ["--no-audio", "--fixture-base", "http://127.0.0.1:8003",
-                                                    "--fixture-device", "aa:bb:cc:dd:ee:ff", "--barge-in", "1",
-                                                    "--voice-llm", "claude_agent", "token-exported"])
+        return out.stdout.splitlines()
+
+    def test_reads_token_fixture_and_flag_from_env_without_printing(self):
+        self.assertEqual(self.mode_args(), ["--no-audio", "--fixture-base", "http://127.0.0.1:8003",
+                                            "--fixture-device", "aa:bb:cc:dd:ee:ff", "--barge-in", "1",
+                                            "--voice-llm", "claude_agent", "token-exported"])
+
+    def test_remote_stack_sets_the_fixture_base_to_the_server(self):
+        self.assertEqual(self.mode_args("WEIXUE_SERVER_SSH=jay@192.0.2.5\n")[1:3],
+                         ["--fixture-base", "http://192.0.2.5:8003"])
 
 
 if __name__ == "__main__":

@@ -14,7 +14,8 @@
 # synthesised with the service account at GOOGLE_SA_FILE in the live server/.env (exported as
 # GOOGLE_APPLICATION_CREDENTIALS) before the board is touched.
 # From the same .env: WEIXUE_PROACTIVE_TOKEN is exported for card_tap; the fixture base is
-# http://<BIND_IP, or 127.0.0.1 for 0.0.0.0>:8003 and the fixture device the first ALLOWED_DEVICES
+# http://<WEIXUE_SERVER_SSH host>:8003 when the stack runs on another host (scripts/lib/remote_docker.sh),
+# else http://<BIND_IP, or 127.0.0.1 for 0.0.0.0>:8003, and the fixture device the first ALLOWED_DEVICES
 # entry; VOICE_BARGE_IN (default 0) is passed as --barge-in and VOICE_LLM (default anthropic) as
 # --voice-llm. Options after -- override these.
 set -euo pipefail
@@ -40,6 +41,9 @@ done
 
 # shellcheck source=scripts/device.sh
 . "$root/scripts/device.sh"
+export WEIXUE_LIVE_ENV="$live_env"
+# shellcheck source=scripts/lib/remote_docker.sh
+. "$root/scripts/lib/remote_docker.sh"
 
 # Value of KEY in the live .env (last assignment, surrounding quotes removed); empty when unset.
 env_value() {
@@ -111,9 +115,14 @@ mode_args=()
 token="$(env_value WEIXUE_PROACTIVE_TOKEN)"
 [ -n "$token" ] && export WEIXUE_PROACTIVE_TOKEN="$token"
 unset token
-bind_ip="$(env_value BIND_IP)"
-[ -z "$bind_ip" ] || [ "$bind_ip" = 0.0.0.0 ] && bind_ip=127.0.0.1
-mode_args+=(--fixture-base "http://$bind_ip:8003")
+server_host="$(weixue_server_host)"
+if [ -n "$server_host" ]; then
+  mode_args+=(--fixture-base "http://$server_host:8003")
+else
+  bind_ip="$(env_value BIND_IP)"
+  [ -z "$bind_ip" ] || [ "$bind_ip" = 0.0.0.0 ] && bind_ip=127.0.0.1
+  mode_args+=(--fixture-base "http://$bind_ip:8003")
+fi
 device_id="$(env_value ALLOWED_DEVICES | cut -d, -f1 | tr -d ' ')"
 [ -n "$device_id" ] && mode_args+=(--fixture-device "$device_id")
 barge_in="$(env_value VOICE_BARGE_IN)"

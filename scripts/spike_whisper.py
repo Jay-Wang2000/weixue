@@ -32,6 +32,8 @@ import numpy as np
 
 ROOT = os.environ.get("WEIXUE_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "firmware", "tools"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+import remote_docker  # noqa: E402
 VENDOR = os.environ.get("WEIXUE_VENDOR", os.path.expanduser("~/Projects/weixue-vendor"))
 CLIPS = os.path.join(VENDOR, "session-clips", "whisper-proxy")
 OUT = os.path.join(VENDOR, "spikes", "whisper", "runs")
@@ -244,8 +246,8 @@ def open_diag(args, tag):
 
 
 def server_log(args, tag, t0):
-    out = subprocess.run(["docker", "logs", "--timestamps", "--since", str(int(t0) - 2), SERVER],
-                         capture_output=True, text=True, timeout=60)
+    out = remote_docker.run(["logs", "--timestamps", "--since", str(int(t0) - 2), SERVER],
+                            capture_output=True, text=True, timeout=60)
     from diag_inject import redact
     with open(os.path.join(args.out, f"{tag}-server.log"), "w") as f:
         f.write("\n".join(redact(l) for l in (out.stdout + out.stderr).splitlines()) + "\n")

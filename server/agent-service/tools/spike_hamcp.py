@@ -1,6 +1,6 @@
 """S1 item 4 probe (read-only): the live ha-mcp tool surface against its effective policy.
 
-    docker run --rm --network container:wg -e HA_MCP_URL --entrypoint python \
+    docker run --rm --network server_default -e HA_MCP_URL --entrypoint python \
         weixue/agent-service:<tag> -m tools.spike_hamcp
 
 Prints tool names, annotations and which tools a policy rule names; never the URL or a token.
