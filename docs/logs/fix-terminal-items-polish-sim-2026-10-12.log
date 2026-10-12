@@ -1,0 +1,185 @@
+# fix-terminal-items-polish: server/sim/gateway_recovery_sim.py (all rounds) against server/sim/scratch_agent_service.py of this branch, 2026-10-12
+# PASS/FAIL lines of every round, then the seen round in full
+== question cards (decision 67) ==
+PASS open-ended question: no interaction (None), 0 question card mirrored
+PASS real choice: one card, question as summary, options ['Living room', 'Bedroom']
+PASS option tap: receipt accepted, interaction answered
+== F04 decision receipts ==
+PASS no receipt while the service is answering 503
+PASS 503 for the whole window: receipt stale (never accepted)
+PASS service interaction still pending
+PASS answer handled but its reply lost, retried with the same decision id: receipt accepted
+PASS service: interaction answered, 1 decision row
+PASS a third tap is not forwarded again: receipt stale, 1 decision row
+== F09 speech hand-off ==
+PASS d1 speech acks after two 503s on accepted: ['accepted', 'spoken', 'played']
+PASS d1 proactive messages: 1
+PASS d2 not queued while the service cannot record the hand-off
+PASS d2 played once after the service's lease expired: messages=1, acks=['accepted', 'shown', 'spoken', 'played']
+== F10 one retry owner ==
+PASS d3: attempt 2 offered by the service, proactive keys ['dlv_01M4RT3NHE5GC338AG6325XJK1:1', 'dlv_01M4RT3NHE5GC338AG6325XJK1:2']
+PASS d3 speech acks: ['accepted', 'deferred', 'accepted', 'spoken', 'played']
+== F11 gateway restart ==
+PASS no snapshot or agent_sync before the service snapshot is restored
+PASS agent_sync lists every task the device held: ['tsk_01M4RT2R71MJC3PZ4KZWRVTM8S', 'tsk_01M4RT2T5Q3B26P3PBSRKN7X5E', 'tsk_01M4RT2V891GX9KXFQ85BMRT5S', 'tsk_sim1', 'tsk_sim2', 'tsk_sim3']
+PASS restored cards keep their wire seqs: 6/6
+PASS restored cards do not speak
+== F13 INTERRUPT ==
+PASS INTERRUPT item played while the session was speaking a voice turn
+PASS d6 cut off by d7: ['accepted', 'shown', 'cut_off'] reason=superseded
+PASS service: d6 cut_off, d7 played
+PASS a late played ack of the cut sentence is not posted
+== answer routing and open-card tiers ==
+PASS question spoken in the voice reply: card when_idle speaks=False
+PASS API message to another chat in the voice window: new_task in its chat, question pending
+PASS voice follow-up: answer, question answered
+PASS question from an API message: card when_idle speaks=True
+PASS option 2 tap: receipt accepted, interaction answered
+== finding 76 open cards reconciled ==
+PASS task cancelled in the service (cancelled) while the delivery stream is down: mirror still needs_input
+PASS service snapshot of the task: ['cancelled']
+PASS after the reboot: task cancelled, card int_01M4RT47QTTYK5Z55P7JSP6G0X not sent
+PASS chat chip after the reconcile: unread
+PASS a card of a task the service does not know is dropped: agent_sync ['tsk_sim3', 'tsk_sim5', 'tsk_sim6', 'tsk_sim7', 'tsk_01M4RT45N5CZ66KKQX1F54G9KS', 'tsk_01M4RT46MJVNBCASGPBRQBQ9KR', 'tsk_01M4RT46N28K0RPR2A89AWPF37']
+PASS service unreachable: the open card stays (needs_input)
+== decision 84 spoken means read; a decided card's speech is withdrawn ==
+PASS service: the played result is seen
+PASS device got the result again seen:true (silent, speaks=False)
+PASS service snapshot seen: {'tsk_seen1': True, 'tsk_seen2': False}
+PASS after a device reboot: {'tsk_seen1': True, 'tsk_seen2': False}
+PASS after a gateway restart (service snapshot): {'tsk_seen1': True, 'tsk_seen2': False}
+PASS card speech waits in the proactive queue (queued)
+PASS answer receipt accepted
+PASS card speech withdrawn after the answer (message expired, speech dropped)
+PASS the decided card's speech never played
+ALL PASS
+
+# seen round
+== decision 84 spoken means read; a decided card's speech is withdrawn ==
+20:41:14 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4RT4A02AJ4VSFK0XH1ANX55 task=tsk_01M4RT4A04BS3BT0W5B11H33N8 state=cancelled seq=1791834074202 tier=silent speaks=False delivery=dlv_01M4RT4B2S4BQBJSKBSW5NAP5S
+20:41:14 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT4A04BS3BT0W5B11H33N8 state=cancelled seq=1791834074202
+20:41:14 info agent mirror full: tsk_01M4RT4A04BS3BT0W5B11H33N8 no longer mirrored for device=7c:0c:5f:42:4b:fc
+20:41:14 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_seen1 state=unread seq=1791834074203 tier=when_idle speaks=True delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297
+20:41:14 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_seen1 state=unread seq=1791834074203
+20:41:14 info agent ack accepted delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297 device=7c:0c:5f:42:4b:fc proactive_id=4014c1018b484bdfae20e4e13424a6bf ttl_s=600
+20:41:14 info agent ack deferred delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297 device=7c:0c:5f:42:4b:fc retry_after_ms=2000 detail=rate limited
+20:41:14 info agent ack shown delivery=dlv_01M4RT4B2S4BQBJSKBSW5NAP5S device=7c:0c:5f:42:4b:fc seq=1791834074202 via=shown
+20:41:14 info agent ack shown delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297 device=7c:0c:5f:42:4b:fc seq=1791834074203 via=shown
+20:41:14 warn agent-service /v1/deliveries/dlv_01M4RT4B2TENYDW9R3HG3TT297/ack: HTTP 409
+20:41:14 warn agent ack shown delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297 not recorded by agent-service (HTTP 409)
+20:41:14 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4RT2R70AEJ7SY35466XGXMD chats=3/3 seq=1791834074703 bytes=413 delivery=dlv_01M4RT4BJEV8DH8ZW2YMVYQQ60
+20:41:14 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791834074703
+20:41:15 info agent ack shown delivery=dlv_01M4RT4BJEV8DH8ZW2YMVYQQ60 device=7c:0c:5f:42:4b:fc seq=1791834074703 via=shown
+20:41:19 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_seen1 state=unread seq=1791834079705 tier=when_idle speaks=True delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297
+20:41:19 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_seen1 state=unread seq=1791834079705
+20:41:19 info agent ack accepted delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297 device=7c:0c:5f:42:4b:fc proactive_id=ee816cb98d4d42eeb0eed7fdd9f6a5e3 ttl_s=600
+20:41:19 info proactive ee816cb98d4d42eeb0eed7fdd9f6a5e3 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+20:41:19 info agent speech 37ac16b4134e40dc handed off: delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297 proactive=ee816cb98d4d42eeb0eed7fdd9f6a5e3 urgent=False attempt=2 reason=busy
+20:41:19 info proactive ee816cb98d4d42eeb0eed7fdd9f6a5e3 delivering: attempt=1 session=reboot-3 invoked=False urgent=False
+20:41:19 info device plays 'The dishwasher finished.' sentence=s-ee816cb9
+20:41:20 info agent ack shown delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297 device=7c:0c:5f:42:4b:fc seq=1791834079705 via=shown
+20:41:20 info agent speech 37ac16b4134e40dc tts stop sentence=s-ee816cb9
+20:41:20 info agent speech 37ac16b4134e40dc played: sentence=s-ee816cb9 cut_at_ms=None reason=None
+20:41:20 info agent ack spoken delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297 device=7c:0c:5f:42:4b:fc proactive_id=ee816cb98d4d42eeb0eed7fdd9f6a5e3
+20:41:20 info agent ack played delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297 device=7c:0c:5f:42:4b:fc sentence_id=s-ee816cb9 boot=4247 device_seq=4
+20:41:20 info agent item seen device=7c:0c:5f:42:4b:fc task=tsk_seen1 state=unread seq=1791834080126 delivery=dlv_01M4RT4B2TENYDW9R3HG3TT297: played
+20:41:20 info proactive ee816cb98d4d42eeb0eed7fdd9f6a5e3 delivered
+20:41:20 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_seen1 state=unread seq=1791834080126
+PASS service: the played result is seen
+PASS device got the result again seen:true (silent, speaks=False)
+20:41:20 info agent mirror full: tsk_sim3 no longer mirrored for device=7c:0c:5f:42:4b:fc
+20:41:20 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_seen2 state=unread seq=1791834080272 tier=silent speaks=False delivery=dlv_01M4RT4H0DFM210JPCAA75W1JF
+20:41:20 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_seen2 state=unread seq=1791834080272
+PASS service snapshot seen: {'tsk_seen1': True, 'tsk_seen2': False}
+20:41:20 info agent connection open device=7c:0c:5f:42:4b:fc session=seen-reboot
+20:41:20 info agent session device=7c:0c:5f:42:4b:fc session=seen-reboot: snapshot of 8
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim5 state=unread seq=1791834065815
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791834067023
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim7 state=unread seq=1791834067469
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT46MJVNBCASGPBRQBQ9KR state=unread seq=1791834069663
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT45N5CZ66KKQX1F54G9KS state=unread seq=1791834069670
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT46N28K0RPR2A89AWPF37 state=unread seq=1791834072091
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791834074703
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_seen1 state=unread seq=1791834080126
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_seen2 state=unread seq=1791834080272
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791834080376
+PASS after a device reboot: {'tsk_seen1': True, 'tsk_seen2': False}
+20:41:20 info agent connection open device=7c:0c:5f:42:4b:fc session=seen-restart
+20:41:20 info agent session device=7c:0c:5f:42:4b:fc session=seen-restart: snapshot once the agent-service snapshot is restored
+20:41:20 info agent restore device=7c:0c:5f:42:4b:fc: 16 cards from the agent-service snapshot; mirror 8
+20:41:20 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4RT2R70AEJ7SY35466XGXMD chats=3/3 seq=1791834080482 bytes=413 delivery=gw_c9502aed878d4c1ab80cc9a5
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim5 state=unread seq=1791834065815
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim6 state=unread seq=1791834067023
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_sim7 state=unread seq=1791834067469
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT46MJVNBCASGPBRQBQ9KR state=unread seq=1791834069663
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT45N5CZ66KKQX1F54G9KS state=unread seq=1791834069670
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT46N28K0RPR2A89AWPF37 state=unread seq=1791834072091
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_seen1 state=unread seq=1791834080126
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent task=tsk_seen2 state=unread seq=1791834080272
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791834080482
+20:41:20 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791834080483
+20:41:20 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_sim task=tsk_seen2 state=unread seq=1791834080484 tier=silent speaks=False delivery=dlv_01M4RT4H0DFM210JPCAA75W1JF
+20:41:20 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_seen2 state=unread seq=1791834080484
+PASS after a gateway restart (service snapshot): {'tsk_seen1': True, 'tsk_seen2': False}
+20:41:20 info agent mirror full: tsk_sim5 no longer mirrored for device=7c:0c:5f:42:4b:fc
+20:41:20 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4RT4HA4ZPW94SBA0637RCJP task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D state=needs_input seq=1791834080617 tier=when_idle speaks=True delivery=dlv_01M4RT4HB8GMS6C5HFRX4VEKAQ
+20:41:20 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D state=needs_input seq=1791834080617
+20:41:20 info agent ack accepted delivery=dlv_01M4RT4HB8GMS6C5HFRX4VEKAQ device=7c:0c:5f:42:4b:fc proactive_id=4e7594ee344f4ee096d9987bf7270ffa ttl_s=600
+20:41:20 info proactive 4e7594ee344f4ee096d9987bf7270ffa queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+20:41:20 info agent speech 8354b25aad7241b6 handed off: delivery=dlv_01M4RT4HB8GMS6C5HFRX4VEKAQ proactive=4e7594ee344f4ee096d9987bf7270ffa urgent=False attempt=1 reason=busy
+20:41:20 info proactive 4e7594ee344f4ee096d9987bf7270ffa delivering: attempt=1 session=seen-restart invoked=False urgent=False
+20:41:20 info device plays 'Which bin?' sentence=s-4e7594ee
+20:41:20 info agent ack shown delivery=gw_c9502aed878d4c1ab80cc9a5 device=7c:0c:5f:42:4b:fc seq=1791834080482 via=shown
+20:41:20 info agent ack shown delivery=dlv_01M4RT4H0DFM210JPCAA75W1JF device=7c:0c:5f:42:4b:fc seq=1791834080484 via=shown
+20:41:20 info agent ack shown delivery=dlv_01M4RT4HB8GMS6C5HFRX4VEKAQ device=7c:0c:5f:42:4b:fc seq=1791834080617 via=shown
+20:41:21 info agent speech 8354b25aad7241b6 tts stop sentence=s-4e7594ee
+20:41:21 info agent speech 8354b25aad7241b6 played: sentence=s-4e7594ee cut_at_ms=None reason=None
+20:41:21 info agent ack spoken delivery=dlv_01M4RT4HB8GMS6C5HFRX4VEKAQ device=7c:0c:5f:42:4b:fc proactive_id=4e7594ee344f4ee096d9987bf7270ffa
+20:41:21 info agent ack played delivery=dlv_01M4RT4HB8GMS6C5HFRX4VEKAQ device=7c:0c:5f:42:4b:fc sentence_id=s-4e7594ee boot=4249 device_seq=2
+20:41:21 info proactive 4e7594ee344f4ee096d9987bf7270ffa delivered
+20:41:21 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4RT2R70AEJ7SY35466XGXMD chats=4/4 seq=1791834081100 bytes=519 delivery=dlv_01M4RT4HTAN7WFEYG5CG8WHMQ2
+20:41:21 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791834081100
+20:41:21 info agent ack shown delivery=dlv_01M4RT4HTAN7WFEYG5CG8WHMQ2 device=7c:0c:5f:42:4b:fc seq=1791834081100 via=shown
+20:41:21 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4RT4HA4ZPW94SBA0637RCJP task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D state=needs_input seq=1791834081601 tier=when_idle speaks=True delivery=dlv_01M4RT4JA0TYEVP4XE4JX6XBQQ
+20:41:21 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D state=needs_input seq=1791834081601
+20:41:21 info agent ack accepted delivery=dlv_01M4RT4JA0TYEVP4XE4JX6XBQQ device=7c:0c:5f:42:4b:fc proactive_id=94fd464269fd4c85a416d1bbd5b5b179 ttl_s=600
+20:41:21 info proactive 94fd464269fd4c85a416d1bbd5b5b179 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+20:41:21 info agent speech a839d1dfd78847a0 handed off: delivery=dlv_01M4RT4JA0TYEVP4XE4JX6XBQQ proactive=94fd464269fd4c85a416d1bbd5b5b179 urgent=False attempt=1 reason=busy
+PASS card speech waits in the proactive queue (queued)
+20:41:21 info agent response answer device=7c:0c:5f:42:4b:fc chat=cht_01M4RT4HA4ZPW94SBA0637RCJP task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D card=int_01M4RT4HB7FBHSPZ010NSD8RTD option=opt1 via=tap boot=4249 seq=4
+20:41:21 info proactive 94fd464269fd4c85a416d1bbd5b5b179 expired: card decided (answer)
+20:41:21 info agent speech a839d1dfd78847a0 delivery=dlv_01M4RT4JA0TYEVP4XE4JX6XBQQ card=int_01M4RT4HB7FBHSPZ010NSD8RTD withdrawn: card decided (answer)
+20:41:21 info agent ack dropped delivery=dlv_01M4RT4JA0TYEVP4XE4JX6XBQQ device=7c:0c:5f:42:4b:fc detail=card decided (answer)
+20:41:21 info agent answer device=7c:0c:5f:42:4b:fc card=int_01M4RT4HB7FBHSPZ010NSD8RTD seq=4 service=accepted result=accepted
+20:41:21 info agent receipt answer boot=4249 seq=4 card=int_01M4RT4HB7FBHSPZ010NSD8RTD result=accepted
+20:41:21 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4RT4HA4ZPW94SBA0637RCJP task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D state=working seq=1791834081710 tier=silent speaks=False delivery=dlv_01M4RT4JDDA5Q0WTG6BX84HFRD
+20:41:21 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D state=working seq=1791834081710
+20:41:21 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4RT4HA4ZPW94SBA0637RCJP task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D state=unread seq=1791834081718 tier=when_idle speaks=True delivery=dlv_01M4RT4JDN6P16ECN4HG5KYYMY
+20:41:21 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D state=unread seq=1791834081718
+20:41:21 info agent ack accepted delivery=dlv_01M4RT4JDN6P16ECN4HG5KYYMY device=7c:0c:5f:42:4b:fc proactive_id=8f04f6775bfa486baffd74b6ba2780fd ttl_s=600
+20:41:21 info proactive 8f04f6775bfa486baffd74b6ba2780fd queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+20:41:21 info agent speech 4ca71e5062694f12 handed off: delivery=dlv_01M4RT4JDN6P16ECN4HG5KYYMY proactive=8f04f6775bfa486baffd74b6ba2780fd urgent=False attempt=1 reason=busy
+PASS answer receipt accepted
+PASS card speech withdrawn after the answer (message expired, speech dropped)
+20:41:21 info agent ack shown delivery=dlv_01M4RT4JA0TYEVP4XE4JX6XBQQ device=7c:0c:5f:42:4b:fc seq=1791834081601 via=shown
+20:41:21 info agent ack shown delivery=dlv_01M4RT4JDDA5Q0WTG6BX84HFRD device=7c:0c:5f:42:4b:fc seq=1791834081710 via=shown
+20:41:21 info agent ack shown delivery=dlv_01M4RT4JDN6P16ECN4HG5KYYMY device=7c:0c:5f:42:4b:fc seq=1791834081718 via=shown
+20:41:22 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4RT2R70AEJ7SY35466XGXMD chats=4/4 seq=1791834082220 bytes=517 delivery=dlv_01M4RT4JXAYJJVXZ3WM4VHN5GP
+20:41:22 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791834082220
+20:41:22 info agent ack shown delivery=dlv_01M4RT4JXAYJJVXZ3WM4VHN5GP device=7c:0c:5f:42:4b:fc seq=1791834082220 via=shown
+20:41:23 info proactive 8f04f6775bfa486baffd74b6ba2780fd delivering: attempt=1 session=seen-restart invoked=False urgent=False
+20:41:23 info device plays 'Okay: The user answered: Green.' sentence=s-8f04f677
+20:41:23 info agent speech 4ca71e5062694f12 tts stop sentence=s-8f04f677
+20:41:23 info agent speech 4ca71e5062694f12 played: sentence=s-8f04f677 cut_at_ms=None reason=None
+20:41:23 info agent ack spoken delivery=dlv_01M4RT4JDN6P16ECN4HG5KYYMY device=7c:0c:5f:42:4b:fc proactive_id=8f04f6775bfa486baffd74b6ba2780fd
+20:41:23 info agent ack played delivery=dlv_01M4RT4JDN6P16ECN4HG5KYYMY device=7c:0c:5f:42:4b:fc sentence_id=s-8f04f677 boot=4249 device_seq=7
+20:41:23 info agent item seen device=7c:0c:5f:42:4b:fc task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D state=unread seq=1791834083634 delivery=dlv_01M4RT4JDN6P16ECN4HG5KYYMY: played
+20:41:23 info proactive 8f04f6775bfa486baffd74b6ba2780fd delivered
+20:41:23 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4RT4HA8HEB87HMB1BTA8R2D state=unread seq=1791834083634
+20:41:23 info agent ack shown delivery=dlv_01M4RT4JDN6P16ECN4HG5KYYMY device=7c:0c:5f:42:4b:fc seq=1791834083634 via=shown
+20:41:24 info agent chats queued device=7c:0c:5f:42:4b:fc current=cht_01M4RT2R70AEJ7SY35466XGXMD chats=4/4 seq=1791834084144 bytes=515 delivery=dlv_01M4RT4MSE8MDJ26EXD47B3K2F
+20:41:24 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791834084144
+20:41:24 info agent ack shown delivery=dlv_01M4RT4MSE8MDJ26EXD47B3K2F device=7c:0c:5f:42:4b:fc seq=1791834084144 via=shown
+PASS the decided card's speech never played
+
+ALL PASS

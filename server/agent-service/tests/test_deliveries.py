@@ -281,3 +281,91 @@ async def test_the_snapshot_leaves_out_an_open_card_of_an_ended_task(make):
     snap = (await h.http.get(f"/v1/devices/{DEVICE}/snapshot")).json()
     states = [c["payload"]["state"] for c in snap["cards"] if c["task_id"] == task_id]
     assert states == ["cancelled"]
+
+
+def _spoken_result(h, task_id, chat_id="c"):
+    box = h.service.outbox
+    did = box.enqueue(DEVICE, "agent", "WHEN_IDLE", f"task:{task_id}",
+                      {"task_id": task_id, "chat_id": chat_id, "state": "done"}, task_id=task_id, chat_id=chat_id,
+                      speak="The result.")
+    offer = box.offer(h.store.delivery(did))
+    box.ack(did, {"lease_id": offer["lease_id"], "outcome": "accepted", "ttl_s": 60})
+    return did, offer
+
+
+async def _snapshot_card(h, task_id):
+    snap = (await h.http.get(f"/v1/devices/{DEVICE}/snapshot")).json()
+    return [c for c in snap["cards"] if c["task_id"] == task_id][-1]
+
+
+async def test_a_played_result_is_seen_in_the_snapshot_and_later_cards(make):
+    """Decision 84: a result played whole is read; the snapshot and every later card of its slot say so."""
+    h = await make()
+    did, offer = _spoken_result(h, "r1")
+    h.service.outbox.ack(did, {"lease_id": offer["lease_id"], "outcome": "played", "sentence_id": "s1"})
+    assert json.loads(h.store.delivery(did)["payload_json"])["seen"] is True
+    assert (await _snapshot_card(h, "r1"))["payload"]["seen"] is True
+    later = h.service.outbox.enqueue(DEVICE, "agent", "SILENT", "task:r1",
+                                     {"task_id": "r1", "chat_id": "c", "state": "done", "playback": "played"},
+                                     task_id="r1")
+    assert json.loads(h.store.delivery(later)["payload_json"])["seen"] is True
+    await h.restart()
+    assert (await _snapshot_card(h, "r1"))["payload"]["seen"] is True
+
+
+@pytest.mark.parametrize("outcome", ["cut_off", "lost", "dropped", "deferred"])
+async def test_a_result_that_was_not_played_whole_stays_unseen(make, outcome):
+    h = await make()
+    did, offer = _spoken_result(h, "r2")
+    h.service.outbox.ack(did, {"lease_id": offer["lease_id"], "outcome": outcome})
+    rows = h.deliveries(slot="task:r2")
+    assert all(not json.loads(r["payload_json"]).get("seen") for r in rows)
+    if outcome != "dropped":
+        assert not (await _snapshot_card(h, "r2"))["payload"].get("seen")
+
+
+async def test_a_played_approval_card_is_not_seen(make):
+    h = await make()
+    box = h.service.outbox
+    did = box.enqueue(DEVICE, "agent", "WHEN_IDLE", "int:i1",
+                      {"task_id": "r3", "chat_id": "c", "state": "needs_approval"}, task_id="r3", speak="OK?")
+    offer = box.offer(h.store.delivery(did))
+    box.ack(did, {"lease_id": offer["lease_id"], "outcome": "played"})
+    assert "seen" not in json.loads(h.store.delivery(did)["payload_json"])
+
+
+async def test_the_played_ack_route_marks_the_chat_read(make):
+    h = await make()
+    first = await h.send_json("hi", origin="api")
+    await h.idle(first["chat_id"])
+    assert (await h.http.get(f"/v1/chats/{first['chat_id']}")).json()["unread"] is True
+    did, offer = _spoken_result(h, first["task_id"], first["chat_id"])
+    resp = await h.http.post(f"/v1/deliveries/{did}/ack", json={"lease_id": offer["lease_id"], "outcome": "played"})
+    assert resp.status_code == 200 and resp.json()["payload"]["seen"] is True
+    assert (await h.http.get(f"/v1/chats/{first['chat_id']}")).json()["unread"] is False
+
+
+async def test_a_tapped_result_is_seen_after_a_restart(make):
+    h = await make()
+    box = h.service.outbox
+    did = box.enqueue(DEVICE, "agent", "SILENT", "task:r4", {"task_id": "r4", "chat_id": "c", "state": "failed"},
+                      task_id="r4")
+    offer = box.offer(h.store.delivery(did))
+    box.ack(did, {"lease_id": offer["lease_id"], "outcome": "shown"})
+    assert not (await _snapshot_card(h, "r4"))["payload"].get("seen")
+    box.ack(did, {"lease_id": offer["lease_id"], "outcome": "user_ack"})
+    await h.restart()
+    assert (await _snapshot_card(h, "r4"))["payload"]["seen"] is True
+
+
+async def test_a_result_heard_in_the_voice_reply_is_seen_and_an_api_reply_is_not(make):
+    h = await make()
+    heard = await h.send_json("hi")
+    await h.idle(heard["chat_id"])
+    card = json.loads(h.deliveries(slot=f"task:{heard['task_id']}")[-1]["payload_json"])
+    assert card["state"] == "done" and card["seen"] is True and card["tier"] == "SILENT"
+    assert (await h.http.get(f"/v1/chats/{heard['chat_id']}")).json()["unread"] is False
+    api = await h.send_json("hello", origin="api")
+    await h.idle(api["chat_id"])
+    card = json.loads(h.deliveries(slot=f"task:{api['task_id']}")[-1]["payload_json"])
+    assert card["state"] == "done" and "seen" not in card

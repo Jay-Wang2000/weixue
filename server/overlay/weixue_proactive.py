@@ -446,6 +446,15 @@ class Proactive:
         self.logger.bind(tag=TAG).info(f"proactive {item.id} {status}{(': ' + error) if error else ''}")
         self._notify()
 
+    def withdraw(self, message_id, reason):
+        """Ends a message that has not started (status queued) as expired; returns whether it did."""
+        item = self.messages.get(message_id)
+        if item is None or item.status != "queued":
+            return False
+        self._release(item)
+        self._finish(item, "expired", reason)
+        return True
+
     def _reserved(self, item, now):
         return item.reserved_for is not None and now < item.reserved_until
 

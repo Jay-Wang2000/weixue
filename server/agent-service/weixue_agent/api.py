@@ -407,9 +407,9 @@ class Api:
             raise ApiError(404, "not_found", "delivery not found")
         except StaleLease:
             raise ApiError(409, "stale_lease", "lease_id does not match the current offer")
-        if body["outcome"] in ("user_ack", "shown") and public.get("chat_id"):
-            if body["outcome"] == "user_ack":
-                self.svc.chats.mark_read(public["chat_id"])
+        seen = body["outcome"] == "user_ack" or (body["outcome"] == "played" and public["payload"].get("seen") is True)
+        if seen and public.get("chat_id"):
+            self.svc.chats.mark_read(public["chat_id"])
         if body["outcome"] == "played" and (public.get("slot") or "").startswith("int:"):
             self.engine.interactions.open_voice_window(public["device_id"], public["slot"][4:])
         return JSONResponse(public)

@@ -4,7 +4,7 @@ and proactive queue (server/overlay) talking HTTP to the scratch service, with s
 sessions (playback, played acks, card answers) in place of the board. Rounds: decisions (F04),
 speech hand-off (F09), retries and attempts (F10), gateway restart (F11), INTERRUPT (F13), answer
 routing and open-card tiers (routing), open cards reconciled against the service's task state
-(reconcile, finding 76), and
+(reconcile, finding 76), spoken results read and a decided card's speech withdrawn (seen, decision 84), and
 `--rounds activity`: a turn of fake tools whose working items carry the activity label (decision 68;
 start the scratch service with --reply-hold-s 1). Run with the server test venv after starting the
 scratch service:
@@ -85,7 +85,10 @@ class Dialogue:
 
 
 class DeviceSession:
-    """A level-2 device session: idle unless speaking() is set; plays a sentence for `audio_s`."""
+    """A level-2 device session: idle unless speaking() is set; plays a sentence for `audio_s`. Each
+    session is a new device boot."""
+
+    boots = 4242
 
     def __init__(self, name):
         self.session_id = name
@@ -103,7 +106,8 @@ class DeviceSession:
         self.dialogue = Dialogue()
         self.sentence_id = None
         self.closed = False
-        self.boot = 4242
+        DeviceSession.boots += 1
+        self.boot = DeviceSession.boots
         self.seq = 0
 
     def speaking(self, on):
@@ -550,13 +554,77 @@ async def round_reconcile(sim, conn):
     return fresh
 
 
+def last_item(conn, task):
+    return next((p for p in reversed(conn.websocket.payloads()) if p.get("kind") == "agent" and p["task_id"] == task),
+                None)
+
+
+async def round_seen(sim, conn):
+    print("\n== decision 84 spoken means read; a decided card's speech is withdrawn ==", flush=True)
+    spoken = await sim.enqueue("WHEN_IDLE", "task:seen1", "The dishwasher finished.", task="tsk_seen1")
+    r = await sim.wait_rows(spoken, lambda r: r["delivery"]["playback"] == "played", 25, "result played")
+    check(json.loads(r["delivery"]["payload_json"]).get("seen") is True, "service: the played result is seen")
+    item = await sim.wait(lambda: (last_item(conn, "tsk_seen1") or {}).get("seen") and last_item(conn, "tsk_seen1"),
+                          10, "seen item on the device")
+    check(item and item["state"] == "unread" and item["delivery"] == "silent" and not item["speaks"],
+          f"device got the result again seen:true ({item and item['delivery']}, speaks={item and item['speaks']})")
+    await sim.enqueue("SILENT", "task:seen2", None, task="tsk_seen2")
+    await sim.wait(lambda: "tsk_seen2" in sim.gw.devices[DEVICE].mirror, 10, "silent result mirrored")
+    _, snap = await sim.api("GET", f"/v1/devices/{DEVICE}/snapshot")
+    seen = {c["task_id"]: bool(c["payload"].get("seen")) for c in snap["cards"] if c["task_id"] in ("tsk_seen1", "tsk_seen2")}
+    check(seen == {"tsk_seen1": True, "tsk_seen2": False}, f"service snapshot seen: {seen}")
+    fresh = reboot(sim, conn, "seen-reboot")
+    await sim.wait(lambda: snapshot_of(fresh)[1] is not None, 10, "snapshot after the reboot")
+    seen = {t: (last_item(fresh, t) or {}).get("seen") for t in ("tsk_seen1", "tsk_seen2")}
+    check(seen == {"tsk_seen1": True, "tsk_seen2": False}, f"after a device reboot: {seen}")
+    await sim.stop_gateway()
+    sim.make_gateway()
+    sim.start()
+    fresh.stop_event.set()
+    fresh = sim.open_session("seen-restart")
+    await sim.wait(lambda: snapshot_of(fresh)[1] is not None, 10, "snapshot after a gateway restart")
+    seen = {t: (last_item(fresh, t) or {}).get("seen") for t in ("tsk_seen1", "tsk_seen2")}
+    check(seen == {"tsk_seen1": True, "tsk_seen2": False}, f"after a gateway restart (service snapshot): {seen}")
+
+    _, own = await sim.api("POST", "/v1/chats", {"device_id": DEVICE, "switch": False})
+    asked = await sim.ctl("POST", "/sim/ask", {"device_id": DEVICE, "question": "Which bin?",
+                                               "options": ["Green", "Black"], "chat_id": own["chat_id"]})
+    card, task, chat = asked["interaction_id"], asked["task_id"], asked["chat_id"]
+    await sim.wait(lambda: mirrored_card(sim, card), 10, "question card mirrored")
+    fresh.speaking(True)
+    text = "Which bin goes out, green or black?"
+    payload = {"task_id": task, "chat_id": chat, "state": "needs_input", "summary": "Which bin?", "lang": "en",
+               "interaction": {"interaction_id": card, "question": {"options": [
+                   {"id": "opt1", "label": "Green"}, {"id": "opt2", "label": "Black"}]}}}
+    did = (await sim.ctl("POST", "/sim/enqueue", {"device_id": DEVICE, "tier": "WHEN_IDLE", "slot": f"int:{card}",
+                                                  "payload": payload, "speak": text, "task_id": task,
+                                                  "chat_id": chat}))["delivery_id"]
+    speech = await sim.wait(lambda: next((s for s in sim.gw.speeches.values()
+                                          if s.delivery_id == did and s.state == "handed_off"), None),
+                            10, "card speech handed off while the device is busy")
+    msg = sim.proactive.messages.get(speech.proactive_id) if speech else None
+    check(msg is not None and msg.status == "queued", f"card speech waits in the proactive queue ({msg and msg.status})")
+    sim.gw.on_device_event(fresh, wad.RESPONSE_METHOD, {"v": 1, "boot": fresh.boot, "seq": fresh.next_seq(),
+                                                        "kind": "answer", "chat_id": chat, "task_id": task,
+                                                        "card_id": card, "option_id": "opt1", "via": "tap"})
+    got = await sim.wait(lambda: sim.receipts(fresh, card), 15, "answer receipt")
+    check(got and got[-1]["result"] == "accepted", f"answer receipt {got and got[-1]['result']}")
+    check(msg is not None and msg.status == "expired" and speech.state == "dropped",
+          f"card speech withdrawn after the answer (message {msg and msg.status}, speech {speech and speech.state})")
+    r = await sim.wait_rows(did, lambda r: r["delivery"]["state"] == "dropped", 10, "card speech acked dropped")
+    fresh.speaking(False)
+    await asyncio.sleep(3)
+    check(text not in sim.played_texts, "the decided card's speech never played")
+    return fresh
+
+
 async def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--url", default="http://127.0.0.1:18810")
     ap.add_argument("--state", required=True)
-    ap.add_argument("--rounds", default="questions,decisions,speech,attempts,restart,interrupt,routing,reconcile",
+    ap.add_argument("--rounds", default="questions,decisions,speech,attempts,restart,interrupt,routing,reconcile,seen",
                     help="comma list of questions, decisions, speech, attempts, restart, interrupt, routing, "
-                         "reconcile, activity")
+                         "reconcile, seen, activity")
     a = ap.parse_args()
     rounds = a.rounds.split(",")
     token = os.environ["SIM_TOKEN"]
@@ -584,6 +652,8 @@ async def main():
         await round_routing(sim, conn)
     if "reconcile" in rounds:
         conn = await round_reconcile(sim, conn)
+    if "seen" in rounds:
+        conn = await round_seen(sim, conn)
     await sim.stop_gateway()
     await sim.http.close()
     print(f"\n{'ALL PASS' if not FAILURES else 'FAILED: ' + '; '.join(FAILURES)}", flush=True)

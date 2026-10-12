@@ -6,7 +6,8 @@ retry owner: a deferred delivery is offered again with a new attempt and lease. 
 forward (ACK_FROM); one that does not fits its state changes nothing. Speech that may have started
 without a played/cut_off ack is never offered again (its card is marked "may not have played"). An
 open card whose task ended or whose interaction closed is never queued again by a playback update
-and is left out of the device snapshot.
+and is left out of the device snapshot. A result card whose speech was played whole, or that was
+tapped (user_ack), is seen: later cards of its slot and the device snapshot carry seen:true.
 """
 import asyncio
 import uuid
@@ -23,6 +24,9 @@ OPEN_STATES = ("pending", "offered", "handed_off")
 SNAPSHOT_HIDDEN = ("superseded", "dropped", "expired")
 OPEN_CARD_STATES = ("needs_input", "needs_approval")
 OPEN_INTERACTIONS = ("pending", "uncorrelated")
+# Result card states that can be seen (task results and notices).
+SEEN_STATES = TERMINAL_STATES + ("unread",)
+SEEN_OUTCOMES = ("played", "user_ack")
 ACK_FROM = {
     "accepted": ("offered",),
     "spoken": ("offered", "handed_off"),
@@ -68,6 +72,9 @@ class Outbox:
         if speak is None and tier != "SILENT":
             tier = "SILENT"
         payload = dict(payload, tier=tier, speaks=bool(speak))
+        if kind == "agent" and payload.get("state") in SEEN_STATES and not payload.get("seen") \
+                and self.slot_seen(device_id, slot):
+            payload["seen"] = True
         with self.store.tx():
             self.store.execute(
                 "UPDATE deliveries SET state = 'superseded', updated_at = ? "
@@ -96,6 +103,19 @@ class Outbox:
         if n:
             self._wake(device_id)
         return n
+
+    def slot_seen(self, device_id: str, slot: str) -> bool:
+        rows = self.store.all("SELECT payload_json FROM deliveries WHERE device_id = ? AND slot = ?", (device_id, slot))
+        return any(loads_or(r["payload_json"], {}).get("seen") is True for r in rows)
+
+    def _mark_seen(self, row: Dict[str, Any], outcome: str) -> None:
+        """A result card that was played whole or tapped is seen (persisted in its payload)."""
+        payload = loads_or(row["payload_json"], {})
+        if row["kind"] != "agent" or payload.get("state") not in SEEN_STATES or payload.get("seen"):
+            return
+        self.store.update("deliveries", "delivery_id", row["delivery_id"], {"payload_json": dict(payload, seen=True)})
+        jsonlog.log("delivery seen", device_id=row["device_id"], task_id=row["task_id"], chat_id=row["chat_id"],
+                    event="delivery_ack", outcome=outcome, detail=row["delivery_id"])
 
     def _mark_uncertain(self, row: Dict[str, Any], reason: str) -> None:
         self.store.update("deliveries", "delivery_id", row["delivery_id"], {
@@ -224,6 +244,8 @@ class Outbox:
             values.update(state="dropped")
         self.store.update("deliveries", "delivery_id", delivery_id, values)
         self._record_ack(row, body, now, body.get("detail"))
+        if outcome in SEEN_OUTCOMES:
+            self._mark_seen(self.store.delivery(delivery_id), outcome)
         if card_playback:
             self._card_update(row, card_playback)
         if outcome == "deferred":
@@ -277,7 +299,8 @@ class Outbox:
         event.clear()
 
     def snapshot(self, device_id: str) -> List[Dict[str, Any]]:
-        """Latest card per slot from the last 24 h (pending or already shown); a closed open card is left out."""
+        """Latest card per slot from the last 24 h (pending or already shown); a closed open card is left out
+        and a result card of a seen slot carries seen:true."""
         self.sweep()
         since = timeutil.iso(timeutil.now() - timedelta(seconds=DONE_SPEECH_TTL_S))
         rows = self.store.all(
@@ -286,5 +309,14 @@ class Outbox:
         latest: Dict[str, Dict[str, Any]] = {}
         for row in rows:
             latest[row["slot"]] = row
-        return [{**self.public(r), "speak": None} for r in latest.values()
-                if r["kind"] != "agent" or not self.card_closed(loads_or(r["payload_json"], {}))]
+        cards = []
+        for row in latest.values():
+            card = {**self.public(row), "speak": None}
+            if row["kind"] == "agent":
+                if self.card_closed(card["payload"]):
+                    continue
+                if card["payload"].get("state") in SEEN_STATES and not card["payload"].get("seen") \
+                        and self.slot_seen(device_id, row["slot"]):
+                    card["payload"]["seen"] = True
+            cards.append(card)
+        return cards
