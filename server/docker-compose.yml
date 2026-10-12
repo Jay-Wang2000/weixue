@@ -105,6 +105,8 @@ services:
     environment:
       - AGENT_SERVICE_URL=http://agent-service:8010
       - MONITOR_TOKEN=${MONITOR_TOKEN:-}
+      - MONITOR_VIEW_TOKEN=${MONITOR_VIEW_TOKEN:-}
+      - MONITOR_BIND=${MONITOR_BIND:-127.0.0.1}
       - GATEWAY_URL=http://xiaozhi-esp32-server:8003
       - MCP_ENDPOINT=mcp-endpoint-server:8004
       - AGENT_HA_PROBE_S=${AGENT_HA_PROBE_S:-10}

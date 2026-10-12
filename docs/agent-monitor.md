@@ -4,10 +4,13 @@ A read-only web board for the agent backend: one FastAPI process (`python -m age
 
 ## Open it
 
-The page and every `/api/` route need `MONITOR_TOKEN` (from `server/.env`) when it is set, as `?token=<MONITOR_TOKEN>` or `Authorization: Bearer <MONITOR_TOKEN>`; the page keeps the query token for its fetches and the SSE URL. `/healthz` and `/static/` are open. `setup.sh` always sets a token.
+The page and every `/api/` route accept only `MONITOR_VIEW_TOKEN` (from `server/.env`), as `?token=<MONITOR_VIEW_TOKEN>` or `Authorization: Bearer <MONITOR_VIEW_TOKEN>` (constant-time compare); the page keeps the query token for its fetches and the SSE URL. `MONITOR_TOKEN` does not open the board. `/healthz` and `/static/` are open.
 
-- On the server: compose binds `${MONITOR_BIND:-127.0.0.1}:8020`. With `MONITOR_BIND=192.168.8.125` in the server's `.env` the board is at `http://192.168.8.125:8020/?token=<MONITOR_TOKEN>` from the LAN and the VPN (decision 79, plain http).
-- With the default bind: `ssh -L 8020:127.0.0.1:8020 jay@192.168.8.125`, then `http://127.0.0.1:8020/?token=<MONITOR_TOKEN>`.
+- `MONITOR_VIEW_TOKEN` unset: the gate stays closed (401) unless `MONITOR_BIND` is `127.0.0.1` (the compose default), where the board is open to the host itself. Any other bind with no view token answers 401 on the page and every `/api/` route.
+- Both tokens are at least 32 characters and must differ; the monitor refuses to start otherwise. `setup.sh` generates `MONITOR_VIEW_TOKEN` into `server/.env` once (64 hex characters, different from `MONITOR_TOKEN`, `AGENT_SERVICE_TOKEN` and `WEIXUE_PROACTIVE_TOKEN`), refuses an existing value that is shorter or equal to one of them, and prints the board URL with it at the end of a deploy.
+
+- On the server: compose binds `${MONITOR_BIND:-127.0.0.1}:8020`. With `MONITOR_BIND=192.168.8.125` in the server's `.env` the board is at `http://192.168.8.125:8020/?token=<MONITOR_VIEW_TOKEN>` from the LAN and the VPN (decision 79, plain http).
+- With the default bind: `ssh -L 8020:127.0.0.1:8020 jay@192.168.8.125`, then `http://127.0.0.1:8020/?token=<MONITOR_VIEW_TOKEN>`.
 - Query options: `embed=1` (no brand, clock, theme toggle or footer), `theme=light|dark` (default: follows `prefers-color-scheme`; the Auto / Light / Dark toggle is remembered per browser), `state=` and `kind=` (the timeline API filters), `#task=<task_id>` (opens that task's trace).
 
 ## Home Assistant dashboard card
@@ -16,11 +19,11 @@ Server `.env`: `MONITOR_BIND=192.168.8.125` and `MONITOR_FRAME_ANCESTORS=http://
 
 ```yaml
 type: iframe
-url: http://192.168.8.125:8020/?embed=1&token=<MONITOR_TOKEN>
+url: http://192.168.8.125:8020/?embed=1&token=<MONITOR_VIEW_TOKEN>
 aspect_ratio: 120%
 ```
 
-The iframe URL holds the token, so anyone who can edit or inspect that dashboard can read the board. The same token is the read scope on agent-service `GET /v1/status` and the gateway `GET /weixue/proactive` (port 8003 on the LAN).
+The iframe URL holds the view token, so anyone who can open the HA dashboard can read the board; that is the intended trust boundary. The view token opens only the board: `MONITOR_TOKEN`, the read scope on agent-service `GET /v1/status` and the gateway `GET /weixue/proactive` (port 8003 on the LAN), never appears in the card.
 
 ## Layout
 
@@ -90,10 +93,10 @@ Times are stored UTC and shown in `TZ` (Europe/Dublin when unset or UTC); cost d
 
 ## Deployment
 
-Compose service `agent-monitor`: image `weixue/agent-monitor:local` (`python:3.12-slim` by digest, `requirements.lock` with `--no-deps` + `pip check`), `ports: ${MONITOR_BIND:-127.0.0.1}:8020:8020`, environment `AGENT_SERVICE_URL`, `MONITOR_TOKEN`, `GATEWAY_URL`, `MCP_ENDPOINT`, `AGENT_HA_PROBE_S`, `MONITOR_HOME` (default `1`), `MONITOR_FRAME_ANCESTORS` (default `'none'`; `'self'` and `http(s)://host[:port]` origins), `TZ` (no `HA_MCP_URL`, no API key, no `env_file`), `mem_limit 128m`, healthcheck `python -m agent_monitor.health`. Uvicorn runs without an access log, so query tokens are not logged; responses send `Referrer-Policy: no-referrer`. `scripts/setup.sh` generates `MONITOR_TOKEN` once into `server/.env` (never printed), builds and recreates the monitor with the stack and waits for its healthcheck; a first deployment that fails rolls back without it.
+Compose service `agent-monitor`: image `weixue/agent-monitor:local` (`python:3.12-slim` by digest, `requirements.lock` with `--no-deps` + `pip check`), `ports: ${MONITOR_BIND:-127.0.0.1}:8020:8020`, environment `AGENT_SERVICE_URL`, `MONITOR_TOKEN` (upstream calls), `MONITOR_VIEW_TOKEN` (the board gate), `MONITOR_BIND` (the published host address, read for the localhost rule), `GATEWAY_URL`, `MCP_ENDPOINT`, `AGENT_HA_PROBE_S`, `MONITOR_HOME` (default `1`), `MONITOR_FRAME_ANCESTORS` (default `'none'`; `'self'` and `http(s)://host[:port]` origins), `TZ` (no `HA_MCP_URL`, no API key, no `env_file`), `mem_limit 128m`, healthcheck `python -m agent_monitor.health`. Uvicorn runs without an access log, so query tokens are not logged; responses send `Referrer-Policy: no-referrer`. `scripts/setup.sh` generates `MONITOR_TOKEN` once into `server/.env` (never printed) and `MONITOR_VIEW_TOKEN` likewise (printed only inside the board URL), builds and recreates the monitor with the stack and waits for its healthcheck; a first deployment that fails rolls back without it.
 
-`MONITOR_TOKEN` is a read scope: agent-service accepts it on `GET /v1/status` and `GET /v1/tasks/{id}/trace` only, the gateway on `GET /weixue/proactive` only, the monitor on its page and API.
+`MONITOR_TOKEN` is a read scope: agent-service accepts it on `GET /v1/status` and `GET /v1/tasks/{id}/trace` only, the gateway on `GET /weixue/proactive` only; the monitor presents it upstream and never accepts it. `MONITOR_VIEW_TOKEN` is accepted by the monitor alone.
 
 ## Tests
 
-`cd server/agent-monitor && python -m pytest` (fixture database built with `weixue_agent.store`, fake agent and gateway over `httpx.MockTransport`): queries and aggregations, Dublin days across the DST change, `usage_daily` fallback, the column allowlist and a response scan for forbidden keys and seeded secrets, tile rules with a fake clock, `data_version` change detection and SSE frames, the schema banner, GET-only routes, the home tile; `tests/test_board_v2.py`: the token gate (query, bearer, wrong token, open routes, no token set), CSP `frame-ancestors` and its validation, embed mode, no inline styles or scripts, the severity map and problem groups, the verdict, since-you-last-looked counts, segments and search, lanes, and the contrast of every text token on every fill in both themes.
+`cd server/agent-monitor && python -m pytest` (fixture database built with `weixue_agent.store`, fake agent and gateway over `httpx.MockTransport`): queries and aggregations, Dublin days across the DST change, `usage_daily` fallback, the column allowlist and a response scan for forbidden keys and seeded secrets, tile rules with a fake clock, `data_version` change detection and SSE frames, the schema banner, GET-only routes, the home tile; `tests/test_board_v2.py`: the token gate (view token by query and bearer, wrong token, `MONITOR_TOKEN` rejected, open routes, unset view token answers 401 unless the bind is 127.0.0.1, token settings validation), CSP `frame-ancestors` and its validation, embed mode, no inline styles or scripts, the severity map and problem groups, the verdict, since-you-last-looked counts, segments and search, lanes, and the contrast of every text token on every fill in both themes.

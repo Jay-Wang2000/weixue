@@ -9,12 +9,12 @@ import httpx
 import pytest
 
 import fixture_db as fx
-from conftest import MONITOR_TOKEN
+from conftest import MONITOR_TOKEN, VIEW_TOKEN
 from agent_monitor import lanes, severity
 from agent_monitor.app import STATIC
 from agent_monitor.config import ConfigError, load_settings
 
-AUTH = {"Authorization": f"Bearer {MONITOR_TOKEN}"}
+AUTH = {"Authorization": f"Bearer {VIEW_TOKEN}"}
 
 
 def client(app, headers=None):
@@ -35,26 +35,43 @@ def add_errors(db_path, rows):
 # ---------------------------------------------------------------------- access
 
 
-async def test_page_and_api_need_the_token_when_it_is_set(make_app):
+async def test_page_and_api_need_the_view_token(make_app):
     app = make_app()
     async with client(app) as c:
         for path in ("/", "/?embed=1", "/api/overview", "/api/timeline", f"/api/tasks/{fx.T_LONG}", "/api/stream",
                      "/api/problems", "/api/since", "/api/health/history"):
             resp = await c.get(path)
             assert resp.status_code == 401, path
-            assert MONITOR_TOKEN not in resp.text
-        for bad in ({"token": "x" * 40}, {"token": MONITOR_TOKEN[:-1]}):
+            assert VIEW_TOKEN not in resp.text and MONITOR_TOKEN not in resp.text
+        for bad in ({"token": "x" * 40}, {"token": VIEW_TOKEN[:-1]}):
             assert (await c.get("/api/overview", params=bad)).status_code == 401
         assert (await c.get("/api/overview", headers={"Authorization": "Bearer nope"})).status_code == 401
-        assert (await c.get("/api/overview", headers={"Authorization": f"Basic {MONITOR_TOKEN}"})).status_code == 401
-        assert (await c.get("/api/overview", params={"token": MONITOR_TOKEN})).status_code == 200
-        assert (await c.get("/", params={"token": MONITOR_TOKEN})).status_code == 200
+        assert (await c.get("/api/overview", headers={"Authorization": f"Basic {VIEW_TOKEN}"})).status_code == 401
+        assert (await c.get("/api/overview", params={"token": VIEW_TOKEN})).status_code == 200
+        assert (await c.get("/", params={"token": VIEW_TOKEN})).status_code == 200
         assert (await c.get("/api/overview", headers=AUTH)).status_code == 200
         unauth = await c.get("/api/overview")
         assert unauth.headers["www-authenticate"] == "Bearer"
         assert "frame-ancestors 'none'" in unauth.headers["content-security-policy"]
         for path in ("/healthz", "/static/app.js", "/static/app.css", "/static/fonts/IBMPlexSans-Regular-Latin1.woff2"):
             assert (await c.get(path)).status_code in (200, 503), path
+
+
+async def test_monitor_token_does_not_open_the_board(make_app):
+    app = make_app()
+    async with client(app) as c:
+        mon = {"Authorization": f"Bearer {MONITOR_TOKEN}"}
+        for path in ("/", "/api/overview", "/api/stream"):
+            assert (await c.get(path, params={"token": MONITOR_TOKEN})).status_code == 401, path
+            assert (await c.get(path, headers=mon)).status_code == 401, path
+
+
+@pytest.mark.parametrize("local_only", [False, True])
+async def test_unset_view_token_is_not_replaced_by_the_monitor_token(make_app, local_only):
+    app = make_app(view_token="", local_only=local_only)
+    async with client(app) as c:
+        resp = await c.get("/api/overview", headers={"Authorization": f"Bearer {MONITOR_TOKEN}"})
+        assert resp.status_code == (200 if local_only else 401)
 
 
 def test_stream_accepts_the_token_in_the_query():
@@ -64,18 +81,41 @@ def test_stream_accepts_the_token_in_the_query():
     def request(query=b"", headers=()):
         return Request({"type": "http", "method": "GET", "path": "/api/stream", "query_string": query,
                         "headers": list(headers)})
-    assert token_ok(request(f"token={MONITOR_TOKEN}".encode()), MONITOR_TOKEN)
-    assert token_ok(request(headers=[(b"authorization", f"bearer {MONITOR_TOKEN}".encode())]), MONITOR_TOKEN)
-    assert not token_ok(request(b"token="), MONITOR_TOKEN)
-    assert not token_ok(request(), MONITOR_TOKEN)
-    assert token_ok(request(), "")
+    assert token_ok(request(f"token={VIEW_TOKEN}".encode()), VIEW_TOKEN)
+    assert token_ok(request(headers=[(b"authorization", f"bearer {VIEW_TOKEN}".encode())]), VIEW_TOKEN)
+    assert not token_ok(request(b"token="), VIEW_TOKEN)
+    assert not token_ok(request(), VIEW_TOKEN)
+    assert not token_ok(request(), "")
+    assert not token_ok(request(b"token="), "")
 
 
-async def test_without_a_token_the_board_is_open(make_app):
-    app = make_app(monitor_token="")
-    async with client(app) as c:
+async def test_without_a_view_token_the_gate_stays_closed_unless_bound_to_localhost(make_app):
+    closed = make_app(view_token="")
+    async with client(closed) as c:
+        assert (await c.get("/")).status_code == 401
+        assert (await c.get("/api/overview")).status_code == 401
+        assert (await c.get("/api/overview", params={"token": ""})).status_code == 401
+        assert (await c.get("/healthz")).status_code in (200, 503)
+    local = make_app(view_token="", local_only=True)
+    async with client(local) as c:
         assert (await c.get("/")).status_code == 200
         assert (await c.get("/api/overview")).status_code == 200
+    with_token = make_app(local_only=True)
+    async with client(with_token) as c:
+        assert (await c.get("/api/overview")).status_code == 401
+
+
+def test_view_token_settings():
+    view = "v" * 40
+    assert load_settings({}).view_token == "" and not load_settings({}).local_only
+    assert load_settings({"MONITOR_VIEW_TOKEN": view, "MONITOR_TOKEN": "m" * 40}).view_token == view
+    assert load_settings({"MONITOR_BIND": "127.0.0.1"}).local_only
+    for bind in ("", "192.168.8.125", "0.0.0.0", "localhost"):
+        assert not load_settings({"MONITOR_BIND": bind}).local_only
+    for env in ({"MONITOR_VIEW_TOKEN": "tiny"}, {"MONITOR_VIEW_TOKEN": view, "MONITOR_TOKEN": view}):
+        with pytest.raises(ConfigError) as e:
+            load_settings(env)
+        assert view not in str(e.value) and "tiny" not in str(e.value)
 
 
 # ---------------------------------------------------------------------- CSP and embed
@@ -109,7 +149,7 @@ async def test_embed_mode_marks_the_page(api):
     embedded = (await api.get("/?embed=1")).text
     assert 'data-embed="0"' in plain and 'data-embed="1"' not in plain
     assert 'data-embed="1"' in embedded
-    assert MONITOR_TOKEN not in embedded
+    assert VIEW_TOKEN not in embedded and MONITOR_TOKEN not in embedded
     css = (STATIC / "app.css").read_text()
     assert re.search(r'html\[data-embed="1"\] \.chrome \{ display: none', css)
     html = (STATIC / "index.html").read_text()

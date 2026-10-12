@@ -9,9 +9,9 @@ import httpx
 import pytest
 
 import fixture_db as fx
-from conftest import MONITOR_TOKEN
+from conftest import MONITOR_TOKEN, VIEW_TOKEN
 
-AUTH = {"Authorization": f"Bearer {MONITOR_TOKEN}"}
+AUTH = {"Authorization": f"Bearer {VIEW_TOKEN}"}
 from agent_monitor.app import STATIC
 
 GET_PATHS = ["/healthz", "/api/overview", "/api/timeline", f"/api/timeline?task={fx.T_LONG}",
@@ -52,7 +52,7 @@ async def test_no_response_carries_forbidden_keys_or_secrets(api):
         assert resp.status_code == 200, (path, resp.status_code, resp.text[:200])
         body = resp.json()
         assert not set(keys(body)) & FORBIDDEN_KEYS, (path, set(keys(body)) & FORBIDDEN_KEYS)
-        for secret in (*fx.SECRETS, MONITOR_TOKEN, "RECOVERY_SECRET", "QUEUED_SECRET"):
+        for secret in (*fx.SECRETS, MONITOR_TOKEN, VIEW_TOKEN, "RECOVERY_SECRET", "QUEUED_SECRET"):
             assert secret not in resp.text, (path, secret)
 
 

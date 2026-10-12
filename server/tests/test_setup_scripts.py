@@ -860,6 +860,36 @@ def test_monitor_token_is_generated_once_and_never_printed(setup_tree):
     assert tokens[0] not in result.stdout + result.stderr
 
 
+def test_monitor_view_token_is_generated_once_distinct_and_printed_only_in_the_view_url(setup_tree):
+    server, run = setup_tree
+    result, _ = run(MONITOR_BIND="192.168.8.125")
+    assert result.returncode == 0, result.stdout + result.stderr
+    env = (server / ".env").read_text().splitlines()
+    view = [l.split("=", 1)[1] for l in env if l.startswith("MONITOR_VIEW_TOKEN=")]
+    others = {l.split("=", 1)[1] for l in env if l.split("=", 1)[0] in ("MONITOR_TOKEN", "AGENT_SERVICE_TOKEN")}
+    assert len(view) == 1 and len(view[0]) == 64 and int(view[0], 16) >= 0 and view[0] not in others
+    assert "generated MONITOR_VIEW_TOKEN in server/.env" in result.stdout
+    assert f"Monitor: http://192.168.8.125:8020/?token={view[0]}" in result.stdout
+    for other in others:
+        assert other not in result.stdout + result.stderr
+    result, _ = run()
+    assert [l for l in (server / ".env").read_text().splitlines() if l.startswith("MONITOR_VIEW_TOKEN=")] == \
+        [f"MONITOR_VIEW_TOKEN={view[0]}"]
+    assert "generated MONITOR_VIEW_TOKEN" not in result.stdout
+
+
+def test_monitor_view_token_must_differ_from_the_other_tokens(setup_tree):
+    server, run = setup_tree
+    result, _ = run()
+    assert result.returncode == 0, result.stdout + result.stderr
+    env = {l.split("=", 1)[0]: l.split("=", 1)[1] for l in (server / ".env").read_text().splitlines() if "=" in l}
+    for bad in (env["MONITOR_TOKEN"], env["AGENT_SERVICE_TOKEN"], "short"):
+        run.set_env(MONITOR_VIEW_TOKEN=bad)
+        result, _ = run()
+        assert result.returncode == 1
+        assert "MONITOR_VIEW_TOKEN must be at least 32 characters and differ" in result.stdout + result.stderr
+
+
 def test_first_monitor_deploy_rolls_back_without_it(setup_tree):
     server, run = setup_tree
     result, state = run()
@@ -880,9 +910,13 @@ def test_monitor_binds_localhost_unless_monitor_bind_is_set():
     assert "MONITOR_FRAME_ANCESTORS=${MONITOR_FRAME_ANCESTORS:-}" in monitor["environment"]
     assert "env_file" not in monitor and "network_mode" not in monitor
     assert {e.split("=", 1)[0] for e in monitor["environment"]} == {
-        "AGENT_SERVICE_URL", "MONITOR_TOKEN", "GATEWAY_URL", "MCP_ENDPOINT", "AGENT_HA_PROBE_S",
+        "AGENT_SERVICE_URL", "MONITOR_TOKEN", "MONITOR_VIEW_TOKEN", "MONITOR_BIND", "GATEWAY_URL", "MCP_ENDPOINT", "AGENT_HA_PROBE_S",
         "MONITOR_HOME", "MONITOR_FRAME_ANCESTORS", "TZ"}
     assert "MONITOR_HOME=${MONITOR_HOME:-1}" in monitor["environment"]
+    assert "MONITOR_VIEW_TOKEN=${MONITOR_VIEW_TOKEN:-}" in monitor["environment"]
+    assert "MONITOR_BIND=${MONITOR_BIND:-127.0.0.1}" in monitor["environment"]
+    for other in ("mcp-bridge", "agent-service", "xiaozhi-esp32-server"):
+        assert not any(e.startswith("MONITOR_VIEW_TOKEN") for e in services[other].get("environment", []))
     agent = services["agent-service"]["environment"]
     assert "AGENT_HOME_SNAPSHOT_S=${AGENT_HOME_SNAPSHOT_S:-300}" in agent and "AGENT_HOME_ENTITIES=${AGENT_HOME_ENTITIES:-}" in agent
     assert monitor["volumes"] == ["./data/agent-service/db:/db", "./data/mcp-bridge/status:/bridge:ro"]
