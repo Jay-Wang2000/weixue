@@ -1,0 +1,1509 @@
+{
+ "success": true,
+ "action": "get",
+ "url_path": "dashboard-home-panel",
+ "config": {
+  "views": [
+   {
+    "title": "首页",
+    "path": "home",
+    "icon": "mdi:home",
+    "type": "sections",
+    "max_columns": 3,
+    "dense_section_placement": false,
+    "sections": [
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "clock",
+        "clock_style": "digital",
+        "clock_size": "large",
+        "time_format": "24",
+        "time_zone": "Europe/Dublin",
+        "show_seconds": false,
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        }
+       },
+       {
+        "type": "weather-forecast",
+        "entity": "weather.forecast_home",
+        "show_forecast": false,
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        }
+       },
+       {
+        "type": "heading",
+        "heading": "家里的温度",
+        "heading_style": "title",
+        "icon": "mdi:home-thermometer"
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.living_room_timmerflotte_temp_hmd_sensor_temperature",
+        "name": "客厅温度",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:thermometer"
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.bedroom_timmerflotte_temp_hmd_sensor_temperature",
+        "name": "卧室温度",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:thermometer"
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.living_room_timmerflotte_temp_hmd_sensor_humidity",
+        "name": "客厅湿度",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:water-percent"
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.bedroom_timmerflotte_temp_hmd_sensor_humidity",
+        "name": "卧室湿度",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:water-percent"
+       }
+      ]
+     },
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "灯光与窗帘",
+        "heading_style": "title",
+        "icon": "mdi:lightbulb-group"
+       },
+       {
+        "type": "tile",
+        "entity": "light.living_room_ceiling_lights",
+        "name": "客厅 · 两盏顶灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "light.kitchen_ceiling_light",
+        "name": "厨房顶灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "light.bedroom_ceiling_light_entry",
+        "name": "卧室门口灯",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "light.bedroom_ceiling_light_bed",
+        "name": "卧室床侧灯",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "cover.curtain_partner_1",
+        "name": "窗帘",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:curtains",
+        "features": [
+         {
+          "type": "cover-open-close"
+         }
+        ],
+        "features_position": "bottom"
+       },
+       {
+        "type": "button",
+        "name": "所有房间与环境",
+        "icon": "mdi:floor-plan",
+        "show_icon": false,
+        "tap_action": {
+         "action": "navigate",
+         "navigation_path": "/dashboard-home-panel/rooms"
+        },
+        "grid_options": {
+         "columns": 12,
+         "rows": 1
+        }
+       }
+      ]
+     },
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "切换到你的时刻",
+        "heading_style": "title",
+        "icon": "mdi:gesture-tap-button"
+       },
+       {
+        "type": "button",
+        "entity": "script.start_working",
+        "name": "开始工作",
+        "icon": "mdi:laptop",
+        "show_state": false,
+        "tap_action": {
+         "action": "perform-action",
+         "perform_action": "script.turn_on",
+         "target": {
+          "entity_id": "script.start_working"
+         }
+        },
+        "hold_action": {
+         "action": "more-info"
+        },
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        }
+       },
+       {
+        "type": "button",
+        "entity": "script.start_gaming",
+        "name": "开始游戏",
+        "icon": "mdi:controller",
+        "show_state": false,
+        "tap_action": {
+         "action": "perform-action",
+         "perform_action": "script.turn_on",
+         "target": {
+          "entity_id": "script.start_gaming"
+         }
+        },
+        "hold_action": {
+         "action": "more-info"
+        },
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        }
+       },
+       {
+        "type": "button",
+        "entity": "script.finish_my_day",
+        "name": "结束工作",
+        "icon": "mdi:power-sleep",
+        "show_state": false,
+        "tap_action": {
+         "action": "perform-action",
+         "perform_action": "script.turn_on",
+         "target": {
+          "entity_id": "script.finish_my_day"
+         },
+         "confirmation": {
+          "text": "结束工作将关灯，并在桌面功率低于 150 W 后关闭插座。继续？"
+         }
+        },
+        "hold_action": {
+         "action": "more-info"
+        },
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.working_desk_plug_power",
+        "name": "桌面实时功率",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:flash",
+        "color": "blue"
+       },
+       {
+        "type": "button",
+        "name": "工作区控制",
+        "icon": "mdi:desk",
+        "show_icon": false,
+        "tap_action": {
+         "action": "navigate",
+         "navigation_path": "/dashboard-home-panel/work"
+        },
+        "grid_options": {
+         "columns": 12,
+         "rows": 1
+        }
+       },
+       {
+        "type": "entity-filter",
+        "entities": [
+         {
+          "entity": "sensor.living_room_timmerflotte_temp_hmd_sensor_temperature",
+          "name": "客厅温度计"
+         },
+         {
+          "entity": "sensor.bedroom_timmerflotte_temp_hmd_sensor_temperature",
+          "name": "卧室温度计"
+         },
+         {
+          "entity": "binary_sensor.klippbok_water_leak_sensor_water_leak",
+          "name": "洗衣房漏水传感器"
+         },
+         {
+          "entity": "binary_sensor.working_area_study_room_window_sensor_door",
+          "name": "工作区窗户传感器"
+         },
+         {
+          "entity": "binary_sensor.zigbee2mqtt_bridge_connection_state",
+          "name": "Zigbee 网络"
+         }
+        ],
+        "state_filter": [
+         "unavailable",
+         "unknown"
+        ],
+        "show_empty": false,
+        "card": {
+         "type": "entities",
+         "title": "设备暂时离线",
+         "show_header_toggle": false
+        }
+       }
+      ]
+     }
+    ],
+    "badges": [
+     {
+      "type": "entity",
+      "entity": "binary_sensor.klippbok_water_leak_sensor_water_leak",
+      "name": "洗衣房检测到漏水",
+      "show_name": true,
+      "show_state": false,
+      "color": "red",
+      "tap_action": {
+       "action": "more-info"
+      },
+      "visibility": [
+       {
+        "condition": "state",
+        "entity": "binary_sensor.klippbok_water_leak_sensor_water_leak",
+        "state": "on"
+       }
+      ]
+     },
+     {
+      "type": "entity",
+      "entity": "binary_sensor.working_area_study_room_window_sensor_door",
+      "name": "工作区窗户已打开",
+      "show_name": true,
+      "show_state": false,
+      "color": "amber",
+      "tap_action": {
+       "action": "more-info"
+      },
+      "visibility": [
+       {
+        "condition": "state",
+        "entity": "binary_sensor.working_area_study_room_window_sensor_door",
+        "state": "on"
+       }
+      ]
+     },
+     {
+      "type": "entity",
+      "entity": "binary_sensor.zigbee2mqtt_bridge_connection_state",
+      "name": "Zigbee 网络离线",
+      "show_name": true,
+      "show_state": false,
+      "color": "red",
+      "tap_action": {
+       "action": "more-info"
+      },
+      "visibility": [
+       {
+        "condition": "state",
+        "entity": "binary_sensor.zigbee2mqtt_bridge_connection_state",
+        "state": "off"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "title": "工作区",
+    "path": "work",
+    "icon": "mdi:desk",
+    "type": "sections",
+    "max_columns": 2,
+    "dense_section_placement": false,
+    "sections": [
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "工作 · 游戏 · 收工",
+        "heading_style": "title",
+        "icon": "mdi:desk"
+       },
+       {
+        "type": "button",
+        "entity": "script.start_working",
+        "name": "开始工作",
+        "icon": "mdi:laptop",
+        "show_state": false,
+        "tap_action": {
+         "action": "perform-action",
+         "perform_action": "script.turn_on",
+         "target": {
+          "entity_id": "script.start_working"
+         }
+        },
+        "hold_action": {
+         "action": "more-info"
+        },
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        }
+       },
+       {
+        "type": "button",
+        "entity": "script.start_gaming",
+        "name": "开始游戏",
+        "icon": "mdi:controller",
+        "show_state": false,
+        "tap_action": {
+         "action": "perform-action",
+         "perform_action": "script.turn_on",
+         "target": {
+          "entity_id": "script.start_gaming"
+         }
+        },
+        "hold_action": {
+         "action": "more-info"
+        },
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        }
+       },
+       {
+        "type": "button",
+        "entity": "script.finish_my_day",
+        "name": "结束工作",
+        "icon": "mdi:power-sleep",
+        "show_state": false,
+        "tap_action": {
+         "action": "perform-action",
+         "perform_action": "script.turn_on",
+         "target": {
+          "entity_id": "script.finish_my_day"
+         },
+         "confirmation": {
+          "text": "结束工作将关灯，并在桌面功率低于 150 W 后关闭插座。继续？"
+         }
+        },
+        "hold_action": {
+         "action": "more-info"
+        },
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        }
+       },
+       {
+        "type": "markdown",
+        "content": "**结束工作**会先关闭工作区灯光，再等待桌面功率低于 150 W 后关闭插座。若等待超时，会保留供电并发送提醒。",
+        "text_only": true,
+        "grid_options": {
+         "columns": 12,
+         "rows": "auto"
+        }
+       }
+      ]
+     },
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "灯光与用电",
+        "heading_style": "title",
+        "icon": "mdi:lightbulb-on"
+       },
+       {
+        "type": "tile",
+        "entity": "light.working_area_study_room_ceiling_light",
+        "name": "工作区顶灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "light.living_room_smart_led_light_strip",
+        "name": "桌面灯带",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.working_desk_plug_power",
+        "name": "桌面实时功率",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:flash"
+       },
+       {
+        "type": "tile",
+        "entity": "binary_sensor.working_area_study_room_window_sensor_door",
+        "name": "工作区窗户",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:window-closed"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "title": "房间与环境",
+    "path": "rooms",
+    "icon": "mdi:floor-plan",
+    "type": "sections",
+    "max_columns": 3,
+    "dense_section_placement": false,
+    "sections": [
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "客厅",
+        "heading_style": "title",
+        "icon": "mdi:sofa"
+       },
+       {
+        "type": "tile",
+        "entity": "light.living_room_ceiling_light",
+        "name": "客厅顶灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "light.living_room_dining_ceiling_light",
+        "name": "餐桌顶灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "light.living_room_donut_light_outlet",
+        "name": "甜甜圈灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.living_room_timmerflotte_temp_hmd_sensor_temperature",
+        "name": "客厅温度",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:thermometer"
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.living_room_timmerflotte_temp_hmd_sensor_humidity",
+        "name": "客厅湿度",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:water-percent"
+       }
+      ]
+     },
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "卧室",
+        "heading_style": "title",
+        "icon": "mdi:bed"
+       },
+       {
+        "type": "tile",
+        "entity": "light.bedroom_ceiling_light_entry",
+        "name": "门口顶灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "light.bedroom_ceiling_light_bed",
+        "name": "床侧顶灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "light.bedroom_lamp",
+        "name": "床头灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.bedroom_timmerflotte_temp_hmd_sensor_temperature",
+        "name": "卧室温度",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:thermometer"
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.bedroom_timmerflotte_temp_hmd_sensor_humidity",
+        "name": "卧室湿度",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:water-percent"
+       }
+      ]
+     },
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "厨房",
+        "heading_style": "title",
+        "icon": "mdi:stove"
+       },
+       {
+        "type": "tile",
+        "entity": "light.kitchen_ceiling_light",
+        "name": "厨房顶灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "light.kitchen_working_light",
+        "name": "操作台灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "binary_sensor.kitchen_motion_sensor_occupancy",
+        "name": "厨房有人",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:motion-sensor"
+       },
+       {
+        "type": "heading",
+        "heading": "窗帘",
+        "heading_style": "title",
+        "icon": "mdi:curtains"
+       },
+       {
+        "type": "tile",
+        "entity": "cover.curtain_partner_1",
+        "name": "窗帘",
+        "grid_options": {
+         "columns": 12,
+         "rows": 4
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:curtains",
+        "features": [
+         {
+          "type": "cover-open-close"
+         },
+         {
+          "type": "cover-position"
+         }
+        ],
+        "features_position": "bottom"
+       }
+      ]
+     },
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "洗衣房",
+        "heading_style": "title",
+        "icon": "mdi:washing-machine"
+       },
+       {
+        "type": "tile",
+        "entity": "light.kajplats_e27_ws_globe_1055lm",
+        "name": "洗衣房顶灯",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "color": "amber",
+        "features": [
+         {
+          "type": "light-brightness"
+         }
+        ],
+        "features_position": "bottom",
+        "icon_tap_action": {
+         "action": "toggle"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "binary_sensor.klippbok_water_leak_sensor_water_leak",
+        "name": "漏水检测",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:water-alert",
+        "color": "red"
+       },
+       {
+        "type": "tile",
+        "entity": "binary_sensor.laundry_room_motion_sensoe_occupancy",
+        "name": "洗衣房有人",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:motion-sensor"
+       },
+       {
+        "type": "heading",
+        "heading": "玄关",
+        "heading_style": "title",
+        "icon": "mdi:door"
+       },
+       {
+        "type": "tile",
+        "entity": "binary_sensor.entrance_doorbell_motion_sensor",
+        "name": "门口动态",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:doorbell-video"
+       }
+      ]
+     },
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "工作区",
+        "heading_style": "title",
+        "icon": "mdi:laptop"
+       },
+       {
+        "type": "button",
+        "name": "前往工作区",
+        "icon": "mdi:desk",
+        "show_icon": false,
+        "tap_action": {
+         "action": "navigate",
+         "navigation_path": "/dashboard-home-panel/work"
+        },
+        "grid_options": {
+         "columns": 12,
+         "rows": 1
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "binary_sensor.working_area_study_room_window_sensor_door",
+        "name": "窗户",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:window-closed"
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.working_desk_plug_power",
+        "name": "桌面实时功率",
+        "grid_options": {
+         "columns": 12,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        },
+        "icon": "mdi:flash"
+       }
+      ]
+     },
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "近 24 小时",
+        "heading_style": "title",
+        "icon": "mdi:chart-line"
+       },
+       {
+        "type": "history-graph",
+        "title": "室内温度",
+        "hours_to_show": 24,
+        "entities": [
+         {
+          "entity": "sensor.living_room_timmerflotte_temp_hmd_sensor_temperature",
+          "name": "客厅"
+         },
+         {
+          "entity": "sensor.bedroom_timmerflotte_temp_hmd_sensor_temperature",
+          "name": "卧室"
+         }
+        ],
+        "grid_options": {
+         "columns": 12,
+         "rows": 4
+        }
+       },
+       {
+        "type": "history-graph",
+        "title": "室内湿度",
+        "hours_to_show": 24,
+        "entities": [
+         {
+          "entity": "sensor.living_room_timmerflotte_temp_hmd_sensor_humidity",
+          "name": "客厅"
+         },
+         {
+          "entity": "sensor.bedroom_timmerflotte_temp_hmd_sensor_humidity",
+          "name": "卧室"
+         }
+        ],
+        "grid_options": {
+         "columns": 12,
+         "rows": 4
+        }
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "title": "服务器",
+    "path": "server",
+    "icon": "mdi:server",
+    "type": "sections",
+    "max_columns": 3,
+    "dense_section_placement": false,
+    "badges": [
+     {
+      "type": "entity",
+      "entity": "sensor.192_168_8_125_cpu_usage",
+      "name": "服务器离线",
+      "show_name": true,
+      "show_state": false,
+      "color": "red",
+      "tap_action": {
+       "action": "more-info"
+      },
+      "visibility": [
+       {
+        "condition": "state",
+        "entity": "sensor.192_168_8_125_cpu_usage",
+        "state": "unavailable"
+       }
+      ]
+     }
+    ],
+    "sections": [
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "jay-dev-ubuntu · 负载",
+        "heading_style": "title",
+        "icon": "mdi:server"
+       },
+       {
+        "type": "gauge",
+        "entity": "sensor.192_168_8_125_cpu_usage",
+        "name": "CPU 占用",
+        "min": 0,
+        "max": 100,
+        "needle": true,
+        "severity": {
+         "green": 0,
+         "yellow": 60,
+         "red": 85
+        },
+        "grid_options": {
+         "columns": 6,
+         "rows": 3
+        }
+       },
+       {
+        "type": "gauge",
+        "entity": "sensor.192_168_8_125_memory_usage",
+        "name": "内存占用",
+        "min": 0,
+        "max": 100,
+        "needle": true,
+        "severity": {
+         "green": 0,
+         "yellow": 70,
+         "red": 90
+        },
+        "grid_options": {
+         "columns": 6,
+         "rows": 3
+        }
+       },
+       {
+        "type": "gauge",
+        "entity": "sensor.jay_dev_ubuntu_nvidia_geforce_rtx_4060_ti_gpu_nvidia0_processor_usage",
+        "name": "GPU 占用",
+        "min": 0,
+        "max": 100,
+        "needle": true,
+        "severity": {
+         "green": 0,
+         "yellow": 60,
+         "red": 85
+        },
+        "grid_options": {
+         "columns": 6,
+         "rows": 3
+        }
+       },
+       {
+        "type": "gauge",
+        "entity": "sensor.jay_dev_ubuntu_nvidia_geforce_rtx_4060_ti_gpu_nvidia0_memory_usage",
+        "name": "显存占用",
+        "min": 0,
+        "max": 100,
+        "needle": true,
+        "severity": {
+         "green": 0,
+         "yellow": 70,
+         "red": 90
+        },
+        "grid_options": {
+         "columns": 6,
+         "rows": 3
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_cpu_load",
+        "name": "负载 (15 分钟)",
+        "icon": "mdi:speedometer",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_uptime",
+        "name": "开机于",
+        "icon": "mdi:clock-start",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_containers_active",
+        "name": "运行中容器",
+        "icon": "mdi:docker",
+        "color": "blue",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_containers_memory_used",
+        "name": "容器占用内存",
+        "icon": "mdi:memory",
+        "color": "blue",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       }
+      ]
+     },
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "温度与风扇",
+        "heading_style": "title",
+        "icon": "mdi:thermometer"
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_package_id_0_temperature",
+        "name": "CPU 温度",
+        "icon": "mdi:cpu-64-bit",
+        "color": "orange",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.jay_dev_ubuntu_nvidia_geforce_rtx_4060_ti_gpu_nvidia0_temperature",
+        "name": "GPU 温度",
+        "icon": "mdi:expansion-card",
+        "color": "green",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_composite_temperature",
+        "name": "NVMe 温度",
+        "icon": "mdi:harddisk",
+        "color": "purple",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_systin_temperature",
+        "name": "主板温度",
+        "icon": "mdi:chip",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_nct6798_1_fan_speed",
+        "name": "风扇 1",
+        "icon": "mdi:fan",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_nct6798_5_fan_speed",
+        "name": "风扇 5",
+        "icon": "mdi:fan",
+        "grid_options": {
+         "columns": 6,
+         "rows": 2
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "history-graph",
+        "title": "近 24 小时温度",
+        "hours_to_show": 24,
+        "entities": [
+         {
+          "entity": "sensor.192_168_8_125_package_id_0_temperature",
+          "name": "CPU",
+          "color": "orange"
+         },
+         {
+          "entity": "sensor.jay_dev_ubuntu_nvidia_geforce_rtx_4060_ti_gpu_nvidia0_temperature",
+          "name": "GPU",
+          "color": "green"
+         },
+         {
+          "entity": "sensor.192_168_8_125_composite_temperature",
+          "name": "NVMe",
+          "color": "purple"
+         }
+        ],
+        "grid_options": {
+         "columns": "full",
+         "rows": 4
+        }
+       }
+      ]
+     },
+     {
+      "type": "grid",
+      "cards": [
+       {
+        "type": "heading",
+        "heading": "存储与网络",
+        "heading_style": "title",
+        "icon": "mdi:harddisk"
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_rootfs_disk_usage",
+        "name": "系统盘 /",
+        "icon": "mdi:harddisk",
+        "features": [
+         {
+          "type": "bar-gauge",
+          "min": 0,
+          "max": 100
+         }
+        ],
+        "features_position": "bottom",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_rootfs_home_disk_usage",
+        "name": "/home",
+        "icon": "mdi:folder-home",
+        "features": [
+         {
+          "type": "bar-gauge",
+          "min": 0,
+          "max": 100
+         }
+        ],
+        "features_position": "bottom",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "tile",
+        "entity": "sensor.192_168_8_125_rootfs_mnt_windows_disk_usage",
+        "name": "Windows 分区",
+        "icon": "mdi:microsoft-windows",
+        "features": [
+         {
+          "type": "bar-gauge",
+          "min": 0,
+          "max": 100
+         }
+        ],
+        "features_position": "bottom",
+        "grid_options": {
+         "columns": 12,
+         "rows": 3
+        },
+        "tap_action": {
+         "action": "more-info"
+        }
+       },
+       {
+        "type": "history-graph",
+        "title": "网络 eno1（近 24 小时）",
+        "hours_to_show": 24,
+        "entities": [
+         {
+          "entity": "sensor.192_168_8_125_eno1_rx",
+          "name": "下行",
+          "color": "blue"
+         },
+         {
+          "entity": "sensor.192_168_8_125_eno1_tx",
+          "name": "上行",
+          "color": "teal"
+         }
+        ],
+        "grid_options": {
+         "columns": "full",
+         "rows": 4
+        }
+       },
+       {
+        "type": "history-graph",
+        "title": "NVMe 读写（近 24 小时）",
+        "hours_to_show": 24,
+        "entities": [
+         {
+          "entity": "sensor.192_168_8_125_nvme0n1_disk_read",
+          "name": "读",
+          "color": "indigo"
+         },
+         {
+          "entity": "sensor.192_168_8_125_nvme0n1_disk_write",
+          "name": "写",
+          "color": "pink"
+         }
+        ],
+        "grid_options": {
+         "columns": "full",
+         "rows": 4
+        }
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "config_hash": "b70fee42f51c2546",
+ "config_size_bytes": 23866,
+ "render_paths": [
+  {
+   "url_path": "dashboard-home-panel",
+   "view_index": 0,
+   "view_path": "home",
+   "title": "首页",
+   "render_path": "dashboard-home-panel/home",
+   "stable": true
+  },
+  {
+   "url_path": "dashboard-home-panel",
+   "view_index": 1,
+   "view_path": "work",
+   "title": "工作区",
+   "render_path": "dashboard-home-panel/work",
+   "stable": true
+  },
+  {
+   "url_path": "dashboard-home-panel",
+   "view_index": 2,
+   "view_path": "rooms",
+   "title": "房间与环境",
+   "render_path": "dashboard-home-panel/rooms",
+   "stable": true
+  },
+  {
+   "url_path": "dashboard-home-panel",
+   "view_index": 3,
+   "view_path": "server",
+   "title": "服务器",
+   "render_path": "dashboard-home-panel/server",
+   "stable": true
+  }
+ ],
+ "hint": "Large config (23,866 bytes). Pass view_path=... to fetch a single view, or use ha_config_get_dashboard(entity_id=...) to find card positions, then ha_config_set_dashboard(python_transform=...) instead of full config replacement."
+}

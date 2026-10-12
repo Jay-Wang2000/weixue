@@ -93,3 +93,4 @@ Rule: if Codex P1 findings per task rise above the baseline for two consecutive 
 - 2026-10-12 fix-terminal-items-polish merged (PR #33): spoken=read, seen persisted, card speech withdrawn on close; 233/1042 tests, sim ALL PASS; board check after deploy.
 - 2026-10-12 feat-monitor-view-token merged (PR #34): MONITOR_VIEW_TOKEN only on the board; 68 monitor tests.
 - 2026-10-12 20:22 server redeployed (PRs #33-#34): monitor bound to 192.168.8.125:8020 with MONITOR_VIEW_TOKEN (401 without, 200 with), CSP frame-ancestors http://192.168.8.142:8123; ready lines OK.
+- 2026-10-12 20:40 HA home panel: Agent tab added via ha-mcp (patch + BPS key), monitor iframe with the view token; dashboard backup in docs/logs. Board check of spoken=read running.
