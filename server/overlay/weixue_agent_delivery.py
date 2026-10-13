@@ -558,6 +558,13 @@ class AgentGateway:
             if lease_id:
                 self.sink.ack(delivery_id, lease_id, "dropped", device_id, detail="task already ended")
             return {"delivery_id": delivery_id, "seq": seq, "task_id": task, "ended": True}
+        if self._card_holds(device_id, latest, payload, delivery_id):
+            self._log(f"agent delivery {delivery_id} state=working for task={task}: not sent, card "
+                      f"{latest.payload['card_id']} is open")
+            if lease_id:
+                self.sink.ack(delivery_id, lease_id, "dropped", device_id, detail="task has an open card")
+            self._check_card(device_id, dev)
+            return {"delivery_id": delivery_id, "seq": seq, "task_id": task, "card_open": True}
         if latest is None and len(dev.mirror) >= MIRROR_TASKS:
             old_task = _eviction_victim(dev.mirror)
             if old_task is None:
@@ -584,6 +591,23 @@ class AgentGateway:
             record["speech_id"] = self._speak(device_id, entry, speech, attempt)
         self._dispatch(device_id, dev, [entry])
         return record
+
+    def _card_holds(self, device_id, latest, payload, delivery_id):
+        """Whether an agent-service working item would replace the task's open agent-service card
+        that no tap on this device decided."""
+        if latest is None or payload.get("state") != "working" or delivery_id.startswith("fx_"):
+            return False
+        card = latest.payload.get("card_id")
+        return (latest.payload.get("state") in OPEN_CARD_STATES and latest.delivery_id is not None
+                and not latest.delivery_id.startswith(("fx_", "gw_")) and (device_id, card) not in self.card_decisions)
+
+    def _check_card(self, device_id, dev):
+        """Reconciles the device's open cards, so a card closed in agent-service gives way to working."""
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return
+        self._reconcile_first(device_id, dev)
 
     def drop(self, device_id, task_ids):
         """Removes tasks from the device's mirror; the next poll or session carries a snapshot."""

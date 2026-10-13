@@ -14,10 +14,13 @@ Control routes (same bearer token):
   POST /sim/ask     {"device_id", "question", "options", "origin"?, "chat_id"?}  a chat turn (origin kind, default
                     none; chat default current) that leaves a question card
   POST /sim/enqueue {"device_id", "tier", "slot", "payload", "speak", "task_id", "chat_id"}  outbox.enqueue
-  GET  /sim/rows?delivery_id=  the deliveries row and its delivery_acks; ?interaction_id= that row
+  GET  /sim/rows?delivery_id=  the deliveries row and its delivery_acks; ?interaction_id= that row; ?task_id= the
+                    task, its interactions and its HA calls
 
 A message "tools:<name>,<name>,..." is a turn that says one sentence, then uses each tool 1.5 s apart
 (web_search, web_fetch and tool_search_* as server tools, others as client tools) and says "Done."
+A message "hold:" is a turn whose ha_call_service is held by the fake ha-mcp policy; a steer joining it repeats
+that call, reads one state and answers.
 """
 import argparse
 import asyncio
@@ -49,9 +52,20 @@ from weixue_hamcp import HaMcpClient  # noqa: E402
 HA_URL = "http://ha.test:9584/private_sim"
 TOOL_ARGS = {"ha_get_state": {"entity_id": "light.kitchen"}, "ha_search": {"query": "kitchen"},
              "ha_call_service": {"domain": "light", "service": "turn_on", "entity_id": "light.kitchen"}}
+HOLD_ARGS = {"domain": "input_boolean", "service": "toggle", "entity_id": "input_boolean.weixue_session_probe_v2"}
 
 
 async def script(turn):
+    if turn.user_text.startswith("hold:"):
+        await turn.text("Toggling the probe.")
+        await turn.tool("ha_call_service", HOLD_ARGS)
+        if turn.steer_text:
+            await turn.tool("ha_call_service", HOLD_ARGS)
+            await turn.tool("ha_get_state", TOOL_ARGS["ha_get_state"])
+            await turn.text("It's half past nine.")
+            return
+        await turn.text("Waiting for your OK.")
+        return
     if turn.user_text.startswith("ask:"):
         _, question, options = turn.user_text.split(":", 2)
         answer = await turn.ask(question, options.split("|"))
@@ -162,6 +176,13 @@ def main():
             return JSONResponse({"interaction": service.store.interaction(q["interaction_id"]),
                                  "decisions": service.store.all("SELECT decision_id, kind FROM decisions WHERE target_id = ?",
                                                                (q["interaction_id"],))})
+        if "task_id" in q:
+            tid = q["task_id"]
+            return JSONResponse({"task": service.store.task(tid),
+                                 "interactions": service.store.all("SELECT * FROM interactions WHERE task_id = ?", (tid,)),
+                                 "approvals": service.store.all("SELECT approval_id, tool, state FROM approvals "
+                                                                "WHERE task_id = ?", (tid,)),
+                                 "executed": fake_ha.executed})
         did = q["delivery_id"]
         acks = service.store.all("SELECT outcome, reason, sentence_id, detail FROM delivery_acks WHERE delivery_id = ? "
                                  "ORDER BY id", (did,))

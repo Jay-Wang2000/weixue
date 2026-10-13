@@ -228,6 +228,17 @@ class Engine:
                         turn_id=turn_id, event="task_state", outcome=state, detail=reason)
         self.store.update("tasks", "task_id", task_id, {"state": state, "updated_at": now, **values})
 
+    def card_state(self, task_id: str) -> Optional[str]:
+        """The task's state while it has an open interaction (an approval before a question), else None."""
+        kinds = {row["kind"] for row in self.interactions.open_for_task(task_id)}
+        return "needs_approval" if "approval" in kinds else "needs_input" if "input" in kinds else None
+
+    def card_closed(self, task_id: str, turn_id: Optional[str] = None) -> None:
+        """An interaction of the task closed: the task leaves its card state once no other one is open."""
+        task = self.store.task(task_id)
+        if task is not None and task["state"] in ("needs_input", "needs_approval"):
+            self.set_task_state(task_id, self.card_state(task_id) or "progress", "interaction closed", turn_id=turn_id)
+
     def open_task(self, chat_id: str) -> Optional[Dict[str, Any]]:
         chat = self.store.chat(chat_id)
         task = self.store.task(chat["open_task_id"]) if chat and chat["open_task_id"] else None
@@ -345,12 +356,12 @@ class Engine:
                     "kind": kind or ("user" if routed == "new_task" else "steer"), "state": "queued", "routed": routed,
                     "text": text, "lang": lang, "trace_id": trace, "idempotency_key": key, "created_at": now,
                 })
-        task = self.store.task(task_id)
         if routed in ("steer", "continue"):
-            self.set_task_state(task_id, "progress", routed, turn_id=turn_id)
+            self.set_task_state(task_id, self.card_state(task_id) or "progress", routed, turn_id=turn_id)
             self.outbox.withdraw(device_id, f"task:{task_id}", spoken_only=True)
+        task = self.store.task(task_id)
         shown = accepted_routed or routed
-        accepted = self.emit(chat["chat_id"], "accepted", {"routed": shown, "task_state": "progress",
+        accepted = self.emit(chat["chat_id"], "accepted", {"routed": shown, "task_state": task["state"],
                                                            "reply_id": reply_id},
                              trace, task_id=task_id, turn_id=turn_id)
         if reply_id is not None:
@@ -532,7 +543,8 @@ class Engine:
             "turn_id": turn_id, "task_id": task["task_id"], "chat_id": actor.chat_id, "kind": "event",
             "state": "queued", "routed": None, "text": "", "lang": task["lang"], "trace_id": task["trace_id"],
             "created_at": timeutil.iso()})
-        self.set_task_state(task["task_id"], "progress", "event turn", turn_id=turn_id)
+        self.set_task_state(task["task_id"], self.card_state(task["task_id"]) or "progress", "event turn",
+                            turn_id=turn_id)
         actor.queue.append(turn_id)
         return True
 
@@ -676,6 +688,9 @@ class Engine:
         if text:
             blocks.append({"type": "text", "text": text})
         notes = [self.context_note(run.device_id, run.lang)] + self.chats.take_notes(run.chat_id, run.turn_id)
+        held = self.interactions.held_note(run.task_id) if run.task_id else None
+        if held:
+            notes.append(held)
         effort = models.EFFORT[run.mode]
         pre: List[Dict[str, Any]] = []
         if chat["effort"] != effort:
@@ -725,6 +740,9 @@ class Engine:
             notes.append(self.context_note(run.device_id, steer["lang"]))
             notes.append(f'[note: the user spoke while you were working on "{title}"; answer them, then continue, '
                          "change course or stop as they ask]")
+            held = self.interactions.held_note(run.task_id) if run.task_id else None
+            if held:
+                notes.append(held)
             run = self._steer_handoff(actor, run, steer)
         notes.extend(self.chats.take_notes(run.chat_id, run.turn_id))
         system = {"role": "system", "content": [{"type": "text", "text": n} for n in notes]} if notes else None
@@ -1047,12 +1065,16 @@ class Engine:
         self.store.update("tasks", "task_id", run.task_id, {"progress_json": progress})
         self.emit(run.chat_id, "progress", progress, run.trace_id, task_id=run.task_id, turn_id=run.turn_id)
         if not self.reply_open(run):
-            task = self.store.task(run.task_id)
-            # A task waiting on its card keeps the card on the device.
-            if task and task["state"] not in TERMINAL_STATES + ("needs_input", "needs_approval"):
-                self.outbox.enqueue(run.device_id, "agent", "SILENT", f"task:{run.task_id}",
-                                    agent_payload(task, "progress", progress=progress), task_id=run.task_id,
-                                    chat_id=run.chat_id, turn_id=run.turn_id, lang=run.lang)
+            self.queue_working(run, progress=progress)
+
+    def queue_working(self, run: TurnRun, **extra: Any) -> None:
+        """The task's working item; none while the task has an open card, which stays its device item."""
+        task = self.store.task(run.task_id) if run.task_id else None
+        if task is None or task["state"] != "progress" or self.interactions.open_for_task(task["task_id"]):
+            return
+        self.outbox.enqueue(run.device_id, "agent", "SILENT", f"task:{task['task_id']}",
+                            agent_payload(task, "progress", **extra), task_id=task["task_id"],
+                            chat_id=run.chat_id, turn_id=run.turn_id, lang=run.lang)
 
     # ------------------------------------------------------------------ app tools
 
@@ -1383,9 +1405,7 @@ class Engine:
                                 f'"{jsonlog.truncate(final_text, 400)}"; the user has not heard it]')
             if run.reply:
                 self.end_reply(run.chat_id, run.turn_id, run.reply, "turn_done", run.trace_id, run.task_id)
-            self.outbox.enqueue(run.device_id, "agent", "SILENT", f"task:{task['task_id']}",
-                                agent_payload(task, "progress", summary=jsonlog.truncate(final_text, SUMMARY_MAX)),
-                                task_id=task["task_id"], chat_id=run.chat_id, turn_id=run.turn_id, lang=run.lang)
+            self.queue_working(run, summary=jsonlog.truncate(final_text, SUMMARY_MAX))
             return
         if self.interactions.open_for_task(task["task_id"]) or self.chats.pending_notes(run.chat_id, kind="event"):
             if run.reply and run.reply.open:

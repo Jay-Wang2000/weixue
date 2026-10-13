@@ -1,0 +1,57 @@
+22:01:39 info agent connection open device=7c:0c:5f:42:4b:fc session=s1
+22:01:39 info agent session device=7c:0c:5f:42:4b:fc session=s1: snapshot once the agent-service snapshot is restored
+22:01:39 info agent restore device=7c:0c:5f:42:4b:fc: 0 cards from the agent-service snapshot; mirror 0
+22:01:39 info agent chats queued device=7c:0c:5f:42:4b:fc current=None chats=0/0 seq=1791925299239 bytes=78 delivery=gw_dffef544d0c04ae6bc492509
+22:01:39 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791925299239
+22:01:39 info agent snapshot device=7c:0c:5f:42:4b:fc kind=agent_sync task=None state=None seq=1791925299240
+
+== finding 86 an open approval card survives a steer and a later message ==
+22:01:39 info agent ack shown delivery=gw_dffef544d0c04ae6bc492509 device=7c:0c:5f:42:4b:fc seq=1791925299239 via=shown
+PASS second message during the held call: steer
+22:01:39 info agent chats queued device=7c:0c:5f:42:4b:fc current=None chats=1/1 seq=1791925299860 bytes=166 delivery=dlv_01M4VH4AMB1R7WRZC0NC0ARAKK
+22:01:39 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791925299860
+22:01:39 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4VH4A4G9TC73KP2B875MA6Q task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=working seq=1791925299861 tier=silent speaks=False delivery=dlv_01M4VH4AMH93PN6SW5QS1G5FWS
+22:01:39 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=working seq=1791925299861
+22:01:40 info agent ack shown delivery=dlv_01M4VH4AMB1R7WRZC0NC0ARAKK device=7c:0c:5f:42:4b:fc seq=1791925299860 via=shown
+22:01:40 info agent ack shown delivery=dlv_01M4VH4AMH93PN6SW5QS1G5FWS device=7c:0c:5f:42:4b:fc seq=1791925299861 via=shown
+22:01:40 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4VH4A4G9TC73KP2B875MA6Q task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=working seq=1791925300354 tier=silent speaks=False delivery=dlv_01M4VH4B41GG9KAKJ1PA4R6NS2
+22:01:40 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=working seq=1791925300354
+22:01:40 info agent ack shown delivery=dlv_01M4VH4B44H9AQFX6WED5RQBFV device=7c:0c:5f:42:4b:fc detail=chat list unchanged
+22:01:40 info agent ack shown delivery=dlv_01M4VH4B41GG9KAKJ1PA4R6NS2 device=7c:0c:5f:42:4b:fc seq=1791925300354 via=shown
+22:01:41 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4VH4A4G9TC73KP2B875MA6Q task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=needs_approval seq=1791925301591 tier=when_idle speaks=True delivery=dlv_01M4VH4CAHDZCSBC25DFKZK4AC
+22:01:41 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=needs_approval seq=1791925301591
+22:01:41 info agent ack accepted delivery=dlv_01M4VH4CAHDZCSBC25DFKZK4AC device=7c:0c:5f:42:4b:fc proactive_id=e3789a2cd20b404081c323bebc093ca1 ttl_s=600
+22:01:41 info proactive e3789a2cd20b404081c323bebc093ca1 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+22:01:41 info agent speech d6823234ebbc44da handed off: delivery=dlv_01M4VH4CAHDZCSBC25DFKZK4AC proactive=e3789a2cd20b404081c323bebc093ca1 urgent=False attempt=1 reason=busy
+22:01:41 info agent ack shown delivery=dlv_01M4VH4CAHDZCSBC25DFKZK4AC device=7c:0c:5f:42:4b:fc seq=1791925301591 via=shown
+PASS steer joined the hold: 1 card, 1 held call (pending)
+PASS after the steer turn: mirror needs_approval card same, later items []
+PASS card speech still queued (handed_off, message queued)
+PASS later message to the waiting task: continue, task needs_approval
+22:01:46 info agent chats queued device=7c:0c:5f:42:4b:fc current=None chats=1/1 seq=1791925306186 bytes=168 delivery=dlv_01M4VH4GT9T2H25847G8J4EMX0
+22:01:46 info agent push device=7c:0c:5f:42:4b:fc kind=agent_chats task=None state=None seq=1791925306186
+22:01:46 info agent ack shown delivery=dlv_01M4VH4GT9T2H25847G8J4EMX0 device=7c:0c:5f:42:4b:fc seq=1791925306186 via=shown
+PASS after the later turn: mirror needs_approval card same, later items []
+PASS card speech still queued after the later turn (handed_off, message queued)
+22:01:52 info agent response deny device=7c:0c:5f:42:4b:fc chat=cht_01M4VH4A4G9TC73KP2B875MA6Q task=tsk_01M4VH4A4M5GADC0TKA74VWW7G card=int_01M4VH4CAF29GYYT1TKK0C4D9Y option=deny via=tap boot=4243 seq=6
+22:01:52 info proactive e3789a2cd20b404081c323bebc093ca1 expired: card decided (deny)
+22:01:52 info agent speech d6823234ebbc44da delivery=dlv_01M4VH4CAHDZCSBC25DFKZK4AC card=int_01M4VH4CAF29GYYT1TKK0C4D9Y withdrawn: card decided (deny)
+22:01:52 info agent ack dropped delivery=dlv_01M4VH4CAHDZCSBC25DFKZK4AC device=7c:0c:5f:42:4b:fc detail=card decided (deny)
+22:01:52 info agent deny device=7c:0c:5f:42:4b:fc card=int_01M4VH4CAF29GYYT1TKK0C4D9Y seq=6 service=accepted result=accepted
+22:01:52 info agent receipt deny boot=4243 seq=6 card=int_01M4VH4CAF29GYYT1TKK0C4D9Y result=accepted
+22:01:52 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4VH4A4G9TC73KP2B875MA6Q task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=working seq=1791925312697 tier=silent speaks=False delivery=dlv_01M4VH4Q5PJT1H2J3T8E88P2H6
+22:01:52 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=working seq=1791925312697
+22:01:52 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4VH4A4G9TC73KP2B875MA6Q task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=working seq=1791925312699 tier=silent speaks=False delivery=dlv_01M4VH4Q5TB3RYXX9D7V7D8M2J
+22:01:52 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=working seq=1791925312699
+22:01:52 info agent item queued device=7c:0c:5f:42:4b:fc chat=cht_01M4VH4A4G9TC73KP2B875MA6Q task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=unread seq=1791925312702 tier=when_idle speaks=True delivery=dlv_01M4VH4Q5WKCNHMP09ZP1M9P0R
+22:01:52 info agent push device=7c:0c:5f:42:4b:fc kind=agent task=tsk_01M4VH4A4M5GADC0TKA74VWW7G state=unread seq=1791925312702
+22:01:52 info agent ack accepted delivery=dlv_01M4VH4Q5WKCNHMP09ZP1M9P0R device=7c:0c:5f:42:4b:fc proactive_id=184f03f5c34e43688f672c25562ebb72 ttl_s=600
+22:01:52 info proactive 184f03f5c34e43688f672c25562ebb72 queued: mode=announce device=7c:0c:5f:42:4b:fc urgent=False ttl=600
+22:01:52 info agent speech 71ead89bc2c74a65 handed off: delivery=dlv_01M4VH4Q5WKCNHMP09ZP1M9P0R proactive=184f03f5c34e43688f672c25562ebb72 urgent=False attempt=1 reason=busy
+22:01:52 info agent ack shown delivery=dlv_01M4VH4Q5PJT1H2J3T8E88P2H6 device=7c:0c:5f:42:4b:fc seq=1791925312697 via=shown
+22:01:52 info agent ack shown delivery=dlv_01M4VH4Q5TB3RYXX9D7V7D8M2J device=7c:0c:5f:42:4b:fc seq=1791925312699 via=shown
+22:01:52 info agent ack shown delivery=dlv_01M4VH4Q5WKCNHMP09ZP1M9P0R device=7c:0c:5f:42:4b:fc seq=1791925312702 via=shown
+PASS deny tap: receipt accepted
+PASS after the deny: interaction denied, outcome denied, executed 0, device unread
+
+ALL PASS
