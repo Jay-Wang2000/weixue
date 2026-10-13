@@ -493,6 +493,15 @@ tasks:
     status: done
     retries: 0
     model: sonnet
+  - id: fix-approval-card-vs-working
+    name: "Open approval card must survive a steer turn (finding 86)"
+    branch: fix/approval-card-vs-working
+    description: |
+      2026-10-13 21:22 scene round: the first ha_config_set_scene was held (needs_approval, card pushed and shown at 21:22:53) but Jay spoke again during the turn (steer); the steer turn ran tools and the task's item went back to `working`, and at 21:23:26 the gateway replaced the card with a working item ("card replaced by working", speech withdrawn) while the interaction stayed pending in the service until expiry. The user never saw the card and re-asked; the second hold was approved. Fix: an open interaction (needs_approval/needs_input) is never collapsed to working — the task item keeps the card state while a turn runs (working label may be shown alongside); the gateway never replaces an open card with a working item from the same task; a steer during a held call must not hide the card (and should not cancel the hold — state the rule); add the case to the recovery sim and a board check. Also the item/state model in docs/agent-protocol.md.
+    depends_on: [fix-question-card-discipline]
+    status: in_progress
+    retries: 0
+    model: opus
   - id: feat-agent-service
     name: "Agent service on the Claude Agent SDK (M2)"
     branch: feat/agent-service
