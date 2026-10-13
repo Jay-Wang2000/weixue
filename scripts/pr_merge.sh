@@ -4,6 +4,9 @@
 set -euo pipefail
 WT=$1; BRANCH=$2; TITLE=$3; BODY_FILE=$4
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ "$(gh api user -q .login 2>/dev/null)" != "Jay-Wang2000" ]; then
+  gh auth switch -u Jay-Wang2000 >/dev/null 2>&1 || { echo "pr_merge: gh is not on Jay-Wang2000 and the switch failed" >&2; exit 5; }
+fi
 
 cd "$WT"
 if ! git rebase main >/dev/null 2>&1; then
