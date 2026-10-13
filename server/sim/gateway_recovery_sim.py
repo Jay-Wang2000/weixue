@@ -6,7 +6,8 @@ speech hand-off (F09), retries and attempts (F10), gateway restart (F11), INTERR
 routing and open-card tiers (routing), open cards reconciled against the service's task state
 (reconcile, finding 76), spoken results read and a decided card's speech withdrawn (seen, decision 84), and
 `--rounds activity`: a turn of fake tools whose working items carry the activity label (decision 68;
-start the scratch service with --reply-hold-s 1). Run with the server test venv after starting the
+start the scratch service with --reply-hold-s 1), and `hold`: an approval card that stays the task's item
+through a steer and a later message while its hold is pending (finding 86). Run with the server test venv after starting the
 scratch service:
 
     SIM_TOKEN=<same token> python server/sim/gateway_recovery_sim.py --url http://127.0.0.1:18810 --state <tmp dir>
@@ -554,6 +555,76 @@ async def round_reconcile(sim, conn):
     return fresh
 
 
+async def task_rows(sim, task):
+    return await sim.ctl("GET", "/sim/rows", params={"task_id": task})
+
+
+def card_kept(sim, conn, task, card, since):
+    """(mirrored state and card, wire states of the task sent after seq `since`)."""
+    entry = sim.gw.devices[DEVICE].mirror.get(task)
+    later = [p["state"] for p in conn.websocket.payloads()
+             if p.get("kind") == "agent" and p["task_id"] == task and p["seq"] > since]
+    return (entry and entry.payload.get("state"), entry and entry.payload.get("card_id")), later
+
+
+async def round_hold(sim, conn):
+    print("\n== finding 86 an open approval card survives a steer and a later message ==", flush=True)
+    _, chat = await sim.api("POST", "/v1/chats", {"device_id": DEVICE, "switch": False})
+    chat_id = chat["chat_id"]
+    conn.speaking(True)
+    status, first = await sim.api("POST", f"/v1/chats/{chat_id}/messages",
+                                  {"device_id": DEVICE, "text": "hold:probe", "origin": {"kind": "api"}})
+    task = first.get("task_id")
+    await asyncio.sleep(0.5)
+    _, steer = await sim.api("POST", f"/v1/chats/{chat_id}/messages",
+                             {"device_id": DEVICE, "text": "also tell me the time", "origin": {"kind": "api"}})
+    check(status == 201 and steer.get("routed") == "steer" and steer.get("task_id") == task,
+          f"second message during the held call: {steer.get('routed')}")
+    entry = await sim.wait(lambda: next((e for e in sim.gw.devices[DEVICE].mirror.values()
+                                         if e.payload.get("task_id") == task and e.payload.get("state") == "needs_approval"
+                                         and e.payload.get("options")), None), 15, "actionable approval card mirrored")
+    card = entry.payload["card_id"] if entry else None
+    since = entry.payload["seq"] if entry else 0
+    speech = await sim.wait(lambda: next((s for s in sim.gw.speeches.values() if s.card_id == card
+                                          and s.state == "handed_off"), None), 10, "card speech waiting (device busy)")
+    await asyncio.sleep(4)
+    rows = await task_rows(sim, task)
+    held = [r for r in rows["approvals"] if r["tool"] == "ha_call_service"]
+    check(len(rows["interactions"]) == 1 and len(held) == 1 and rows["interactions"][0]["state"] == "pending",
+          f"steer joined the hold: {len(rows['interactions'])} card, {len(held)} held call "
+          f"({rows['interactions'][0]['state'] if rows['interactions'] else None})")
+    (state, kept), later = card_kept(sim, conn, task, card, since)
+    check(state == "needs_approval" and kept == card and "working" not in later,
+          f"after the steer turn: mirror {state} card {'same' if kept == card else kept}, later items {later}")
+    msg = sim.proactive.messages.get(speech.proactive_id) if speech else None
+    check(speech is not None and speech.state == "handed_off" and msg is not None and msg.status == "queued",
+          f"card speech still queued ({speech and speech.state}, message {msg and msg.status})")
+    status, again = await sim.api("POST", f"/v1/chats/{chat_id}/messages",
+                                  {"device_id": DEVICE, "text": "tools:ha_get_state", "origin": {"kind": "api"}})
+    now = (await task_rows(sim, task))["task"]["state"]
+    check(again.get("routed") == "continue" and now == "needs_approval",
+          f"later message to the waiting task: {again.get('routed')}, task {now}")
+    await asyncio.sleep(7)
+    (state, kept), later = card_kept(sim, conn, task, card, since)
+    check(state == "needs_approval" and kept == card and "working" not in later,
+          f"after the later turn: mirror {state} card {'same' if kept == card else kept}, later items {later}")
+    check(speech.state == "handed_off" and msg.status == "queued",
+          f"card speech still queued after the later turn ({speech.state}, message {msg.status})")
+    params = {"v": 1, "boot": conn.boot, "seq": conn.next_seq(), "kind": "deny", "chat_id": chat_id, "task_id": task,
+              "card_id": card, "option_id": "deny", "via": "tap"}
+    sim.gw.on_device_event(conn, wad.RESPONSE_METHOD, params)
+    got = await sim.wait(lambda: sim.receipts(conn, card), 15, "deny receipt")
+    check(got and got[-1]["result"] == "accepted", f"deny tap: receipt {got and got[-1]['result']}")
+    final = await sim.wait(lambda: (last_item(conn, task) or {}).get("state") in ("unread", "done", "failed")
+                           and last_item(conn, task), 20, "task result after the deny")
+    rows = await task_rows(sim, task)
+    ran = [e for e in rows["executed"] if (e.get("args") or {}).get("entity_id") == "input_boolean.weixue_session_probe_v2"]
+    check(rows["interactions"][0]["state"] == "denied" and not ran and rows["task"]["outcome"] == "denied",
+          f"after the deny: interaction {rows['interactions'][0]['state']}, outcome {rows['task']['outcome']}, "
+          f"executed {len(ran)}, device {final and final['state']}")
+    conn.speaking(False)
+
+
 def last_item(conn, task):
     return next((p for p in reversed(conn.websocket.payloads()) if p.get("kind") == "agent" and p["task_id"] == task),
                 None)
@@ -622,9 +693,9 @@ async def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--url", default="http://127.0.0.1:18810")
     ap.add_argument("--state", required=True)
-    ap.add_argument("--rounds", default="questions,decisions,speech,attempts,restart,interrupt,routing,reconcile,seen",
+    ap.add_argument("--rounds", default="questions,decisions,speech,attempts,restart,interrupt,routing,reconcile,seen,hold",
                     help="comma list of questions, decisions, speech, attempts, restart, interrupt, routing, "
-                         "reconcile, seen, activity")
+                         "reconcile, seen, hold, activity")
     a = ap.parse_args()
     rounds = a.rounds.split(",")
     token = os.environ["SIM_TOKEN"]
@@ -654,6 +725,8 @@ async def main():
         conn = await round_reconcile(sim, conn)
     if "seen" in rounds:
         conn = await round_seen(sim, conn)
+    if "hold" in rounds:
+        await round_hold(sim, conn)
     await sim.stop_gateway()
     await sim.http.close()
     print(f"\n{'ALL PASS' if not FAILURES else 'FAILED: ' + '; '.join(FAILURES)}", flush=True)

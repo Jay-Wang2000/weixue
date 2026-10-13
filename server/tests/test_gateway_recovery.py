@@ -489,7 +489,7 @@ async def test_offers_older_than_a_restored_card_are_not_sent():
     assert await wait_for(lambda: service.acks("dlv_old") == [("dlv_old", "dropped")], 1)
     newer = gw.offer(DEVICE, {"delivery_id": "dlv_next", "lease_id": LEASE, "gseq": 12, "attempt": 1, "kind": "agent",
                               "tier": "SILENT", "chat_id": "cht_1", "task_id": "tsk_a",
-                              "payload": {"state": "progress", "summary": "Working"}})
+                              "payload": {"state": "done", "summary": "Done", "unread": True}})
     assert "superseded" not in newer and gw.devices[DEVICE].mirror["tsk_a"].delivery_id == "dlv_next"
 
 
@@ -916,3 +916,63 @@ async def test_an_approval_speech_handed_off_is_withdrawn_when_the_decision_is_a
     assert receipts(conn)[-1]["result"] == "accepted"
     assert msg.status == "expired" and speech.state == "dropped"
     assert await wait_for(lambda: ("dlv_s1", "dropped") in service.acks("dlv_s1"), 1)
+
+
+# Finding 86: an open card is never replaced by a working item of its task
+
+
+def working_offer(delivery, gseq, lease=LEASE2, task="tsk_b"):
+    return {"delivery_id": delivery, "lease_id": lease, "gseq": gseq, "attempt": 1, "kind": "agent", "tier": "SILENT",
+            "chat_id": "cht_1", "task_id": task,
+            "payload": {"state": "progress", "summary": "Working", "progress": {"phase": "tool", "activity": "Acting…"}}}
+
+
+def spoken_card_offer(delivery="dlv_card", gseq=10, card="int_b"):
+    return dict(card_offer(delivery, gseq, card=card), tier="WHEN_IDLE", speak="Turn on the plug? Approve on the panel.")
+
+
+async def test_a_working_item_never_replaces_an_open_card_or_withdraws_its_speech():
+    service = Service()
+    service.tasks["tsk_b"] = task_body("needs_approval", pending=["int_b"])
+    proactive, gw = gateway(service, url="http://agent:8010")
+    gw.logger = Lines()
+    assert await gw.restore(DEVICE)
+    rec = gw.offer(DEVICE, spoken_card_offer())
+    speech = gw.speeches[rec["speech_id"]]
+    assert await wait_for(lambda: speech.state == "handed_off", 1)
+    msg = proactive.messages[speech.proactive_id]
+    held = gw.offer(DEVICE, working_offer("dlv_work", 11))
+    dev = gw.devices[DEVICE]
+    assert held["card_open"] and dev.mirror["tsk_b"].delivery_id == "dlv_card"
+    assert await wait_for(lambda: service.acks("dlv_work") == [("dlv_work", "dropped")], 1)
+    assert await wait_for(lambda: "/v1/tasks/tsk_b" in service.gets, 1), "the card is checked with the service"
+    assert await wait_for(lambda: dev.reconciling is None, 1)
+    assert dev.mirror["tsk_b"].payload["state"] == "needs_approval" and dev.mirror["tsk_b"].payload["card_id"] == "int_b"
+    assert msg.status == "queued" and speech.state == "handed_off"
+    assert not gw.logger.having("card replaced by working") and not gw.logger.having("withdrawn")
+    assert gw.logger.having("agent delivery dlv_work state=working for task=tsk_b: not sent, card int_b is open")
+
+
+async def test_a_working_item_after_the_card_closed_in_the_service_ends_the_card():
+    service = Service()
+    service.tasks["tsk_b"] = task_body("progress", pending=[])
+    _, gw = gateway(service, url="http://agent:8010")
+    assert await gw.restore(DEVICE)
+    gw.offer(DEVICE, card_offer("dlv_card", 10))
+    gw.offer(DEVICE, working_offer("dlv_work", 11))
+    dev = gw.devices[DEVICE]
+    assert await wait_for(lambda: dev.mirror["tsk_b"].payload["state"] == "working", 1), "reconciled to working"
+    assert "card_id" not in dev.mirror["tsk_b"].payload
+
+
+async def test_a_working_item_replaces_a_card_this_device_decided():
+    service = Service()
+    proactive, gw = gateway(service, url="http://agent:8010")
+    assert await gw.restore(DEVICE)
+    gw.offer(DEVICE, dict(card_offer("dlv_card", 10, task="t1", card="int_1")))
+    conn = Conn()
+    gw.on_device_event(conn, wad.RESPONSE_METHOD, approve(1))
+    assert await wait_for(lambda: receipts(conn), 1) and receipts(conn)[-1]["result"] == "accepted"
+    rec = gw.offer(DEVICE, working_offer("dlv_work", 11, task="t1"))
+    assert "card_open" not in rec and gw.devices[DEVICE].mirror["t1"].delivery_id == "dlv_work"
+    assert not [g for g in service.gets if g.startswith("/v1/tasks/")]

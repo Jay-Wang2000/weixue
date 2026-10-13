@@ -91,6 +91,17 @@ class Interactions:
         return self.store.all("SELECT * FROM interactions WHERE task_id = ? AND state IN ('pending', 'uncorrelated') "
                               "ORDER BY created_at", (task_id,))
 
+    def held_note(self, task_id: str) -> Optional[str]:
+        """System note for a turn of a task whose approval is open: the held action stays open and is not re-issued."""
+        rows = [r for r in self.open_for_task(task_id) if r["kind"] == "approval"]
+        if not rows:
+            return None
+        held = "; ".join(f"{(loads(r['action_json'], {}) or {}).get('text') or 'an action'} "
+                         f"({'in the Home Assistant panel' if r['state'] == 'uncorrelated' else 'on the device'})"
+                         for r in rows)
+        return (f"[note: a previous action is waiting for approval: {held}. It stays open until the user decides or it "
+                "expires; do not call it again. Its outcome arrives as an event.]")
+
     def _new(self, run_or_task: Any, kind: str, source: str, ttl_s: Optional[float], question=None, action=None,
              external_ref: Optional[str] = None, tool_use_id: Optional[str] = None, voice_can_approve: bool = False,
              expires_at: Optional[str] = None, turn_id: Optional[str] = None, state: str = "pending") -> Dict[str, Any]:
@@ -178,6 +189,7 @@ class Interactions:
         task = self.store.task(row["task_id"])
         self.outbox.withdraw(row["device_id"], f"int:{row['interaction_id']}")
         if task is not None:
+            self.engine.card_closed(task["task_id"])
             self.engine.emit(task["chat_id"], "resolved", {"interaction_id": row["interaction_id"], "state": state,
                                                            "via": via}, task["trace_id"], task_id=task["task_id"])
         jsonlog.log("interaction decided", task_id=row["task_id"], chat_id=row["chat_id"], event="resolved",
@@ -209,7 +221,8 @@ class Interactions:
         finally:
             run.futures.pop(row["interaction_id"], None)
         if kind == "answer":
-            self.engine.set_task_state(run.task_id, "progress", "answered", turn_id=run.turn_id)
+            self.engine.set_task_state(run.task_id, self.engine.card_state(run.task_id) or "progress", "answered",
+                                       turn_id=run.turn_id)
             return f"The user answered: {value if isinstance(value, str) else ', '.join(value)}"
         return str(value)
 
