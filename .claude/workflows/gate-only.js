@@ -4,7 +4,7 @@ export const meta = {
   whenToUse: 'Re-gate a task whose worktree and commit already exist (e.g. after the orchestrator finished a deploy the developer could not run). args = { tasks: [{ id, slug, branch }], lensCap?: 5, extraCtx?: string }',
   phases: [ { title: 'Gate' } ],
 }
-const REPO = '/Users/jwang14/Projects/weixue'
+const REPO = '/Users/jwang14/Projects/home/weixue'
 const LOCK = 'DEVICE LOCK (one board, many agents): before any serial/flash use or a device-visible stack restart: until mkdir ~/Projects/weixue-vendor/.device-lock 2>/dev/null; do sleep 15; done; echo "$$ $(date)" > ~/Projects/weixue-vendor/.device-lock/owner; release with rm -rf ~/Projects/weixue-vendor/.device-lock (hold ≤25 min; break locks older than 40 min). Mac output volume for `say` stays at 55.'
 const FINDINGS = { type: 'object', properties: { findings: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, severity: { type: 'string', enum: ['error','warning','info'] }, file: { type: 'string' }, line: { type: 'integer' }, description: { type: 'string' }, fix: { type: 'string' } }, required: ['title','severity','file','description'] } } }, required: ['findings'] }
 const VERDICT = { type: 'object', properties: { real: { type: 'boolean' }, severity: { type: 'string', enum: ['error','warning','info'] }, reason: { type: 'string' } }, required: ['real','severity','reason'] }
