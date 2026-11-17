@@ -85,6 +85,8 @@ services:
       - AGENT_HOME_SNAPSHOT_S=${AGENT_HOME_SNAPSHOT_S:-300}
       - AGENT_HOME_ENTITIES=${AGENT_HOME_ENTITIES:-}
       - HA_MCP_READ_TIMEOUT_S=${HA_MCP_READ_TIMEOUT_S:-}
+      - WATCHLIST_MCP_URL=${WATCHLIST_MCP_URL:-}
+      - WATCHLIST_MCP_TOKEN=${WATCHLIST_MCP_TOKEN:-}
       - TZ=${TZ:-UTC}
     volumes:
       - ./data/agent-service:/data

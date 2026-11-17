@@ -99,6 +99,8 @@ class Settings:
     home_snapshot_s: float = HOME_SNAPSHOT_S
     home_entities: Tuple[str, ...] = ()
     ha_mcp_read_timeout_s: float = HA_MCP_READ_TIMEOUT_S
+    watchlist_mcp_url: Optional[str] = None
+    watchlist_mcp_token: Optional[str] = None
 
     @property
     def e2e_guard(self) -> bool:
@@ -177,6 +179,8 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
         home_snapshot_s=home_snapshot_s,
         home_entities=home_entities,
         ha_mcp_read_timeout_s=read_timeout_s,
+        watchlist_mcp_url=env.get("WATCHLIST_MCP_URL", "").strip() or None,
+        watchlist_mcp_token=env.get("WATCHLIST_MCP_TOKEN", "").strip() or None,
     )
 
 
