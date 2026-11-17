@@ -110,6 +110,9 @@ class ChatActor:
             session = self.engine.ha.session(self._resolve)
             ha = [async_mcp_tool(tool, session, defer_loading=None if tool.name in models.HOT_HA_TOOLS else True)
                   for tool in self.engine.ha.mcp_tools(ha_specs)]
+            watchlist = self.engine.watchlist
+            if watchlist is not None and watchlist.enabled:
+                ha += [async_mcp_tool(tool, watchlist, defer_loading=True) for tool in watchlist.mcp_tools()]
             tools: List[Any] = list(app_tools.build(self._app_tool)) + ha
             if model != models.MODELS[models.QUICK]:
                 tools.append(MemoryTool(self.engine.settings.memory_dir, chat_id=self.chat_id))

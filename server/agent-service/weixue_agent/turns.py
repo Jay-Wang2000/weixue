@@ -134,6 +134,7 @@ class Engine:
         self.hub = hub
         self.client = client
         self.ha = ha
+        self.watchlist: Optional[Any] = None
         self.outbox = outbox
         self.chats = chats
         self.actors: Dict[str, ChatActor] = {}

@@ -13,6 +13,7 @@ import anthropic
 from weixue_hamcp import HaMcpClient
 
 from . import jsonlog, recovery
+from .watchlist_tools import WatchlistTools
 from .chats import ChatIndex
 from .config import NAMESPACE_CHECK_S, Settings
 from .deliveries import Outbox
@@ -56,6 +57,8 @@ class Service:
             ha_client = HaMcpClient(settings.ha_mcp_url)
         self.ha = HaGateway(settings, self.store, ha_client, require_iface=require_iface)
         self.engine = Engine(settings, self.store, self.hub, self.client, self.ha, self.outbox, self.chats)
+        self.watchlist = WatchlistTools(settings.watchlist_mcp_url, settings.watchlist_mcp_token)
+        self.engine.watchlist = self.watchlist
         self.monitor = Monitor(self.store, self.ha, self.engine, self.outbox, settings.mcp_endpoint_host,
                                probe_s=settings.probe_s, probe_timeout_s=settings.probe_timeout_s)
         self.home = HomeSnapshot(self.store, self.ha, settings.home_snapshot_s, settings.home_entities)
@@ -75,6 +78,7 @@ class Service:
         if background:
             self.monitor.start()
             self.home.start()
+            self.watchlist.start()
             self._watch = asyncio.create_task(self._namespace_watch(), name="namespace-watch")
             asyncio.create_task(self.monitor.probe_all(), name="first-probe")
         jsonlog.log("service started", event="start", detail=f"anthropic {VERSIONS['anthropic']} mcp {VERSIONS['mcp']}",
@@ -85,6 +89,7 @@ class Service:
             self._watch.cancel()
         await self.monitor.stop()
         await self.home.stop()
+        await self.watchlist.stop()
         await self.engine.shutdown()
         await self.ha.stop()
         with contextlib.suppress(Exception):
